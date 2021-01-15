@@ -1,6 +1,6 @@
-# Curve-ZKP
+# Pairing Crypto
 
-Curve-ZKP is a library focusing on Zero-Knowledge-Proofs using elliptic curves.
+Pairing Crypto is a library focusing on Zero-Knowledge-Proofs using elliptic curves.
 
 The following are provided from this library:
 
