@@ -86,9 +86,16 @@ macro_rules! sig_core_impl {
     };
 }
 
+macro_rules! basic_sig_impl {
+    ($ty:ident, $suite:expr) => {
+        impl BlsSigBasic for $ty {
+            const CSUITE: &'static [u8] = $suite;
+        }
+    };
+}
+
 sig_core_impl!(G2, G1, pair_g1_g2);
 sig_core_impl!(G1, G2, pair_g2_g1);
 
-impl BlsSigBasic for G2 {
-    const CSUITE: &'static [u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_";
-}
+basic_sig_impl!(G1, b"BLS_SIG_BLS12381G1_XMD:SHA-256_SSWU_RO_NUL_");
+basic_sig_impl!(G2, b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_");
