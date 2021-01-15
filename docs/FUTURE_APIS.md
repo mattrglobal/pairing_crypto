@@ -1,4 +1,6 @@
-The APIs use the following namespacing to indicate the operations a caller would like to perform:
+# Future APIs
+
+The following document, outlines the expect evolution of the APIs in this repository
 
 parameters.scheme.ciphersuite.operation(inputs) -> output
 
