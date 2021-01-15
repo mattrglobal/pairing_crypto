@@ -1,5 +1,6 @@
 use pairing_plus::CurveProjective;
 
+/// A keypair
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct KeyPair<P: CurveProjective> {
     pub(crate) secret_key: P::Scalar,
@@ -30,10 +31,14 @@ impl<P: CurveProjective> KeyPair<P> {
 
 pub(crate) type ScalarT<PtT> = <PtT as CurveProjective>::Scalar;
 
+/// Curve key generation methods
 pub trait KeyGen: CurveProjective {
+    /// The public key type
     type PKType: CurveProjective<Engine = <Self as CurveProjective>::Engine, Scalar = ScalarT<Self>>;
 
+    /// Generate a keypair
     fn keygen(seed: Option<&[u8]>) -> KeyPair<Self::PKType>;
 }
 
+/// Operations for the BLS12-381 curve
 pub mod bls12_381;

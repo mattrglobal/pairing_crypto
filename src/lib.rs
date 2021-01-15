@@ -28,5 +28,7 @@
     while_true
 )]
 
+/// Curve operations
 pub mod curves;
+/// Schemes that are supported by curves
 pub mod schemes;

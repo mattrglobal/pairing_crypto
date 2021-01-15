@@ -18,6 +18,7 @@ macro_rules! keygen_impl {
         impl KeyGen for $type {
             type PKType = $type;
 
+            /// generate a keypair
             fn keygen(seed: Option<&[u8]>) -> KeyPair<Self::PKType> {
                 let mut sk = secret_keygen(seed);
                 while sk.is_zero() {
