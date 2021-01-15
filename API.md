@@ -1,5 +1,7 @@
 # APIs
 
+The following document defines the conventions and concrete API structure for this library
+
 ## Conventions
 
 The APIs use the following namespacing to indicate the operations a caller would like to perform:
@@ -13,10 +15,6 @@ Scheme if included is the crypto primitive to use such as: bls, bbs, cdlnt, accu
 Ciphersuite if included specifies the suite to use for that system and operation like hashes, salts, and tags.
 
 Operation is the function to be executed such as: key_gen, sign, verify, blind_sign, gen_proof, verify_proof, update.
-
-## Supported Curves
-
-1. BLS12-381
 
 ## Curve Operations
 
