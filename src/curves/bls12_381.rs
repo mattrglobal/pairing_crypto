@@ -1,15 +1,16 @@
-use super::{KeyPair, KeyGen};
+use super::{KeyGen, KeyPair};
 
+use ff::Field;
 use hkdf::Hkdf;
 use pairing_plus::{
-    CurveProjective,
-    hash_to_field::BaseFromRO,
     bls12_381::{Fr, G1, G2},
+    hash_to_field::BaseFromRO,
+    CurveProjective,
 };
 use rand::prelude::*;
 use sha2::{
+    digest::generic_array::{typenum::U48, GenericArray},
     Sha256,
-    digest::generic_array::{GenericArray, typenum::U48}
 };
 
 macro_rules! keygen_impl {
@@ -18,7 +19,10 @@ macro_rules! keygen_impl {
             type PKType = $type;
 
             fn keygen(seed: Option<&[u8]>) -> KeyPair<Self::PKType> {
-                let sk = secret_keygen(seed);
+                let mut sk = secret_keygen(seed);
+                while sk.is_zero() {
+                    sk = secret_keygen(None);
+                }
                 let mut pk = Self::PKType::one();
                 pk.mul_assign(sk);
                 KeyPair {

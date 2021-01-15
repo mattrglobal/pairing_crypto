@@ -13,7 +13,7 @@ impl<P: CurveProjective> KeyPair<P> {
         public_key.mul_assign(secret_key);
         Self {
             secret_key,
-            public_key
+            public_key,
         }
     }
 

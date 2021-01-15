@@ -3,7 +3,7 @@ authors = ["Michael Lodder <redmike7@gmail.com>"]
 edition = "2018"
 license = "Apache-2"
 readme = "README.md"
-name = "curve-zkp"
+name = "paring-crypto"
 version = "0.1.0"
 
 [dependencies]
