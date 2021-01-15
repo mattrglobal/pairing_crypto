@@ -1,15 +1,11 @@
-# Pairing Crypto
+# Pairing Cryptography
 
-Pairing Crypto is a library focusing on Zero-Knowledge-Proofs using elliptic curves.
+This library is a simple and easy to use one stop shop for [pairing-based cryptography](https://en.wikipedia.org/wiki/Pairing-based_cryptography).
 
-The following are provided from this library:
+## Supported Curves
 
-- Short group signatures [BBS+2016](https://eprint.iacr.org/2016/663) and Short Threshold Dynamic Group Signatures [CDLNT2020](https://eprint.iacr.org/2020/016)
-- Accumulator [VB2020](https://eprint.iacr.org/2020/777)
-- [Bulletproofs+](https://eprint.iacr.org/2020/735)
+- [BLS 12-381](https://tools.ietf.org/html/draft-irtf-cfrg-pairing-friendly-curves-09#section-4.2.1)
 
-Short group signatures and accumulators are based on bilinear maps.
-This library aims to provide easy to use interfaces while allowing
-the consumer to pick a library without the need to change anything else.
+For a more exhaustive list of those published by the [CFRG](https://irtf.org/cfrg) please refer to [here](https://tools.ietf.org/html/draft-irtf-cfrg-pairing-friendly-curves-09)
 
-The APIs are described [here](API.md)
+See [here](API.md) for details on the APIs design
