@@ -1,0 +1,14 @@
+[package]
+authors = ["Michael Lodder <redmike7@gmail.com>"]
+edition = "2018"
+license = "Apache-2"
+readme = "README.md"
+name = "curve-zkp"
+version = "0.1.0"
+
+[dependencies]
+ff = { version = "0.6", package = "ff-zeroize" }
+hkdf = "0.8"
+pairing-plus = "0.19"
+rand = "0.7"
+sha2 = "0.8"
