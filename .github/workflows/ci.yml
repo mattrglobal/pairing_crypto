@@ -36,6 +36,11 @@ jobs:
           command: clippy
           args: '-- -D warnings'
 
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+
       - name: Run cargo build
         uses: actions-rs/cargo@v1
         with:
