@@ -8,4 +8,10 @@ This library is a simple and easy to use one stop shop for [pairing-based crypto
 
 For a more exhaustive list of those published by the [CFRG](https://irtf.org/cfrg) please refer to [here](https://tools.ietf.org/html/draft-irtf-cfrg-pairing-friendly-curves-09)
 
+## Supported Signature Algorithms
+
+- [Basic BLS Signatures](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-3.1)
+
+## API Design
+
 See [here](API.md) for details on the APIs design
