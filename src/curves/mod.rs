@@ -37,7 +37,7 @@ pub trait KeyGen: CurveProjective {
     type PKType: CurveProjective<Engine = <Self as CurveProjective>::Engine, Scalar = ScalarT<Self>>;
 
     /// Generate a keypair
-    fn keygen(seed: Option<&[u8]>) -> KeyPair<Self::PKType>;
+    fn generate_key_pair(seed: Option<&[u8]>) -> Result<KeyPair<Self::PKType>, String>;
 }
 
 /// Operations for the BLS12-381 curve
