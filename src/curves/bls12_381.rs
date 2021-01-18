@@ -19,17 +19,17 @@ macro_rules! keygen_impl {
             type PKType = $type;
 
             /// generate a keypair
-            fn keygen(seed: Option<&[u8]>) -> KeyPair<Self::PKType> {
-                let mut sk = secret_keygen(seed);
+            fn generate_key_pair(seed: Option<&[u8]>) -> Result<KeyPair<Self::PKType>, String> {
+                let mut sk = secret_keygen(seed)?;
                 while sk.is_zero() {
-                    sk = secret_keygen(None);
+                    sk = secret_keygen(None)?;
                 }
                 let mut pk = Self::PKType::one();
                 pk.mul_assign(sk);
-                KeyPair {
+                Ok(KeyPair {
                     secret_key: sk,
                     public_key: pk,
-                }
+                })
             }
         }
     };
@@ -38,13 +38,18 @@ macro_rules! keygen_impl {
 keygen_impl!(G1);
 keygen_impl!(G2);
 
-fn secret_keygen(ikm: Option<&[u8]>) -> Fr {
+/// See section 2.3 in
+/// <https://datatracker.ietf.org/doc/draft-irtf-cfrg-bls-signature/?include_text=1>
+fn secret_keygen(ikm: Option<&[u8]>) -> Result<Fr, String> {
     const SALT: &[u8] = b"BLS-SIG-KEYGEN-SALT-";
     let mut s = ikm.map(|s| s.to_vec()).unwrap_or_else(random_seed);
+    if s.len() < 32 {
+        return Err(format!("Seed must be at least 32 characters, found: {}", s.len()));
+    }
     s.push(0u8);
     let mut m = GenericArray::<u8, U48>::default();
     let _ = Hkdf::<Sha256>::new(Some(SALT), &s).expand(&[0, 48], &mut m);
-    Fr::from_okm(&m)
+    Ok(Fr::from_okm(&m))
 }
 
 fn random_seed() -> Vec<u8> {
