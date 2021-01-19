@@ -38,13 +38,16 @@ macro_rules! keygen_impl {
 keygen_impl!(G1);
 keygen_impl!(G2);
 
-/// See section 2.3 in
+/// Generates the secret key in accordance with section 2.3 in
 /// <https://datatracker.ietf.org/doc/draft-irtf-cfrg-bls-signature/?include_text=1>
 fn secret_keygen(ikm: Option<&[u8]>) -> Result<Fr, String> {
     const SALT: &[u8] = b"BLS-SIG-KEYGEN-SALT-";
     let mut s = ikm.map(|s| s.to_vec()).unwrap_or_else(random_seed);
     if s.len() < 32 {
-        return Err(format!("Seed must be at least 32 characters, found: {}", s.len()));
+        return Err(format!(
+            "Seed must be at least 32 characters, found: {}",
+            s.len()
+        ));
     }
     s.push(0u8);
     let mut m = GenericArray::<u8, U48>::default();
