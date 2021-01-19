@@ -15,3 +15,7 @@ For a more exhaustive list of those published by the [CFRG](https://irtf.org/cfr
 ## API Design
 
 See [here](API.md) for details on the APIs design
+
+## Contribution Guide
+
+To get started contributing to this project be sure to check out our [contribution guide](./docs/CONTRIBUTING.md)
