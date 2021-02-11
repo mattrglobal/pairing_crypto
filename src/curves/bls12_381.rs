@@ -19,7 +19,7 @@ macro_rules! keygen_impl {
             type PKType = $type;
 
             /// generate a keypair
-            fn generate_key_pair(seed: Option<&[u8]>) -> Result<KeyPair<Self::PKType>, String> {
+            fn generate_key_pair(seed: Option<&[u8]>) -> Result<KeyPair<Self::PKType, Self>, String> {
                 let mut sk = secret_keygen(seed)?;
                 while sk.is_zero() {
                     sk = secret_keygen(None)?;
@@ -29,6 +29,7 @@ macro_rules! keygen_impl {
                 Ok(KeyPair {
                     secret_key: sk,
                     public_key: pk,
+                    _signature: std::marker::PhantomData
                 })
             }
         }

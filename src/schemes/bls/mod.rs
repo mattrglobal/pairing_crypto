@@ -15,7 +15,7 @@ pub trait BlsSigCore: CurveProjective {
     type PKType: CurveProjective<Engine = <Self as CurveProjective>::Engine, Scalar = ScalarT<Self>>;
 
     /// Sign a message
-    fn core_sign(kp: &KeyPair<Self::PKType>, msg: &[u8], ciphersuite: &[u8]) -> Self;
+    fn core_sign(kp: &KeyPair<Self::PKType, Self>, msg: &[u8], ciphersuite: &[u8]) -> Self;
 
     /// Verify a message
     fn core_verify(pk: Self::PKType, sig: Self, msg: &[u8], ciphersuite: &[u8]) -> bool;
@@ -27,7 +27,7 @@ pub trait BlsSigBasic: BlsSigCore {
     const CSUITE: &'static [u8];
 
     /// Sign `msg` using with `kp`
-    fn sign(kp: &KeyPair<Self::PKType>, msg: &[u8]) -> Self {
+    fn sign(kp: &KeyPair<Self::PKType, Self>, msg: &[u8]) -> Self {
         <Self as BlsSigCore>::core_sign(kp, msg, Self::CSUITE)
     }
 
@@ -58,7 +58,7 @@ macro_rules! sig_core_impl {
         impl BlsSigCore for $ty1 {
             type PKType = $ty2;
             fn core_sign(
-                kp: &KeyPair<<Self as BlsSigCore>::PKType>,
+                kp: &KeyPair<<Self as BlsSigCore>::PKType, Self>,
                 msg: &[u8],
                 ciphersuite: &[u8],
             ) -> Self {
