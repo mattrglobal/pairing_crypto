@@ -1,0 +1,10 @@
+[package]
+name = "hash2curve"
+version = "0.1.0"
+authors = ["Michael Lodder <redmike7@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+digest = "0.9"
+ff = "0.9"
+pairing = "0.19"
