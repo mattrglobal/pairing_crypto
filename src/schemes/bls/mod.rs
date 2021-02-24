@@ -1,8 +1,7 @@
 use crate::curves::{KeyPair, ScalarT};
 use ff::Field;
-use pairing_plus::bls12_381::{G1Prepared, G2Prepared};
-use pairing_plus::{
-    bls12_381::{Bls12, Fq12, G1, G2},
+use pairings::{
+    bls12_381::{Bls12, Fq12, G1, G2, G1Prepared, G2Prepared},
     hash_to_curve::HashToCurve,
     hash_to_field::ExpandMsgXmd,
     CurveAffine, CurveProjective, Engine,
@@ -58,7 +57,7 @@ macro_rules! sig_core_impl {
         impl BlsSigCore for $ty1 {
             type PKType = $ty2;
             fn core_sign(
-                kp: &KeyPair<<Self as BlsSigCore>::PKType, Self>,
+                kp: &KeyPair<$ty2, $ty1>,
                 msg: &[u8],
                 ciphersuite: &[u8],
             ) -> Self {
