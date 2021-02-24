@@ -2,7 +2,7 @@ use super::{KeyGen, KeyPair};
 
 use ff::Field;
 use hkdf::Hkdf;
-use pairing_plus::{
+use pairings::{
     bls12_381::{Fr, G1, G2},
     hash_to_field::BaseFromRO,
     CurveProjective,
@@ -14,21 +14,19 @@ use sha2::{
 };
 
 macro_rules! keygen_impl {
-    ($type:ident) => {
-        impl KeyGen for $type {
-            type PKType = $type;
+    ($ty1:ident, $ty2:ident) => {
+        impl KeyGen for $ty1 {
+            type PKType = $ty2;
 
             /// generate a keypair
-            fn generate_key_pair(seed: Option<&[u8]>) -> Result<KeyPair<Self::PKType, Self>, String> {
+            fn generate_key_pair(seed: Option<&[u8]>) -> Result<KeyPair<Self, Self::PKType>, String> {
                 let mut sk = secret_keygen(seed)?;
                 while sk.is_zero() {
                     sk = secret_keygen(None)?;
                 }
-                let mut pk = Self::PKType::one();
-                pk.mul_assign(sk);
                 Ok(KeyPair {
                     secret_key: sk,
-                    public_key: pk,
+                    _public_key: std::marker::PhantomData,
                     _signature: std::marker::PhantomData
                 })
             }
@@ -36,8 +34,8 @@ macro_rules! keygen_impl {
     };
 }
 
-keygen_impl!(G1);
-keygen_impl!(G2);
+keygen_impl!(G1, G2);
+keygen_impl!(G2, G1);
 
 /// Generates the secret key in accordance with section 2.3 in
 /// <https://datatracker.ietf.org/doc/draft-irtf-cfrg-bls-signature/?include_text=1>
@@ -56,8 +54,8 @@ fn secret_keygen(ikm: Option<&[u8]>) -> Result<Fr, String> {
     Ok(Fr::from_okm(&m))
 }
 
-fn random_seed() -> Vec<u8> {
-    let mut seed = vec![0u8; 32];
-    thread_rng().fill_bytes(&mut seed);
+fn random_seed() -> [u8; 32] {
+    let mut seed = [0u8; 32];
+    thread_rng().fill_bytes(&mut seed.as_mut());
     seed
 }
