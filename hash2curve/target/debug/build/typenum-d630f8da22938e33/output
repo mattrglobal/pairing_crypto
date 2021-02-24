@@ -1,2 +1,0 @@
-cargo:rustc-env=TYPENUM_BUILD_CONSTS=/Users/malodder/IdeaProjects/pairing-crypto/hash2curve/target/debug/build/typenum-d630f8da22938e33/out/consts.rs
-cargo:rustc-env=TYPENUM_BUILD_OP=/Users/malodder/IdeaProjects/pairing-crypto/hash2curve/target/debug/build/typenum-d630f8da22938e33/out/op.rs
