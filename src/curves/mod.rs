@@ -1,9 +1,11 @@
+use crate::BigArray;
 use ff::Field;
 use hkdf::Hkdf;
 use pairings::{
-    bls12_381::{Bls12, ClearH, Fq12, Fr, G1Prepared, G2Prepared, G1, G2},
+    bls12_381::{Bls12, Fq12, Fr, G1Prepared, G2Prepared, G1, G2},
     hash_to_curve::HashToCurve,
-    hash_to_field::ExpandMsgXmd,
+    hash_to_field::{BaseFromRO, ExpandMsgXmd},
+    serdes::SerDes,
     CurveAffine, CurveProjective, Engine,
 };
 use rand::prelude::*;
@@ -11,26 +13,74 @@ use sha2::{
     digest::generic_array::{typenum::U48, GenericArray},
     Sha256,
 };
-use std::marker::PhantomData;
+use std::convert::TryFrom;
+use zeroize::Zeroize;
+
+#[macro_use]
+mod macros;
+
+const SIGN_SUITE_G1: &'static [u8] = b"BLS_SIG_BLS12381G1_XMD:SHA-256_SSWU_RO_POP_";
+const SIGN_SUITE_G2: &'static [u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
+const POP_SUITE_G1: &'static [u8] = b"BLS_POP_BLS12381G1_XMD:SHA-256_SSWU_RO_POP_";
+const POP_SUITE_G2: &'static [u8] = b"BLS_POP_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
 
 /// A keypair
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct KeyPair<Sg: CurveProjective, Pk: CurveProjective> {
-    pub(crate) secret_key: Pk::Scalar,
-    pub(crate) _public_key: PhantomData<Pk>,
-    pub(crate) _signature: PhantomData<Sg>,
-}
+#[derive(Clone, Debug, Eq, PartialEq, Zeroize)]
+pub struct SecretKey(pub(crate) Fr);
 
-impl<Sg: CurveProjective, Pk: CurveProjective> KeyPair<Sg, Pk> {
+/// A public key in G1
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct PublicKey(pub(crate) G1);
+
+/// A public key in G1 composed of many public keys
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct MultiPublicKey(pub(crate) G1);
+
+/// A public key in G2
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct PublicKeyVt(pub(crate) G2);
+
+/// A public key in G2 composed of many public keys
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct MultiPublicKeyVt(pub(crate) G2);
+
+/// A signature in G2
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct Signature(pub(crate) G2);
+
+/// A signature in G2 composed of many signatures
+/// where the same message was signed by unique secret keys
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct MultiSignature(pub(crate) G2);
+
+/// A proof of possession in G2
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct KeyProof(pub(crate) G2);
+
+/// A signature in G1
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct SignatureVt(pub(crate) G1);
+
+/// A proof of possession in G1
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct KeyProofVt(pub(crate) G1);
+
+/// A signature in G1 composed of many signatures
+/// where the same message was signed by unique secret keys
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct MultiSignatureVt(pub(crate) G1);
+
+impl SecretKey {
     const KEY_SALT: &'static [u8] = b"BLS-SIG-KEYGEN-SALT-";
 
+    /// Create a new key pair
     pub fn new() -> Self {
         let mut seed = [0u8; 33];
         thread_rng().fill_bytes(&mut seed.as_mut());
         seed[32] = 0u8;
         let mut m = GenericArray::<u8, U48>::default();
         let _ = Hkdf::<Sha256>::new(Some(Self::KEY_SALT), &seed).expand(&[0, 48], &mut m);
-        Ok(Fr::from_okm(&m))
+        Self(Fr::from_okm(&m))
     }
 
     pub fn with_ikm(ikm: &[u8]) -> Self {
@@ -38,114 +88,234 @@ impl<Sg: CurveProjective, Pk: CurveProjective> KeyPair<Sg, Pk> {
         s.push(0u8);
         let mut m = GenericArray::<u8, U48>::default();
         let _ = Hkdf::<Sha256>::new(Some(Self::KEY_SALT), &s).expand(&[0, 48], &mut m);
-        Ok(Fr::from_okm(&m))
+        Self(Fr::from_okm(&m))
     }
 
-    /// Restore a key pair from just the secret key
-    pub fn from_secret_key(secret_key: Pk::Scalar) -> Self {
-        Self {
-            secret_key,
-            _public_key: PhantomData,
-            _signature: PhantomData,
-        }
+    to_bytes!(32);
+
+    /// Return the public key in G1
+    pub fn public_key(&self) -> PublicKey {
+        let mut pk = G1::one();
+        pk.mul_assign(self.0);
+        PublicKey(pk)
     }
 
-    /// Return the secret key
-    pub fn secret_key(&self) -> Pk::Scalar {
-        self.secret_key
+    /// Return the public key in G2
+    pub fn public_key_vt(&self) -> PublicKeyVt {
+        let mut pk = G2::one();
+        pk.mul_assign(self.0);
+        PublicKeyVt(pk)
     }
 
-    /// Return the public key
-    pub fn public_key(&self) -> Pk {
-        let mut pk = Pk::one();
-        pk.mul_assign(self.secret_key);
-        pk
+    /// Return a proof of possession in G2
+    pub fn key_proof(&self) -> KeyProof {
+        let mut p = hash_g2(&self.public_key().to_bytes(), POP_SUITE_G2);
+        p.mul_assign(self.0);
+        KeyProof(p)
     }
 
-    pub fn sign(&self, msg: &[u8]) -> Sg {}
-
-    pub fn verify(&self, signature: Sg, msg: &[u8]) -> bool {}
-
-    fn core_sign(&self, msg: &[u8], dst: &[u8]) -> Sg {
-        let mut p = <Sg as HashToCurve<ExpandMsgXmd<Sha256>>>::hash_to_curve(msg, dst);
-        p.mul_assign(self.secret_key);
-        p
+    /// Return a proof of possession in G1
+    pub fn key_proof_vt(&self) -> KeyProofVt {
+        let mut p = hash_g1(&self.public_key_vt().to_bytes(), POP_SUITE_G1);
+        p.mul_assign(self.0);
+        KeyProofVt(p)
     }
 
-    fn core_verify(&self, sig: &Sg, msg: &[u8], dst: &[u8]) -> bool {
-        let p = <Sg as HashToCurve<ExpandMsgXmd<Sha256>>>::hash_to_curve(msg, dst);
-        let g = {
-            let mut t = Pk::one();
-            t.negate();
-            t
-        };
-        let pk = self.public_key();
-        <Self as Pair<T1 = Pk, T2 = Sg>>::pair(&pk, &p, &g, &sig)
+    /// Return a signature in G2
+    pub fn sign<M: AsRef<[u8]>>(&self, msg: M) -> Signature {
+        let mut p =
+            <G2 as HashToCurve<ExpandMsgXmd<Sha256>>>::hash_to_curve(msg.as_ref(), SIGN_SUITE_G2);
+        p.mul_assign(self.0);
+        Signature(p)
     }
-}
 
-impl Pair for KeyPair<G1, G2> {
-    type T1 = G1;
-    type T2 = G2;
-
-    fn pair(p1: &Self::T1, g1: &Self::T2, p2: &Self::T1, g2: &Self::T2) -> bool {
-        pair_g1_g2(
-            &p1.into_affine().prepare(),
-            &g1.into_affine().prepare(),
-            &p2.into_affine().prepare(),
-            &g2.into_affine().prepare(),
-        )
+    /// Return a signature in G1
+    pub fn sign_vt<M: AsRef<[u8]>>(&self, msg: M) -> SignatureVt {
+        let mut p =
+            <G1 as HashToCurve<ExpandMsgXmd<Sha256>>>::hash_to_curve(msg.as_ref(), SIGN_SUITE_G1);
+        p.mul_assign(self.0);
+        SignatureVt(p)
     }
 }
 
-impl Pair for KeyPair<G2, G1> {
-    type T1 = G2;
-    type T2 = G1;
+from_impl!(SecretKey, Fr, 32);
+serial!(SecretKey, Fr, 32);
 
-    fn pair(p1: &Self::T2, g1: &Self::T1, p2: &Self::T2, g2: &Self::T1) -> bool {
-        pair_g2_g1(
-            &g1.into_affine().prepare(),
-            &p1.into_affine().prepare(),
-            &g2.into_affine().prepare(),
-            &p2.into_affine().prepare(),
-        )
+impl Signature {
+    to_bytes!(96);
+
+    pub fn verify<M: AsRef<[u8]>>(&self, msg: M, pk: PublicKey) -> bool {
+        verify(pk.0, self.0, msg, SIGN_SUITE_G2)
     }
 }
 
-impl Scheme for KeyPair<G1, G2> {
-    type T1 = G1;
-    type T2 = G2;
-    const CSUITE: &'static [u8] = b"BLS_SIG_BLS12381G1_XMD:SHA-256_SSWU_RO_NUL_";
+default_impl!(Signature, G2);
+sum_impl!(Signature);
+from_impl!(Signature, G2, 96);
+serial!(Signature, G2, 96);
+
+impl MultiSignature {
+    to_bytes!(96);
+
+    pub fn verify<M: AsRef<[u8]>>(&self, msg: M, pk: MultiPublicKey) -> bool {
+        verify(pk.0, self.0, msg, SIGN_SUITE_G2)
+    }
 }
 
-impl Scheme for KeyPair<G2, G1> {
-    type T1 = G2;
-    type T2 = G1;
-    const CSUITE: &'static [u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_";
+impl From<&[Signature]> for MultiSignature {
+    fn from(sigs: &[Signature]) -> Self {
+        let sig: Signature = sigs.iter().sum();
+        Self(sig.0)
+    }
 }
 
-pub(crate) type ScalarT<PtT> = <PtT as CurveProjective>::Scalar;
+sum_impl!(MultiSignature);
+default_impl!(MultiSignature, G2);
+from_impl!(MultiSignature, G2, 96);
+serial!(MultiSignature, G2, 96);
 
-/// Curve key generation methods
-pub trait KeyGen: CurveProjective {
-    /// The public key type
-    type PKType: CurveProjective<Engine = <Self as CurveProjective>::Engine, Scalar = ScalarT<Self>>;
+impl KeyProof {
+    to_bytes!(96);
 
-    /// Generate a keypair
-    fn generate_key_pair(seed: Option<&[u8]>) -> Result<KeyPair<Self::PKType, Self>, String>;
+    pub fn verify<M: AsRef<[u8]>>(&self, pk: PublicKey) -> bool {
+        verify(pk.0, self.0, &self.to_bytes(), POP_SUITE_G2)
+    }
 }
 
-trait Pair {
-    type T1: CurveProjective;
-    type T2: CurveProjective;
-    fn pair(p1: &Self::T1, g1: &Self::T2, p2: &Self::T1, g2: &Self::T2) -> bool;
+default_impl!(KeyProof, G2);
+from_impl!(KeyProof, G2, 96);
+serial!(KeyProof, G2, 96);
+
+impl PublicKeyVt {
+    to_bytes!(96);
 }
 
-trait Scheme {
-    /// The ciphersuite domain separation tag
-    const CSUITE: &'static [u8];
-    type T1: CurveProjective;
-    type T2: CurveProjective;
+default_impl!(PublicKeyVt, G2);
+sum_impl!(PublicKeyVt);
+from_impl!(PublicKeyVt, G2, 96);
+from_secret!(PublicKeyVt);
+serial!(PublicKeyVt, G2, 96);
+
+impl MultiPublicKeyVt {
+    to_bytes!(96);
+}
+
+impl From<&[PublicKeyVt]> for MultiPublicKeyVt {
+    fn from(keys: &[PublicKeyVt]) -> Self {
+        let key: PublicKeyVt = keys.iter().sum();
+        Self(key.0)
+    }
+}
+
+default_impl!(MultiPublicKeyVt, G2);
+sum_impl!(MultiPublicKeyVt);
+from_impl!(MultiPublicKeyVt, G2, 96);
+serial!(MultiPublicKeyVt, G2, 96);
+
+impl PublicKey {
+    to_bytes!(48);
+}
+
+default_impl!(PublicKey, G1);
+sum_impl!(PublicKey);
+from_impl!(PublicKey, G1, 48);
+from_secret!(PublicKey);
+serial!(PublicKey, G1, 48);
+
+impl MultiPublicKey {
+    to_bytes!(48);
+}
+
+default_impl!(MultiPublicKey, G1);
+sum_impl!(MultiPublicKey);
+from_impl!(MultiPublicKey, G1, 48);
+serial!(MultiPublicKey, G1, 48);
+
+impl SignatureVt {
+    to_bytes!(48);
+
+    pub fn verify<M: AsRef<[u8]>>(&self, msg: M, pk: PublicKeyVt) -> bool {
+        verify_vt(pk.0, self.0, msg, SIGN_SUITE_G1)
+    }
+}
+
+default_impl!(SignatureVt, G1);
+sum_impl!(SignatureVt);
+from_impl!(SignatureVt, G1, 48);
+serial!(SignatureVt, G1, 48);
+
+impl MultiSignatureVt {
+    to_bytes!(48);
+
+    pub fn verify<M: AsRef<[u8]>>(&self, msg: M, pk: MultiPublicKeyVt) -> bool {
+        verify_vt(pk.0, self.0, msg, SIGN_SUITE_G1)
+    }
+}
+
+default_impl!(MultiSignatureVt, G1);
+sum_impl!(MultiSignatureVt);
+from_impl!(MultiSignatureVt, G1, 48);
+serial!(MultiSignatureVt, G1, 48);
+
+impl From<&[SignatureVt]> for MultiSignatureVt {
+    fn from(sigs: &[SignatureVt]) -> Self {
+        let sig: SignatureVt = sigs.iter().sum();
+        Self(sig.0)
+    }
+}
+
+impl KeyProofVt {
+    to_bytes!(48);
+
+    pub fn verify<M: AsRef<[u8]>>(&self, pk: PublicKeyVt) -> bool {
+        verify_vt(pk.0, self.0, &self.to_bytes(), POP_SUITE_G1)
+    }
+}
+
+default_impl!(KeyProofVt, G1);
+from_impl!(KeyProofVt, G1, 48);
+serial!(KeyProofVt, G1, 48);
+
+fn verify<M: AsRef<[u8]>>(pk: G1, sig: G2, msg: M, dst: &[u8]) -> bool {
+    let p = hash_g2(msg.as_ref(), dst);
+    let g = neg_g1();
+    pair_g1_g2(
+        &pk.into_affine().prepare(),
+        &p.into_affine().prepare(),
+        &g.into_affine().prepare(),
+        &sig.into_affine().prepare(),
+    )
+}
+
+fn verify_vt<M: AsRef<[u8]>>(pk: G2, sig: G1, msg: M, dst: &[u8]) -> bool {
+    let p = hash_g1(msg.as_ref(), dst);
+    let g = neg_g2();
+    pair_g2_g1(
+        &pk.into_affine().prepare(),
+        &p.into_affine().prepare(),
+        &g.into_affine().prepare(),
+        &sig.into_affine().prepare(),
+    )
+}
+
+fn hash_g1<M: AsRef<[u8]>>(msg: M, dst: &[u8]) -> G1 {
+    <G1 as HashToCurve<ExpandMsgXmd<Sha256>>>::hash_to_curve(msg.as_ref(), dst)
+}
+
+fn hash_g2<M: AsRef<[u8]>>(msg: M, dst: &[u8]) -> G2 {
+    <G2 as HashToCurve<ExpandMsgXmd<Sha256>>>::hash_to_curve(msg.as_ref(), dst)
+}
+
+fn neg_g2() -> G2 {
+    let mut g = G2::one();
+    g.negate();
+    g
+}
+
+fn neg_g1() -> G1 {
+    let mut g = G1::one();
+    g.negate();
+    g
 }
 
 #[inline]
@@ -163,13 +333,3 @@ fn pair_g1_g2(p1: &G1Prepared, g1: &G2Prepared, p2: &G1Prepared, g2: &G2Prepared
         Some(fq) => fq == Fq12::one(),
     }
 }
-
-#[inline]
-fn random_seed() -> [u8; 32] {
-    let mut seed = [0u8; 32];
-    thread_rng().fill_bytes(&mut seed.as_mut());
-    seed
-}
-
-// /// Operations for the BLS12-381 curve
-//pub mod bls12_381;
