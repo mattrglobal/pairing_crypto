@@ -28,12 +28,8 @@
     while_true
 )]
 
-#[macro_use]
-extern crate serde_big_array;
 
-big_array! { BigArray; 48, 96 }
 
-/// Curve operations
-pub mod curves;
-/// Schemes that are supported by curves
-pub mod schemes;
+pub mod bls12_381 {
+    pub use signature_bls::*;
+}
