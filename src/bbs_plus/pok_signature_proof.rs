@@ -6,7 +6,7 @@ use digest::Update;
 use group::{Curve, Group, GroupEncoding};
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
-use signature_bls::PublicKey;
+use bls::PublicKey;
 use subtle::{Choice, CtOption};
 
 /// The actual proof that is sent from prover to verifier.
