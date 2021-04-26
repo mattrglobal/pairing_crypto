@@ -32,7 +32,7 @@ pub mod bls12_381 {
         Challenge, Commitment, Error, HiddenMessage, Message, Nonce, ProofMessage,
         SignatureBlinding, COMMITMENT_G1_BYTES, COMMITMENT_G2_BYTES, FIELD_BYTES,
     };
-    pub use signature_bls::*;
+    pub use bls::*;
     /// BBS+ signature module
     pub mod bbs {
         pub use crate::bbs_plus::*;

@@ -18,4 +18,4 @@ pub use prover::*;
 pub use signature::*;
 pub use verifier::*;
 
-pub use signature_bls::{ProofOfPossession, PublicKey, SecretKey};
+pub use bls::{ProofOfPossession, PublicKey, SecretKey};

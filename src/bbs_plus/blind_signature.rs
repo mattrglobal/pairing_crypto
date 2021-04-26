@@ -7,7 +7,7 @@ use ff::Field;
 use group::Curve;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use sha3::Shake256;
-use signature_bls::SecretKey;
+use bls::SecretKey;
 use subtle::CtOption;
 
 /// A BBS+ blind signature
