@@ -1,4 +1,6 @@
-# Code Contribution Guide
+# Code Contribution Guide Rust
+
+The primary language of this repository is [Rust](https://www.rust-lang.org/) more specifically the [2018 edition](https://doc.rust-lang.org/edition-guide/rust-2018/index.html).
 
 The following document outlines how to make a code contribution to this project.
 
