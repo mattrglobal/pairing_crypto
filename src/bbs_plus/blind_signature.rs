@@ -1,13 +1,13 @@
 use super::{MessageGenerators, Signature};
 use crate::core::*;
 
+use bls::SecretKey;
 use bls12_381_plus::{G1Projective, Scalar};
 use digest::{ExtendableOutput, Update, XofReader};
 use ff::Field;
 use group::Curve;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use sha3::Shake256;
-use bls::SecretKey;
 use subtle::CtOption;
 
 /// A BBS+ blind signature

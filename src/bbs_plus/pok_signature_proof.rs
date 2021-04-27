@@ -1,12 +1,12 @@
 use super::MessageGenerators;
 use crate::core::*;
+use bls::PublicKey;
 use bls12_381_plus::{multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared, Scalar};
 use core::convert::TryFrom;
 use digest::Update;
 use group::{Curve, Group, GroupEncoding};
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
-use bls::PublicKey;
 use subtle::{Choice, CtOption};
 
 /// The actual proof that is sent from prover to verifier.

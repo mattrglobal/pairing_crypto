@@ -1,5 +1,6 @@
 use super::MessageGenerators;
 use crate::core::*;
+use bls::{PublicKey, SecretKey};
 use bls12_381_plus::{
     multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective, Scalar,
 };
@@ -14,7 +15,6 @@ use serde::{
     Deserialize, Deserializer, Serialize, Serializer,
 };
 use sha3::Shake256;
-use bls::{PublicKey, SecretKey};
 use subtle::{Choice, ConditionallySelectable, CtOption};
 
 /// A BBS+ signature

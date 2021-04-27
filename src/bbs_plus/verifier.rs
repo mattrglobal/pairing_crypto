@@ -1,9 +1,9 @@
 use super::{MessageGenerators, PokSignatureProof};
 use crate::core::*;
+use bls::PublicKey;
 use bls12_381_plus::Scalar;
 use digest::{ExtendableOutput, Update, XofReader};
 use sha3::Shake256;
-use bls::PublicKey;
 
 /// This struct represents an Verifier of signatures.
 /// Provided are methods for generating a context to ask for revealed messages
