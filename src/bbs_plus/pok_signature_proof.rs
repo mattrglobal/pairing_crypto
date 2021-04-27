@@ -59,13 +59,13 @@ impl PokSignatureProof {
         let mut offset = COMMITMENT_G1_BYTES;
         let mut end = COMMITMENT_G1_BYTES + FIELD_BYTES;
         let a_prime = G1Affine::from_compressed(slicer!(buffer, 0, offset, COMMITMENT_G1_BYTES))
-            .map(|p| G1Projective::from(p));
+            .map(G1Projective::from);
         let a_bar = G1Affine::from_compressed(slicer!(buffer, offset, end, COMMITMENT_G1_BYTES))
-            .map(|p| G1Projective::from(p));
+            .map(G1Projective::from);
         offset = end;
         end = offset + COMMITMENT_G1_BYTES;
         let d = G1Affine::from_compressed(slicer!(buffer, offset, end, COMMITMENT_G1_BYTES))
-            .map(|p| G1Projective::from(p));
+            .map(G1Projective::from);
 
         if a_prime.is_none().unwrap_u8() == 1
             || a_bar.is_none().unwrap_u8() == 1

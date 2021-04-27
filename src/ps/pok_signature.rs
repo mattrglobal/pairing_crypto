@@ -46,7 +46,7 @@ impl PokSignature {
         points.push(public_key.w);
         secrets.push(signature.m_tick);
 
-        for i in 0..messages.len() {
+        for (i, _) in messages.iter().enumerate() {
             match messages[i] {
                 ProofMessage::Hidden(HiddenMessage::ProofSpecificBlinding(m)) => {
                     proof.commit_random(public_key.y[i], &mut rng);

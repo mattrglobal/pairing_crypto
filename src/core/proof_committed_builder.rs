@@ -44,11 +44,7 @@ where
         for i in 0..self.points.len() {
             res &= self.points[i].ct_eq(&other.points[i]).unwrap_u8();
         }
-        if res == 1 {
-            true
-        } else {
-            false
-        }
+        res == 1
     }
 }
 

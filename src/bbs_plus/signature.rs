@@ -180,7 +180,7 @@ impl Signature {
     /// Convert a byte sequence into a signature
     pub fn from_bytes(data: &[u8; Self::BYTES]) -> CtOption<Self> {
         let aa = G1Affine::from_compressed(&<[u8; 48]>::try_from(&data[0..48]).unwrap())
-            .map(|p| G1Projective::from(p));
+            .map(G1Projective::from);
         let mut e_bytes = <[u8; 32]>::try_from(&data[48..80]).unwrap();
         e_bytes.reverse();
         let ee = Scalar::from_bytes(&e_bytes);
@@ -201,12 +201,12 @@ impl Signature {
     ) -> G1Projective {
         let points: Vec<_> = [G1Projective::generator(), generators.h0]
             .iter()
-            .map(|g| *g)
-            .chain(generators.iter().map(|g| g))
+            .copied()
+            .chain(generators.iter())
             .collect();
         let mut scalars: Vec<_> = [Scalar::one(), s]
             .iter()
-            .map(|c| *c)
+            .copied()
             .chain(msgs.iter().map(|c| c.0))
             .collect();
 

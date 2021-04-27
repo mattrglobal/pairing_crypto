@@ -88,7 +88,7 @@ impl MessageGenerators {
 
             let t = <[u8; MessageGenerators::POINT_SIZE]>::try_from(d).expect("invalid length");
             G1Affine::from_compressed(&t)
-                .map(|p| G1Projective::from(p))
+                .map(G1Projective::from)
                 .unwrap()
         }
 

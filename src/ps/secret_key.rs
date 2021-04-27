@@ -54,7 +54,7 @@ impl SecretKey {
 
     /// Compute a secret key from a hash
     pub fn hash<B: AsRef<[u8]>>(count: usize, data: B) -> Option<Self> {
-        const SALT: &'static [u8] = b"PS-SIG-KEYGEN-SALT-";
+        const SALT: &[u8] = b"PS-SIG-KEYGEN-SALT-";
         let info = (count as u32).to_be_bytes();
         let mut extractor = HkdfExtract::<Sha3_256>::new(Some(SALT));
         extractor.input_ikm(data.as_ref());
