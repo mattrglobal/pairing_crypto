@@ -35,6 +35,16 @@ jobs:
         with:
           command: clippy
 
+      - name: Run cargo check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+
+      - name: Run cargo audit
+        uses: actions-rs/cargo@v1
+        with:
+          command: audit
+
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
