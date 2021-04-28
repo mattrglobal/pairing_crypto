@@ -50,7 +50,7 @@ macro_rules! scalar_wrapper {
 
             /// Convert a big-endian representation of the struct
             pub fn from_bytes(bytes: &[u8; Self::BYTES]) -> CtOption<Self> {
-                super::scalar_from_bytes(bytes).map(|s| Self(s))
+                super::scalar_from_bytes(bytes).map(Self)
             }
 
             /// Convert a 48 byte digest into a struct

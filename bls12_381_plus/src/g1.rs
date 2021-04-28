@@ -578,10 +578,9 @@ impl<'de> serde::Deserialize<'de> for G1Projective {
 
 #[inline(always)]
 fn mul_by_3b(a: Fp) -> Fp {
-    let a = a + a; // 2
-    let a = a + a; // 4
-    let a = a + a + a; // 12
-    a
+    let mut a = a + a; // 2
+    a = a + a; // 4
+    a + a + a // 12
 }
 
 impl G1Projective {

@@ -1,5 +1,6 @@
 use super::{MessageGenerators, PokSignatureProof};
 use crate::core::*;
+use bls::PublicKey;
 use bls12_381_plus::Scalar;
 use digest::{ExtendableOutput, Update, XofReader};
 use sha3::Shake256;

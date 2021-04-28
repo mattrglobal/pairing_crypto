@@ -184,9 +184,9 @@ impl Signature {
     /// Convert a byte sequence into a signature
     pub fn from_bytes(data: &[u8; Self::BYTES]) -> CtOption<Self> {
         let s1 = G1Affine::from_compressed(slicer!(data, 0, 48, COMMITMENT_G1_BYTES))
-            .map(|p| G1Projective::from(p));
+            .map(G1Projective::from);
         let s2 = G1Affine::from_compressed(slicer!(data, 48, 96, COMMITMENT_G1_BYTES))
-            .map(|p| G1Projective::from(p));
+            .map(G1Projective::from);
         let m_t = scalar_from_bytes(slicer!(data, 96, 128, FIELD_BYTES));
 
         s1.and_then(|sigma_1| {

@@ -109,7 +109,7 @@ impl PublicKey {
 
             let t = <[u8; PublicKey::POINT_SIZE]>::try_from(d).expect("invalid length");
             G2Affine::from_compressed(&t)
-                .map(|p| G2Projective::from(p))
+                .map(G2Projective::from)
                 .unwrap()
         }
 

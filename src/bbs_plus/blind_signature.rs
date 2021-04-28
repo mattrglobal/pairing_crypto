@@ -1,6 +1,7 @@
 use super::{MessageGenerators, Signature};
 use crate::core::*;
 
+use bls::SecretKey;
 use bls12_381_plus::{G1Projective, Scalar};
 use digest::{ExtendableOutput, Update, XofReader};
 use ff::Field;

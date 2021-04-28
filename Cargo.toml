@@ -1,9 +1,9 @@
 [package]
-authors = ["Michael Lodder <redmike7@gmail.com>"]
+authors = ["Michael Lodder <redmike7@gmail.com>", "Tobias Looker <tobias.looker@mattr.global"]
 edition = "2018"
 license = "Apache-2"
 readme = "README.md"
-name = "pairing-crypto"
+name = "pairing_crypto"
 version = "0.1.0"
 
 [dependencies]
@@ -21,7 +21,6 @@ sha3 = "0.9"
 bls = { version = "0.1", path = "bls" }
 subtle = "2.4"
 zeroize = "1.2"
-
 
 [dev-dependencies]
 base64-url = "1.4"

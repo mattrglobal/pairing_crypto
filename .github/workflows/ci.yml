@@ -22,19 +22,21 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-          components: 'rustfmt, clippy'
-      
+          components: "rustfmt, clippy"
+
+      - name: Lint commits
+        run: ./scripts/commit-lint.sh
+
       - name: Run cargo format
         uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: '--all -- --check'
+          args: "--all -- --check"
 
       - name: Run cargo clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: '-- -D warnings'
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1
@@ -45,4 +47,3 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: '--release'
