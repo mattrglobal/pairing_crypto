@@ -27,7 +27,7 @@ mod schemes;
 /// Supported constructs for the BLS12-381 curve
 pub mod bls12_381 {
     pub use super::schemes::bbs;
-    pub use super::schemes::bls::*;
+    pub use super::schemes::bls;
     pub use super::schemes::core::{
         Challenge, Commitment, Error, HiddenMessage, Message, Nonce, ProofMessage,
         SignatureBlinding, COMMITMENT_G1_BYTES, COMMITMENT_G2_BYTES, FIELD_BYTES,
