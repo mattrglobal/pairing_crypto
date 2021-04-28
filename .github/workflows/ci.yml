@@ -24,9 +24,6 @@ jobs:
           override: true
           components: "rustfmt, clippy"
 
-      - name: Lint commits
-        run: ./scripts/commit-lint.sh
-
       - name: Run cargo format
         uses: actions-rs/cargo@v1
         with:
