@@ -3,7 +3,6 @@ use bls::{PublicKey, SecretKey};
 use bls12_381_plus::{ExpandMsgXof, G1Projective};
 use core::convert::TryFrom;
 use group::Curve;
-use bls::{PublicKey, SecretKey};
 
 const DATA_SIZE: usize = 201;
 const DST: &[u8] = b"BLS12381G1_XOF:SHAKE256_SSWU_RO_BBS+_SIGNATURES:1_0_0";

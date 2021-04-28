@@ -15,7 +15,6 @@ use serde::{
     Deserialize, Deserializer, Serialize, Serializer,
 };
 use sha3::Shake256;
-use bls::{PublicKey, SecretKey};
 use subtle::{Choice, ConditionallySelectable, CtOption};
 
 /// A BBS+ signature
