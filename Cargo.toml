@@ -22,7 +22,6 @@ bls = { version = "0.1", path = "bls" }
 subtle = "2.4"
 zeroize = "1.2"
 
-
 [dev-dependencies]
 base64-url = "1.4"
 rand_xorshift = "0.3"
