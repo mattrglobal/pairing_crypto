@@ -5,9 +5,9 @@ use pairing_crypto::bls12_381;
 fn bls_sign_tests() {
     const SEED: &'static [u8] = b"bls_sign_test";
     let tests = [
-        ("", "pZk8xHItVlHqpPfDJkGzP4fVHJADZlu22Kjfwy4x4E_K9jQVMMkJinFKg8Mw2FFv", "l8k4MM0wd75hlFNvfI7RjLGCISeEXKi0ErJBGVkuBFJsKlsSg2I9fTzdlwMusrkCEeNU5Zu6DtIH4pEapM3LBrmDGT9uiqu-CoNTwXm0XDV6FVm_YPexl-oDDj1k6NM0"),
-        ("aaa", "hRkBVHp8pHj11jaAKalc-g1dZE52OTnwmBuVnqgA_zUefzMqkWrERW7ozTi2bQG8", "ghnfwPNN3M4V-L3crAFkTUoUuFwV8tp0zZiNwpeo--IorSLv6LEE_wiSH7hObYM-ChvXL02y0-HSf-TS6g2rD9GRwK7qOIvkHDK5Vikv8w5H_eeOGoOjn7Y8QbW6Eg4v"),
-        ("aaaaaa", "gYAJAPyW5pjfdXNoi8yJw42Q_4dynMuDkRjOF8HR0hQI-xuZcGuh3SwZxJv6eG3k", "o8DFShb0m4NIqyfepqhD_tg4u5z8PVYkytEjz0qF05-yEQiNHclzzZQAyMHHCHlQEMho0kqzjLxF-XD8Qn7LFeGzisjKT3tc_csNloVFpMkhSZR-rkvGOnaF6S5U9137")
+        ("", "rKpxIy6O5H5mFuKFP-FnXJeNJSsC3Ykoy3kle06ViDy54stNt9TKrvlmyo9BOLSW", "qstlnb8niJXGLAtw3dT32292-NX2kBp9EeHXlQw2yMK15UMnQ-egyczkr47wuN5kEShotyuukWCS0UHp6bunAotbBboK-FHeRJAiNR1eueSEvFZFzJ1_mrKPIkAvOwdP"),
+        ("aaa", "lW3uDy7w0-WG2dVmYKOJBioGfasz7tAjY6LoQQrOH2f0v5X0BgkPtuwdjT2IJBo2", "tZlS-3KdXCKH4wxP20xct6j-GyYwjPhkfupHm7jdhZzObf1cc24jiMUjqc2LW-9yF5GZkEHFMXnALlRiw_pTZn8zFg2tRZWCbbm6CbV9txMNGGaXb-h0LKxzb9EBmeAl"),
+        ("aaaaaa", "jlWvwPNq6QcR2RmlGKacRb2ZKGL2xEzLl_rBULdNfahQvfoE4ORHwPjrIJc4GMCT", "rVu2xpYrSWhBIqzAC7XX4BV-Gz9H-87G767wm9cfZsoNopTNlx7wBqwWPWqiirDxGc4-qhoTakPDvBWX-iEacSaSoQJmiRu_0ZW2WWVH7B6y9IQBI7jOhTQ5n7bFKs6-")
     ];
     let sk = bls12_381::SecretKey::hash(SEED).unwrap();
 

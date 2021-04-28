@@ -1,0 +1,182 @@
+use super::PublicKey;
+use crate::curves::bls12_381::{
+    multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective, Scalar,
+};
+use crate::schemes::core::*;
+use core::{convert::TryFrom, ops::BitOr};
+use digest::Update;
+use group::{Curve, Group, GroupEncoding};
+use hashbrown::HashSet;
+use serde::{Deserialize, Serialize};
+
+/// The actual proof that is sent from prover to verifier.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct PokSignatureProof {
+    pub(crate) sigma_1: G1Projective,
+    pub(crate) sigma_2: G1Projective,
+    pub(crate) commitment: G2Projective,
+    pub(crate) proof: Vec<Challenge>,
+}
+
+impl PokSignatureProof {
+    /// Store the proof as a sequence of bytes
+    /// Each point is compressed to big-endian format
+    /// Needs (N + 2) * 32 + 48 * 2 + 96 space otherwise it will panic
+    /// where N is the number of hidden messages
+    pub fn to_bytes(&self, buffer: &mut [u8]) {
+        buffer[0..COMMITMENT_G1_BYTES].copy_from_slice(&self.sigma_1.to_affine().to_compressed());
+        let mut offset = COMMITMENT_G1_BYTES;
+        let mut end = offset + COMMITMENT_G1_BYTES;
+        buffer[offset..end].copy_from_slice(&self.sigma_2.to_affine().to_compressed());
+        offset = end;
+        end += COMMITMENT_G2_BYTES;
+        buffer[offset..end].copy_from_slice(&self.commitment.to_affine().to_compressed());
+        offset = end;
+        end += FIELD_BYTES;
+
+        for i in 0..self.proof.len() {
+            buffer[offset..end].copy_from_slice(&self.proof[i].to_bytes());
+            offset = end;
+            end += FIELD_BYTES;
+        }
+    }
+
+    /// Convert a byte sequence into the blind signature context
+    /// Expected size is (N + 2) * 32 + 48 * 2 bytes
+    pub fn from_bytes<B: AsRef<[u8]>>(bytes: B) -> Option<Self> {
+        let size = FIELD_BYTES * 3 + COMMITMENT_G1_BYTES * 4;
+        let buffer = bytes.as_ref();
+        if buffer.len() < size {
+            return None;
+        }
+        if buffer.len() % FIELD_BYTES != 0 {
+            return None;
+        }
+
+        let hid_msg_cnt = (buffer.len() - COMMITMENT_G1_BYTES * 4) / FIELD_BYTES;
+        let mut offset = COMMITMENT_G1_BYTES;
+        let mut end = COMMITMENT_G2_BYTES;
+        let sigma_1 = G1Affine::from_compressed(slicer!(buffer, 0, offset, COMMITMENT_G1_BYTES))
+            .map(G1Projective::from);
+        let sigma_2 = G1Affine::from_compressed(slicer!(buffer, offset, end, COMMITMENT_G1_BYTES))
+            .map(G1Projective::from);
+        offset = end;
+        end += 2 * COMMITMENT_G1_BYTES;
+        let commitment =
+            G2Affine::from_compressed(slicer!(buffer, offset, end, 2 * COMMITMENT_G1_BYTES))
+                .map(G2Projective::from);
+
+        if sigma_1.is_none().unwrap_u8() == 1
+            || sigma_2.is_none().unwrap_u8() == 1
+            || commitment.is_none().unwrap_u8() == 1
+        {
+            return None;
+        }
+
+        offset = end;
+        end += FIELD_BYTES;
+
+        let mut proof = Vec::with_capacity(hid_msg_cnt);
+        for _ in 0..hid_msg_cnt {
+            let c = Challenge::from_bytes(slicer!(buffer, offset, end, FIELD_BYTES));
+            offset = end;
+            end = offset + FIELD_BYTES;
+            if c.is_none().unwrap_u8() == 1 {
+                return None;
+            }
+
+            proof.push(c.unwrap());
+        }
+        Some(Self {
+            sigma_1: sigma_1.unwrap(),
+            sigma_2: sigma_2.unwrap(),
+            commitment: commitment.unwrap(),
+            proof,
+        })
+    }
+
+    /// Convert the committed values to bytes for the fiat-shamir challenge
+    pub fn add_challenge_contribution(
+        &self,
+        public_key: &PublicKey,
+        rvl_msgs: &[(usize, Message)],
+        challenge: Challenge,
+        hasher: &mut impl Update,
+    ) {
+        hasher.update(self.sigma_1.to_affine().to_uncompressed());
+        hasher.update(self.sigma_2.to_affine().to_uncompressed());
+        hasher.update(self.commitment.to_affine().to_uncompressed());
+
+        let mut points = Vec::with_capacity(3 + public_key.y.len() - rvl_msgs.len());
+
+        points.push(G2Projective::generator());
+        points.push(public_key.w);
+
+        let mut known = HashSet::new();
+        for (idx, _) in rvl_msgs {
+            known.insert(*idx);
+        }
+
+        for i in 0..public_key.y.len() {
+            if known.contains(&i) {
+                continue;
+            }
+            points.push(public_key.y[i]);
+        }
+        points.push(self.commitment);
+
+        let mut scalars: Vec<_> = self.proof.iter().map(|p| p.0).collect();
+        scalars.push(-challenge.0);
+        let commitment = G2Projective::sum_of_products_in_place(points.as_ref(), scalars.as_mut());
+        hasher.update(commitment.to_affine().to_bytes());
+    }
+
+    /// Validate the proof, only checks the signature proof
+    /// the selective disclosure proof is checked by verifying
+    /// self.challenge == computed_challenge
+    pub fn verify(&self, rvl_msgs: &[(usize, Message)], public_key: &PublicKey) -> bool {
+        // check the signature proof
+        if self
+            .sigma_1
+            .is_identity()
+            .bitor(self.sigma_2.is_identity())
+            .unwrap_u8()
+            == 1
+        {
+            return false;
+        }
+
+        if public_key.y.len() < rvl_msgs.len() {
+            return false;
+        }
+
+        let mut points = Vec::with_capacity(2 + public_key.y.len() - rvl_msgs.len());
+        let mut scalars = Vec::with_capacity(2 + public_key.y.len() - rvl_msgs.len());
+
+        for (idx, msg) in rvl_msgs {
+            if *idx > public_key.y.len() {
+                return false;
+            }
+            points.push(public_key.y[*idx]);
+            scalars.push(msg.0);
+        }
+        points.push(public_key.x);
+        scalars.push(Scalar::one());
+        points.push(self.commitment);
+        scalars.push(Scalar::one());
+
+        let j = G2Projective::sum_of_products_in_place(points.as_ref(), scalars.as_mut());
+
+        multi_miller_loop(&[
+            (&self.sigma_1.to_affine(), &G2Prepared::from(j.to_affine())),
+            (
+                &self.sigma_2.to_affine(),
+                &G2Prepared::from(-G2Affine::generator()),
+            ),
+        ])
+        .final_exponentiation()
+        .is_identity()
+        .unwrap_u8()
+            == 1
+    }
+}

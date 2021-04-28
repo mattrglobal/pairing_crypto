@@ -21,26 +21,18 @@
 #![warn(missing_docs, missing_crate_level_docs, rust_2018_idioms)]
 #![deny(dead_code, redundant_semicolons, unused, unsafe_code, while_true)]
 
-#[macro_use]
-mod core;
-mod bbs_plus;
-mod ps;
+mod curves;
+mod schemes;
 
 /// Supported constructs for the BLS12-381 curve
 pub mod bls12_381 {
-    pub use super::core::{
+    pub use super::schemes::bbs;
+    pub use super::schemes::bls::*;
+    pub use super::schemes::core::{
         Challenge, Commitment, Error, HiddenMessage, Message, Nonce, ProofMessage,
         SignatureBlinding, COMMITMENT_G1_BYTES, COMMITMENT_G2_BYTES, FIELD_BYTES,
     };
-    pub use bls::*;
-    /// BBS+ signature module
-    pub mod bbs {
-        pub use crate::bbs_plus::*;
-    }
-    /// Pointcheval Saunders signature module
-    pub mod ps {
-        pub use crate::ps::*;
-    }
+    pub use super::schemes::ps;
 }
 
 #[cfg(test)]
