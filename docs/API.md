@@ -6,7 +6,7 @@ The following document defines the conventions and concrete API structure for th
 
 The APIs use the following namespacing to indicate the operations a caller would like to perform:
 
-curve.\[scheme\].\[ciphersuite\].operation(inputs) -> output
+curve::\[scheme\]::operation(inputs) -> output
 
 Curves are the elliptic curve to be used to execute underlying cryptographic operations such as: bn256, bls12831, tweedle.
 
