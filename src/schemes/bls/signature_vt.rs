@@ -2,7 +2,7 @@ use super::{PublicKeyVt, SecretKey};
 use crate::curves::bls12_381::{
     multi_miller_loop, ExpandMsgXmd, G1Affine, G2Affine, G2Prepared, G2Projective,
 };
-use core::ops::Neg;
+use core::ops::{BitOr, Neg, Not};
 use ff::Field;
 use group::{Curve, Group};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -50,6 +50,16 @@ impl SignatureVt {
         }
         let a = Self::hash_msg(msg.as_ref());
         Some(Self(a * sk.0))
+    }
+
+    /// Check if this signature is valid
+    pub fn is_valid(&self) -> Choice {
+        self.0.is_identity().not().bitor(self.0.is_on_curve())
+    }
+
+    /// Check if this signature is invalid
+    pub fn is_invalid(&self) -> Choice {
+        self.0.is_identity().bitor(self.0.is_on_curve().not())
     }
 
     pub(crate) fn hash_msg(msg: &[u8]) -> G2Projective {

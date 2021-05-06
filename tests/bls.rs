@@ -2,7 +2,7 @@ use core::convert::TryFrom;
 use pairing_crypto::bls12_381;
 
 #[test]
-fn bls_sign_tests() {
+fn bls_single_sign() {
     const SEED: &'static [u8] = b"bls_sign_test";
     let tests = [
         ("", "rKpxIy6O5H5mFuKFP-FnXJeNJSsC3Ykoy3kle06ViDy54stNt9TKrvlmyo9BOLSW", "qstlnb8niJXGLAtw3dT32292-NX2kBp9EeHXlQw2yMK15UMnQ-egyczkr47wuN5kEShotyuukWCS0UHp6bunAotbBboK-FHeRJAiNR1eueSEvFZFzJ1_mrKPIkAvOwdP"),
@@ -27,5 +27,42 @@ fn bls_sign_tests() {
 
         assert_eq!(sig1, e_sig1);
         assert_eq!(sig2, e_sig2);
+
+        let pk1 = bls12_381::bls::PublicKey::from(&sk);
+        let pk2 = bls12_381::bls::PublicKeyVt::from(&sk);
+
+        assert_eq!(sig1.verify(pk1, m.as_bytes()).unwrap_u8(), 1u8);
+        assert_eq!(sig2.verify(pk2, m.as_bytes()).unwrap_u8(), 1u8);
     }
+}
+
+#[test]
+fn bls_serialization() {
+    const SEED: &'static [u8] = b"bls_sign_test";
+    let sk = bls12_381::bls::SecretKey::hash(SEED).unwrap();
+    let pk1 = bls12_381::bls::PublicKey::from(&sk);
+    let pk2 = bls12_381::bls::PublicKeyVt::from(&sk);
+
+    let sig1 = bls12_381::bls::Signature::new(&sk, SEED).unwrap();
+    let sig2 = bls12_381::bls::SignatureVt::new(&sk, SEED).unwrap();
+
+    let bytes = pk1.to_bytes();
+    let tmp = bls12_381::bls::PublicKey::from_bytes(&bytes).unwrap();
+    assert_eq!(tmp.is_valid().unwrap_u8(), 1u8);
+    assert_eq!(pk1, tmp);
+
+    let bytes = pk2.to_bytes();
+    let tmp = bls12_381::bls::PublicKeyVt::from_bytes(&bytes).unwrap();
+    assert_eq!(tmp.is_valid().unwrap_u8(), 1u8);
+    assert_eq!(pk2, tmp);
+
+    let bytes = sig1.to_bytes();
+    let tmp = bls12_381::bls::Signature::from_bytes(&bytes).unwrap();
+    assert_eq!(tmp.is_valid().unwrap_u8(), 1u8);
+    assert_eq!(sig1, tmp);
+
+    let bytes = sig2.to_bytes();
+    let tmp = bls12_381::bls::SignatureVt::from_bytes(&bytes).unwrap();
+    assert_eq!(tmp.is_valid().unwrap_u8(), 1u8);
+    assert_eq!(sig2, tmp);
 }
