@@ -214,3 +214,33 @@ impl Signature {
         G1Projective::sum_of_products_in_place(&points[..], &mut scalars[..])
     }
 }
+
+#[test]
+fn serialization_test() {
+    let mut sig = Signature::default();
+    sig.a = G1Projective::generator();
+    sig.e = Scalar::one();
+    sig.s = Scalar::one() + Scalar::one();
+
+    let sig_clone = Signature::from_bytes(&sig.to_bytes());
+    assert_eq!(sig_clone.is_some().unwrap_u8(), 1u8);
+    let sig2 = sig_clone.unwrap();
+    assert_eq!(sig, sig2);
+    sig.a = G1Projective::identity();
+    sig.conditional_assign(&sig2, Choice::from(1u8));
+    assert_eq!(sig, sig2);
+}
+
+#[test]
+fn invalid_signature() {
+    let sig = Signature::default();
+    let pk = PublicKey::default();
+    let sk = SecretKey::default();
+    let msgs = [Message::default(), Message::default()];
+    let generators = MessageGenerators::from_public_key(pk, 1);
+    assert!(Signature::new(&sk, &generators, &msgs).is_err());
+    assert_eq!(sig.verify(&pk, &generators, &msgs).unwrap_u8(), 0u8);
+    let generators = MessageGenerators::from_public_key(pk, 3);
+    assert_eq!(sig.verify(&pk, &generators, &msgs).unwrap_u8(), 0u8);
+    assert!(Signature::new(&sk, &generators, &msgs).is_err());
+}
