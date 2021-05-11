@@ -127,3 +127,20 @@ impl MessageGenerators {
         }
     }
 }
+
+#[test]
+fn serialization_test() {
+    let sk = SecretKey::default();
+    let generators = MessageGenerators::from_secret_key(&sk, 5);
+
+    let gen_bytes = generators.to_bytes();
+    let gen2 = MessageGenerators::from_bytes(&gen_bytes);
+    for (g1, g2) in generators.iter().zip(gen2.iter()) {
+        assert_eq!(g1, g2);
+    }
+
+    let generators = MessageGenerators::from_secret_key(&sk, 0);
+    assert!(generators.is_empty());
+    let generators = MessageGenerators::default();
+    assert!(generators.is_empty());
+}
