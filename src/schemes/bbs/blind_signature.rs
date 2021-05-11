@@ -133,3 +133,17 @@ impl BlindSignature {
         })
     }
 }
+
+#[test]
+fn serialization_test() {
+    let b = BlindSignature {
+        a: G1Projective::generator(),
+        e: Scalar::one(),
+        s: Scalar::one(),
+    };
+
+    let bytes = b.to_bytes();
+    let b2 = BlindSignature::from_bytes(&bytes);
+    assert_eq!(b2.is_some().unwrap_u8(), 1u8);
+    assert_eq!(b2.unwrap(), b);
+}

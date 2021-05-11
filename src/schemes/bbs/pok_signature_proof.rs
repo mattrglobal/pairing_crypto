@@ -53,13 +53,13 @@ impl PokSignatureProof {
         if buffer.len() < size {
             return None;
         }
-        if buffer.len() - COMMITMENT_G1_BYTES % FIELD_BYTES != 0 {
+        if (buffer.len() - COMMITMENT_G1_BYTES) % FIELD_BYTES != 0 {
             return None;
         }
 
         let hid_msg_cnt = (buffer.len() - size) / FIELD_BYTES;
         let mut offset = COMMITMENT_G1_BYTES;
-        let mut end = COMMITMENT_G1_BYTES + FIELD_BYTES;
+        let mut end = 2 * COMMITMENT_G1_BYTES;
         let a_prime = G1Affine::from_compressed(slicer!(buffer, 0, offset, COMMITMENT_G1_BYTES))
             .map(G1Projective::from);
         let a_bar = G1Affine::from_compressed(slicer!(buffer, offset, end, COMMITMENT_G1_BYTES))
@@ -197,4 +197,23 @@ impl PokSignatureProof {
         .unwrap_u8()
             == 1
     }
+}
+
+#[test]
+fn serialization_test() {
+    let p = PokSignatureProof {
+        a_bar: G1Projective::generator(),
+        a_prime: G1Projective::generator(),
+        d: G1Projective::generator(),
+        proofs1: [Challenge::default(), Challenge::default()],
+        proofs2: vec![Challenge::default(), Challenge::default()],
+    };
+
+    let bytes = p.to_bytes();
+    let p2_opt = PokSignatureProof::from_bytes(&bytes);
+    assert!(p2_opt.is_some());
+    let p2 = p2_opt.unwrap();
+    assert_eq!(p.a_bar, p2.a_bar);
+    assert_eq!(p.a_prime, p2.a_prime);
+    assert_eq!(p.d, p2.d);
 }

@@ -45,7 +45,7 @@ impl BlindSignatureContext {
         if buffer.len() < size {
             return None;
         }
-        if buffer.len() - COMMITMENT_G1_BYTES % FIELD_BYTES != 0 {
+        if (buffer.len() - COMMITMENT_G1_BYTES) % FIELD_BYTES != 0 {
             return None;
         }
 
@@ -124,4 +124,21 @@ impl BlindSignatureContext {
 
         Ok(self.challenge.0.ct_eq(&challenge).unwrap_u8() == 1)
     }
+}
+
+#[test]
+fn serialization_test() {
+    let c = BlindSignatureContext {
+        commitment: Commitment(G1Projective::generator()),
+        challenge: Challenge::default(),
+        proofs: vec![Challenge::default()],
+    };
+
+    let bytes = c.to_bytes();
+    let c2_opt = BlindSignatureContext::from_bytes(&bytes);
+    assert!(c2_opt.is_some());
+    let c2 = c2_opt.unwrap();
+    assert_eq!(c2.commitment, c.commitment);
+    assert_eq!(c2.challenge, c.challenge);
+    assert_eq!(c2.proofs.len(), c.proofs.len());
 }

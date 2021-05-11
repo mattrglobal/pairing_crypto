@@ -1,4 +1,5 @@
 use super::{BlindSignature, BlindSignatureContext, MessageGenerators, Signature};
+use crate::curves::bls12_381::G1Projective;
 use crate::schemes::bls::{PublicKey, SecretKey};
 use crate::schemes::core::*;
 use rand_core::{CryptoRng, RngCore};
@@ -56,4 +57,55 @@ impl Issuer {
     pub fn generate_signing_nonce() -> Nonce {
         Nonce::random(rand::thread_rng())
     }
+}
+
+#[test]
+fn blind_sign_test() {
+    let n = Issuer::generate_signing_nonce();
+    let sk = SecretKey::default();
+    let generators = MessageGenerators::from_secret_key(&sk, 3);
+    let ctx = BlindSignatureContext {
+        commitment: Commitment(G1Projective::generator()),
+        challenge: Challenge::default(),
+        proofs: vec![Challenge::default()],
+    };
+    let res = Issuer::blind_sign(
+        &ctx,
+        &sk,
+        &generators,
+        &[(2, Message::default()), (3, Message::default())],
+        n,
+    );
+    assert!(res.is_err());
+
+    let sk = SecretKey::hash(b"").unwrap();
+    let generators = MessageGenerators::from_secret_key(&sk, 3);
+    let messages = [
+        Message::hash(b"1"),
+        Message::hash(b"2"),
+        Message::hash(b"3"),
+    ];
+    let res = crate::schemes::bbs::Prover::new_blind_signature_context(
+        &[(0, messages[0])],
+        &generators,
+        n,
+    );
+    assert!(res.is_ok());
+    let (ctx, _) = res.unwrap();
+    let res = Issuer::blind_sign(
+        &ctx,
+        &sk,
+        &generators,
+        &[(0, messages[0]), (1, messages[1])],
+        n,
+    );
+    assert!(res.is_err());
+    let res = Issuer::blind_sign(
+        &ctx,
+        &sk,
+        &generators,
+        &[(1, messages[1]), (2, messages[2])],
+        n,
+    );
+    assert!(res.is_ok());
 }
