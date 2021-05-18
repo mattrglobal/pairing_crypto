@@ -4,6 +4,7 @@ use crate::schemes::core::*;
 use digest::Update;
 use ff::Field;
 use group::Curve;
+use rand_core::{CryptoRng, RngCore};
 
 /// Proof of Knowledge of a Signature that is used by the prover
 /// to construct `PoKOfSignatureProof`.
@@ -26,17 +27,30 @@ pub struct PokSignature {
 
 impl PokSignature {
     /// Creates the initial proof data before a Fiat-Shamir calculation
-    #[allow(clippy::needless_range_loop)]
     pub fn init(
         signature: Signature,
         generators: &MessageGenerators,
         messages: &[ProofMessage],
     ) -> Result<Self, Error> {
+        Self::init_with_rng(
+            signature,
+            generators,
+            messages,
+            rand::rngs::OsRng::default(),
+        )
+    }
+
+    /// Creates the initial proof data before a Fiat-Shamir calculation
+    #[allow(clippy::needless_range_loop)]
+    pub fn init_with_rng(
+        signature: Signature,
+        generators: &MessageGenerators,
+        messages: &[ProofMessage],
+        mut rng: impl RngCore + CryptoRng,
+    ) -> Result<Self, Error> {
         if messages.len() != generators.len() {
             return Err(Error::new(1, "mismatched messages with and generators"));
         }
-        let mut rng = rand::thread_rng();
-
         let r1 = Scalar::random(&mut rng);
         let r2 = Scalar::random(&mut rng);
         let r3 = r1.invert().unwrap();

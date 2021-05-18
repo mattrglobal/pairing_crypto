@@ -25,13 +25,13 @@ impl Verifier {
     ) -> bool {
         let mut res = [0u8; COMMITMENT_G1_BYTES];
         let mut hasher = Shake256::default();
-        proof.add_challenge_contribution(&public_key, revealed_msgs, challenge, &mut hasher);
+        proof.add_challenge_contribution(public_key, revealed_msgs, challenge, &mut hasher);
         hasher.update(&nonce.to_bytes()[..]);
         let mut reader = hasher.finalize_xof();
         reader.read(&mut res);
         let v_challenge = Scalar::from_okm(&res);
 
-        proof.verify(revealed_msgs, &public_key) && challenge.0 == v_challenge
+        proof.verify(revealed_msgs, public_key) && challenge.0 == v_challenge
     }
 }
 

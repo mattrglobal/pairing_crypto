@@ -3,6 +3,7 @@ use crate::curves::bls12_381::{G1Affine, G1Projective, Scalar};
 use crate::schemes::core::*;
 use digest::{ExtendableOutput, Update, XofReader};
 use group::Curve;
+use rand_core::{CryptoRng, RngCore};
 use sha3::Shake256;
 
 /// A Prover is whomever receives signatures or uses them to generate proofs.
@@ -18,9 +19,9 @@ impl Prover {
         messages: &[(usize, Message)],
         generators: &MessageGenerators,
         nonce: Nonce,
+        mut rngs: impl RngCore + CryptoRng,
     ) -> Result<(BlindSignatureContext, SignatureBlinding), Error> {
         const BYTES: usize = 48;
-        let mut rng = rand::thread_rng();
         // Very uncommon to blind more than 1 or 2, so 16 should be plenty
         let mut points = Vec::with_capacity(messages.len() + 1);
         let mut secrets = Vec::with_capacity(messages.len() + 1);
@@ -34,13 +35,13 @@ impl Prover {
             }
             secrets.push(m.0);
             points.push(generators.get(*i));
-            committing.commit_random(generators.get(*i), &mut rng);
+            committing.commit_random(generators.get(*i), &mut rngs);
         }
 
-        let blinding = SignatureBlinding::random(&mut rng);
+        let blinding = SignatureBlinding::random(&mut rngs);
         secrets.push(blinding.0);
         points.push(generators.h0);
-        committing.commit_random(generators.h0, &mut rng);
+        committing.commit_random(generators.h0, &mut rngs);
 
         let mut hasher = Shake256::default();
         let commitment = G1Projective::sum_of_products_in_place(points.as_ref(), secrets.as_mut());
@@ -95,7 +96,7 @@ fn blind_signature_context_test() {
     // try with zero, just means a blinded signature but issuer knows all messages
     let mut blind_messages = [];
 
-    let res = Prover::new_blind_signature_context(&mut blind_messages[..], &generators, nonce);
+    let res = Prover::new_blind_signature_context(&mut blind_messages[..], &generators, nonce, rng);
     assert!(res.is_ok());
 
     let (ctx, blinding) = res.unwrap();

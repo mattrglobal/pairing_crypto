@@ -1,5 +1,4 @@
 use super::{BlindSignature, BlindSignatureContext, MessageGenerators, Signature};
-use crate::curves::bls12_381::G1Projective;
 use crate::schemes::bls::{PublicKey, SecretKey};
 use crate::schemes::core::*;
 use rand_core::{CryptoRng, RngCore};
@@ -61,6 +60,10 @@ impl Issuer {
 
 #[test]
 fn blind_sign_test() {
+    use crate::curves::bls12_381::G1Projective;
+    use crate::MockRng;
+    use rand_core::SeedableRng;
+
     let n = Issuer::generate_signing_nonce();
     let sk = SecretKey::default();
     let generators = MessageGenerators::from_secret_key(&sk, 3);
@@ -85,10 +88,14 @@ fn blind_sign_test() {
         Message::hash(b"2"),
         Message::hash(b"3"),
     ];
+
+    let mut rng = MockRng::from_seed([7u8; 16]);
+
     let res = crate::schemes::bbs::Prover::new_blind_signature_context(
         &[(0, messages[0])],
         &generators,
         n,
+        &mut rng,
     );
     assert!(res.is_ok());
     let (ctx, _) = res.unwrap();

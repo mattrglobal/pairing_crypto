@@ -35,10 +35,11 @@ pub mod bls12_381 {
     pub use super::schemes::ps;
 }
 
-#[cfg(test)]
+/// A testable RNG
+#[cfg(any(test, feature = "test"))]
 pub struct MockRng(rand_xorshift::XorShiftRng);
 
-#[cfg(test)]
+#[cfg(any(test, feature = "test"))]
 impl rand_core::SeedableRng for MockRng {
     type Seed = [u8; 16];
 
@@ -47,10 +48,10 @@ impl rand_core::SeedableRng for MockRng {
     }
 }
 
-#[cfg(test)]
+#[cfg(any(test, feature = "test"))]
 impl rand_core::CryptoRng for MockRng {}
 
-#[cfg(test)]
+#[cfg(any(test, feature = "test"))]
 impl rand_core::RngCore for MockRng {
     fn next_u32(&mut self) -> u32 {
         self.0.next_u32()
