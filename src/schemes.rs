@@ -5,5 +5,3 @@ pub mod core;
 pub mod bbs;
 /// The BLS signature scheme
 pub mod bls;
-/// The PS signature scheme
-pub mod ps;

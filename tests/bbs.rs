@@ -39,7 +39,7 @@ fn signing() {
         .collect::<Vec<Message>>();
 
     for i in 0..TEST_KEYS.len() {
-        let sk_opt = bbs::SecretKey::hash(TEST_KEYS[i]);
+        let sk_opt = bbs::SecretKey::from_seed(TEST_KEYS[i]);
         assert!(sk_opt.is_some());
         let sk = sk_opt.unwrap();
         let pk = bbs::PublicKey::from(&sk);
@@ -127,7 +127,7 @@ fn proofs() {
     let nonce = Nonce::default();
 
     for i in 0..TEST_KEYS.len() {
-        let pk = bbs::PublicKey::from(&bbs::SecretKey::hash(TEST_KEYS[i]).unwrap());
+        let pk = bbs::PublicKey::from(&bbs::SecretKey::from_seed(TEST_KEYS[i]).unwrap());
         let gens = bbs::MessageGenerators::from_public_key(pk, test_atts.len());
         let sig = bbs::Signature::from_bytes(
             &<[u8; bbs::Signature::BYTES]>::try_from(hex::decode(EXPECTED_SIGS[i]).unwrap())

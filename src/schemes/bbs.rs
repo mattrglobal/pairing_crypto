@@ -1,5 +1,3 @@
-mod blind_signature;
-mod blind_signature_context;
 mod issuer;
 mod message_generator;
 mod pok_signature;
@@ -8,8 +6,6 @@ mod prover;
 mod signature;
 mod verifier;
 
-pub use blind_signature::*;
-pub use blind_signature_context::*;
 pub use issuer::*;
 pub use message_generator::*;
 pub use pok_signature::*;

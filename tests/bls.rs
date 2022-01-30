@@ -9,7 +9,7 @@ fn bls_single_sign() {
         ("aaa", "lW3uDy7w0-WG2dVmYKOJBioGfasz7tAjY6LoQQrOH2f0v5X0BgkPtuwdjT2IJBo2", "tZlS-3KdXCKH4wxP20xct6j-GyYwjPhkfupHm7jdhZzObf1cc24jiMUjqc2LW-9yF5GZkEHFMXnALlRiw_pTZn8zFg2tRZWCbbm6CbV9txMNGGaXb-h0LKxzb9EBmeAl"),
         ("aaaaaa", "jlWvwPNq6QcR2RmlGKacRb2ZKGL2xEzLl_rBULdNfahQvfoE4ORHwPjrIJc4GMCT", "rVu2xpYrSWhBIqzAC7XX4BV-Gz9H-87G767wm9cfZsoNopTNlx7wBqwWPWqiirDxGc4-qhoTakPDvBWX-iEacSaSoQJmiRu_0ZW2WWVH7B6y9IQBI7jOhTQ5n7bFKs6-")
     ];
-    let sk = bls12_381::bls::SecretKey::hash(SEED).unwrap();
+    let sk = bls12_381::bls::SecretKey::from_seed(SEED).unwrap();
 
     for (m, g1, g2) in &tests {
         let sig2 = bls12_381::bls::SignatureVt::new(&sk, m.as_bytes()).unwrap();
@@ -39,7 +39,7 @@ fn bls_single_sign() {
 #[test]
 fn bls_serialization() {
     const SEED: &'static [u8] = b"bls_sign_test";
-    let sk = bls12_381::bls::SecretKey::hash(SEED).unwrap();
+    let sk = bls12_381::bls::SecretKey::from_seed(SEED).unwrap();
     let pk1 = bls12_381::bls::PublicKey::from(&sk);
     let pk2 = bls12_381::bls::PublicKeyVt::from(&sk);
 
