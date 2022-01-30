@@ -22,7 +22,9 @@
 #![deny(dead_code, redundant_semicolons, unused, unsafe_code, while_true)]
 
 mod curves;
-mod schemes;
+
+/// Supported schemes from pairing crypto
+pub mod schemes;
 
 /// Supported constructs for the BLS12-381 curve
 pub mod bls12_381 {
