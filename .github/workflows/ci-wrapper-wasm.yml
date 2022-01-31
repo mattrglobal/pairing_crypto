@@ -50,14 +50,14 @@ jobs:
         with:
           command: audit
 
-     - name: Run yarn install
-       run: yarn install --frozen-lockfile
+      - name: Run yarn install
+        run: yarn install --frozen-lockfile
 
-     - name: Run yarn build
-       run: yarn build
-      
-     - name: Run yarn test
-       run: yarn test
+      - name: Run yarn build
+        run: yarn build
 
-     - name: Run yarn benchmark
-       run: yarn benchmark
+      - name: Run yarn test
+        run: yarn test
+
+      - name: Run yarn benchmark
+        run: yarn benchmark
