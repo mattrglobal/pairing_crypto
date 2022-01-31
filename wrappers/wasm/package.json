@@ -23,6 +23,7 @@
         "node": ">=8.0.0"
     },
     "scripts": {
+        "install": "./scripts/install-dependencies.sh",
         "build": "./scripts/build-package.sh",
         "test": "jest",
         "benchmark": "ts-node bench/index.ts"
