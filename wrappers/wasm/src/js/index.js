@@ -64,3 +64,13 @@ module.exports.bls12381GenerateG2KeyPair = async (seed) => {
       publicKey: new Uint8Array(result.publicKey),
     };
 };
+
+module.exports.bls12381BbsSign = async (request) => {
+    await initialize();
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bls12381BbsSignG1(request)));
+};
+
+module.exports.bls12381BbsVerify = async (request) => {
+    await initialize();
+    return await throwErrorOnRejectedPromise(wasm.bls12381BbsVerifyG1(request));
+};

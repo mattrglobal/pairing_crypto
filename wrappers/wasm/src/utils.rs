@@ -14,9 +14,10 @@
  * limitations under the License.
  * ------------------------------------------------------------------------------
  */
-use wasm_bindgen::prelude::*;
 
-#[cfg(feature = "console_error_panic_hook")]
+use pairing_crypto::schemes::*;
+use std::convert::TryFrom;
+
 pub fn set_panic_hook() {
     // When the `console_error_panic_hook` feature is enabled, we can call the
     // `set_panic_hook` function at least once during initialization, and then
@@ -24,5 +25,26 @@ pub fn set_panic_hook() {
     //
     // For more details see
     // https://github.com/rustwasm/console_error_panic_hook#readme
+    //
+    // NOTE - if this feature (console_error_panic_hook) is not enabled it will not fire
+    #[cfg(feature = "console_error_panic_hook")]
     console_error_panic_hook::set_once();
+}
+
+/// Digests the set of input messages and returns in the form of an internal
+/// structure
+pub fn digest_messages(messages: Vec<Vec<u8>>) -> Result<Vec<core::Message>, String> {
+    if messages.len() < 1 {
+        return Err("Messages to sign empty, expected > 1".to_string());
+    }
+
+    Ok(messages.iter().map(|m| core::Message::hash(m)).collect())
+}
+
+/// Convert an input vector into a byte array
+pub fn vec_to_byte_array<const N: usize>(vec: Vec<u8>) -> Result<[u8; N], String> {
+    match <[u8; N]>::try_from(vec) {
+        Ok(result) => Ok(result),
+        Err(_) => Err("Input data length incorrect".to_string()),
+    }
 }

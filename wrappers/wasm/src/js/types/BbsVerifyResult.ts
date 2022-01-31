@@ -11,8 +11,16 @@
  * limitations under the License.
  */
 
-export { BbsSignRequest } from "./BbsSignRequest";
-export { BbsVerifyRequest } from "./BbsVerifyRequest";
-export { BbsVerifyResult } from "./BbsVerifyResult";
-
-export { BlsKeyPair } from "./BlsKeyPair";
+/**
+ * The result returned from a verify operation
+ */
+export interface BbsVerifyResult {
+  /**
+   * Indicates whether the verification was successful
+   */
+  readonly verified: boolean;
+  /**
+   * Messages to sign
+   */
+  readonly error?: string;
+}

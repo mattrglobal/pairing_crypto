@@ -11,8 +11,20 @@
  * limitations under the License.
  */
 
-export { BbsSignRequest } from "./BbsSignRequest";
-export { BbsVerifyRequest } from "./BbsVerifyRequest";
-export { BbsVerifyResult } from "./BbsVerifyResult";
-
-export { BlsKeyPair } from "./BlsKeyPair";
+/**
+ * A request verify a BBS signature for a set of messages
+ */
+export interface BbsVerifyRequest {
+  /**
+   * Public key of the signer of the signature
+   */
+  readonly publicKey: Uint8Array;
+  /**
+   * Raw signature value
+   */
+  readonly signature: Uint8Array;
+  /**
+   * Messages that were signed to produce the signature
+   */
+  readonly messages: readonly Uint8Array[];
+}

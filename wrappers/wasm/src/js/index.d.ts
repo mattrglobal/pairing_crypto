@@ -11,7 +11,12 @@
  * limitations under the License.
  */
 
-import { BlsKeyPair } from "./types";
+import {
+  BbsSignRequest,
+  BbsVerifyRequest,
+  BbsVerifyResult,
+  BlsKeyPair,
+} from "./types";
 
 export * from "./types";
 
@@ -23,6 +28,7 @@ export const DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH = 48;
 
 export const DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH = 96;
 
+// TODO restructure these exposed methods into an interface under the curve rather than overloading the function name
 export function bls12381GenerateG2KeyPair(
   seed?: Uint8Array
 ): Promise<Required<BlsKeyPair>>;
@@ -30,3 +36,9 @@ export function bls12381GenerateG2KeyPair(
 export function bls12381GenerateG1KeyPair(
   seed?: Uint8Array
 ): Promise<Required<BlsKeyPair>>;
+
+export function bls12381BbsSign(request: BbsSignRequest): Promise<Uint8Array>;
+
+export function bls12381BbsVerify(
+  request: BbsVerifyRequest
+): Promise<BbsVerifyResult>;

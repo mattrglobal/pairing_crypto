@@ -141,17 +141,18 @@ impl Signature {
     }
 
     /// Verify a signature
-    pub fn verify<M>(&self, pk: &PublicKey, generators: &MessageGenerators, msgs: M) -> Choice
+    pub fn verify<M>(&self, pk: &PublicKey, generators: &MessageGenerators, msgs: M) -> bool
     where
         M: AsRef<[Message]>,
     {
         let msgs = msgs.as_ref();
+        // If there are more messages then generators then we cannot verify the signature return false
         if generators.len() < msgs.len() {
-            return Choice::from(0);
+            return false;
         }
         // Identity point will always return true which is not what we want
         if pk.0.is_identity().unwrap_u8() == 1 {
-            return Choice::from(0);
+            return false;
         }
 
         let a = G2Projective::generator() * self.e + pk.0;
@@ -163,6 +164,8 @@ impl Signature {
         ])
         .final_exponentiation()
         .is_identity()
+        .unwrap_u8()
+            == 1
     }
 
     /// Get the byte representation of this signature
@@ -239,8 +242,8 @@ fn invalid_signature() {
     let msgs = [Message::default(), Message::default()];
     let generators = MessageGenerators::from_public_key(pk, 1);
     assert!(Signature::new(&sk, &generators, &msgs).is_err());
-    assert_eq!(sig.verify(&pk, &generators, &msgs).unwrap_u8(), 0u8);
+    assert_eq!(sig.verify(&pk, &generators, &msgs), false);
     let generators = MessageGenerators::from_public_key(pk, 3);
-    assert_eq!(sig.verify(&pk, &generators, &msgs).unwrap_u8(), 0u8);
+    assert_eq!(sig.verify(&pk, &generators, &msgs), false);
     assert!(Signature::new(&sk, &generators, &msgs).is_err());
 }

@@ -25,7 +25,7 @@
 // allocator.
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+static ALLOC: wee_alloc::WeeAlloc<'_> = wee_alloc::WeeAlloc::INIT;
 
 #[macro_use]
 mod macros;
@@ -36,3 +36,5 @@ mod wasm;
 pub mod prelude {
     pub use crate::wasm::*;
 }
+
+mod utils;

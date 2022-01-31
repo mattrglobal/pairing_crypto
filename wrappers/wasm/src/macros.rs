@@ -49,6 +49,7 @@ macro_rules! wasm_impl {
      $name:ident,
      $($field:ident:$type:ty),*) => {
         $(#[$meta])*
+        /// Macro declaring struct name
         pub struct $name {
             $(
                 /// Macro declaring field and type
@@ -63,8 +64,10 @@ macro_rules! wasm_impl {
      $($field:ident:$type:ty),*) => {
         #[allow(non_snake_case)]
         #[derive(Debug, Deserialize, Serialize)]
+        /// Macro declaring struct name
         pub struct $name {
             $(
+                /// Macro declaring field and type
                 pub $field: $type,
             )*
         }
@@ -75,7 +78,8 @@ macro_rules! wasm_impl {
 
 macro_rules! map_err {
     ($st:expr) => {
-        $st.map_err(|e| JsValue::from_str(&format!("{:?}", e)))
+        // TODO format the error correctly here
+        $st.map_err(|e| JsValue::from_str(&e.to_string()))
     };
 }
 
