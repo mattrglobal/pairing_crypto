@@ -12,12 +12,14 @@ jobs:
   build_test:
     name: Build & Test WASM Wrapper
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./wrappers/wasm
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
       - name: Setup rust toolchain
-        working-directory: ./wrappers/wasm
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -26,26 +28,22 @@ jobs:
           components: "rustfmt, clippy"
 
       - name: Run cargo format
-        working-directory: ./wrappers/wasm
         uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: "--all -- --check"
 
       - name: Run cargo clippy
-        working-directory: ./wrappers/wasm
         uses: actions-rs/cargo@v1
         with:
           command: clippy
 
       - name: Run cargo check
-        working-directory: ./wrappers/wasm
         uses: actions-rs/cargo@v1
         with:
           command: check
 
       - name: Run cargo audit
-        working-directory: ./wrappers/wasm
         uses: actions-rs/cargo@v1
         with:
           command: audit
