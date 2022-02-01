@@ -15,6 +15,8 @@
  * ------------------------------------------------------------------------------
  */
 
+use crate::dtos::*;
+use pairing_crypto::bls12_381::*;
 use pairing_crypto::schemes::*;
 use std::convert::TryFrom;
 
@@ -35,16 +37,43 @@ pub fn set_panic_hook() {
 /// structure
 pub fn digest_messages(messages: Vec<Vec<u8>>) -> Result<Vec<core::Message>, String> {
     if messages.len() < 1 {
+        // TODO convert to wasm bindgen error
         return Err("Messages to sign empty, expected > 1".to_string());
     }
 
     Ok(messages.iter().map(|m| core::Message::hash(m)).collect())
 }
 
+pub fn digest_proof_messages(
+    messages: Vec<BbsDeriveProofRevealMessageRequest>,
+) -> Result<Vec<core::ProofMessage>, String> {
+    if messages.len() < 1 {
+        // TODO convert to wasm bindgen error
+        return Err("Messages to sign empty, expected > 1".to_string());
+    }
+
+    Ok(messages
+        .iter()
+        .map(|element| {
+            let digested_message = core::Message::hash(element.value.clone());
+
+            // Change this to an enum
+            if element.reveal {
+                return ProofMessage::Revealed(digested_message);
+            } else {
+                return ProofMessage::Hidden(HiddenMessage::ProofSpecificBlinding(
+                    digested_message,
+                ));
+            }
+        })
+        .collect())
+}
+
 /// Convert an input vector into a byte array
 pub fn vec_to_byte_array<const N: usize>(vec: Vec<u8>) -> Result<[u8; N], String> {
     match <[u8; N]>::try_from(vec) {
         Ok(result) => Ok(result),
+        // TODO convert to wasm bindgen error
         Err(_) => Err("Input data length incorrect".to_string()),
     }
 }

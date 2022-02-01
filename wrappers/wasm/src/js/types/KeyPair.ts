@@ -12,9 +12,9 @@
  */
 
 /**
- * A BLS 12-381 key pair
+ * A key pair
  */
-export interface BlsKeyPair {
+export interface KeyPair {
   /**
    * Raw public key value for the key pair
    */

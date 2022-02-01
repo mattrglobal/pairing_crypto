@@ -15,48 +15,14 @@
  * ------------------------------------------------------------------------------
  */
 
+use crate::dtos::*;
 use crate::utils::*;
 
+use pairing_crypto::bls12_381::*;
 use pairing_crypto::schemes::*;
 use rand::{thread_rng, RngCore};
-use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
 use wasm_bindgen::prelude::*;
-
-// Macro for interpreting JSON object as a RUST struct
-wasm_impl!(
-    /// Convenience struct for interfacing with JS.
-    /// Option allows both of the keys to be JS::null
-    /// or only one of them set.
-    #[allow(non_snake_case)]
-    #[derive(Debug, Deserialize, Serialize)]
-    BlsKeyPair,
-    publicKey: Vec<u8>,
-    secretKey: Option<Vec<u8>>
-);
-
-// Macro for interpreting JSON object as a RUST struct
-wasm_impl!(BbsSignRequest, secretKey: Vec<u8>, messages: Vec<Vec<u8>>);
-
-// Macro for interpreting JSON object as a RUST struct
-wasm_impl!(
-    BbsVerifyRequest,
-    publicKey: Vec<u8>,
-    messages: Vec<Vec<u8>>,
-    signature: Vec<u8>
-);
-
-// Macro for interpreting JSON object as a RUST struct
-wasm_impl!(BbsVerifyResponse, verified: bool, error: Option<String>);
-
-// Macro for interpreting JSON object as a RUST struct
-wasm_impl!(
-    BbsDeriveProofRequest,
-    publicKey: Vec<u8>,
-    messages: Vec<Vec<u8>>,
-    signature: Vec<u8>,
-    revealedIndicies: Vec<u8>
-);
 
 /// Generate a BLS 12-381 key pair in the G1 field.
 ///
@@ -64,8 +30,8 @@ wasm_impl!(
 ///
 /// returned vector is the concatenation of first the private key (32 bytes)
 /// followed by the public key (48) bytes.
-#[wasm_bindgen(js_name = bls12381GenerateG1KeyPair)]
-pub async fn bls12_381_generate_g1_key(seed: Option<Vec<u8>>) -> Result<JsValue, JsValue> {
+#[wasm_bindgen(js_name = bls12381_GenerateG1KeyPair)]
+pub async fn bls12381_generateg1key(seed: Option<Vec<u8>>) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let seed_data = match seed {
         Some(s) => s.to_vec(),
@@ -80,7 +46,7 @@ pub async fn bls12_381_generate_g1_key(seed: Option<Vec<u8>>) -> Result<JsValue,
     let sk = bls::SecretKey::from_seed(seed_data).unwrap();
     let pk = bls::PublicKeyVt::from(&sk);
 
-    let keypair = BlsKeyPair {
+    let keypair = KeyPair {
         publicKey: pk.to_bytes().to_vec(),
         secretKey: Some(sk.to_bytes().to_vec()),
     };
@@ -93,8 +59,8 @@ pub async fn bls12_381_generate_g1_key(seed: Option<Vec<u8>>) -> Result<JsValue,
 ///
 /// Returned value is a byte array which is the concatenation of first the private key (32 bytes)
 /// followed by the public key (96) bytes.
-#[wasm_bindgen(js_name = bls12381GenerateG2KeyPair)]
-pub async fn bls12_381_generate_g2_key(seed: Option<Vec<u8>>) -> Result<JsValue, JsValue> {
+#[wasm_bindgen(js_name = bls12381_GenerateG2KeyPair)]
+pub async fn bls12381_generateg2key(seed: Option<Vec<u8>>) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let seed_data = match seed {
         Some(s) => s.to_vec(),
@@ -109,7 +75,7 @@ pub async fn bls12_381_generate_g2_key(seed: Option<Vec<u8>>) -> Result<JsValue,
     let sk = bls::SecretKey::from_seed(seed_data).unwrap();
     let pk = bls::PublicKey::from(&sk);
 
-    let keypair = BlsKeyPair {
+    let keypair = KeyPair {
         publicKey: pk.to_bytes().to_vec(),
         secretKey: Some(sk.to_bytes().to_vec()),
     };
@@ -121,8 +87,8 @@ pub async fn bls12_381_generate_g2_key(seed: Option<Vec<u8>>) -> Result<JsValue,
 /// * request: JSON encoded request containing a byte array of messages to be signed and a BLS12-381 key pair
 ///
 /// Returned value is a byte array which is the produced signature (112 bytes)
-#[wasm_bindgen(js_name = bls12381BbsSignG1)]
-pub async fn bls12_381_bbs_sign_g1(request: JsValue) -> Result<JsValue, serde_wasm_bindgen::Error> {
+#[wasm_bindgen(js_name = bls12381_Bbs_SignG1)]
+pub async fn bls12381_bbs_signg1(request: JsValue) -> Result<JsValue, serde_wasm_bindgen::Error> {
     set_panic_hook();
     // Cast the JSON request into a rust struct
     let request: BbsSignRequest = request.try_into()?;
@@ -174,8 +140,8 @@ pub async fn bls12_381_bbs_sign_g1(request: JsValue) -> Result<JsValue, serde_wa
 ///
 /// Returned value is JSON structure with a boolean value indicating whether the signature was verified and
 /// if not any details on the error available
-#[wasm_bindgen(js_name = bls12381BbsVerifyG1)]
-pub async fn bls12_381_bbs_verify_g1(request: JsValue) -> Result<JsValue, JsValue> {
+#[wasm_bindgen(js_name = bls12381_Bbs_VerifyG1)]
+pub async fn bls12381_bbs_verifyg1(request: JsValue) -> Result<JsValue, JsValue> {
     set_panic_hook();
     // Cast the JSON request into a rust struct
     let res = request.try_into();
@@ -269,8 +235,8 @@ pub async fn bls12_381_bbs_verify_g1(request: JsValue) -> Result<JsValue, JsValu
 /// signature
 ///
 /// Returned value is a byte array which is the produced proof (variable length)
-#[wasm_bindgen(js_name = bls12381BbsDeriveProofG1)]
-pub async fn bls12_381_bbs_derive_proof_g1(
+#[wasm_bindgen(js_name = bls12381_Bbs_DeriveProofG1)]
+pub async fn bls12381_bbs_deriveproofg1(
     request: JsValue,
 ) -> Result<JsValue, serde_wasm_bindgen::Error> {
     set_panic_hook();
@@ -289,7 +255,8 @@ pub async fn bls12_381_bbs_derive_proof_g1(
     };
 
     // Digest the supplied messages
-    let messages: Vec<core::Message> = match digest_messages(request.messages) {
+    // TODO map to revealed messages
+    let messages: Vec<ProofMessage> = match digest_proof_messages(request.messages) {
         Ok(messages) => messages,
         Err(err) => return Err(serde_wasm_bindgen::Error::new(err.as_str())),
     };
@@ -300,7 +267,7 @@ pub async fn bls12_381_bbs_derive_proof_g1(
 
     // Use generators derived from the signers public key
     // TODO this approach is likely to change soon
-    let _generators = bbs::MessageGenerators::from_public_key(pk, messages.len());
+    let generators = bbs::MessageGenerators::from_public_key(pk, messages.len());
 
     // Convert to byte array and check proper length of signature
     // TODO this should not be hard coded like this
@@ -314,7 +281,14 @@ pub async fn bls12_381_bbs_derive_proof_g1(
     };
 
     // TODO should not just be using unwrap here
-    let _signature = bbs::Signature::from_bytes(&signature_byte_array).unwrap();
+    let signature = bbs::Signature::from_bytes(&signature_byte_array).unwrap();
 
-    Ok(JsValue::from("TODO"))
+    let pok = bbs::PokSignature::init(signature, &generators, messages.as_slice()).unwrap();
+
+    let challenge = Challenge::hash(request.presentationMessage);
+
+    // TODO dont use unwrap handle the error properly
+    let res = pok.generate_proof(challenge).unwrap();
+
+    Ok(serde_wasm_bindgen::to_value(&res.to_bytes()).unwrap())
 }

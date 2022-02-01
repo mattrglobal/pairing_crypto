@@ -11,27 +11,21 @@
  * limitations under the License.
  */
 
-import {
-  bls12381GenerateG2KeyPair,
-  bls12381GenerateG1KeyPair,
-  DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
-  DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH,
-  DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH,
-} from "../lib";
+import { bls12381 } from "../lib";
 
 describe("bls12381", () => {
   [
     {
       field: "G1",
-      generateKeyFn: bls12381GenerateG1KeyPair,
-      secretKeyLength: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
-      publicKeyLength: DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH,
+      generateKeyFn: bls12381.generateG1KeyPair,
+      secretKeyLength: bls12381.PRIVATE_KEY_LENGTH,
+      publicKeyLength: bls12381.G1_PUBLIC_KEY_LENGTH,
     },
     {
       field: "G2",
-      generateKeyFn: bls12381GenerateG2KeyPair,
-      secretKeyLength: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
-      publicKeyLength: DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH,
+      generateKeyFn: bls12381.generateG2KeyPair,
+      secretKeyLength: bls12381.PRIVATE_KEY_LENGTH,
+      publicKeyLength: bls12381.G2_PUBLIC_KEY_LENGTH,
     },
   ].forEach((value) => {
     it(`should be able to generate a key pair in ${value.field} field`, async () => {
@@ -47,15 +41,15 @@ describe("bls12381", () => {
   [
     {
       field: "G1",
-      generateKeyFn: bls12381GenerateG1KeyPair,
-      secretKeyLength: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
-      publicKeyLength: DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH,
+      generateKeyFn: bls12381.generateG1KeyPair,
+      secretKeyLength: bls12381.PRIVATE_KEY_LENGTH,
+      publicKeyLength: bls12381.G1_PUBLIC_KEY_LENGTH,
     },
     {
       field: "G2",
-      generateKeyFn: bls12381GenerateG2KeyPair,
-      secretKeyLength: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
-      publicKeyLength: DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH,
+      generateKeyFn: bls12381.generateG2KeyPair,
+      secretKeyLength: bls12381.PRIVATE_KEY_LENGTH,
+      publicKeyLength: bls12381.G2_PUBLIC_KEY_LENGTH,
     },
   ].forEach((value) => {
     it(`should be able to generate a key pairs in ${value.field} field without seed which are random`, async () => {
@@ -74,9 +68,9 @@ describe("bls12381", () => {
   [
     {
       field: "G1",
-      generateKeyFn: bls12381GenerateG1KeyPair,
-      secretKeyLength: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
-      publicKeyLength: DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH,
+      generateKeyFn: bls12381.generateG1KeyPair,
+      secretKeyLength: bls12381.PRIVATE_KEY_LENGTH,
+      publicKeyLength: bls12381.G1_PUBLIC_KEY_LENGTH,
       seed: new Uint8Array(
         Buffer.from(
           "H297BpoOgkfpXcxr1fJyQRiNx1+ZekeQ+OU/AYV/lVxaPXXhFBIbxeIU8kIAAX68cwQ=",
@@ -95,9 +89,9 @@ describe("bls12381", () => {
     },
     {
       field: "G2",
-      generateKeyFn: bls12381GenerateG2KeyPair,
-      secretKeyLength: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
-      publicKeyLength: DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH,
+      generateKeyFn: bls12381.generateG2KeyPair,
+      secretKeyLength: bls12381.PRIVATE_KEY_LENGTH,
+      publicKeyLength: bls12381.G2_PUBLIC_KEY_LENGTH,
       seed: new Uint8Array(
         Buffer.from(
           "H297BpoOgkfpXcxr1fJyQRiNx1+ZekeQ+OU/AYV/lVxaPXXhFBIbxeIU8kIAAX68cwQ=",

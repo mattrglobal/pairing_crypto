@@ -12,21 +12,19 @@
  */
 
 import {
-  bls12381BbsVerify,
-  bls12381BbsSign,
-  bls12381GenerateG2KeyPair,
-  BlsKeyPair,
-  BbsVerifyRequest,
   BbsSignRequest,
+  BbsVerifyRequest,
+  bls12381,
+  KeyPair,
 } from "../../lib/index";
 import { base64Decode, stringToBytes } from "../utilities";
 
 describe("bbs", () => {
   describe("bls12381BbsVerify", () => {
-    let blsKeyPair: BlsKeyPair;
+    let blsKeyPair: KeyPair;
 
     beforeAll(async () => {
-      blsKeyPair = await bls12381GenerateG2KeyPair();
+      blsKeyPair = await bls12381.generateG2KeyPair();
     });
 
     it("should throw error when signature wrong length", async () => {
@@ -35,7 +33,7 @@ describe("bbs", () => {
         messages: [stringToBytes("ExampleMessage")],
         signature: base64Decode("jYidhsdqxvAyNXMV4/vNfGM/4AULfSyf"),
       };
-      expect((await bls12381BbsVerify(request)).verified).toBeFalsy();
+      expect((await bls12381.bbs.verify(request)).verified).toBeFalsy();
     });
 
     it("should verify valid signature with a single message", async () => {
@@ -43,13 +41,13 @@ describe("bbs", () => {
         secretKey: blsKeyPair.secretKey,
         messages: [stringToBytes("ExampleMessage")],
       };
-      const signature = await bls12381BbsSign(request);
+      const signature = await bls12381.bbs.sign(request);
       const verifyRequest: BbsVerifyRequest = {
         publicKey: blsKeyPair.publicKey,
         messages: [stringToBytes("ExampleMessage")],
         signature,
       };
-      expect((await bls12381BbsVerify(verifyRequest)).verified).toBeTruthy();
+      expect((await bls12381.bbs.verify(verifyRequest)).verified).toBeTruthy();
     });
 
     it("should verify valid signature with multiple messages", async () => {
@@ -61,7 +59,7 @@ describe("bbs", () => {
           stringToBytes("ExampleMessage3"),
         ],
       };
-      const signature = await bls12381BbsSign(request);
+      const signature = await bls12381.bbs.sign(request);
       const verifyRequest: BbsVerifyRequest = {
         publicKey: blsKeyPair.publicKey,
         messages: [
@@ -71,7 +69,7 @@ describe("bbs", () => {
         ],
         signature,
       };
-      expect((await bls12381BbsVerify(verifyRequest)).verified).toBeTruthy();
+      expect((await bls12381.bbs.verify(verifyRequest)).verified).toBeTruthy();
     });
 
     it("should not verify valid signature with wrong single message", async () => {
@@ -83,7 +81,7 @@ describe("bbs", () => {
           "kTV8dar9xLWQZ5EzaWYqTRmgA6dw6wcrUw5c///crRD2QQPXX9Di+lgCPCXAA5D8Pytuh6bNSx6k4NZTR9KfSNdaejKl2zTU9poRfzZ2SIskdgSHTZ2y7jLm/UEGKsAs3tticBVj1Pm2GNhQI/OlXQ=="
         ),
       };
-      expect((await bls12381BbsVerify(verifyRequest)).verified).toBeFalsy();
+      expect((await bls12381.bbs.verify(verifyRequest)).verified).toBeFalsy();
     });
 
     it("should not verify valid signature with wrong messages", async () => {
@@ -99,7 +97,7 @@ describe("bbs", () => {
           "jYidhsdqxvAyNXMV4/vNfGM/4AULfSyfvQiwh+dDd4JtnT5xHnwpzMYdLdHzBYwXaGE1k6ln/pwtI4RwQZpl03SCv/mT/3AdK8PB2y43MGdMSeGTyZGfZf+rUrEDEs3lTfmPK54E+JBzd96gnrF2iQ=="
         ),
       };
-      expect((await bls12381BbsVerify(verifyRequest)).verified).toBeFalsy();
+      expect((await bls12381.bbs.verify(verifyRequest)).verified).toBeFalsy();
     });
 
     it("should not verify when messages empty", async () => {
@@ -110,7 +108,7 @@ describe("bbs", () => {
           "jYidhsdqxvAyNXMV4/vNfGM/4AULfSyfvQiwh+dDd4JtnT5xHnwpzMYdLdHzBYwXaGE1k6ln/pwtI4RwQZpl03SCv/mT/3AdK8PB2y43MGdMSeGTyZGfZf+rUrEDEs3lTfmPK54E+JBzd96gnrF2iQ=="
         ),
       };
-      expect((await bls12381BbsVerify(request)).verified).toBeFalsy();
+      expect((await bls12381.bbs.verify(request)).verified).toBeFalsy();
     });
 
     it("should not verify when public key invalid length", async () => {
@@ -121,7 +119,7 @@ describe("bbs", () => {
           "jYidhsdqxvAyNXMV4/vNfGM/4AULfSyfvQiwh+dDd4JtnT5xHnwpzMYdLdHzBYwXaGE1k6ln/pwtI4RwQZpl03SCv/mT/3AdK8PB2y43MGdMSeGTyZGfZf+rUrEDEs3lTfmPK54E+JBzd96gnrF2iQ=="
         ),
       };
-      expect((await bls12381BbsVerify(request)).verified).toBeFalsy();
+      expect((await bls12381.bbs.verify(request)).verified).toBeFalsy();
     });
   });
 });

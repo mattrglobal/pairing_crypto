@@ -11,20 +11,14 @@
  * limitations under the License.
  */
 
-import {
-  bls12381GenerateG2KeyPair,
-  BbsSignRequest,
-  bls12381BbsSign,
-  BBS_SIGNATURE_LENGTH,
-  BlsKeyPair,
-} from "../../lib";
+import { BbsSignRequest, bls12381, KeyPair } from "../../lib";
 import { stringToBytes } from "../utilities";
 
 describe("bbs", () => {
-  let blsKeyPair: BlsKeyPair;
+  let blsKeyPair: KeyPair;
 
   beforeAll(async () => {
-    blsKeyPair = await bls12381GenerateG2KeyPair();
+    blsKeyPair = await bls12381.generateG2KeyPair();
   });
 
   describe("bls12381BbsSign", () => {
@@ -33,9 +27,9 @@ describe("bbs", () => {
         secretKey: blsKeyPair.secretKey,
         messages: [stringToBytes("ExampleMessage")],
       };
-      const signature = await bls12381BbsSign(request);
+      const signature = await bls12381.bbs.sign(request);
       expect(signature).toBeInstanceOf(Uint8Array);
-      expect(signature.length).toEqual(BBS_SIGNATURE_LENGTH);
+      expect(signature.length).toEqual(bls12381.bbs.SIGNATURE_LENGTH);
     });
 
     it("should sign multiple messages", async () => {
@@ -47,9 +41,9 @@ describe("bbs", () => {
           stringToBytes("ExampleMessage3"),
         ],
       };
-      const signature = await bls12381BbsSign(request);
+      const signature = await bls12381.bbs.sign(request);
       expect(signature).toBeInstanceOf(Uint8Array);
-      expect(signature.length).toEqual(BBS_SIGNATURE_LENGTH);
+      expect(signature.length).toEqual(bls12381.bbs.SIGNATURE_LENGTH);
     });
 
     it("should throw error if secret key not present", async () => {
@@ -61,7 +55,7 @@ describe("bbs", () => {
           stringToBytes("ExampleMessage3"),
         ],
       };
-      await expect(bls12381BbsSign(request)).rejects.toThrowError(
+      await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
         "Request object missing required element"
       );
     });
@@ -75,7 +69,7 @@ describe("bbs", () => {
           stringToBytes("ExampleMessage3"),
         ],
       };
-      await expect(bls12381BbsSign(request)).rejects.toThrowError(
+      await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
         "Secret key length incorrect expected 32 bytes"
       );
     });
@@ -92,7 +86,7 @@ describe("bbs", () => {
           stringToBytes("ExampleMessage3"),
         ],
       };
-      await expect(bls12381BbsSign(request)).rejects.toThrowError(
+      await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
         "Secret key length incorrect expected 32 bytes"
       );
     });
@@ -102,7 +96,7 @@ describe("bbs", () => {
         secretKey: blsKeyPair.secretKey,
         messages: [],
       };
-      await expect(bls12381BbsSign(request)).rejects.toThrowError(
+      await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
         "Messages to sign empty, expected > 1"
       );
     });
@@ -116,7 +110,7 @@ describe("bbs", () => {
           stringToBytes("ExampleMessage3"),
         ],
       };
-      await expect(bls12381BbsSign(request)).rejects.toThrowError(
+      await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
         "Failed to sign"
       );
     });

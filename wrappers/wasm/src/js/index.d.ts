@@ -15,30 +15,24 @@ import {
   BbsSignRequest,
   BbsVerifyRequest,
   BbsVerifyResult,
-  BlsKeyPair,
+  KeyPair,
 } from "./types";
 
 export * from "./types";
 
-export const BBS_SIGNATURE_LENGTH = 112;
+export namespace bls12381 {
+  const PRIVATE_KEY_LENGTH = 32;
+  const G1_PUBLIC_KEY_LENGTH = 48;
+  const G2_PUBLIC_KEY_LENGTH = 96;
 
-export const DEFAULT_BLS12381_PRIVATE_KEY_LENGTH = 32;
+  function generateG1KeyPair(seed?: Uint8Array): Promise<Required<KeyPair>>;
+  function generateG2KeyPair(seed?: Uint8Array): Promise<Required<KeyPair>>;
 
-export const DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH = 48;
+  namespace bbs {
+    const SIGNATURE_LENGTH = 112;
+    const SIGNER_PUBLIC_KEY_LENGTH = 96;
 
-export const DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH = 96;
-
-// TODO restructure these exposed methods into an interface under the curve rather than overloading the function name
-export function bls12381GenerateG2KeyPair(
-  seed?: Uint8Array
-): Promise<Required<BlsKeyPair>>;
-
-export function bls12381GenerateG1KeyPair(
-  seed?: Uint8Array
-): Promise<Required<BlsKeyPair>>;
-
-export function bls12381BbsSign(request: BbsSignRequest): Promise<Uint8Array>;
-
-export function bls12381BbsVerify(
-  request: BbsVerifyRequest
-): Promise<BbsVerifyResult>;
+    function sign(request: BbsSignRequest): Promise<Uint8Array>;
+    function verify(request: BbsVerifyRequest): Promise<BbsVerifyResult>;
+  }
+}

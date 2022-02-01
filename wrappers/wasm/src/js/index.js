@@ -18,13 +18,13 @@ const wasm = require('./pairing_crypto_wasm.js');
 // TODO should be able to remove this duplicate definition syntax by using ESM over index.web.js
 // in future
 
-module.exports.BBS_SIGNATURE_LENGTH = 112;
+const BBS_SIGNATURE_LENGTH = 112;
 
-module.exports.DEFAULT_BLS12381_PRIVATE_KEY_LENGTH = 32;
+const DEFAULT_BLS12381_PRIVATE_KEY_LENGTH = 32;
 
-module.exports.DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH = 48;
+const DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH = 48;
 
-module.exports.DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH = 96;
+const DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH = 96;
 
 // Casts a rejected promise to an error rather than a
 // simple string result
@@ -49,10 +49,10 @@ const initialize = async () => {
     }
 }
 
-module.exports.bls12381GenerateG1KeyPair = async (seed) => {
+const bls12381_GenerateG1KeyPair = async (seed) => {
     await initialize();
     var result = await throwErrorOnRejectedPromise(
-        wasm.bls12381GenerateG1KeyPair(seed ? seed : await randomBytes(32))
+        wasm.bls12381_GenerateG1KeyPair(seed ? seed : await randomBytes(32))
     );
     return {
         secretKey: new Uint8Array(result.secretKey),
@@ -60,10 +60,10 @@ module.exports.bls12381GenerateG1KeyPair = async (seed) => {
     };
 };
 
-module.exports.bls12381GenerateG2KeyPair = async (seed) => {
+const bls12381_GenerateG2KeyPair = async (seed) => {
     await initialize();
     var result = await throwErrorOnRejectedPromise(
-        wasm.bls12381GenerateG2KeyPair(seed ? seed : await randomBytes(32))
+        wasm.bls12381_GenerateG2KeyPair(seed ? seed : await randomBytes(32))
     );
     return {
       secretKey: new Uint8Array(result.secretKey),
@@ -71,12 +71,29 @@ module.exports.bls12381GenerateG2KeyPair = async (seed) => {
     };
 };
 
-module.exports.bls12381BbsSign = async (request) => {
+const bls12381_Bbs_Sign = async (request) => {
     await initialize();
-    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bls12381BbsSignG1(request)));
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bls12381_Bbs_SignG1(request)));
 };
 
-module.exports.bls12381BbsVerify = async (request) => {
+const bls12381_Bbs_Verify = async (request) => {
     await initialize();
-    return await throwErrorOnRejectedPromise(wasm.bls12381BbsVerifyG1(request));
+    return await throwErrorOnRejectedPromise(wasm.bls12381_Bbs_VerifyG1(request));
 };
+
+module.exports.bls12381 = {
+    PRIVATE_KEY_LENGTH: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
+    G1_PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH,
+    G2_PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH,
+
+    generateG1KeyPair: bls12381_GenerateG1KeyPair,
+    generateG2KeyPair: bls12381_GenerateG2KeyPair,
+    bbs: {
+        SIGNATURE_LENGTH: BBS_SIGNATURE_LENGTH,
+        SIGNER_PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH,
+
+        generateSignerKeyPair: bls12381_GenerateG2KeyPair,
+        sign: bls12381_Bbs_Sign,
+        verify: bls12381_Bbs_Verify
+    }
+}

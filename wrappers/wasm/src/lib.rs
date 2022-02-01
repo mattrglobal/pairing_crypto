@@ -30,11 +30,12 @@ static ALLOC: wee_alloc::WeeAlloc<'_> = wee_alloc::WeeAlloc::INIT;
 #[macro_use]
 mod macros;
 
-mod wasm;
+mod api;
 
 /// Exposed prelude when using wasm
 pub mod prelude {
-    pub use crate::wasm::*;
+    pub use crate::api::*;
 }
 
+mod dtos;
 mod utils;

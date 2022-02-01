@@ -15,4 +15,4 @@ export { BbsSignRequest } from "./BbsSignRequest";
 export { BbsVerifyRequest } from "./BbsVerifyRequest";
 export { BbsVerifyResult } from "./BbsVerifyResult";
 
-export { BlsKeyPair } from "./BlsKeyPair";
+export { KeyPair } from "./KeyPair";

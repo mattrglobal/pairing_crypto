@@ -15,12 +15,7 @@ import { generateBbsSignRequest } from "./helper";
 
 /* eslint-disable @typescript-eslint/camelcase */
 import { report, benchmarkPromise } from "@stablelib/benchmark";
-import {
-  bls12381GenerateG1KeyPair,
-  bls12381GenerateG2KeyPair,
-  bls12381BbsSign,
-  bls12381BbsVerify,
-} from "../lib/index";
+import { bls12381 } from "../lib/index";
 
 // main benchmark routine
 const runBbsBenchmark = async (
@@ -28,14 +23,14 @@ const runBbsBenchmark = async (
   messageSizeInBytes: number,
   numberRevealed: number
 ): Promise<void> => {
-  const keyPair = await bls12381GenerateG2KeyPair();
+  const keyPair = await bls12381.generateG2KeyPair();
 
   const messageSignRequest = await generateBbsSignRequest(
     keyPair,
     numberOfMessages,
     messageSizeInBytes
   );
-  const messageSignature = await bls12381BbsSign(messageSignRequest);
+  const messageSignature = await bls12381.bbs.sign(messageSignRequest);
   const messageVerifyRequest = {
     signature: messageSignature,
     publicKey: keyPair.publicKey,
@@ -44,24 +39,24 @@ const runBbsBenchmark = async (
 
   report(
     `BBS Sign ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
-    await benchmarkPromise(() => bls12381BbsSign(messageSignRequest))
+    await benchmarkPromise(() => bls12381.bbs.sign(messageSignRequest))
   );
 
   report(
     `BBS Verify ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
-    await benchmarkPromise(() => bls12381BbsVerify(messageVerifyRequest))
+    await benchmarkPromise(() => bls12381.bbs.verify(messageVerifyRequest))
   );
 };
 
 (async () => {
   report(
     "BLS 12-381 Key Generation G2",
-    await benchmarkPromise(() => bls12381GenerateG2KeyPair())
+    await benchmarkPromise(() => bls12381.generateG2KeyPair())
   );
 
   report(
     "BLS 12-381 Key Generation G1",
-    await benchmarkPromise(() => bls12381GenerateG1KeyPair())
+    await benchmarkPromise(() => bls12381.generateG1KeyPair())
   );
 
   // ------------------------------ 1, 100 byte message ------------------------------
