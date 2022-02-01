@@ -62,8 +62,7 @@ describe("bbs", () => {
         ],
       };
       await expect(bls12381BbsSign(request)).rejects.toThrowError(
-        // TODO error message should be different here
-        "TypeError: Reflect.get called on non-object"
+        "Request object missing required element"
       );
     });
 

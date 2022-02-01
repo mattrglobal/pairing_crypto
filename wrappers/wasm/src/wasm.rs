@@ -122,7 +122,7 @@ pub async fn bls12_381_generate_g2_key(seed: Option<Vec<u8>>) -> Result<JsValue,
 ///
 /// Returned value is a byte array which is the produced signature (112 bytes)
 #[wasm_bindgen(js_name = bls12381BbsSignG1)]
-pub async fn bls12_381_bbs_sign_g1(request: JsValue) -> Result<JsValue, JsValue> {
+pub async fn bls12_381_bbs_sign_g1(request: JsValue) -> Result<JsValue, serde_wasm_bindgen::Error> {
     set_panic_hook();
     // Cast the JSON request into a rust struct
     let request: BbsSignRequest = request.try_into()?;
@@ -131,7 +131,7 @@ pub async fn bls12_381_bbs_sign_g1(request: JsValue) -> Result<JsValue, JsValue>
     let secret_key_byte_array = match vec_to_byte_array::<32>(request.secretKey) {
         Ok(result) => result,
         Err(_) => {
-            return Err(JsValue::from(
+            return Err(serde_wasm_bindgen::Error::new(
                 "Secret key length incorrect expected 32 bytes",
             ))
         }
@@ -149,7 +149,11 @@ pub async fn bls12_381_bbs_sign_g1(request: JsValue) -> Result<JsValue, JsValue>
     // TODO review digest algorithm being used
     let messages: Vec<core::Message> = match digest_messages(request.messages) {
         Ok(messages) => messages,
-        Err(_) => return Err(JsValue::from("Messages to sign empty, expected > 1")),
+        Err(_) => {
+            return Err(serde_wasm_bindgen::Error::new(
+                "Messages to sign empty, expected > 1",
+            ))
+        }
     };
 
     // Use generators derived from the signers public key
@@ -159,7 +163,7 @@ pub async fn bls12_381_bbs_sign_g1(request: JsValue) -> Result<JsValue, JsValue>
     // Produce the signature and return
     match bbs::Signature::new(&sk, &generators, &messages) {
         Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig).unwrap()),
-        Err(_e) => Err(JsValue::from("Failed to sign")),
+        Err(_e) => Err(serde_wasm_bindgen::Error::new("Failed to sign")),
     }
 }
 
@@ -208,17 +212,14 @@ pub async fn bls12_381_bbs_verify_g1(request: JsValue) -> Result<JsValue, JsValu
     // TODO review digest algorithm being used
     let messages: Vec<core::Message> = match digest_messages(request.messages) {
         Ok(messages) => messages,
-        Err(err) => return Err(JsValue::from(err.as_str())),
+        Err(err) => {
+            return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
+                verified: false,
+                error: Some(err.as_str().to_string()),
+            })
+            .unwrap())
+        }
     };
-
-    // TODO this should be encapsulated at a layer down so its not being performed at the wrapper layer
-    if messages.len() < 1 {
-        return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
-            verified: false,
-            error: Some("Messages to verify empty, expected > 1".to_string()),
-        })
-        .unwrap());
-    }
 
     // Use generators derived from the signers public key
     // TODO this approach is likely to change soon
@@ -269,7 +270,9 @@ pub async fn bls12_381_bbs_verify_g1(request: JsValue) -> Result<JsValue, JsValu
 ///
 /// Returned value is a byte array which is the produced proof (variable length)
 #[wasm_bindgen(js_name = bls12381BbsDeriveProofG1)]
-pub async fn bls12_381_bbs_derive_proof_g1(request: JsValue) -> Result<JsValue, JsValue> {
+pub async fn bls12_381_bbs_derive_proof_g1(
+    request: JsValue,
+) -> Result<JsValue, serde_wasm_bindgen::Error> {
     set_panic_hook();
     // Cast the JSON request into a rust struct
     let request: BbsDeriveProofRequest = request.try_into()?;
@@ -279,7 +282,7 @@ pub async fn bls12_381_bbs_derive_proof_g1(request: JsValue) -> Result<JsValue, 
     let public_key_byte_array = match vec_to_byte_array::<96>(request.publicKey) {
         Ok(result) => result,
         Err(_) => {
-            return Err(JsValue::from(
+            return Err(serde_wasm_bindgen::Error::new(
                 "Public key length incorrect expected 96 bytes",
             ))
         }
@@ -288,7 +291,7 @@ pub async fn bls12_381_bbs_derive_proof_g1(request: JsValue) -> Result<JsValue, 
     // Digest the supplied messages
     let messages: Vec<core::Message> = match digest_messages(request.messages) {
         Ok(messages) => messages,
-        Err(err) => return Err(JsValue::from(err.as_str())),
+        Err(err) => return Err(serde_wasm_bindgen::Error::new(err.as_str())),
     };
 
     // Get the secret key from the raw bytes
@@ -304,7 +307,7 @@ pub async fn bls12_381_bbs_derive_proof_g1(request: JsValue) -> Result<JsValue, 
     let signature_byte_array = match vec_to_byte_array::<112>(request.signature) {
         Ok(result) => result,
         Err(_) => {
-            return Err(JsValue::from(
+            return Err(serde_wasm_bindgen::Error::new(
                 "Signature incorrect length, expecting 112 bytes",
             ))
         }

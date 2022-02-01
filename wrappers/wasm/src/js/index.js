@@ -32,6 +32,12 @@ const throwErrorOnRejectedPromise = async (promise) => {
     try {
         return await promise;
     } catch (ex) {
+        if (ex instanceof TypeError && ex.message === 'Reflect.get called on non-object') {
+            // Due to serde-wasm-bindgens usage of reflect in serde-rs
+            // we are unable to detect `which` element is missing from a request object
+            // until that is resolved we cannot provide that level of detail in this particular error case
+            throw new TypeError("Request object missing required element");
+        }
         throw new Error(ex);
     }
 };

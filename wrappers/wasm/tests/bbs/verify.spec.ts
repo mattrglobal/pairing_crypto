@@ -29,7 +29,14 @@ describe("bbs", () => {
       blsKeyPair = await bls12381GenerateG2KeyPair();
     });
 
-    it.todo("should throw error when signature wrong length");
+    it("should throw error when signature wrong length", async () => {
+      const request: BbsVerifyRequest = {
+        publicKey: blsKeyPair.publicKey,
+        messages: [stringToBytes("ExampleMessage")],
+        signature: base64Decode("jYidhsdqxvAyNXMV4/vNfGM/4AULfSyf"),
+      };
+      expect((await bls12381BbsVerify(request)).verified).toBeFalsy();
+    });
 
     it("should verify valid signature with a single message", async () => {
       const request: BbsSignRequest = {
@@ -95,7 +102,7 @@ describe("bbs", () => {
       expect((await bls12381BbsVerify(verifyRequest)).verified).toBeFalsy();
     });
 
-    it.skip("should not verify when messages empty", async () => {
+    it("should not verify when messages empty", async () => {
       const request: BbsVerifyRequest = {
         publicKey: blsKeyPair.publicKey,
         messages: [],

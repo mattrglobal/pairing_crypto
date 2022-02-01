@@ -76,20 +76,13 @@ macro_rules! wasm_impl {
     };
 }
 
-macro_rules! map_err {
-    ($st:expr) => {
-        // TODO format the error correctly here
-        $st.map_err(|e| JsValue::from_str(&e.to_string()))
-    };
-}
-
 macro_rules! try_from_impl {
     ($name:ident) => {
         impl std::convert::TryFrom<JsValue> for $name {
-            type Error = JsValue;
+            type Error = serde_wasm_bindgen::Error;
 
             fn try_from(value: JsValue) -> Result<Self, Self::Error> {
-                map_err!(serde_wasm_bindgen::from_value::<$name>(value))
+                serde_wasm_bindgen::from_value::<$name>(value)
             }
         }
     };
