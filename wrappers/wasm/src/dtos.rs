@@ -16,6 +16,7 @@
  */
 
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
 wasm_impl!(KeyPair, publicKey: Vec<u8>, secretKey: Option<Vec<u8>>);
@@ -44,4 +45,13 @@ wasm_impl!(
     messages: Vec<BbsDeriveProofRevealMessageRequest>,
     signature: Vec<u8>,
     presentationMessage: Vec<u8>
+);
+
+wasm_impl!(
+    BbsVerifyProofRequest,
+    publicKey: Vec<u8>,
+    proof: Vec<u8>,
+    presentationMessage: Vec<u8>,
+    totalMessageCount: usize,
+    messages: HashMap<String, Vec<u8>>
 );

@@ -100,7 +100,7 @@ fn signature_works() {
 
     let seed = [2u8; 16];
     let mut rng = MockRng::from_seed(seed);
-    let sk = SecretKey::random(&mut rng).unwrap();
+    let sk = SecretKey::random().unwrap();
     let mut msg = [0u8; 12];
     rng.fill_bytes(&mut msg);
     let sig = Signature::new(&sk, msg).unwrap();

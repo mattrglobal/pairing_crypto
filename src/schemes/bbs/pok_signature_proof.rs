@@ -26,8 +26,10 @@ pub struct PokSignatureProof {
 impl PokSignatureProof {
     /// Store the proof as a sequence of bytes
     /// Each point is compressed to big-endian format
-    /// Needs (N + 2) * 32 + 48 * 3 space otherwise it will panic
+    /// Needs 32 * (N + 2) + 48 * 3 space otherwise it will panic
     /// where N is the number of hidden messages
+    /// [48,    ,48    ,48 ,64                ,32*N]
+    /// [a_prime, a_bar, d, proof1(2 of these), [0...N]]
     pub fn to_bytes(&self) -> Vec<u8> {
         let size = FIELD_BYTES * (2 + self.proofs2.len()) + COMMITMENT_G1_BYTES * 3;
         let mut buffer = Vec::with_capacity(size);

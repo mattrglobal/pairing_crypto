@@ -24,9 +24,11 @@
     },
     "scripts": {
         "install": "./scripts/install-dependencies.sh",
+        "build:debug": "./scripts/build-package.sh DEBUG",
         "build": "./scripts/build-package.sh",
         "test": "jest",
-        "benchmark": "ts-node bench/index.ts"
+        "benchmark": "ts-node bench/index.ts",
+        "generate-fixtures": "ts-node tools/generate-fixtures.ts"
     },
     "devDependencies": {
         "@commitlint/config-conventional": "8.3.4",
@@ -34,11 +36,12 @@
         "@stablelib/benchmark": "1.0.0",
         "@stablelib/random": "1.0.1",
         "@types/jest": "27.4.0",
-        "@types/node": "15.3.1",
+        "@types/node": "^17.0.16",
         "husky": "4.2.5",
         "jest": "27.4.7",
         "prettier": "2.0.4",
         "pretty-quick": "2.0.1",
+        "require-all": "^3.0.0",
         "rollup": "2.66.1",
         "ts-jest": "27.1.3",
         "ts-node": "10.4.0",

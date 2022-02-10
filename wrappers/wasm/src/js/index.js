@@ -12,8 +12,7 @@
  * limitations under the License.
  */
 
-const { randomBytes } = require('@stablelib/random')
-const wasm = require('./pairing_crypto_wasm.js');
+const wasm = require('./wasm_module.js');
 
 // TODO should be able to remove this duplicate definition syntax by using ESM over index.web.js
 // in future
@@ -45,14 +44,19 @@ const throwErrorOnRejectedPromise = async (promise) => {
 let initializedModule;
 const initialize = async () => {
     if (!initializedModule) {
-        initializedModule = await wasm.default();
+        if (typeof wasm.default === "function") {
+            initializedModule = await wasm.default();
+        }
+        else {
+            initializedModule = true;
+        }
     }
 }
 
 const bls12381_GenerateG1KeyPair = async (seed) => {
     await initialize();
     var result = await throwErrorOnRejectedPromise(
-        wasm.bls12381_GenerateG1KeyPair(seed ? seed : await randomBytes(32))
+        wasm.bls12381_GenerateG1KeyPair(seed ? seed : undefined)
     );
     return {
         secretKey: new Uint8Array(result.secretKey),
@@ -63,7 +67,7 @@ const bls12381_GenerateG1KeyPair = async (seed) => {
 const bls12381_GenerateG2KeyPair = async (seed) => {
     await initialize();
     var result = await throwErrorOnRejectedPromise(
-        wasm.bls12381_GenerateG2KeyPair(seed ? seed : await randomBytes(32))
+        wasm.bls12381_GenerateG2KeyPair(seed ? seed : undefined)
     );
     return {
       secretKey: new Uint8Array(result.secretKey),
@@ -81,6 +85,16 @@ const bls12381_Bbs_Verify = async (request) => {
     return await throwErrorOnRejectedPromise(wasm.bls12381_Bbs_VerifyG1(request));
 };
 
+const bls12381_Bbs_DeriveProof = async (request) => {
+    await initialize();
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bls12381_Bbs_DeriveProofG1(request)));
+}
+
+const bls12381_Bbs_VerifyProof = async (request) => {
+    await initialize();
+    return await throwErrorOnRejectedPromise(wasm.bls12381_Bbs_VerifyProofG1(request));
+}
+
 module.exports.bls12381 = {
     PRIVATE_KEY_LENGTH: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
     G1_PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH,
@@ -94,6 +108,8 @@ module.exports.bls12381 = {
 
         generateSignerKeyPair: bls12381_GenerateG2KeyPair,
         sign: bls12381_Bbs_Sign,
-        verify: bls12381_Bbs_Verify
+        verify: bls12381_Bbs_Verify,
+        deriveProof: bls12381_Bbs_DeriveProof,
+        verifyProof: bls12381_Bbs_VerifyProof
     }
 }

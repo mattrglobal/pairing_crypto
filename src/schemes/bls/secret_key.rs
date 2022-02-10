@@ -1,6 +1,6 @@
 use crate::curves::bls12_381::Scalar;
 use hkdf::HkdfExtract;
-use rand_core::{CryptoRng, RngCore};
+use rand::{thread_rng, RngCore};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use subtle::CtOption;
 use zeroize::Zeroize;
@@ -59,7 +59,8 @@ impl SecretKey {
     }
 
     /// Compute a secret key from a CS-PRNG
-    pub fn random(mut rng: impl RngCore + CryptoRng) -> Option<Self> {
+    pub fn random() -> Option<Self> {
+        let mut rng = thread_rng();
         let mut data = [0u8; Self::BYTES];
         rng.fill_bytes(&mut data);
         generate_secret_key(&data)

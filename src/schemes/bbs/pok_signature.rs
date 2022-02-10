@@ -55,11 +55,17 @@ impl PokSignature {
         let r2 = Scalar::random(&mut rng);
         let r3 = r1.invert().unwrap();
 
+        // Set the secret values associated to the proof
+        let secrets1 = [signature.e, r2];
+        let mut secrets2 = Vec::new();
         let m: Vec<_> = messages.iter().map(|m| m.get_message()).collect();
 
+        // b = commitment + h0 \* s + h\[1\] \* msg\[1\] + ... + h\[L\] \* msg\[L\]
         let b = Signature::compute_b(signature.s, m.as_ref(), generators);
 
+        // A' = A \* r1
         let a_prime = signature.a * r1;
+        // a_bar = A' \* -e + b \* r1
         let a_bar = b * r1 - a_prime * signature.e;
 
         // d = b * r1 + h0 * r2
@@ -68,26 +74,29 @@ impl PokSignature {
         // s' = s - r2 r3
         let s_prime = signature.s + r2 * r3;
 
+        secrets2.push(r3);
+        secrets2.push(s_prime);
+
         // For proving relation a_bar / d == a_prime^{-e} * h_0^r2
         let mut proof1 = ProofCommittedBuilder::<G1Projective, G1Affine>::new(
             G1Projective::sum_of_products_in_place,
         );
-        // For a_prime * -e
+
+        // Compute the components of C1 = A' * e~ + h0 * r2~
+        // For A' * -e
         proof1.commit_random(a_prime, &mut rng);
         // For h0 * r2
         proof1.commit_random(generators.h0, &mut rng);
-        let secrets1 = [signature.e, r2];
 
+        // Compute the components of C2 = ...
         let mut proof2 = ProofCommittedBuilder::<G1Projective, G1Affine>::new(
             G1Projective::sum_of_products_in_place,
         );
-        let mut secrets2 = Vec::new();
+
         // for d * -r3
         proof2.commit_random(-d, &mut rng);
-        secrets2.push(r3);
         // for h0 * s_prime
         proof2.commit_random(generators.h0, &mut rng);
-        secrets2.push(s_prime);
 
         for i in 0..generators.len() {
             match messages[i] {
@@ -117,7 +126,7 @@ impl PokSignature {
     /// Convert the committed values to bytes for the fiat-shamir challenge
     pub fn add_proof_contribution(&mut self, hasher: &mut impl Update) {
         hasher.update(self.a_prime.to_affine().to_uncompressed());
-        hasher.update(self.a_bar.to_affine().to_uncompressed());
+        hasher.update(self.a_bar.to_affine().to_uncompressed()); // TODO this is different from the spec
         hasher.update(self.d.to_affine().to_uncompressed());
         self.proof1.add_challenge_contribution(hasher);
         self.proof2.add_challenge_contribution(hasher);

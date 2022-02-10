@@ -1,7 +1,6 @@
 use super::{MessageGenerators, Signature};
 use crate::schemes::bls::{PublicKey, SecretKey};
 use crate::schemes::core::*;
-use rand_core::{CryptoRng, RngCore};
 
 /// This struct represents an Issuer of signatures or Signer.
 /// Provided are methods for signing regularly where all messages are known
@@ -12,8 +11,8 @@ pub struct Issuer;
 
 impl Issuer {
     /// Create a keypair
-    pub fn new_keys(rng: impl RngCore + CryptoRng) -> Result<(PublicKey, SecretKey), Error> {
-        SecretKey::random(rng)
+    pub fn new_keys() -> Result<(PublicKey, SecretKey), Error> {
+        SecretKey::random()
             .map(|sk| {
                 let pk = PublicKey::from(&sk);
                 (pk, sk)

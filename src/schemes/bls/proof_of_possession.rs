@@ -84,12 +84,7 @@ impl ProofOfPossession {
 
 #[test]
 fn pop_works() {
-    use crate::MockRng;
-    use rand_core::SeedableRng;
-
-    let seed = [2u8; 16];
-    let mut rng = MockRng::from_seed(seed);
-    let sk = SecretKey::random(&mut rng).unwrap();
+    let sk = SecretKey::random().unwrap();
     let pop = ProofOfPossession::new(&sk).unwrap();
     let pk = PublicKey::from(&sk);
     assert_eq!(pop.verify(pk).unwrap_u8(), 1);

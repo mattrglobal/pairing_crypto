@@ -84,12 +84,7 @@ impl ProofOfPossessionVt {
 
 #[test]
 fn pop_vt_works() {
-    use crate::MockRng;
-    use rand_core::SeedableRng;
-
-    let seed = [2u8; 16];
-    let mut rng = MockRng::from_seed(seed);
-    let sk = SecretKey::random(&mut rng).unwrap();
+    let sk = SecretKey::random().unwrap();
     let pop = ProofOfPossessionVt::new(&sk).unwrap();
     let pk = PublicKeyVt::from(&sk);
     assert_eq!(pop.verify(pk).unwrap_u8(), 1);

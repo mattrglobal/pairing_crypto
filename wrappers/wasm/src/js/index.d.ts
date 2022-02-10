@@ -16,6 +16,8 @@ import {
   BbsVerifyRequest,
   BbsVerifyResult,
   KeyPair,
+  BbsDeriveProofRequest,
+  BbsVerifyProofRequest,
 } from "./types";
 
 export * from "./types";
@@ -34,5 +36,7 @@ export namespace bls12381 {
 
     function sign(request: BbsSignRequest): Promise<Uint8Array>;
     function verify(request: BbsVerifyRequest): Promise<BbsVerifyResult>;
+    function deriveProof(request: BbsDeriveProofRequest): Promise<Uint8Array>;
+    function verifyProof(request: BbsVerifyProofRequest): Promise<boolean>;
   }
 }

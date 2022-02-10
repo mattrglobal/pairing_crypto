@@ -18,7 +18,7 @@ group = "0.9"
 hashbrown = "0.11"
 heapless = "0.6"
 hkdf = "0.10"
-rand = "0.8"
+rand = { version = "0.8", features = ["getrandom"] }
 getrandom = { version = "0.2", optional = true, features = ["js"] }
 rand_chacha = "0.3"
 rand_core = "0.6"

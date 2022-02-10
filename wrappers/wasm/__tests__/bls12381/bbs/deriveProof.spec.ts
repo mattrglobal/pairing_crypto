@@ -11,18 +11,10 @@
  * limitations under the License.
  */
 
-const pack = require("./package");
-
-module.exports = {
-  preset: "ts-jest",
-  roots: ["<rootDir>/__tests__"],
-  testEnvironment: "node",
-  testPathIgnorePatterns: ["/node_modules/", "/output/"],
-  testRegex: [".spec.ts$"],
-  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
-  coveragePathIgnorePatterns: ["<rootDir>/__tests__", "<rootDir>/lib"],
-  testTimeout: 20000,
-  verbose: true,
-  name: pack.name,
-  displayName: pack.name,
-};
+describe("bls12381", () => {
+  describe("bbs", () => {
+    describe("deriveProof", () => {
+      it.todo("place holder test");
+    });
+  });
+});

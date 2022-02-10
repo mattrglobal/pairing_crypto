@@ -1,5 +1,6 @@
-use super::{MessageGenerators, PokSignature, Signature};
+use super::{MessageGenerators, PokSignature, PokSignatureProof, Signature};
 use crate::schemes::core::*;
+use digest::{ExtendableOutput, Update, XofReader};
 
 /// A Prover is whomever receives signatures or uses them to generate proofs.
 /// Provided are methods for 2PC where some are only known to the prover and a blind signature
@@ -8,13 +9,23 @@ use crate::schemes::core::*;
 pub struct Prover;
 
 impl Prover {
-    /// Create a new signature proof of knowledge and selective disclosure proof
-    /// from a verifier's request
-    pub fn commit_signature_pok(
+    /// Derives a signature proof of knowledge
+    pub fn derive_signature_pok(
         signature: Signature,
         generators: &MessageGenerators,
+        presentation_message: PresentationMessage,
         messages: &[ProofMessage],
-    ) -> Result<PokSignature, Error> {
-        PokSignature::init(signature, generators, messages)
+    ) -> Result<PokSignatureProof, Error> {
+        let mut pok = PokSignature::init(signature, generators, messages).unwrap();
+
+        let mut data = [0u8; COMMITMENT_G1_BYTES];
+        let mut hasher = sha3::Shake256::default();
+        pok.add_proof_contribution(&mut hasher);
+        hasher.update(presentation_message.to_bytes());
+        let mut reader = hasher.finalize_xof();
+        reader.read(&mut data[..]);
+        let challenge = Challenge::from_okm(&data);
+
+        Ok(pok.generate_proof(challenge).unwrap())
     }
 }

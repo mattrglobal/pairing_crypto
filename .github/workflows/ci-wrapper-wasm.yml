@@ -54,6 +54,9 @@ jobs:
       - name: Run yarn build
         run: yarn build
 
+      - name: Run yarn build
+        run: yarn generate-fixtures
+
       - name: Run yarn test
         run: yarn test
 

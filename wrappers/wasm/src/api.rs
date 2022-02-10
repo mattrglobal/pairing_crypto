@@ -18,9 +18,9 @@
 use crate::dtos::*;
 use crate::utils::*;
 
+use digest::{ExtendableOutput, Update, XofReader};
 use pairing_crypto::bls12_381::*;
 use pairing_crypto::schemes::*;
-use rand::{thread_rng, RngCore};
 use std::convert::TryInto;
 use wasm_bindgen::prelude::*;
 
@@ -32,20 +32,20 @@ use wasm_bindgen::prelude::*;
 /// followed by the public key (48) bytes.
 #[wasm_bindgen(js_name = bls12381_GenerateG1KeyPair)]
 pub async fn bls12381_generateg1key(seed: Option<Vec<u8>>) -> Result<JsValue, JsValue> {
+    // Improves error output in JS based console.log() when built with debug feature enabled
     set_panic_hook();
-    let seed_data = match seed {
-        Some(s) => s.to_vec(),
-        None => {
-            let mut rng = thread_rng();
-            let mut s = vec![0u8, 32];
-            rng.fill_bytes(s.as_mut_slice());
-            s
-        }
+
+    // Derive secret key from supplied seed otherwise generate a new seed and a derive a key from this
+    // using the underlying RNG usually defaults to the OS provided RNG e.g in Node is node crypto
+    let sk = match seed {
+        Some(s) => bls::SecretKey::from_seed(s.to_vec()).unwrap(),
+        None => bls::SecretKey::random().unwrap(),
     };
 
-    let sk = bls::SecretKey::from_seed(seed_data).unwrap();
+    // Derive the public key from the secret key
     let pk = bls::PublicKeyVt::from(&sk);
 
+    // Construct the JS DTO of the keypair to return
     let keypair = KeyPair {
         publicKey: pk.to_bytes().to_vec(),
         secretKey: Some(sk.to_bytes().to_vec()),
@@ -61,20 +61,19 @@ pub async fn bls12381_generateg1key(seed: Option<Vec<u8>>) -> Result<JsValue, Js
 /// followed by the public key (96) bytes.
 #[wasm_bindgen(js_name = bls12381_GenerateG2KeyPair)]
 pub async fn bls12381_generateg2key(seed: Option<Vec<u8>>) -> Result<JsValue, JsValue> {
+    // Improves error output in JS based console.log() when built with debug feature enabled
     set_panic_hook();
-    let seed_data = match seed {
-        Some(s) => s.to_vec(),
-        None => {
-            let mut rng = thread_rng();
-            let mut s = vec![0u8, 32];
-            rng.fill_bytes(s.as_mut_slice());
-            s
-        }
-    };
 
-    let sk = bls::SecretKey::from_seed(seed_data).unwrap();
+    // Derive secret key from supplied seed otherwise generate a new seed and a derive a key from this
+    // using the underlying RNG usually defaults to the OS provided RNG e.g in Node is node crypto
+    let sk = match seed {
+        Some(s) => bls::SecretKey::from_seed(s.to_vec()).unwrap(),
+        None => bls::SecretKey::random().unwrap(),
+    };
+    // Derive the public key from the secret key
     let pk = bls::PublicKey::from(&sk);
 
+    // Construct the JS DTO of the keypair to return
     let keypair = KeyPair {
         publicKey: pk.to_bytes().to_vec(),
         secretKey: Some(sk.to_bytes().to_vec()),
@@ -89,30 +88,21 @@ pub async fn bls12381_generateg2key(seed: Option<Vec<u8>>) -> Result<JsValue, Js
 /// Returned value is a byte array which is the produced signature (112 bytes)
 #[wasm_bindgen(js_name = bls12381_Bbs_SignG1)]
 pub async fn bls12381_bbs_signg1(request: JsValue) -> Result<JsValue, serde_wasm_bindgen::Error> {
+    // Improves error output in JS based console.log() when built with debug feature enabled
     set_panic_hook();
-    // Cast the JSON request into a rust struct
+    // Cast the supplied JSON request into a rust struct
     let request: BbsSignRequest = request.try_into()?;
 
-    // Convert to byte array and check proper length
-    let secret_key_byte_array = match vec_to_byte_array::<32>(request.secretKey) {
+    // Parse public key from request
+    let sk = match vec_to_secret_key(request.secretKey) {
         Ok(result) => result,
-        Err(_) => {
-            return Err(serde_wasm_bindgen::Error::new(
-                "Secret key length incorrect expected 32 bytes",
-            ))
-        }
+        Err(e) => return Err(serde_wasm_bindgen::Error::new(format!("{:?}", e))),
     };
 
-    // Get the secret key from the raw bytes
-    // TODO dont use general unwrap here
-    let sk = bls::SecretKey::from_bytes(&secret_key_byte_array).unwrap();
-
     // Derive the public key from the secret key
-    // TODO public key isn't really needed in the request to this API could get away with dropping it?
     let pk = bls::PublicKey::from(&sk);
 
     // Digest the supplied messages
-    // TODO review digest algorithm being used
     let messages: Vec<core::Message> = match digest_messages(request.messages) {
         Ok(messages) => messages,
         Err(_) => {
@@ -142,6 +132,7 @@ pub async fn bls12381_bbs_signg1(request: JsValue) -> Result<JsValue, serde_wasm
 /// if not any details on the error available
 #[wasm_bindgen(js_name = bls12381_Bbs_VerifyG1)]
 pub async fn bls12381_bbs_verifyg1(request: JsValue) -> Result<JsValue, JsValue> {
+    // Improves error output in JS based console.log() when built with debug feature enabled
     set_panic_hook();
     // Cast the JSON request into a rust struct
     let res = request.try_into();
@@ -157,25 +148,19 @@ pub async fn bls12381_bbs_verifyg1(request: JsValue) -> Result<JsValue, JsValue>
         }
     };
 
-    // Convert to byte array and check proper length
-    // TODO should not be hard coded here
-    let public_key_byte_array = match vec_to_byte_array::<96>(request.publicKey) {
+    // Parse public key from request
+    let pk = match vec_to_public_key(request.publicKey) {
         Ok(result) => result,
-        Err(_) => {
+        Err(e) => {
             return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
                 verified: false,
-                error: Some("Public key length incorrect expected 96 bytes".to_string()),
+                error: Some(format!("{:?}", e)),
             })
             .unwrap())
         }
     };
 
-    // Get the secret key from the raw bytes
-    // TODO dont use general unwrap here
-    let pk = bls::PublicKey::from_bytes(&public_key_byte_array).unwrap();
-
     // Digest the supplied messages
-    // TODO review digest algorithm being used
     let messages: Vec<core::Message> = match digest_messages(request.messages) {
         Ok(messages) => messages,
         Err(err) => {
@@ -191,21 +176,17 @@ pub async fn bls12381_bbs_verifyg1(request: JsValue) -> Result<JsValue, JsValue>
     // TODO this approach is likely to change soon
     let generators = bbs::MessageGenerators::from_public_key(pk, messages.len());
 
-    // Convert to byte array and check proper length of signature
-    // TODO this should not be hard coded like this
-    let signature_byte_array = match vec_to_byte_array::<112>(request.signature) {
+    // Parse signature from request
+    let signature = match vec_to_signature(request.signature) {
         Ok(result) => result,
-        Err(_) => {
+        Err(e) => {
             return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
                 verified: false,
-                error: Some("Signature incorrect length, expecting 112 bytes".to_string()),
+                error: Some(format!("{:?}", e)),
             })
             .unwrap())
         }
     };
-
-    // TODO should not just be using unwrap here
-    let signature = bbs::Signature::from_bytes(&signature_byte_array).unwrap();
 
     match signature.verify(&pk, &generators, &messages) {
         true => {
@@ -234,61 +215,142 @@ pub async fn bls12381_bbs_verifyg1(request: JsValue) -> Result<JsValue, JsValue>
 /// and the BLS12-381 based public key in G2 associated to the original signer of the
 /// signature
 ///
+/// {
+///     "publicKey": Vec<u8>, // Uint8Array of bytes representing the public key
+///     "signature": Vec<u8>,
+///     "presentationMessage": Vec<u8>,
+///     "messages": [{ // Note this array is considered ordered and MUST match the order in which the messages were signed
+///         "value": Vec<u8>, // Uint8Array of raw bytes representing the message
+///         "reveal": boolean // indicates whether or not to reveal the message in the derived proof
+///     }]
+/// }
+///
 /// Returned value is a byte array which is the produced proof (variable length)
 #[wasm_bindgen(js_name = bls12381_Bbs_DeriveProofG1)]
 pub async fn bls12381_bbs_deriveproofg1(
     request: JsValue,
 ) -> Result<JsValue, serde_wasm_bindgen::Error> {
+    // Improves error output in JS based console.log() when built with debug feature enabled
     set_panic_hook();
+
     // Cast the JSON request into a rust struct
     let request: BbsDeriveProofRequest = request.try_into()?;
 
-    // Convert to byte array and check proper length
-    // TODO should not be hard coded here
-    let public_key_byte_array = match vec_to_byte_array::<96>(request.publicKey) {
+    // Parse public key from request
+    let pk = match vec_to_public_key(request.publicKey) {
         Ok(result) => result,
-        Err(_) => {
-            return Err(serde_wasm_bindgen::Error::new(
-                "Public key length incorrect expected 96 bytes",
-            ))
-        }
+        Err(e) => return Err(serde_wasm_bindgen::Error::new(format!("{:?}", e))),
+    };
+
+    // Parse signature from request
+    let signature = match vec_to_signature(request.signature) {
+        Ok(result) => result,
+        Err(e) => return Err(serde_wasm_bindgen::Error::new(format!("{:?}", e))),
     };
 
     // Digest the supplied messages
-    // TODO map to revealed messages
-    let messages: Vec<ProofMessage> = match digest_proof_messages(request.messages) {
-        Ok(messages) => messages,
-        Err(err) => return Err(serde_wasm_bindgen::Error::new(err.as_str())),
-    };
-
-    // Get the secret key from the raw bytes
-    // TODO dont use general unwrap here
-    let pk = bls::PublicKey::from_bytes(&public_key_byte_array).unwrap();
+    let messages = digest_messages(
+        request
+            .messages
+            .iter()
+            .map(|element| element.value.clone())
+            .collect(),
+    )
+    .unwrap();
 
     // Use generators derived from the signers public key
     // TODO this approach is likely to change soon
     let generators = bbs::MessageGenerators::from_public_key(pk, messages.len());
 
-    // Convert to byte array and check proper length of signature
-    // TODO this should not be hard coded like this
-    let signature_byte_array = match vec_to_byte_array::<112>(request.signature) {
-        Ok(result) => result,
-        Err(_) => {
+    // Verify the signature to check the messages supplied are valid
+    match signature.verify(&pk, &generators, &messages) {
+        false => {
             return Err(serde_wasm_bindgen::Error::new(
-                "Signature incorrect length, expecting 112 bytes",
+                "Invalid signature, unable to verify",
             ))
         }
+        true => {}
     };
 
-    // TODO should not just be using unwrap here
-    let signature = bbs::Signature::from_bytes(&signature_byte_array).unwrap();
+    // Digest the supplied messages
+    let proof_messages: Vec<ProofMessage> = match digest_proof_messages(request.messages) {
+        Ok(messages) => messages,
+        Err(err) => return Err(serde_wasm_bindgen::Error::new(err.as_str())),
+    };
 
-    let pok = bbs::PokSignature::init(signature, &generators, messages.as_slice()).unwrap();
+    let presentation_message = core::PresentationMessage::hash(request.presentationMessage);
 
-    let challenge = Challenge::hash(request.presentationMessage);
+    let proof = bbs::Prover::derive_signature_pok(
+        signature,
+        &generators,
+        presentation_message,
+        &proof_messages,
+    )
+    .unwrap();
 
-    // TODO dont use unwrap handle the error properly
-    let res = pok.generate_proof(challenge).unwrap();
+    Ok(serde_wasm_bindgen::to_value(&proof.to_bytes()).unwrap())
+}
 
-    Ok(serde_wasm_bindgen::to_value(&res.to_bytes()).unwrap())
+/// Verifies a signature proof of knowledge proof
+///
+/// * request: JSON encoded request TODO
+///
+/// {
+///     "publicKey": Vec<u8>, // Uint8Array of bytes representing the public key
+///     "proof": Vec<u8>,
+///     "presentationMessage": Vec<u8>,
+///     "totalMessageCount": usize,
+///     "messages": {
+///         number: {
+///            "value": Vec<u8> // Uint8Array of raw bytes representing the message
+///         }
+///     }]
+/// }
+///
+/// Returned value is a byte array which is the produced proof (variable length)
+#[wasm_bindgen(js_name = bls12381_Bbs_VerifyProofG1)]
+pub async fn bls12381_bbs_verifyproofg1(
+    request: JsValue,
+) -> Result<JsValue, serde_wasm_bindgen::Error> {
+    // Improves error output in JS based console.log() when built with debug feature enabled
+    set_panic_hook();
+
+    // Cast the JSON request into a rust struct
+    let request: BbsVerifyProofRequest = request.try_into()?;
+
+    // Digest the revealed proof messages
+    let messages: Vec<(usize, Message)> =
+        digest_revealed_proof_messages(request.messages, request.totalMessageCount).unwrap();
+
+    // Parse public key from request
+    let pk = match vec_to_public_key(request.publicKey) {
+        Ok(result) => result,
+        Err(e) => return Err(serde_wasm_bindgen::Error::new(format!("{:?}", e))),
+    };
+
+    // Use generators derived from the signers public key
+    // TODO this approach is likely to change soon
+    let generators = bbs::MessageGenerators::from_public_key(pk, request.totalMessageCount);
+
+    // TODO validate POK proof
+    let proof = bbs::PokSignatureProof::from_bytes(request.proof).unwrap();
+
+    //TODO compute challenge how does this work?
+    let mut tv = [0u8; 48];
+    let mut hasher = sha3::Shake256::default();
+    hasher.update(&request.presentationMessage);
+    let mut reader = hasher.finalize_xof_reset();
+    reader.read(&mut tv);
+    let challenge = Challenge::from_okm(&tv);
+
+    let presentation_message = PresentationMessage::hash(request.presentationMessage);
+
+    Ok(JsValue::from(bbs::Verifier::verify_signature_pok(
+        messages.as_slice(),
+        pk,
+        proof,
+        &generators,
+        presentation_message,
+        challenge,
+    )))
 }

@@ -1,7 +1,8 @@
 use core::convert::TryFrom;
 use digest::{ExtendableOutput, Update, XofReader};
-use pairing_crypto::bls12_381::{bbs, Challenge, HiddenMessage, Message, Nonce, ProofMessage};
-use rand::SeedableRng;
+use pairing_crypto::bls12_381::{
+    bbs, Challenge, HiddenMessage, Message, PresentationMessage, ProofMessage,
+};
 
 const TEST_KEYS: [&[u8]; 7] = [
     b"",
@@ -60,6 +61,7 @@ fn signing() {
 #[test]
 fn proofs() {
     use pairing_crypto::MockRng;
+    use rand::SeedableRng;
     let mut rng = MockRng::from_seed([1u8; 16]);
     let test_atts = TEST_CLAIMS
         .iter()
@@ -123,8 +125,8 @@ fn proofs() {
         "a1f52e241bbfde0c2c968409449689f554286d6b504c56f7eb82f55d64723501fdaf3d3406efacd6306aceaec5511b92a0bf6de3a931d5b4e66416fc89d26f2d869e1c1b3a4291641f0fc939b0d025837c2697849e1dc81da49c53fc013e5336a9b848368e5347f134e51105b85563c4b5dd8a0b33bcf5e9e3831ff4d3c5848aa5e53c553b97cb5d5e848164fe8b053265722c7ed14bc7027c7e54fb42ef9189727a5561372ac7d24e2d15abad51d25833c4f852407b745ec0943191373d0db984d63353476283ac428cf9369e94fc9b637b0bbcc3fb294a9896749cd0434fa5d283973d63557c1c1a6244f2b294eb862835ab219a6b74a5d5e718fe1bfe04e0726f8fc19cdd0bff98f68381bc5935c112bc5eed29bed686f966f1fbcc9f09c21faa4e234754cd98e48ea163590b86e9466e24b339c71ebc2b3b52d3e4588b3d090c9ce4663a981922988af3c81d9450",
         "8ed361d19da7953073dcbeabe785561c5caf185b6d24d65e2d93af2f3d296baf094f76dfe1b15af84a49970ebc79655ca7bc8984906d13117634e8e489db75c6ec9604ad194c27ea05cec9cff2c7da64c6a77cc078483ac70cbe76d35cb3625a98fd833b12277dc01ddcb2765ab5caec11b8ee26cf5f4048e4aa9e7f0784b9e5420dcdacd8d14e335fd37453b2d8722c29d4ef329573c34e171edb30b2f2bb2b7af826bd2ec205d738b57dabce12001a4e0aa5ffd1d4674a8b2a2528ad6fd30ef941d031b563c53191033dc72a4a706a1922abbc79c5af06fa8ecb40ee92c56ebee92afc0064652775f9400882f2298e2916396967ffec34132a1aaf0fe1d025b2103458982cdaa447f7c05864e6cf4e63db9a4ac29022760155dea969454682344a9a9a7f483eef66f0651024db4c0a"],
     ];
-    // No nonce
-    let nonce = Nonce::default();
+    // No presentation message
+    let presentation_message = PresentationMessage::default();
 
     for i in 0..TEST_KEYS.len() {
         let pk = bbs::PublicKey::from(&bbs::SecretKey::from_seed(TEST_KEYS[i]).unwrap());
@@ -147,12 +149,12 @@ fn proofs() {
             let mut pok = res.unwrap();
             let mut hasher = sha3::Shake256::default();
             pok.add_proof_contribution(&mut hasher);
-            hasher.update(nonce.to_bytes());
+            hasher.update(presentation_message.to_bytes());
             let mut reader = hasher.finalize_xof();
             let mut data = [0u8; 48];
             reader.read(&mut data[..]);
-            let c = Challenge::from_okm(&data);
-            let res = pok.generate_proof(c);
+            let challenge = Challenge::from_okm(&data);
+            let res = pok.generate_proof(challenge);
             assert!(res.is_ok());
 
             let proof = res.unwrap();
@@ -170,8 +172,8 @@ fn proofs() {
                 pk,
                 proof,
                 &gens,
-                nonce,
-                c
+                presentation_message,
+                challenge
             ));
         }
     }
