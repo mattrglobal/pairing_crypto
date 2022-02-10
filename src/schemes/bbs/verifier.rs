@@ -72,7 +72,7 @@ fn pok_sig_proof_works() {
     let mut tv = [0u8; 48];
     let mut pok_sig = res.unwrap();
     let presentation_message = Verifier::generate_random_presentation_message();
-    let mut hasher = Shake256::default();
+    let mut hasher = sha3::Shake256::default();
     pok_sig.add_proof_contribution(&mut hasher);
     hasher.update(&presentation_message.to_bytes()[..]);
     let mut reader = hasher.finalize_xof_reset();
