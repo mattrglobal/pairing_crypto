@@ -46,6 +46,8 @@ const runBbsBenchmark = async (
     `BBS Verify ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
     await benchmarkPromise(() => bls12381.bbs.verify(messageVerifyRequest))
   );
+
+  // TODO derive and verify proof
 };
 
 (async () => {

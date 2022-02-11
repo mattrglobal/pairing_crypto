@@ -28,6 +28,9 @@ pub mod schemes;
 
 /// Supported constructs for the BLS12-381 curve
 pub mod bls12_381 {
+    pub use super::curves::bls12_381::PublicKey;
+    pub use super::curves::bls12_381::PublicKeyVt;
+    pub use super::curves::bls12_381::SecretKey;
     pub use super::schemes::bbs;
     pub use super::schemes::bls;
     pub use super::schemes::core::{

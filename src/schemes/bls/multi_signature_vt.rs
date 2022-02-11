@@ -1,5 +1,5 @@
-use super::{MultiPublicKeyVt, PublicKeyVt, SignatureVt};
-use crate::curves::bls12_381::{G2Affine, G2Projective};
+use super::{MultiPublicKeyVt, SignatureVt};
+use crate::curves::bls12_381::{G2Affine, G2Projective, PublicKeyVt};
 use core::ops::{BitOr, Not};
 use group::Curve;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};

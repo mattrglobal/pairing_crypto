@@ -1,5 +1,4 @@
-use crate::curves::bls12_381::{ExpandMsgXof, G1Projective};
-use crate::schemes::bls::{PublicKey, SecretKey};
+use crate::curves::bls12_381::{ExpandMsgXof, G1Projective, PublicKey, SecretKey};
 use crate::schemes::core::*;
 use core::convert::TryFrom;
 use group::Curve;

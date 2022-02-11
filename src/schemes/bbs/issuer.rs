@@ -1,5 +1,4 @@
-use super::{MessageGenerators, Signature};
-use crate::schemes::bls::{PublicKey, SecretKey};
+use super::{MessageGenerators, PublicKey, SecretKey, Signature};
 use crate::schemes::core::*;
 
 /// This struct represents an Issuer of signatures or Signer.

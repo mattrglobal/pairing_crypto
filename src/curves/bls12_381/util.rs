@@ -1,3 +1,5 @@
+use std::convert::TryFrom;
+
 /// Compute a + b + carry, returning the result and the new carry over.
 #[inline(always)]
 pub const fn adc(a: u64, b: u64, carry: u64) -> (u64, u64) {
@@ -17,6 +19,14 @@ pub const fn sbb(a: u64, b: u64, borrow: u64) -> (u64, u64) {
 pub const fn mac(a: u64, b: u64, c: u64, carry: u64) -> (u64, u64) {
     let ret = (a as u128) + ((b as u128) * (c as u128)) + (carry as u128);
     (ret as u64, (ret >> 64) as u64)
+}
+
+pub fn vec_to_byte_array<const N: usize>(vec: Vec<u8>) -> Result<[u8; N], String> {
+    match <[u8; N]>::try_from(vec) {
+        Ok(result) => Ok(result),
+        // TODO specify mismatch in length?
+        Err(_) => Err("Input data length incorrect".to_string()),
+    }
 }
 
 macro_rules! impl_add_binop_specify_output {

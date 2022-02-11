@@ -21,7 +21,6 @@ use console_error_panic_hook::*;
 use pairing_crypto::bls12_381::*;
 use pairing_crypto::schemes::*;
 use std::collections::HashMap;
-use std::convert::TryFrom;
 use wasm_bindgen::prelude::*;
 
 pub fn set_panic_hook() {
@@ -111,48 +110,4 @@ pub fn digest_proof_messages(
             }
         })
         .collect())
-}
-
-/// Convert an input vector into a byte array
-pub fn vec_to_byte_array<const N: usize>(vec: Vec<u8>) -> Result<[u8; N], String> {
-    match <[u8; N]>::try_from(vec) {
-        Ok(result) => Ok(result),
-        // TODO convert to wasm bindgen error
-        Err(_) => Err("Input data length incorrect".to_string()),
-    }
-}
-
-pub fn vec_to_secret_key(vec: Vec<u8>) -> Result<bls::SecretKey, String> {
-    // Convert to byte array and check proper length
-    let secret_key_byte_array = match vec_to_byte_array::<32>(vec) {
-        Ok(result) => result,
-        Err(_) => return Err("Secret key length incorrect expected 32 bytes".to_string()),
-    };
-
-    // Get the public key from the raw bytes
-    Ok(bls::SecretKey::from_bytes(&secret_key_byte_array).unwrap())
-}
-
-pub fn vec_to_public_key(vec: Vec<u8>) -> Result<bls::PublicKey, String> {
-    // Convert to byte array and check proper length
-    let public_key_byte_array = match vec_to_byte_array::<COMMITMENT_G2_BYTES>(vec) {
-        Ok(result) => result,
-        Err(_) => return Err("Public key length incorrect expected 96 bytes".to_string()),
-    };
-
-    // Get the public key from the raw bytes
-    // TODO dont use general unwrap here
-    Ok(bls::PublicKey::from_bytes(&public_key_byte_array).unwrap())
-}
-
-pub fn vec_to_signature(vec: Vec<u8>) -> Result<bbs::Signature, String> {
-    // Convert to byte array and check proper length
-    let signature_byte_array = match vec_to_byte_array::<112>(vec) {
-        Ok(result) => result,
-        Err(_) => return Err("Signature length incorrect expected 112 bytes".to_string()),
-    };
-
-    // Get the signature from the raw bytes
-    // TODO dont use general unwrap here
-    Ok(bbs::Signature::from_bytes(&signature_byte_array).unwrap())
 }

@@ -1,6 +1,7 @@
 use crate::curves::bls12_381::Scalar;
 use digest::{ExtendableOutput, Update, XofReader};
 use sha3::Shake256;
+use std::convert::TryFrom;
 use subtle::CtOption;
 
 /// Convert slice to a fixed array
@@ -86,4 +87,13 @@ pub fn scalar_from_bytes(bytes: &[u8; 32]) -> CtOption<Scalar> {
     t.copy_from_slice(bytes);
     t.reverse();
     Scalar::from_bytes(&t)
+}
+
+/// Convert a vector of bytes to a fixed length byte array
+pub fn vec_to_byte_array<const N: usize>(vec: Vec<u8>) -> Result<[u8; N], String> {
+    match <[u8; N]>::try_from(vec) {
+        Ok(result) => Ok(result),
+        // TODO specify mismatch in length?
+        Err(_) => Err("Input data length incorrect".to_string()),
+    }
 }

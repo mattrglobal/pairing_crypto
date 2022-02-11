@@ -1,6 +1,5 @@
 use super::{MessageGenerators, PokSignatureProof};
-use crate::curves::bls12_381::Scalar;
-use crate::schemes::bls::PublicKey;
+use crate::curves::bls12_381::{PublicKey, Scalar};
 use crate::schemes::core::*;
 use digest::{ExtendableOutput, Update, XofReader};
 

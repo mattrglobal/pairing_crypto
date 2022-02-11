@@ -1,11 +1,13 @@
+use super::util::vec_to_byte_array;
 use super::SecretKey;
 use crate::curves::bls12_381::{G1Affine, G1Projective};
 use core::ops::{BitOr, Not};
 use group::Curve;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use subtle::{Choice, CtOption};
+use subtle::Choice;
 
 /// A BLS public key
+/// TODO rename to G1 and G2 respectively
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct PublicKeyVt(pub G1Projective);
 
@@ -71,8 +73,22 @@ impl PublicKeyVt {
         self.0.to_affine().to_compressed()
     }
 
+    /// Convert a vector of bytes of big-endian representation of the public key
+    pub fn from_vec(bytes: Vec<u8>) -> Result<Self, String> {
+        match vec_to_byte_array::<{ Self::BYTES }>(bytes) {
+            Ok(result) => Self::from_bytes(&result),
+            Err(_) => return Err("Public key length incorrect expected 48 bytes".to_string()),
+        }
+    }
+
     /// Convert a big-endian representation of the public key
-    pub fn from_bytes(bytes: &[u8; Self::BYTES]) -> CtOption<Self> {
-        G1Affine::from_compressed(bytes).map(|p| Self(G1Projective::from(&p)))
+    pub fn from_bytes(bytes: &[u8; Self::BYTES]) -> Result<Self, String> {
+        let result = G1Affine::from_compressed(bytes).map(|p| Self(G1Projective::from(&p)));
+
+        if result.is_some().unwrap_u8() == 1u8 {
+            Ok(result.unwrap())
+        } else {
+            Err("Failed to decompress public key from bytes".to_string())
+        }
     }
 }

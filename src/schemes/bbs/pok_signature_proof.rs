@@ -1,8 +1,7 @@
 use super::MessageGenerators;
 use crate::curves::bls12_381::{
-    multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared, Scalar,
+    multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared, PublicKey, Scalar,
 };
-use crate::schemes::bls::PublicKey;
 use crate::schemes::core::*;
 use core::convert::TryFrom;
 use digest::Update;

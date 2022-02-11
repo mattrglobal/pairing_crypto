@@ -1,5 +1,5 @@
-use super::{PublicKey, Signature};
-use crate::curves::bls12_381::{G1Affine, G1Projective, G2Affine};
+use super::Signature;
+use crate::curves::bls12_381::{G1Affine, G1Projective, G2Affine, PublicKey};
 use core::ops::{BitOr, Neg, Not};
 use group::{Curve, Group};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};

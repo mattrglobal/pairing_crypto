@@ -1,8 +1,8 @@
+use super::util::vec_to_byte_array;
 use crate::curves::bls12_381::Scalar;
 use hkdf::HkdfExtract;
 use rand::{thread_rng, RngCore};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use subtle::CtOption;
 use zeroize::Zeroize;
 
 /// The secret key is field element 0 < `x` < `r`
@@ -74,16 +74,31 @@ impl SecretKey {
         bytes
     }
 
-    /// Convert a big-endian representation of the secret key.
-    pub fn from_bytes(bytes: &[u8; Self::BYTES]) -> CtOption<Self> {
+    /// Convert a vector of bytes of big-endian representation of the secret key
+    pub fn from_vec(bytes: Vec<u8>) -> Result<Self, String> {
+        match vec_to_byte_array::<{ Self::BYTES }>(bytes) {
+            Ok(result) => Self::from_bytes(&result),
+            Err(_) => return Err("Secret key length incorrect expected 32 bytes".to_string()),
+        }
+    }
+
+    /// Convert a big-endian representation of the secret key
+    pub fn from_bytes(bytes: &[u8; Self::BYTES]) -> Result<Self, String> {
         let mut t = [0u8; Self::BYTES];
         t.copy_from_slice(bytes);
         t.reverse();
-        Scalar::from_bytes(&t).map(SecretKey)
+        let result = Scalar::from_bytes(&t).map(SecretKey);
+
+        if result.is_some().unwrap_u8() == 1u8 {
+            Ok(result.unwrap())
+        } else {
+            Err("Failed to decompress secret key from bytes".to_string())
+        }
     }
 }
 
 fn generate_secret_key(ikm: &[u8]) -> Option<SecretKey> {
+    // TODO update this salt?
     const SALT: &[u8] = b"BLS-SIG-KEYGEN-SALT-";
     const INFO: [u8; 2] = [0u8, 48u8];
 

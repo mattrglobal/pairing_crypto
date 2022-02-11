@@ -41,4 +41,4 @@ pub use presentation_message::*;
 pub use proof_committed_builder::ProofCommittedBuilder;
 pub use proof_message::*;
 pub use signature_blinding::*;
-pub use util::{hash_to_scalar, scalar_from_bytes, scalar_to_bytes};
+pub use util::{hash_to_scalar, scalar_from_bytes, scalar_to_bytes, vec_to_byte_array};

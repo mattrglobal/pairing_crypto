@@ -38,12 +38,12 @@ pub async fn bls12381_generateg1key(seed: Option<Vec<u8>>) -> Result<JsValue, Js
     // Derive secret key from supplied seed otherwise generate a new seed and a derive a key from this
     // using the underlying RNG usually defaults to the OS provided RNG e.g in Node is node crypto
     let sk = match seed {
-        Some(s) => bls::SecretKey::from_seed(s.to_vec()).unwrap(),
-        None => bls::SecretKey::random().unwrap(),
+        Some(s) => SecretKey::from_seed(s.to_vec()).unwrap(),
+        None => SecretKey::random().unwrap(),
     };
 
     // Derive the public key from the secret key
-    let pk = bls::PublicKeyVt::from(&sk);
+    let pk = PublicKeyVt::from(&sk);
 
     // Construct the JS DTO of the keypair to return
     let keypair = KeyPair {
@@ -67,11 +67,11 @@ pub async fn bls12381_generateg2key(seed: Option<Vec<u8>>) -> Result<JsValue, Js
     // Derive secret key from supplied seed otherwise generate a new seed and a derive a key from this
     // using the underlying RNG usually defaults to the OS provided RNG e.g in Node is node crypto
     let sk = match seed {
-        Some(s) => bls::SecretKey::from_seed(s.to_vec()).unwrap(),
-        None => bls::SecretKey::random().unwrap(),
+        Some(s) => SecretKey::from_seed(s.to_vec()).unwrap(),
+        None => SecretKey::random().unwrap(),
     };
     // Derive the public key from the secret key
-    let pk = bls::PublicKey::from(&sk);
+    let pk = PublicKey::from(&sk);
 
     // Construct the JS DTO of the keypair to return
     let keypair = KeyPair {
@@ -94,13 +94,13 @@ pub async fn bls12381_bbs_signg1(request: JsValue) -> Result<JsValue, serde_wasm
     let request: BbsSignRequest = request.try_into()?;
 
     // Parse public key from request
-    let sk = match vec_to_secret_key(request.secretKey) {
+    let sk = match SecretKey::from_vec(request.secretKey) {
         Ok(result) => result,
         Err(e) => return Err(serde_wasm_bindgen::Error::new(format!("{:?}", e))),
     };
 
     // Derive the public key from the secret key
-    let pk = bls::PublicKey::from(&sk);
+    let pk = PublicKey::from(&sk);
 
     // Digest the supplied messages
     let messages: Vec<core::Message> = match digest_messages(request.messages) {
@@ -149,7 +149,7 @@ pub async fn bls12381_bbs_verifyg1(request: JsValue) -> Result<JsValue, JsValue>
     };
 
     // Parse public key from request
-    let pk = match vec_to_public_key(request.publicKey) {
+    let pk = match PublicKey::from_vec(request.publicKey) {
         Ok(result) => result,
         Err(e) => {
             return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
@@ -177,7 +177,7 @@ pub async fn bls12381_bbs_verifyg1(request: JsValue) -> Result<JsValue, JsValue>
     let generators = bbs::MessageGenerators::from_public_key(pk, messages.len());
 
     // Parse signature from request
-    let signature = match vec_to_signature(request.signature) {
+    let signature = match bbs::Signature::from_vec(request.signature) {
         Ok(result) => result,
         Err(e) => {
             return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
@@ -237,13 +237,13 @@ pub async fn bls12381_bbs_deriveproofg1(
     let request: BbsDeriveProofRequest = request.try_into()?;
 
     // Parse public key from request
-    let pk = match vec_to_public_key(request.publicKey) {
+    let pk = match PublicKey::from_vec(request.publicKey) {
         Ok(result) => result,
         Err(e) => return Err(serde_wasm_bindgen::Error::new(format!("{:?}", e))),
     };
 
     // Parse signature from request
-    let signature = match vec_to_signature(request.signature) {
+    let signature = match bbs::Signature::from_vec(request.signature) {
         Ok(result) => result,
         Err(e) => return Err(serde_wasm_bindgen::Error::new(format!("{:?}", e))),
     };
@@ -323,7 +323,7 @@ pub async fn bls12381_bbs_verifyproofg1(
         digest_revealed_proof_messages(request.messages, request.totalMessageCount).unwrap();
 
     // Parse public key from request
-    let pk = match vec_to_public_key(request.publicKey) {
+    let pk = match PublicKey::from_vec(request.publicKey) {
         Ok(result) => result,
         Err(e) => return Err(serde_wasm_bindgen::Error::new(format!("{:?}", e))),
     };

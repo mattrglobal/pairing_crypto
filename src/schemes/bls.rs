@@ -21,9 +21,6 @@ mod multi_signature;
 mod multi_signature_vt;
 mod proof_of_possession;
 mod proof_of_possession_vt;
-mod public_key;
-mod public_key_vt;
-mod secret_key;
 mod signature;
 mod signature_vt;
 
@@ -35,8 +32,5 @@ pub use multi_signature::*;
 pub use multi_signature_vt::*;
 pub use proof_of_possession::*;
 pub use proof_of_possession_vt::*;
-pub use public_key::*;
-pub use public_key_vt::*;
-pub use secret_key::*;
 pub use signature::*;
 pub use signature_vt::*;

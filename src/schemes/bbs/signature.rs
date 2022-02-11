@@ -1,8 +1,8 @@
 use super::MessageGenerators;
 use crate::curves::bls12_381::{
-    multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective, Scalar,
+    multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective, PublicKey,
+    Scalar, SecretKey,
 };
-use crate::schemes::bls::{PublicKey, SecretKey};
 use crate::schemes::core::*;
 use core::convert::TryFrom;
 use core::ops::Neg;
@@ -15,7 +15,7 @@ use serde::{
     Deserialize, Deserializer, Serialize, Serializer,
 };
 use sha3::Shake256;
-use subtle::{Choice, ConditionallySelectable, CtOption};
+use subtle::{Choice, ConditionallySelectable};
 
 /// A BBS+ signature
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -65,7 +65,7 @@ impl<'de> Deserialize<'de> for Signature {
                         .ok_or_else(|| DError::invalid_length(i, &self))?;
                 }
                 let res = Signature::from_bytes(&arr);
-                if res.is_some().unwrap_u8() == 1 {
+                if res.is_ok() {
                     Ok(res.unwrap())
                 } else {
                     Err(DError::invalid_value(
@@ -181,20 +181,45 @@ impl Signature {
         bytes
     }
 
+    // TODO
+    /// Convert a vector of bytes of big-endian representation of the public key
+    pub fn from_vec(bytes: Vec<u8>) -> Result<Self, String> {
+        match vec_to_byte_array::<{ Self::BYTES }>(bytes) {
+            Ok(result) => Self::from_bytes(&result),
+            Err(_) => return Err("Public key length incorrect expected 32 bytes".to_string()),
+        }
+    }
+
     /// Convert a byte sequence into a signature
-    pub fn from_bytes(data: &[u8; Self::BYTES]) -> CtOption<Self> {
-        let aa = G1Affine::from_compressed(&<[u8; 48]>::try_from(&data[0..48]).unwrap())
+    pub fn from_bytes(data: &[u8; Self::BYTES]) -> Result<Self, String> {
+        let a_res = G1Affine::from_compressed(&<[u8; 48]>::try_from(&data[0..48]).unwrap())
             .map(G1Projective::from);
         let mut e_bytes = <[u8; 32]>::try_from(&data[48..80]).unwrap();
         e_bytes.reverse();
-        let ee = Scalar::from_bytes(&e_bytes);
+        let e_res = Scalar::from_bytes(&e_bytes);
         let mut s_bytes = <[u8; 32]>::try_from(&data[80..112]).unwrap();
         s_bytes.reverse();
-        let ss = Scalar::from_bytes(&s_bytes);
+        let s_res = Scalar::from_bytes(&s_bytes);
 
-        aa.and_then(|a| {
-            ee.and_then(|e| ss.and_then(|s| CtOption::new(Signature { a, e, s }, Choice::from(1))))
-        })
+        let a = if a_res.is_some().unwrap_u8() == 1u8 {
+            a_res.unwrap()
+        } else {
+            return Err("Failed to decompress `a` component of signature".to_string());
+        };
+
+        let e = if e_res.is_some().unwrap_u8() == 1u8 {
+            e_res.unwrap()
+        } else {
+            return Err("Failed to decompress `e` component of signature".to_string());
+        };
+
+        let s = if s_res.is_some().unwrap_u8() == 1u8 {
+            s_res.unwrap()
+        } else {
+            return Err("Failed to decompress `s` component of signature".to_string());
+        };
+
+        Ok(Signature { a, e, s })
     }
 
     /// computes g1 + s * h0 + msgs[0] * h[0] + msgs[1] * h[1] ...

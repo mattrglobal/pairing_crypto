@@ -32,11 +32,17 @@ mod g2;
 mod hash_to_field;
 mod isogeny;
 mod pairings;
+mod public_key;
+mod public_key_vt;
 mod scalar;
+mod secret_key;
 mod signum;
 
 pub use g1::{G1Affine, G1Projective};
 pub use g2::{G2Affine, G2Projective};
 pub use hash_to_field::*;
 pub use pairings::{multi_miller_loop, pairing, Bls12, G2Prepared, Gt, MillerLoopResult};
+pub use public_key::*;
+pub use public_key_vt::*;
 pub use scalar::Scalar;
+pub use secret_key::*;

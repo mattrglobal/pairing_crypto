@@ -3,7 +3,7 @@ authors = ["Michael Lodder <redmike7@gmail.com>", "Tobias Looker <tobias.looker@
 edition = "2018"
 license = "Apache-2"
 readme = "README.md"
-name = "pairing-crypto-wasm"
+name = "pairing_crypto_wasm"
 version = "0.1.0"
 
 [lib]

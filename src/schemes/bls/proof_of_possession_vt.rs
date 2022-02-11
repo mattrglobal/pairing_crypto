@@ -1,6 +1,6 @@
-use super::{PublicKeyVt, SecretKey};
 use crate::curves::bls12_381::{
-    multi_miller_loop, ExpandMsgXmd, G1Affine, G2Affine, G2Prepared, G2Projective,
+    multi_miller_loop, ExpandMsgXmd, G1Affine, G2Affine, G2Prepared, G2Projective, PublicKeyVt,
+    SecretKey,
 };
 use core::ops::Neg;
 use ff::Field;
