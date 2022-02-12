@@ -251,7 +251,7 @@ fn serialization_test() {
     sig.s = Scalar::one() + Scalar::one();
 
     let sig_clone = Signature::from_bytes(&sig.to_bytes());
-    assert_eq!(sig_clone.is_some().unwrap_u8(), 1u8);
+    assert_eq!(sig_clone.is_ok(), true);
     let sig2 = sig_clone.unwrap();
     assert_eq!(sig, sig2);
     sig.a = G1Projective::identity();
