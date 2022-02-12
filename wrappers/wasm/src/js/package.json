@@ -1,0 +1,21 @@
+{
+    "name": "pairing-crypto-wasm",
+    "collaborators": [
+        "Tobias Looker <tobias.looker@mattr.global"
+    ],
+    "version": "0.1.0",
+    "license": "Apache-2",
+    "files": [
+        "wasm_modules.js",
+        "index.js",
+        "index.d.ts",
+        "node/*",
+        "web/*"
+    ],
+    "directories": {
+        "node": "node",
+        "web": "web"
+    },
+    "main": "index.js",
+    "types": "index.d.ts"
+}
