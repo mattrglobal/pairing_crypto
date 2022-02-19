@@ -24,6 +24,9 @@ mod proof_of_possession_vt;
 mod signature;
 mod signature_vt;
 
+/// Secret key salt used for deriving keys in the BBS signature scheme
+pub const SECRET_KEY_SALT: &[u8] = b"BLS-SIG-KEYGEN-SALT-";
+
 pub use aggregate_signature::*;
 pub use aggregate_signature_vt::*;
 pub use multi_public_key::*;

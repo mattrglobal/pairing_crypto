@@ -1,4 +1,4 @@
-use super::{MessageGenerators, PublicKey, SecretKey, Signature};
+use super::{MessageGenerators, PublicKey, SecretKey, Signature, SECRET_KEY_SALT};
 use crate::schemes::core::*;
 
 /// This struct represents an Issuer of signatures or Signer.
@@ -11,7 +11,7 @@ pub struct Issuer;
 impl Issuer {
     /// Create a keypair
     pub fn new_keys() -> Result<(PublicKey, SecretKey), Error> {
-        SecretKey::random()
+        SecretKey::random(SECRET_KEY_SALT)
             .map(|sk| {
                 let pk = PublicKey::from(&sk);
                 (pk, sk)

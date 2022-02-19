@@ -1,5 +1,5 @@
 use super::{MessageGenerators, PokSignatureProof};
-use crate::curves::bls12_381::{PublicKey, Scalar};
+use crate::curves::bls12_381::PublicKey;
 use crate::schemes::core::*;
 use digest::{ExtendableOutput, Update, XofReader};
 
@@ -21,17 +21,26 @@ impl Verifier {
         proof: PokSignatureProof,
         generators: &MessageGenerators,
         presentation_message: PresentationMessage,
-        challenge: Challenge,
-    ) -> bool {
+    ) -> Result<bool, String> {
         let mut data = [0u8; COMMITMENT_G1_BYTES];
         let mut hasher = sha3::Shake256::default();
-        proof.add_challenge_contribution(generators, revealed_msgs, challenge, &mut hasher);
+
+        match proof.add_challenge_contribution(
+            generators,
+            revealed_msgs,
+            proof.challenge,
+            &mut hasher,
+        ) {
+            Err(_) => return Err("Failed to re-compute challenge".to_string()),
+            _ => {}
+        }
+
         hasher.update(&presentation_message.to_bytes()[..]);
         let mut reader = hasher.finalize_xof();
         reader.read(&mut data[..]);
-        let _v_challenge = Scalar::from_okm(&data);
+        let v_challenge = Challenge::from_okm(&data);
 
-        proof.verify(public_key) // TODO && challenge.0 == v_challenge
+        Ok(proof.verify(public_key) && proof.challenge == v_challenge)
     }
 }
 
@@ -83,12 +92,14 @@ fn pok_sig_proof_works() {
     let proof = res.unwrap();
     assert!(proof.verify(pk));
 
-    proof.add_challenge_contribution(
-        &generators,
-        &[(2, messages[2]), (3, messages[3])][..],
-        challenge,
-        &mut hasher,
-    );
+    proof
+        .add_challenge_contribution(
+            &generators,
+            &[(2, messages[2]), (3, messages[3])][..],
+            challenge,
+            &mut hasher,
+        )
+        .unwrap();
     hasher.update(&presentation_message.to_bytes()[..]);
     reader = hasher.finalize_xof();
     reader.read(&mut tv);
@@ -100,7 +111,7 @@ fn pok_sig_proof_works() {
         pk,
         proof,
         &generators,
-        presentation_message,
-        challenge
-    ));
+        presentation_message
+    )
+    .unwrap());
 }

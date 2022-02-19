@@ -4,6 +4,8 @@
  * Confidential and proprietary
  */
 
+import * as keyPair from "./keyPair.json";
+
 // can't use opecore isObject, getting error: Maximum call stack size exceeded
 const isObject = (value: unknown) => value && typeof value === "object";
 
@@ -21,12 +23,11 @@ const resolveFixtures = (subDirectory: string) =>
 export interface ProofFixtureData {
   readonly caseName: string;
   readonly proof: string;
+  readonly presentationMessage: string;
+  readonly totalMessageCount: number;
   result: { valid: false; reason: string } | { valid: true };
-  readonly revealedMessages: { [key: number]: Uint8Array };
-  readonly signerKeyPair: {
-    readonly publicKey: string;
-    readonly secretKey: string;
-  };
+  readonly revealedMessages: { [key: number]: string };
+  readonly signerPublicKey: string;
 }
 
 export interface SignatureFixtureData {
@@ -73,3 +74,5 @@ export const proofFixtures = fetchNestedFixtures<ProofFixture>(
   "",
   resolveFixtures("proof")
 );
+
+export { keyPair };

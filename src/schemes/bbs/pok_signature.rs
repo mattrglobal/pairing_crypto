@@ -17,7 +17,7 @@ pub struct PokSignature {
     d: G1Projective,
     /// For proving relation a_bar / d == a_prime^{-e} * h_0^r2
     proof1: ProofCommittedBuilder<G1Projective, G1Affine>,
-    /// The messages
+    /// Secrets of e and r2 associated to proof1
     secrets1: [Scalar; 2],
     /// For proving relation g1 * h1^m1 * h2^m2.... for all disclosed messages m_i == d^r3 * h_0^{-s_prime} * h1^-m1 * h2^-m2.... for all undisclosed messages m_i
     proof2: ProofCommittedBuilder<G1Projective, G1Affine>,
@@ -144,12 +144,15 @@ impl PokSignature {
             .iter()
             .map(|s| Challenge(*s))
             .collect();
+        let hidden_message_count = proofs2.len() - 2; // TODO this is a hack because proof2 is currently a massively overloaded structure
         Ok(PokSignatureProof {
             a_prime: self.a_prime,
             a_bar: self.a_bar,
             d: self.d,
             proofs1,
             proofs2,
+            challenge,
+            hidden_message_count,
         })
     }
 }

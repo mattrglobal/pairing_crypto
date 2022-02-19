@@ -6,7 +6,7 @@ use group::Curve;
 const DATA_SIZE: usize = 201;
 const DST: &[u8] = b"BLS12381G1_XOF:SHAKE256_SSWU_RO_BBS+_SIGNATURES:1_0_0";
 
-/// The generators that are used to sign a vector of commitments for a BBS+ signature
+/// The generators that are used to sign a vector of commitments for a BBS signature
 /// These must be the same generators used by sign, verify, prove, and open
 ///
 /// These are generated in a deterministic manner, use MessageGenerators::from_secret_key or

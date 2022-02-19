@@ -54,16 +54,16 @@ impl SecretKey {
     pub const BYTES: usize = 32;
 
     /// Compute a secret key from seed via an HKDF
-    pub fn from_seed<B: AsRef<[u8]>>(data: B) -> Option<Self> {
-        generate_secret_key(data.as_ref())
+    pub fn from_seed<B: AsRef<[u8]>>(salt: &[u8], data: B) -> Option<Self> {
+        generate_secret_key(salt, data.as_ref())
     }
 
     /// Compute a secret key from a CS-PRNG
-    pub fn random() -> Option<Self> {
+    pub fn random(salt: &[u8]) -> Option<Self> {
         let mut rng = thread_rng();
         let mut data = [0u8; Self::BYTES];
         rng.fill_bytes(&mut data);
-        generate_secret_key(&data)
+        generate_secret_key(salt, &data)
     }
 
     /// Get the byte representation of this key
@@ -97,12 +97,10 @@ impl SecretKey {
     }
 }
 
-fn generate_secret_key(ikm: &[u8]) -> Option<SecretKey> {
-    // TODO update this salt?
-    const SALT: &[u8] = b"BLS-SIG-KEYGEN-SALT-";
+fn generate_secret_key(salt: &[u8], ikm: &[u8]) -> Option<SecretKey> {
     const INFO: [u8; 2] = [0u8, 48u8];
 
-    let mut extracter = HkdfExtract::<sha2::Sha256>::new(Some(SALT));
+    let mut extracter = HkdfExtract::<sha2::Sha256>::new(Some(salt));
     extracter.input_ikm(ikm);
     extracter.input_ikm(&[0u8]);
     let (_, h) = extracter.finalize();
@@ -118,7 +116,7 @@ fn generate_secret_key(ikm: &[u8]) -> Option<SecretKey> {
 #[test]
 fn test_from_seed() {
     let seed = [0u8; 32];
-    let sk = SecretKey::from_seed(seed);
+    let sk = SecretKey::from_seed(b"BLS-SIG-KEYGEN-SALT-", seed);
     let expected = [
         4, 86, 144, 246, 168, 251, 111, 172, 156, 231, 193, 23, 23, 64, 228, 226, 225, 245, 114, 3,
         98, 64, 230, 167, 160, 145, 192, 218, 227, 59, 53, 74,

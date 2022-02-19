@@ -14,5 +14,8 @@ pub use prover::*;
 pub use signature::*;
 pub use verifier::*;
 
+/// Secret key salt used for deriving keys in the BBS signature scheme
+pub const SECRET_KEY_SALT: &[u8] = b"BBS-SIG-KEYGEN-SALT-";
+
 pub use crate::curves::bls12_381::{PublicKey, SecretKey};
 pub use crate::schemes::bls::ProofOfPossession;

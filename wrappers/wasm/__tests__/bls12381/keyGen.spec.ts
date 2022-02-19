@@ -81,11 +81,11 @@ describe("bls12381", () => {
           )
         ),
         secretKey: new Uint8Array(
-          Buffer.from("Cm550dHeqo5I/dVC/bXD9s5Cx8vnyhV/gm7KO5UuviE=", "base64")
+          Buffer.from("Qfw1iQmjQPm94m0HBDw7xCJqsqVsNpgNobiM3zEpEDI=", "base64")
         ),
         publicKey: new Uint8Array(
           Buffer.from(
-            "ufHHJwY9/xjrtHgGyQD1F9zNRJqiB4zhSXDEBC/MJrNuXJFwI+ILxu2uPASyd5Vf",
+            "rUdV6HMuwc6wjadU7uWl9Jo8uYXPp3UtYLG7225Fz9W/WG4TrdovJapcuz7zzYRA",
             "base64"
           )
         ),
@@ -102,11 +102,11 @@ describe("bls12381", () => {
           )
         ),
         secretKey: new Uint8Array(
-          Buffer.from("Cm550dHeqo5I/dVC/bXD9s5Cx8vnyhV/gm7KO5UuviE=", "base64")
+          Buffer.from("Qfw1iQmjQPm94m0HBDw7xCJqsqVsNpgNobiM3zEpEDI=", "base64")
         ),
         publicKey: new Uint8Array(
           Buffer.from(
-            "pQro1uqpvUPM31sr+jHffz7+KJIpA3kFen4SoKATURRgo7pk582aaqIxSinWsgHDB9j9dwxYRbC3q2ZmICR2OVMX3FHW9LZV2QAauTYFn7gEra1BSeKhdKDpzBxPjI36",
+            "koL4NFIvBk9n3xCfx8h2giAsTnhg3+xuYTDRMxO1toZjlEO5ER44KPK1Nyo4lCcNBBZcoO5sik+ca/nxPw8SfM114VtbshewTz6s+LaclIWTE5Zc18RVzjhRW+Bm2aN+",
             "base64"
           )
         ),

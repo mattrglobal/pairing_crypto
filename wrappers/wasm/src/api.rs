@@ -18,7 +18,6 @@
 use crate::dtos::*;
 use crate::utils::*;
 
-use digest::{ExtendableOutput, Update, XofReader};
 use pairing_crypto::bls12_381::*;
 use pairing_crypto::schemes::*;
 use std::convert::TryInto;
@@ -38,8 +37,8 @@ pub async fn bls12381_generateg1key(seed: Option<Vec<u8>>) -> Result<JsValue, Js
     // Derive secret key from supplied seed otherwise generate a new seed and a derive a key from this
     // using the underlying RNG usually defaults to the OS provided RNG e.g in Node is node crypto
     let sk = match seed {
-        Some(s) => SecretKey::from_seed(s.to_vec()).unwrap(),
-        None => SecretKey::random().unwrap(),
+        Some(s) => SecretKey::from_seed(bbs::SECRET_KEY_SALT, s.to_vec()).unwrap(),
+        None => SecretKey::random(bbs::SECRET_KEY_SALT).unwrap(),
     };
 
     // Derive the public key from the secret key
@@ -67,8 +66,8 @@ pub async fn bls12381_generateg2key(seed: Option<Vec<u8>>) -> Result<JsValue, Js
     // Derive secret key from supplied seed otherwise generate a new seed and a derive a key from this
     // using the underlying RNG usually defaults to the OS provided RNG e.g in Node is node crypto
     let sk = match seed {
-        Some(s) => SecretKey::from_seed(s.to_vec()).unwrap(),
-        None => SecretKey::random().unwrap(),
+        Some(s) => SecretKey::from_seed(bbs::SECRET_KEY_SALT, s.to_vec()).unwrap(),
+        None => SecretKey::random(bbs::SECRET_KEY_SALT).unwrap(),
     };
     // Derive the public key from the secret key
     let pk = PublicKey::from(&sk);
@@ -332,25 +331,18 @@ pub async fn bls12381_bbs_verifyproofg1(
     // TODO this approach is likely to change soon
     let generators = bbs::MessageGenerators::from_public_key(pk, request.totalMessageCount);
 
-    // TODO validate POK proof
     let proof = bbs::PokSignatureProof::from_bytes(request.proof).unwrap();
-
-    //TODO compute challenge how does this work?
-    let mut tv = [0u8; 48];
-    let mut hasher = sha3::Shake256::default();
-    hasher.update(&request.presentationMessage);
-    let mut reader = hasher.finalize_xof_reset();
-    reader.read(&mut tv);
-    let challenge = Challenge::from_okm(&tv);
 
     let presentation_message = PresentationMessage::hash(request.presentationMessage);
 
-    Ok(JsValue::from(bbs::Verifier::verify_signature_pok(
+    match bbs::Verifier::verify_signature_pok(
         messages.as_slice(),
         pk,
         proof,
         &generators,
         presentation_message,
-        challenge,
-    )))
+    ) {
+        Ok(result) => return Ok(JsValue::from(result)),
+        Err(_) => return Ok(JsValue::from(false)), // TODO review this response structure
+    }
 }

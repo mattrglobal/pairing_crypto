@@ -15,11 +15,16 @@ use subtle::{Choice, CtOption};
 /// Contains the proof of 2 discrete log relations.
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct PokSignatureProof {
+    /// A' in section 4.5
     pub(crate) a_prime: G1Projective,
+    /// \overline{A} in section 4.5
     pub(crate) a_bar: G1Projective,
+    /// d in section 4.5
     pub(crate) d: G1Projective,
     pub(crate) proofs1: [Challenge; 2],
     pub(crate) proofs2: Vec<Challenge>,
+    pub(crate) challenge: Challenge,
+    pub(crate) hidden_message_count: usize,
 }
 
 impl PokSignatureProof {
@@ -27,15 +32,16 @@ impl PokSignatureProof {
     /// Each point is compressed to big-endian format
     /// Needs 32 * (N + 2) + 48 * 3 space otherwise it will panic
     /// where N is the number of hidden messages
-    /// [48,    ,48    ,48 ,64                ,32*N]
+    /// [48,    ,48    ,48 ,64(2*32)          , 32*N]
     /// [a_prime, a_bar, d, proof1(2 of these), [0...N]]
     pub fn to_bytes(&self) -> Vec<u8> {
-        let size = FIELD_BYTES * (2 + self.proofs2.len()) + COMMITMENT_G1_BYTES * 3;
+        let size = FIELD_BYTES * (3 + self.proofs2.len()) + COMMITMENT_G1_BYTES * 3;
         let mut buffer = Vec::with_capacity(size);
 
         buffer.extend_from_slice(&self.a_prime.to_affine().to_compressed());
         buffer.extend_from_slice(&self.a_bar.to_affine().to_compressed());
         buffer.extend_from_slice(&self.d.to_affine().to_compressed());
+        buffer.extend_from_slice(&self.challenge.to_bytes());
 
         for i in 0..self.proofs1.len() {
             buffer.extend_from_slice(&self.proofs1[i].to_bytes());
@@ -46,10 +52,10 @@ impl PokSignatureProof {
         buffer
     }
 
-    /// Convert a byte sequence into the blind signature context
+    // TODO update the expected sizes here
     /// Expected size is (N + 1) * 32 + 48 bytes
     pub fn from_bytes<B: AsRef<[u8]>>(bytes: B) -> Option<Self> {
-        let size = FIELD_BYTES * 4 + COMMITMENT_G1_BYTES * 3;
+        let size = FIELD_BYTES * 5 + COMMITMENT_G1_BYTES * 3;
         let buffer = bytes.as_ref();
         if buffer.len() < size {
             return None;
@@ -58,7 +64,7 @@ impl PokSignatureProof {
             return None;
         }
 
-        let hid_msg_cnt = (buffer.len() - size) / FIELD_BYTES;
+        let hidden_message_count = (buffer.len() - size) / FIELD_BYTES;
         let mut offset = COMMITMENT_G1_BYTES;
         let mut end = 2 * COMMITMENT_G1_BYTES;
         let a_prime = G1Affine::from_compressed(slicer!(buffer, 0, offset, COMMITMENT_G1_BYTES))
@@ -79,6 +85,9 @@ impl PokSignatureProof {
 
         offset = end;
         end = offset + FIELD_BYTES;
+        let challenge = Challenge::from_bytes(slicer!(buffer, offset, end, FIELD_BYTES));
+        offset = end;
+        end = offset + FIELD_BYTES;
 
         let mut proofs1 = [
             CtOption::new(Challenge::default(), Choice::from(0u8)),
@@ -93,8 +102,8 @@ impl PokSignatureProof {
             return None;
         }
 
-        let mut proofs2 = Vec::<Challenge>::with_capacity(hid_msg_cnt + 2);
-        for _ in 0..(hid_msg_cnt + 2) {
+        let mut proofs2 = Vec::<Challenge>::with_capacity(hidden_message_count + 2);
+        for _ in 0..(hidden_message_count + 2) {
             let c = Challenge::from_bytes(slicer!(buffer, offset, end, FIELD_BYTES));
             offset = end;
             end = offset + FIELD_BYTES;
@@ -108,8 +117,10 @@ impl PokSignatureProof {
             a_prime: a_prime.unwrap(),
             a_bar: a_bar.unwrap(),
             d: d.unwrap(),
+            challenge: challenge.unwrap(),
             proofs1: [proofs1[0].unwrap(), proofs1[1].unwrap()],
             proofs2,
+            hidden_message_count,
         })
     }
 
@@ -120,7 +131,13 @@ impl PokSignatureProof {
         rvl_msgs: &[(usize, Message)],
         challenge: Challenge,
         hasher: &mut impl Update,
-    ) {
+    ) -> Result<(), String> {
+        // TODO check revealed messages vs hidden message count on proof
+        if generators.len() - self.hidden_message_count != rvl_msgs.len() {
+            // TODO review error formatting
+            return Err("Incorrect number of revealed messages".to_string());
+        }
+
         hasher.update(self.a_prime.to_affine().to_uncompressed());
         hasher.update(self.a_bar.to_affine().to_uncompressed());
         hasher.update(self.d.to_affine().to_uncompressed());
@@ -131,8 +148,8 @@ impl PokSignatureProof {
             G1Projective::sum_of_products_in_place(&proof1_points, &mut proof1_scalars);
         hasher.update(commitment_proofs1.to_affine().to_bytes());
 
-        let mut r_points = Vec::with_capacity(1 + rvl_msgs.len());
-        let mut r_scalars = Vec::with_capacity(1 + rvl_msgs.len());
+        let mut r_points = Vec::with_capacity(generators.len() - self.hidden_message_count);
+        let mut r_scalars = Vec::with_capacity(generators.len() - self.hidden_message_count);
 
         r_points.push(G1Projective::generator());
         r_scalars.push(Scalar::one());
@@ -146,8 +163,10 @@ impl PokSignatureProof {
 
         let r = G1Projective::sum_of_products_in_place(r_points.as_ref(), r_scalars.as_mut());
 
-        let mut proof2_points = Vec::with_capacity(3 + generators.len() - hidden.len());
-        let mut proof2_scalars = Vec::with_capacity(3 + generators.len() - hidden.len());
+        let mut proof2_points =
+            Vec::with_capacity(3 + generators.len() - self.hidden_message_count);
+        let mut proof2_scalars =
+            Vec::with_capacity(3 + generators.len() - self.hidden_message_count);
 
         // r^c
         proof2_points.push(r);
@@ -173,6 +192,8 @@ impl PokSignatureProof {
         let commitment_proofs2 =
             G1Projective::sum_of_products_in_place(proof2_points.as_ref(), proof2_scalars.as_mut());
         hasher.update(commitment_proofs2.to_affine().to_bytes());
+
+        Ok(())
     }
 
     /// Validate the proof, only checks the signature proof
@@ -206,8 +227,10 @@ fn serialization_test() {
         a_bar: G1Projective::generator(),
         a_prime: G1Projective::generator(),
         d: G1Projective::generator(),
+        challenge: Challenge::default(),
         proofs1: [Challenge::default(), Challenge::default()],
         proofs2: vec![Challenge::default(), Challenge::default()],
+        hidden_message_count: 0,
     };
 
     let bytes = p.to_bytes();

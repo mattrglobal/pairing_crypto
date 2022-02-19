@@ -35,6 +35,8 @@ const throwErrorOnRejectedPromise = async (promise) => {
             // Due to serde-wasm-bindgens usage of reflect in serde-rs
             // we are unable to detect `which` element is missing from a request object
             // until that is resolved we cannot provide that level of detail in this particular error case
+
+            // TODO probably should revise this message as its not just thrown when a request is missing an element, can also be thrown when value type of request element in-correct
             throw new TypeError("Request object missing required element");
         }
         throw new Error(ex);

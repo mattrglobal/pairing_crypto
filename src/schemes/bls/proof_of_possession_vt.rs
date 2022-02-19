@@ -84,7 +84,9 @@ impl ProofOfPossessionVt {
 
 #[test]
 fn pop_vt_works() {
-    let sk = SecretKey::random().unwrap();
+    use super::SECRET_KEY_SALT;
+
+    let sk = SecretKey::random(SECRET_KEY_SALT).unwrap();
     let pop = ProofOfPossessionVt::new(&sk).unwrap();
     let pk = PublicKeyVt::from(&sk);
     assert_eq!(pop.verify(pk).unwrap_u8(), 1);

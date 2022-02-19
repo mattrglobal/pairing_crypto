@@ -21,6 +21,7 @@ interface GenerateFixtureResponse {
   signerKeyPair: KeyPair;
   presentationMessage: Uint8Array;
   messagesToReveal: number[];
+  totalMessageCount: number;
   revealedMessages: { [key: number]: Uint8Array };
   signature: Uint8Array;
   messages: Uint8Array[];
@@ -28,6 +29,13 @@ interface GenerateFixtureResponse {
 }
 
 const outputDirectory = "__fixtures__";
+
+const presentationMessage = new Uint8Array(
+  Buffer.from(
+    "bed231d880675ed101ead304512e043ade9958dd0241ea70b4b3957fba941501",
+    "hex"
+  )
+);
 
 // TODO make these configurable
 const messages = [
@@ -84,20 +92,12 @@ const messages = [
   ),
 ];
 
-const signerKeyPair = {
-  publicKey: new Uint8Array(
-    Buffer.from(
-      "855356ed5ea276ecca4fa7d7844a367a708a0c70d3f111cfbac351cc124da1b496b5426747f36bb4a1c9070aa839d1eb1433db1339fb5ee4417000548de4a122e1d21f6c3df4add6b4169398c69d4c7f6f47ff5f28960781b18517b7fa6daef1",
-      "hex"
-    )
-  ),
-  secretKey: new Uint8Array(
-    Buffer.from(
-      "6ee252c19d60b5fd3d1ec1246c4a41398962a5c8ac62868a2e095ae2250852e7",
-      "hex"
-    )
-  ),
-};
+const signerKeySeed = new Uint8Array(
+  Buffer.from(
+    "0cf3cc44220fdb2f8ca701f8686ed7e9a32db440edc15a9b62222905d8c7bba3",
+    "hex"
+  )
+);
 
 const spareSignerKeyPair = {
   publicKey: new Uint8Array(
@@ -141,7 +141,7 @@ const generateFixture = async (
     }
   }
 
-  let presentationMessage = randomBytes(32);
+  let presentationMessage = request.presentationMessage ?? randomBytes(32);
 
   let revealMessages: { value: Uint8Array; reveal: boolean }[] = [];
   let i = 0;
@@ -180,6 +180,7 @@ const generateFixture = async (
     signature,
     signerKeyPair,
     presentationMessage,
+    totalMessageCount: messages.length,
     messagesToReveal: request.messagesToReveal,
     revealedMessages,
     messages,
@@ -189,15 +190,22 @@ const generateFixture = async (
 
 const generateSignatureTestVectors = async () => {
   let fixture = await generateFixture({
-    signerKeyPair,
+    signerKeySeed,
+    presentationMessage,
     messages: messages.slice(0, 1),
     verifyFixtures: true,
     messagesToReveal: [0],
   });
 
+  // Key pair fixture
+  await writeKeyPairTestVectorToFile(`${outputDirectory}/keyPair.json`, {
+    seed: signerKeySeed,
+    keyPair: fixture.signerKeyPair,
+  });
+
   // Valid single message signature
   await writeSignatureTestVectorToFile(
-    `${outputDirectory}/signature/signature-001.json`,
+    `${outputDirectory}/signature/signature001.json`,
     {
       ...fixture,
       caseName: "single message signature",
@@ -207,7 +215,7 @@ const generateSignatureTestVectors = async () => {
 
   // Invalid single message signature, message modified
   await writeSignatureTestVectorToFile(
-    `${outputDirectory}/signature/signature-002.json`,
+    `${outputDirectory}/signature/signature002.json`,
     {
       ...fixture,
       messages: [messages[messages.length - 1]],
@@ -218,7 +226,7 @@ const generateSignatureTestVectors = async () => {
 
   // Invalid single message signature, extra unsigned message
   await writeSignatureTestVectorToFile(
-    `${outputDirectory}/signature/signature-003.json`,
+    `${outputDirectory}/signature/signature003.json`,
     {
       ...fixture,
       messages: [...fixture.messages, messages[messages.length - 1]],
@@ -228,7 +236,7 @@ const generateSignatureTestVectors = async () => {
   );
 
   await writeSignatureProofTestVectorFile(
-    `${outputDirectory}/proof/proof-001.json`,
+    `${outputDirectory}/proof/proof001.json`,
     {
       ...fixture,
       revealedMessages: fixture.revealedMessages,
@@ -239,14 +247,15 @@ const generateSignatureTestVectors = async () => {
   );
 
   fixture = await generateFixture({
-    signerKeyPair,
+    signerKeySeed,
+    presentationMessage,
     messages: messages.slice(0, 10),
     verifyFixtures: true,
     messagesToReveal: [0, 2, 4, 6],
   });
 
   await writeSignatureProofTestVectorFile(
-    `${outputDirectory}/proof/proof-002.json`,
+    `${outputDirectory}/proof/proof002.json`,
     {
       ...fixture,
       revealedMessages: fixture.revealedMessages,
@@ -256,8 +265,100 @@ const generateSignatureTestVectors = async () => {
     }
   );
 
+  fixture.presentationMessage.reverse();
+
+  await writeSignatureProofTestVectorFile(
+    `${outputDirectory}/proof/proof003.json`,
+    {
+      ...fixture,
+      signerPublicKey: fixture.signerKeyPair.publicKey,
+      caseName: "multi-message signature, multiple messages revealed proof",
+      result: { valid: false, reason: "different presentation message" },
+    }
+  );
+
+  fixture.presentationMessage.reverse();
+
+  await writeSignatureProofTestVectorFile(
+    `${outputDirectory}/proof/proof004.json`,
+    {
+      ...fixture,
+      signerPublicKey: spareSignerKeyPair.publicKey,
+      caseName: "multi-message signature, multiple messages revealed proof",
+      result: { valid: false, reason: "wrong public key" },
+    }
+  );
+
+  await writeSignatureProofTestVectorFile(
+    `${outputDirectory}/proof/proof005.json`,
+    {
+      ...fixture,
+      revealedMessages: Object.entries(fixture.revealedMessages).reduce(
+        (map, val, _) => {
+          const key = parseInt(val[0]);
+          let message = new Uint8Array(val[1]);
+          message = message.reverse();
+
+          map = {
+            ...map,
+            [key]: message,
+          };
+
+          return map;
+        },
+        {}
+      ),
+      signerPublicKey: fixture.signerKeyPair.publicKey,
+      caseName: "multi-message signature, multiple messages revealed proof",
+      result: { valid: false, reason: "modified messages" },
+    }
+  );
+
+  await writeSignatureProofTestVectorFile(
+    `${outputDirectory}/proof/proof006.json`,
+    {
+      ...fixture,
+      revealedMessages: { ...fixture.revealedMessages, 9: messages[8] }, // TODO 9: messages[9] works for some reason is that to be expected, should mitigate
+      signerPublicKey: fixture.signerKeyPair.publicKey,
+      caseName: "multi-message signature, multiple messages revealed proof",
+      result: { valid: false, reason: "extra message un-revealed in proof" },
+    }
+  );
+
+  let missingMessages = { ...fixture.revealedMessages };
+  delete missingMessages[2];
+  await writeSignatureProofTestVectorFile(
+    `${outputDirectory}/proof/proof007.json`,
+    {
+      ...fixture,
+      revealedMessages: missingMessages,
+      signerPublicKey: fixture.signerKeyPair.publicKey,
+      caseName: "multi-message signature, multiple messages revealed proof",
+      result: { valid: false, reason: "missing message revealed in proof" },
+    }
+  );
+
+  await writeSignatureProofTestVectorFile(
+    `${outputDirectory}/proof/proof008.json`,
+    {
+      ...fixture,
+      revealedMessages: {
+        ...fixture.revealedMessages,
+        // Swap the valid messages in their association to the right reveal index
+        [2]: fixture.revealedMessages[6],
+        [6]: fixture.revealedMessages[2],
+      },
+      signerPublicKey: fixture.signerKeyPair.publicKey,
+      caseName: "multi-message signature, multiple messages revealed proof",
+      result: { valid: false, reason: "re-ordered messages" },
+    }
+  );
+
+  // TODO need to try the case where some revealed messages are dropped from the proof structure
+
   fixture = await generateFixture({
-    signerKeyPair,
+    signerKeySeed,
+    presentationMessage,
     messages,
     verifyFixtures: true,
     messagesToReveal: [0],
@@ -265,7 +366,7 @@ const generateSignatureTestVectors = async () => {
 
   // Valid multi-message signature
   await writeSignatureTestVectorToFile(
-    `${outputDirectory}/signature/signature-004.json`,
+    `${outputDirectory}/signature/signature004.json`,
     {
       ...fixture,
       caseName: "multi-message signature",
@@ -275,7 +376,7 @@ const generateSignatureTestVectors = async () => {
 
   // Invalid multi-message signature, missing messages
   await writeSignatureTestVectorToFile(
-    `${outputDirectory}/signature/signature-005.json`,
+    `${outputDirectory}/signature/signature005.json`,
     {
       ...fixture,
       messages: fixture.messages.slice(0, 2),
@@ -284,9 +385,9 @@ const generateSignatureTestVectors = async () => {
     }
   );
 
-  // Invalid multi-message signature, missing messages
+  // Invalid multi-message signature, re-ordered messages
   await writeSignatureTestVectorToFile(
-    `${outputDirectory}/signature/signature-006.json`,
+    `${outputDirectory}/signature/signature006.json`,
     {
       ...fixture,
       messages: fixture.messages.reverse(),
@@ -297,7 +398,7 @@ const generateSignatureTestVectors = async () => {
 
   // Invalid multi-message signature, wrong public key
   await writeSignatureTestVectorToFile(
-    `${outputDirectory}/signature/signature-007.json`,
+    `${outputDirectory}/signature/signature007.json`,
     {
       ...fixture,
       signerKeyPair: spareSignerKeyPair,
@@ -309,6 +410,26 @@ const generateSignatureTestVectors = async () => {
 
 const bytesToString = (byteArray: Uint8Array) => {
   return Buffer.from(byteArray).toString("hex");
+};
+
+const writeKeyPairTestVectorToFile = async (
+  fileName: string,
+  fixture: {
+    seed: Uint8Array;
+    keyPair: KeyPair;
+  }
+) => {
+  const result = {
+    seed: bytesToString(fixture.seed),
+    publicKey: bytesToString(fixture.keyPair.publicKey),
+    secretKey: bytesToString(fixture.keyPair.secretKey),
+  };
+
+  await fs.promises.writeFile(
+    fileName,
+    Buffer.from(JSON.stringify(result, null, 2)),
+    "utf8"
+  );
 };
 
 const writeSignatureTestVectorToFile = async (
@@ -345,12 +466,14 @@ const writeSignatureProofTestVectorFile = async (
     caseName: string;
     result: { valid: false; reason: string } | { valid: true };
     proof: Uint8Array;
+    presentationMessage: Uint8Array;
+    totalMessageCount: number;
     revealedMessages: { [key: number]: Uint8Array };
     signerPublicKey: Uint8Array;
   }
 ) => {
   const revealedMessages = Object.entries(fixture.revealedMessages).reduce(
-    (map, val, index) => {
+    (map, val, _) => {
       const key = parseInt(val[0]);
       const message = Buffer.from(val[1]).toString("hex");
 
@@ -367,7 +490,9 @@ const writeSignatureProofTestVectorFile = async (
   const result = {
     caseName: fixture.caseName,
     proof: bytesToString(fixture.proof),
+    presentationMessage: bytesToString(fixture.presentationMessage),
     revealedMessages,
+    totalMessageCount: fixture.totalMessageCount,
     result: fixture.result,
     signerPublicKey: bytesToString(fixture.signerPublicKey),
   };
