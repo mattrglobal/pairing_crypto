@@ -169,7 +169,6 @@ fn proofs() {
             let e_proof = hex::decode(expected_proofs[i][j]).unwrap();
             proof_msgs[j] = ProofMessage::Revealed(test_atts[j]);
             assert_eq!(proof.to_bytes(), e_proof);
-
             let mut revealed_msgs = Vec::new();
             for k in 0..j {
                 revealed_msgs.push((k, test_atts[k]));

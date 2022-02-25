@@ -319,18 +319,22 @@ pub async fn bls12381_bbs_verifyproofg1(
 
     // Digest the revealed proof messages
     let messages: Vec<(usize, Message)> =
-        digest_revealed_proof_messages(request.messages, request.totalMessageCount).unwrap();
+        match digest_revealed_proof_messages(request.messages, request.totalMessageCount) {
+            Ok(result) => result,
+            Err(_) => return Ok(JsValue::from(false)), // TODO review this response structure
+        };
 
     // Parse public key from request
     let pk = match PublicKey::from_vec(request.publicKey) {
         Ok(result) => result,
-        Err(e) => return Err(serde_wasm_bindgen::Error::new(format!("{:?}", e))),
+        Err(_) => return Ok(JsValue::from(false)), // TODO review this response structure
     };
 
     // Use generators derived from the signers public key
     // TODO this approach is likely to change soon
     let generators = bbs::MessageGenerators::from_public_key(pk, request.totalMessageCount);
 
+    // TODO dont use unwrap here
     let proof = bbs::PokSignatureProof::from_bytes(request.proof).unwrap();
 
     let presentation_message = PresentationMessage::hash(request.presentationMessage);

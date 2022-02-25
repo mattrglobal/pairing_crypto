@@ -35,12 +35,10 @@ proofFixtures.forEach((item: ProofFixture) => {
                   (map, val, _) => {
                     const key = parseInt(val[0]);
                     const message = new Uint8Array(Buffer.from(val[1], "hex"));
-
                     map = {
                       ...map,
                       [key]: message,
                     };
-
                     return map;
                   },
                   {}

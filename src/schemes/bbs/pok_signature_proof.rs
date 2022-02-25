@@ -240,4 +240,5 @@ fn serialization_test() {
     assert_eq!(p.a_bar, p2.a_bar);
     assert_eq!(p.a_prime, p2.a_prime);
     assert_eq!(p.d, p2.d);
+    assert_eq!(p.hidden_message_count, p2.hidden_message_count);
 }

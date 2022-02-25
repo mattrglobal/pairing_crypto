@@ -155,9 +155,7 @@ const generateFixture = async (
   });
 
   const proof = await bls12381.bbs.deriveProof({
-    messages: messages.map((item) => {
-      return { value: item, reveal: true };
-    }),
+    messages: revealMessages,
     publicKey: signerKeyPair.publicKey,
     presentationMessage,
     signature,
@@ -165,10 +163,12 @@ const generateFixture = async (
 
   const revealedMessages: { [key: number]: Uint8Array } = revealMessages.reduce(
     (map, item, index) => {
-      map = {
-        ...map,
-        [index]: item.value,
-      };
+      if (item.reveal) {
+        map = {
+          ...map,
+          [index]: item.value,
+        };
+      }
       return map;
     },
     {}
@@ -251,11 +251,30 @@ const generateSignatureTestVectors = async () => {
     presentationMessage,
     messages: messages.slice(0, 10),
     verifyFixtures: true,
-    messagesToReveal: [0, 2, 4, 6],
+    messagesToReveal: [...Array(10).keys()].slice(0),
   });
 
   await writeSignatureProofTestVectorFile(
     `${outputDirectory}/proof/proof002.json`,
+    {
+      ...fixture,
+      revealedMessages: fixture.revealedMessages,
+      signerPublicKey: fixture.signerKeyPair.publicKey,
+      caseName: "multi-message signature, all messages revealed proof",
+      result: { valid: true },
+    }
+  );
+
+  fixture = await generateFixture({
+    signerKeySeed,
+    presentationMessage,
+    messages: messages.slice(0, 10),
+    verifyFixtures: true,
+    messagesToReveal: [0, 2, 4, 6],
+  });
+
+  await writeSignatureProofTestVectorFile(
+    `${outputDirectory}/proof/proof003.json`,
     {
       ...fixture,
       revealedMessages: fixture.revealedMessages,
@@ -268,7 +287,7 @@ const generateSignatureTestVectors = async () => {
   fixture.presentationMessage.reverse();
 
   await writeSignatureProofTestVectorFile(
-    `${outputDirectory}/proof/proof003.json`,
+    `${outputDirectory}/proof/proof004.json`,
     {
       ...fixture,
       signerPublicKey: fixture.signerKeyPair.publicKey,
@@ -280,7 +299,7 @@ const generateSignatureTestVectors = async () => {
   fixture.presentationMessage.reverse();
 
   await writeSignatureProofTestVectorFile(
-    `${outputDirectory}/proof/proof004.json`,
+    `${outputDirectory}/proof/proof005.json`,
     {
       ...fixture,
       signerPublicKey: spareSignerKeyPair.publicKey,
@@ -290,7 +309,7 @@ const generateSignatureTestVectors = async () => {
   );
 
   await writeSignatureProofTestVectorFile(
-    `${outputDirectory}/proof/proof005.json`,
+    `${outputDirectory}/proof/proof006.json`,
     {
       ...fixture,
       revealedMessages: Object.entries(fixture.revealedMessages).reduce(
@@ -315,20 +334,34 @@ const generateSignatureTestVectors = async () => {
   );
 
   await writeSignatureProofTestVectorFile(
-    `${outputDirectory}/proof/proof006.json`,
+    `${outputDirectory}/proof/proof007.json`,
     {
       ...fixture,
-      revealedMessages: { ...fixture.revealedMessages, 9: messages[8] }, // TODO 9: messages[9] works for some reason is that to be expected, should mitigate
+      revealedMessages: { ...fixture.revealedMessages, 9: messages[9] },
       signerPublicKey: fixture.signerKeyPair.publicKey,
       caseName: "multi-message signature, multiple messages revealed proof",
       result: { valid: false, reason: "extra message un-revealed in proof" },
     }
   );
 
+  await writeSignatureProofTestVectorFile(
+    `${outputDirectory}/proof/proof008.json`,
+    {
+      ...fixture,
+      revealedMessages: { ...fixture.revealedMessages, 9: messages[8] },
+      signerPublicKey: fixture.signerKeyPair.publicKey,
+      caseName: "multi-message signature, multiple messages revealed proof",
+      result: {
+        valid: false,
+        reason: "extra message invalid message un-revealed in proof",
+      },
+    }
+  );
+
   let missingMessages = { ...fixture.revealedMessages };
   delete missingMessages[2];
   await writeSignatureProofTestVectorFile(
-    `${outputDirectory}/proof/proof007.json`,
+    `${outputDirectory}/proof/proof009.json`,
     {
       ...fixture,
       revealedMessages: missingMessages,
@@ -339,7 +372,7 @@ const generateSignatureTestVectors = async () => {
   );
 
   await writeSignatureProofTestVectorFile(
-    `${outputDirectory}/proof/proof008.json`,
+    `${outputDirectory}/proof/proof010.json`,
     {
       ...fixture,
       revealedMessages: {
@@ -351,6 +384,36 @@ const generateSignatureTestVectors = async () => {
       signerPublicKey: fixture.signerKeyPair.publicKey,
       caseName: "multi-message signature, multiple messages revealed proof",
       result: { valid: false, reason: "re-ordered messages" },
+    }
+  );
+
+  await writeSignatureProofTestVectorFile(
+    `${outputDirectory}/proof/proof011.json`,
+    {
+      ...fixture,
+      revealedMessages: { ...fixture.revealedMessages, 9: messages[9] },
+      totalMessageCount: fixture.totalMessageCount + 1,
+      signerPublicKey: fixture.signerKeyPair.publicKey,
+      caseName: "multi-message signature, multiple messages revealed proof",
+      result: {
+        valid: false,
+        reason: "extra valid message, modified total message count",
+      },
+    }
+  );
+
+  await writeSignatureProofTestVectorFile(
+    `${outputDirectory}/proof/proof012.json`,
+    {
+      ...fixture,
+      revealedMessages: { ...fixture.revealedMessages },
+      totalMessageCount: fixture.totalMessageCount - 1,
+      signerPublicKey: fixture.signerKeyPair.publicKey,
+      caseName: "multi-message signature, multiple messages revealed proof",
+      result: {
+        valid: false,
+        reason: "modified total message count less than actual",
+      },
     }
   );
 
