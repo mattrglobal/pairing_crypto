@@ -37,6 +37,19 @@ export namespace bls12381 {
     function sign(request: BbsSignRequest): Promise<Uint8Array>;
     function verify(request: BbsVerifyRequest): Promise<BbsVerifyResult>;
     function deriveProof(request: BbsDeriveProofRequest): Promise<Uint8Array>;
-    function verifyProof(request: BbsVerifyProofRequest): Promise<boolean>;
+    function verifyProof(
+      request: BbsVerifyProofRequest
+    ): Promise<BbsVerifyResult>;
   }
+}
+
+export namespace utilities {
+  function convertToRevealMessageArray(
+    messages: Uint8Array[],
+    revealedIndicies: number[]
+  ): { value: Uint8Array; reveal: boolean }[];
+
+  function convertRevealMessageArrayToRevealMap(
+    messages: { value: Uint8Array; reveal: boolean }[]
+  ): { [key: number]: Uint8Array };
 }

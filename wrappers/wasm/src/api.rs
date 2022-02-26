@@ -321,13 +321,25 @@ pub async fn bls12381_bbs_verifyproofg1(
     let messages: Vec<(usize, Message)> =
         match digest_revealed_proof_messages(request.messages, request.totalMessageCount) {
             Ok(result) => result,
-            Err(_) => return Ok(JsValue::from(false)), // TODO review this response structure
+            Err(e) => {
+                return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
+                    verified: false,
+                    error: Some(format!("{:?}", e)),
+                })
+                .unwrap())
+            }
         };
 
     // Parse public key from request
     let pk = match PublicKey::from_vec(request.publicKey) {
         Ok(result) => result,
-        Err(_) => return Ok(JsValue::from(false)), // TODO review this response structure
+        Err(e) => {
+            return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
+                verified: false,
+                error: Some(format!("{:?}", e)),
+            })
+            .unwrap())
+        }
     };
 
     // Use generators derived from the signers public key
@@ -346,7 +358,19 @@ pub async fn bls12381_bbs_verifyproofg1(
         &generators,
         presentation_message,
     ) {
-        Ok(result) => return Ok(JsValue::from(result)),
-        Err(_) => return Ok(JsValue::from(false)), // TODO review this response structure
+        Ok(verified) => {
+            return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
+                verified,
+                error: None,
+            })
+            .unwrap())
+        }
+        Err(e) => {
+            return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
+                verified: false,
+                error: Some(format!("{:?}", e)),
+            })
+            .unwrap())
+        }
     }
 }

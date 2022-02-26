@@ -49,30 +49,34 @@ proofFixtures.forEach((item: ProofFixture) => {
         } else {
           it(`should fail to verify case: ${item.value.caseName} because ${item.value.result["reason"]}`, async () => {
             expect(
-              await bls12381.bbs.verifyProof({
-                publicKey: new Uint8Array(
-                  Buffer.from(item.value.signerPublicKey, "hex")
-                ),
-                proof: new Uint8Array(Buffer.from(item.value.proof, "hex")),
-                presentationMessage: new Uint8Array(
-                  Buffer.from(item.value.presentationMessage, "hex")
-                ),
-                totalMessageCount: item.value.totalMessageCount,
-                messages: Object.entries(item.value.revealedMessages).reduce(
-                  (map, val, _) => {
-                    const key = parseInt(val[0]);
-                    const message = new Uint8Array(Buffer.from(val[1], "hex"));
+              (
+                await bls12381.bbs.verifyProof({
+                  publicKey: new Uint8Array(
+                    Buffer.from(item.value.signerPublicKey, "hex")
+                  ),
+                  proof: new Uint8Array(Buffer.from(item.value.proof, "hex")),
+                  presentationMessage: new Uint8Array(
+                    Buffer.from(item.value.presentationMessage, "hex")
+                  ),
+                  totalMessageCount: item.value.totalMessageCount,
+                  messages: Object.entries(item.value.revealedMessages).reduce(
+                    (map, val, _) => {
+                      const key = parseInt(val[0]);
+                      const message = new Uint8Array(
+                        Buffer.from(val[1], "hex")
+                      );
 
-                    map = {
-                      ...map,
-                      [key]: message,
-                    };
+                      map = {
+                        ...map,
+                        [key]: message,
+                      };
 
-                    return map;
-                  },
-                  {}
-                ),
-              })
+                      return map;
+                    },
+                    {}
+                  ),
+                })
+              ).verified
             ).toBeFalsy();
           });
         }

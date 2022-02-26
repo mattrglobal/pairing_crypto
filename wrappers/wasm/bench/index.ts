@@ -15,7 +15,13 @@ import { generateBbsSignRequest } from "./helper";
 
 /* eslint-disable @typescript-eslint/camelcase */
 import { report, benchmarkPromise } from "@stablelib/benchmark";
-import { bls12381 } from "../lib/index";
+import {
+  BbsDeriveProofRequest,
+  BbsVerifyProofRequest,
+  bls12381,
+  utilities,
+} from "../lib/index";
+import { randomBytes } from "@stablelib/random";
 
 // main benchmark routine
 const runBbsBenchmark = async (
@@ -30,11 +36,37 @@ const runBbsBenchmark = async (
     numberOfMessages,
     messageSizeInBytes
   );
+
   const messageSignature = await bls12381.bbs.sign(messageSignRequest);
+
   const messageVerifyRequest = {
     signature: messageSignature,
     publicKey: keyPair.publicKey,
     messages: messageSignRequest.messages,
+  };
+
+  const messagesToReveal = utilities.convertToRevealMessageArray(
+    Array.from(messageSignRequest.messages),
+    [...Array(numberRevealed).keys()]
+  );
+
+  const presentationMessage = randomBytes(32);
+
+  const messageDeriveProof: BbsDeriveProofRequest = {
+    signature: messageSignature,
+    publicKey: keyPair.publicKey,
+    messages: messagesToReveal,
+    presentationMessage,
+  };
+
+  const proof = await bls12381.bbs.deriveProof(messageDeriveProof);
+
+  const verifyProofRequest: BbsVerifyProofRequest = {
+    proof,
+    publicKey: keyPair.publicKey,
+    messages: utilities.convertRevealMessageArrayToRevealMap(messagesToReveal),
+    totalMessageCount: messageSignRequest.messages.length,
+    presentationMessage,
   };
 
   report(
@@ -47,7 +79,15 @@ const runBbsBenchmark = async (
     await benchmarkPromise(() => bls12381.bbs.verify(messageVerifyRequest))
   );
 
-  // TODO derive and verify proof
+  report(
+    `BBS Derive Proof ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
+    await benchmarkPromise(() => bls12381.bbs.deriveProof(messageDeriveProof))
+  );
+
+  report(
+    `BBS Verify Proof ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
+    await benchmarkPromise(() => bls12381.bbs.verifyProof(verifyProofRequest))
+  );
 };
 
 (async () => {

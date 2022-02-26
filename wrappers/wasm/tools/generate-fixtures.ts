@@ -1,7 +1,7 @@
 import { randomBytes } from "@stablelib/random";
 import { generateMessages } from "../bench/helper";
 
-import { bls12381, KeyPair } from "../lib";
+import { bls12381, KeyPair, utilities } from "../lib";
 
 import fs from "fs";
 
@@ -143,16 +143,10 @@ const generateFixture = async (
 
   let presentationMessage = request.presentationMessage ?? randomBytes(32);
 
-  let revealMessages: { value: Uint8Array; reveal: boolean }[] = [];
-  let i = 0;
-  messages.forEach((element) => {
-    if (request.messagesToReveal.includes(i)) {
-      revealMessages.push({ value: element, reveal: true });
-    } else {
-      revealMessages.push({ value: element, reveal: false });
-    }
-    i++;
-  });
+  let revealMessages = utilities.convertToRevealMessageArray(
+    messages,
+    request.messagesToReveal
+  );
 
   const proof = await bls12381.bbs.deriveProof({
     messages: revealMessages,
@@ -161,20 +155,9 @@ const generateFixture = async (
     signature,
   });
 
-  const revealedMessages: { [key: number]: Uint8Array } = revealMessages.reduce(
-    (map, item, index) => {
-      if (item.reveal) {
-        map = {
-          ...map,
-          [index]: item.value,
-        };
-      }
-      return map;
-    },
-    {}
-  );
-
-  // TODO verify proof
+  const revealedMessages: {
+    [key: number]: Uint8Array;
+  } = utilities.convertRevealMessageArrayToRevealMap(revealMessages);
 
   return {
     signature,
@@ -251,7 +234,7 @@ const generateSignatureTestVectors = async () => {
     presentationMessage,
     messages: messages.slice(0, 10),
     verifyFixtures: true,
-    messagesToReveal: [...Array(10).keys()].slice(0),
+    messagesToReveal: [...Array(10).keys()],
   });
 
   await writeSignatureProofTestVectorFile(

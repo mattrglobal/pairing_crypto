@@ -97,6 +97,35 @@ const bls12381_Bbs_VerifyProof = async (request) => {
     return await throwErrorOnRejectedPromise(wasm.bls12381_Bbs_VerifyProofG1(request));
 }
 
+const convertToRevealMessageArray = (messages, revealedIndicies) => {
+    let revealMessages= [];
+    let i = 0;
+    messages.forEach((element) => {
+        if (revealedIndicies.includes(i)) {
+            revealMessages.push({ value: element, reveal: true });
+        } else {
+            revealMessages.push({ value: element, reveal: false });
+        }
+        i++;
+        })
+    return revealMessages;
+}
+
+const convertRevealMessageArrayToRevealMap = (messages) => {
+    return messages.reduce(
+        (map, item, index) => {
+          if (item.reveal) {
+            map = {
+              ...map,
+              [index]: item.value,
+            };
+          }
+          return map;
+        },
+        {}
+    );
+}
+
 module.exports.bls12381 = {
     PRIVATE_KEY_LENGTH: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
     G1_PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH,
@@ -114,4 +143,9 @@ module.exports.bls12381 = {
         deriveProof: bls12381_Bbs_DeriveProof,
         verifyProof: bls12381_Bbs_VerifyProof
     }
+}
+
+module.exports.utilities = {
+    convertToRevealMessageArray,
+    convertRevealMessageArrayToRevealMap
 }
