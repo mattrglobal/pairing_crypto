@@ -55,10 +55,10 @@ const initialize = async () => {
     }
 }
 
-const bls12381_GenerateG1KeyPair = async (seed) => {
+const bls12381_generate_g1_key = async (seed) => {
     await initialize();
     var result = await throwErrorOnRejectedPromise(
-        wasm.bls12381_GenerateG1KeyPair(seed ? seed : undefined)
+        wasm.bls12381_generate_g1_key(seed ? seed : undefined)
     );
     return {
         secretKey: new Uint8Array(result.secretKey),
@@ -66,10 +66,10 @@ const bls12381_GenerateG1KeyPair = async (seed) => {
     };
 };
 
-const bls12381_GenerateG2KeyPair = async (seed) => {
+const bls12381_generate_g2_key = async (seed) => {
     await initialize();
     var result = await throwErrorOnRejectedPromise(
-        wasm.bls12381_GenerateG2KeyPair(seed ? seed : undefined)
+        wasm.bls12381_generate_g2_key(seed ? seed : undefined)
     );
     return {
       secretKey: new Uint8Array(result.secretKey),
@@ -77,24 +77,24 @@ const bls12381_GenerateG2KeyPair = async (seed) => {
     };
 };
 
-const bls12381_Bbs_Sign = async (request) => {
+const bls12381_bbs_sign = async (request) => {
     await initialize();
-    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bls12381_Bbs_SignG1(request)));
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bls12381_bbs_sign(request)));
 };
 
-const bls12381_Bbs_Verify = async (request) => {
+const bls12381_bbs_verify = async (request) => {
     await initialize();
-    return await throwErrorOnRejectedPromise(wasm.bls12381_Bbs_VerifyG1(request));
+    return await throwErrorOnRejectedPromise(wasm.bls12381_bbs_verify(request));
 };
 
-const bls12381_Bbs_DeriveProof = async (request) => {
+const bls12381_bbs_derive_proof = async (request) => {
     await initialize();
-    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bls12381_Bbs_DeriveProofG1(request)));
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bls12381_bbs_derive_proof(request)));
 }
 
-const bls12381_Bbs_VerifyProof = async (request) => {
+const bls12381_bbs_verify_proof = async (request) => {
     await initialize();
-    return await throwErrorOnRejectedPromise(wasm.bls12381_Bbs_VerifyProofG1(request));
+    return await throwErrorOnRejectedPromise(wasm.bls12381_bbs_verify_proof(request));
 }
 
 const convertToRevealMessageArray = (messages, revealedIndicies) => {
@@ -131,17 +131,17 @@ module.exports.bls12381 = {
     G1_PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH,
     G2_PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH,
 
-    generateG1KeyPair: bls12381_GenerateG1KeyPair,
-    generateG2KeyPair: bls12381_GenerateG2KeyPair,
+    generateG1KeyPair: bls12381_generate_g1_key,
+    generateG2KeyPair: bls12381_generate_g2_key,
     bbs: {
         SIGNATURE_LENGTH: BBS_SIGNATURE_LENGTH,
         SIGNER_PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH,
 
-        generateSignerKeyPair: bls12381_GenerateG2KeyPair,
-        sign: bls12381_Bbs_Sign,
-        verify: bls12381_Bbs_Verify,
-        deriveProof: bls12381_Bbs_DeriveProof,
-        verifyProof: bls12381_Bbs_VerifyProof
+        generateSignerKeyPair: bls12381_generate_g2_key,
+        sign: bls12381_bbs_sign,
+        verify: bls12381_bbs_verify,
+        deriveProof: bls12381_bbs_derive_proof,
+        verifyProof: bls12381_bbs_verify_proof
     }
 }
 

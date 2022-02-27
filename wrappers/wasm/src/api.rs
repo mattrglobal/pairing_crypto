@@ -29,8 +29,8 @@ use wasm_bindgen::prelude::*;
 ///
 /// returned vector is the concatenation of first the private key (32 bytes)
 /// followed by the public key (48) bytes.
-#[wasm_bindgen(js_name = bls12381_GenerateG1KeyPair)]
-pub async fn bls12381_generateg1key(seed: Option<Vec<u8>>) -> Result<JsValue, JsValue> {
+#[wasm_bindgen(js_name = bls12381_generate_g1_key)]
+pub async fn bls12381_generate_g1_key(seed: Option<Vec<u8>>) -> Result<JsValue, JsValue> {
     // Improves error output in JS based console.log() when built with debug feature enabled
     set_panic_hook();
 
@@ -58,8 +58,8 @@ pub async fn bls12381_generateg1key(seed: Option<Vec<u8>>) -> Result<JsValue, Js
 ///
 /// Returned value is a byte array which is the concatenation of first the private key (32 bytes)
 /// followed by the public key (96) bytes.
-#[wasm_bindgen(js_name = bls12381_GenerateG2KeyPair)]
-pub async fn bls12381_generateg2key(seed: Option<Vec<u8>>) -> Result<JsValue, JsValue> {
+#[wasm_bindgen(js_name = bls12381_generate_g2_key)]
+pub async fn bls12381_generate_g2_key(seed: Option<Vec<u8>>) -> Result<JsValue, JsValue> {
     // Improves error output in JS based console.log() when built with debug feature enabled
     set_panic_hook();
 
@@ -72,7 +72,7 @@ pub async fn bls12381_generateg2key(seed: Option<Vec<u8>>) -> Result<JsValue, Js
     // Derive the public key from the secret key
     let pk = PublicKey::from(&sk);
 
-    // Construct the JS DTO of the keypair to return
+    // Construct the JS DTO of the key pair to return
     let keypair = KeyPair {
         publicKey: pk.to_bytes().to_vec(),
         secretKey: Some(sk.to_bytes().to_vec()),
@@ -85,8 +85,8 @@ pub async fn bls12381_generateg2key(seed: Option<Vec<u8>>) -> Result<JsValue, Js
 /// * request: JSON encoded request containing a byte array of messages to be signed and a BLS12-381 key pair
 ///
 /// Returned value is a byte array which is the produced signature (112 bytes)
-#[wasm_bindgen(js_name = bls12381_Bbs_SignG1)]
-pub async fn bls12381_bbs_signg1(request: JsValue) -> Result<JsValue, serde_wasm_bindgen::Error> {
+#[wasm_bindgen(js_name = bls12381_bbs_sign)]
+pub async fn bls12381_bbs_sign(request: JsValue) -> Result<JsValue, serde_wasm_bindgen::Error> {
     // Improves error output in JS based console.log() when built with debug feature enabled
     set_panic_hook();
     // Cast the supplied JSON request into a rust struct
@@ -129,8 +129,8 @@ pub async fn bls12381_bbs_signg1(request: JsValue) -> Result<JsValue, serde_wasm
 ///
 /// Returned value is JSON structure with a boolean value indicating whether the signature was verified and
 /// if not any details on the error available
-#[wasm_bindgen(js_name = bls12381_Bbs_VerifyG1)]
-pub async fn bls12381_bbs_verifyg1(request: JsValue) -> Result<JsValue, JsValue> {
+#[wasm_bindgen(js_name = bls12381_bbs_verify)]
+pub async fn bls12381_bbs_verify(request: JsValue) -> Result<JsValue, JsValue> {
     // Improves error output in JS based console.log() when built with debug feature enabled
     set_panic_hook();
     // Cast the JSON request into a rust struct
@@ -225,8 +225,8 @@ pub async fn bls12381_bbs_verifyg1(request: JsValue) -> Result<JsValue, JsValue>
 /// }
 ///
 /// Returned value is a byte array which is the produced proof (variable length)
-#[wasm_bindgen(js_name = bls12381_Bbs_DeriveProofG1)]
-pub async fn bls12381_bbs_deriveproofg1(
+#[wasm_bindgen(js_name = bls12381_bbs_derive_proof)]
+pub async fn bls12381_bbs_derive_proof(
     request: JsValue,
 ) -> Result<JsValue, serde_wasm_bindgen::Error> {
     // Improves error output in JS based console.log() when built with debug feature enabled
@@ -307,8 +307,8 @@ pub async fn bls12381_bbs_deriveproofg1(
 /// }
 ///
 /// Returned value is a byte array which is the produced proof (variable length)
-#[wasm_bindgen(js_name = bls12381_Bbs_VerifyProofG1)]
-pub async fn bls12381_bbs_verifyproofg1(
+#[wasm_bindgen(js_name = bls12381_bbs_verify_proof)]
+pub async fn bls12381_bbs_verify_proof(
     request: JsValue,
 ) -> Result<JsValue, serde_wasm_bindgen::Error> {
     // Improves error output in JS based console.log() when built with debug feature enabled
