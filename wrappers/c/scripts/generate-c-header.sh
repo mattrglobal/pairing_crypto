@@ -4,9 +4,9 @@
 set -e
 
 # We have to use nightly toolchain with cbindgen otherwise compliation does not work
-rustup install nightly
-rustup default nightly
-cargo install cargo-expand
+# rustup install nightly
+# rustup default nightly
+# cargo install cargo-expand
 
 # Force install so we get the latest
 cargo install --force cbindgen
@@ -15,4 +15,4 @@ cargo install --force cbindgen
 cbindgen --config cbindgen.toml --crate pairing_crypto_c --output include/pairing_crypto.h
 
 # Revert toolchain so downstream rustup operations are not affected
-rustup default stable
+# rustup default stable
