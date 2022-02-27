@@ -51,6 +51,10 @@ jobs:
         run: ./scripts/generate-c-header.sh
         shell: bash
 
+      - name: Generate latest C header
+        run: cat include/pairing_crypto.h
+        shell: bash
+
       - name: Run C based tests
         run: ./scripts/test.sh
         shell: bash
