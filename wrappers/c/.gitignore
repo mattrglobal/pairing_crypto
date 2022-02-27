@@ -13,7 +13,8 @@ Cargo.lock
 
 # Added by cargo
 
-**/target
+/target
+/include
 
 
 # Added by cargo

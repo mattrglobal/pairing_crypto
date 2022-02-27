@@ -1,0 +1,19 @@
+[package]
+authors = ["Tobias Looker <tobias.looker@mattr.global"]
+edition = "2018"
+license = "Apache-2"
+readme = "README.md"
+name = "pairing_crypto_c"
+version = "0.1.0"
+
+[lib]
+crate-type = ["staticlib", "cdylib"]
+
+[dependencies]
+ffi-support = "0.4"
+lazy_static = "1.4"
+pairing_crypto = { path = '../../' }
+
+[profile.release]
+lto = true
+opt-level = 3

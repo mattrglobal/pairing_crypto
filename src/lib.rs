@@ -21,6 +21,7 @@
 #![warn(missing_docs, missing_crate_level_docs, rust_2018_idioms)]
 #![deny(dead_code, redundant_semicolons, unused, unsafe_code, while_true)]
 
+/// Supported curves from pairing crypto
 mod curves;
 
 /// Supported schemes from pairing crypto

@@ -1,0 +1,13 @@
+language = "C"
+
+# Standard C based guard
+include_guard = "__pairing__crypto__included__"
+
+# Expands any macros we use from this crate like e.g define_bytebuffer_destructor!
+[parse]
+parse_deps = true
+include = ["ffi-support"]
+
+# Expands any internally defined macros defined by the crate itself
+[parse.expand]
+crates = ["pairing_crypto_c"]
