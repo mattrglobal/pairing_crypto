@@ -47,14 +47,10 @@ jobs:
         with:
           command: audit
 
-      - name: Generate latest C header
-        run: ./scripts/generate-c-header.sh
+      - name: Generate header
+        run: make generate_headers
         shell: bash
 
-      - name: Generate latest C header
-        run: cat include/pairing_crypto.h
-        shell: bash
-
-      - name: Run C based tests
-        run: ./scripts/test.sh
+      - name: Run tests
+        run: make test
         shell: bash
