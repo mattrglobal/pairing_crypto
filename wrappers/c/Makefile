@@ -10,6 +10,8 @@ audit:
 	@cargo audit
 build:
 	@cargo build --release
+build_ios:
+	@./scripts/build-platform-targets.sh IOS out
 generate_headers:
 	@cargo install cargo-expand
 	@cargo install --force cbindgen

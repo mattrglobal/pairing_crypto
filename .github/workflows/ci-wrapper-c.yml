@@ -11,7 +11,7 @@ on:
 jobs:
   build_test:
     name: Build & Test C Wrapper
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     defaults:
       run:
         working-directory: ./wrappers/c
@@ -42,12 +42,12 @@ jobs:
         run: make audit
         shell: bash
 
-      - name: Run cargo build
-        run: make build
-        shell: bash
-
       - name: Generate header
         run: make generate_headers
+        shell: bash
+
+      - name: Run cargo build
+        run: make build
         shell: bash
 
       - name: Run tests

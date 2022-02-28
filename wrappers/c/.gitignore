@@ -26,3 +26,5 @@ Cargo.lock
 
 # Artifact for test
 pairing_crypto_test
+
+/out
