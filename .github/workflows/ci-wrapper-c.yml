@@ -42,6 +42,10 @@ jobs:
         run: make audit
         shell: bash
 
+      - name: Run cargo build
+        run: make build
+        shell: bash
+
       - name: Generate header
         run: make generate_headers
         shell: bash
