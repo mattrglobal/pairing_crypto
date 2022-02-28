@@ -11,7 +11,7 @@ on:
 jobs:
   build_test:
     name: Build & Test C Wrapper
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     defaults:
       run:
         working-directory: ./wrappers/c
@@ -27,25 +27,20 @@ jobs:
           components: "rustfmt, clippy"
 
       - name: Run cargo format
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: "--all -- --check"
+        run: make format
+        shell: bash
 
       - name: Run cargo clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
+        run: make clippy
+        shell: bash
 
       - name: Run cargo check
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
+        run: make check
+        shell: bash
 
       - name: Run cargo audit
-        uses: actions-rs/cargo@v1
-        with:
-          command: audit
+        run: make audit
+        shell: bash
 
       - name: Generate header
         run: make generate_headers
