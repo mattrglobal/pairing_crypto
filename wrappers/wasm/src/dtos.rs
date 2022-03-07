@@ -21,37 +21,40 @@ use wasm_bindgen::prelude::*;
 
 wasm_impl!(KeyPair, publicKey: Vec<u8>, secretKey: Option<Vec<u8>>);
 
-wasm_impl!(BbsSignRequest, secretKey: Vec<u8>, messages: Vec<Vec<u8>>);
+wasm_impl!(
+    BbsSignRequestDto,
+    secretKey: Vec<u8>,
+    messages: Vec<Vec<u8>>
+);
 
 wasm_impl!(
-    BbsVerifyRequest,
+    BbsVerifyRequestDto,
     publicKey: Vec<u8>,
     messages: Vec<Vec<u8>>,
     signature: Vec<u8>
 );
-
 wasm_impl!(BbsVerifyResponse, verified: bool, error: Option<String>);
 
 wasm_impl!(
-    BbsDeriveProofRevealMessageRequest,
+    BbsDeriveProofRevealMessageRequestDto,
     // consider changing this contract to use an enum instead of 'reveal'
     reveal: bool,
     value: Vec<u8>
 );
 
 wasm_impl!(
-    BbsDeriveProofRequest,
+    BbsDeriveProofRequestDto,
     publicKey: Vec<u8>,
-    messages: Vec<BbsDeriveProofRevealMessageRequest>,
+    messages: Vec<BbsDeriveProofRevealMessageRequestDto>,
     signature: Vec<u8>,
     presentationMessage: Vec<u8>
 );
 
 wasm_impl!(
-    BbsVerifyProofRequest,
+    BbsVerifyProofRequestDto,
     publicKey: Vec<u8>,
     proof: Vec<u8>,
     presentationMessage: Vec<u8>,
     totalMessageCount: usize,
-    messages: HashMap<String, Vec<u8>>
+    messages: HashMap<String, Vec<u8>> // This has to be HashMap due to supported types in wasm_bindgen
 );

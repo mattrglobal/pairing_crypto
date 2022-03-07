@@ -18,8 +18,8 @@
 use crate::dtos::*;
 use crate::utils::*;
 
-use pairing_crypto::bls12_381::*;
-use pairing_crypto::schemes::*;
+use pairing_crypto::bls12_381::bbs::*;
+use pairing_crypto::bls12_381::{PublicKeyVt, SecretKey};
 use std::convert::TryInto;
 use wasm_bindgen::prelude::*;
 
@@ -36,10 +36,7 @@ pub async fn bls12381_generate_g1_key(seed: Option<Vec<u8>>) -> Result<JsValue, 
 
     // Derive secret key from supplied seed otherwise generate a new seed and a derive a key from this
     // using the underlying RNG usually defaults to the OS provided RNG e.g in Node is node crypto
-    let sk = match seed {
-        Some(s) => SecretKey::from_seed(bbs::SECRET_KEY_SALT, s.to_vec()).unwrap(),
-        None => SecretKey::random(bbs::SECRET_KEY_SALT).unwrap(),
-    };
+    let sk = SecretKey::new(SECRET_KEY_SALT, seed).unwrap();
 
     // Derive the public key from the secret key
     let pk = PublicKeyVt::from(&sk);
@@ -65,10 +62,8 @@ pub async fn bls12381_generate_g2_key(seed: Option<Vec<u8>>) -> Result<JsValue, 
 
     // Derive secret key from supplied seed otherwise generate a new seed and a derive a key from this
     // using the underlying RNG usually defaults to the OS provided RNG e.g in Node is node crypto
-    let sk = match seed {
-        Some(s) => SecretKey::from_seed(bbs::SECRET_KEY_SALT, s.to_vec()).unwrap(),
-        None => SecretKey::random(bbs::SECRET_KEY_SALT).unwrap(),
-    };
+    let sk = SecretKey::new(SECRET_KEY_SALT, seed).unwrap();
+
     // Derive the public key from the secret key
     let pk = PublicKey::from(&sk);
 
@@ -89,36 +84,16 @@ pub async fn bls12381_generate_g2_key(seed: Option<Vec<u8>>) -> Result<JsValue, 
 pub async fn bls12381_bbs_sign(request: JsValue) -> Result<JsValue, serde_wasm_bindgen::Error> {
     // Improves error output in JS based console.log() when built with debug feature enabled
     set_panic_hook();
+
     // Cast the supplied JSON request into a rust struct
-    let request: BbsSignRequest = request.try_into()?;
+    let request: BbsSignRequestDto = request.try_into()?;
 
-    // Parse public key from request
-    let sk = match SecretKey::from_vec(request.secretKey) {
-        Ok(result) => result,
-        Err(e) => return Err(serde_wasm_bindgen::Error::new(format!("{:?}", e))),
-    };
-
-    // Derive the public key from the secret key
-    let pk = PublicKey::from(&sk);
-
-    // Digest the supplied messages
-    let messages: Vec<core::Message> = match digest_messages(request.messages) {
-        Ok(messages) => messages,
-        Err(_) => {
-            return Err(serde_wasm_bindgen::Error::new(
-                "Messages to sign empty, expected > 1",
-            ))
-        }
-    };
-
-    // Use generators derived from the signers public key
-    // TODO this approach is likely to change soon
-    let generators = bbs::MessageGenerators::from_public_key(pk, messages.len());
-
-    // Produce the signature and return
-    match bbs::Signature::new(&sk, &generators, &messages) {
-        Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig).unwrap()),
-        Err(_e) => Err(serde_wasm_bindgen::Error::new("Failed to sign")),
+    match sign(BbsSignRequest {
+        secret_key: request.secretKey,
+        messages: request.messages,
+    }) {
+        Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig.to_vec()).unwrap()),
+        Err(e) => Err(serde_wasm_bindgen::Error::new(e.message())),
     }
 }
 
@@ -136,7 +111,7 @@ pub async fn bls12381_bbs_verify(request: JsValue) -> Result<JsValue, JsValue> {
     // Cast the JSON request into a rust struct
     let res = request.try_into();
 
-    let request: BbsVerifyRequest = match res {
+    let request: BbsVerifyRequestDto = match res {
         Ok(result) => result,
         Err(e) => {
             return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
@@ -147,58 +122,22 @@ pub async fn bls12381_bbs_verify(request: JsValue) -> Result<JsValue, JsValue> {
         }
     };
 
-    // Parse public key from request
-    let pk = match PublicKey::from_vec(request.publicKey) {
-        Ok(result) => result,
-        Err(e) => {
+    match verify(BbsVerifyRequest {
+        public_key: request.publicKey,
+        messages: request.messages,
+        signature: request.signature,
+    }) {
+        Ok(result) => {
             return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
-                verified: false,
-                error: Some(format!("{:?}", e)),
-            })
-            .unwrap())
-        }
-    };
-
-    // Digest the supplied messages
-    let messages: Vec<core::Message> = match digest_messages(request.messages) {
-        Ok(messages) => messages,
-        Err(err) => {
-            return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
-                verified: false,
-                error: Some(err.as_str().to_string()),
-            })
-            .unwrap())
-        }
-    };
-
-    // Use generators derived from the signers public key
-    // TODO this approach is likely to change soon
-    let generators = bbs::MessageGenerators::from_public_key(pk, messages.len());
-
-    // Parse signature from request
-    let signature = match bbs::Signature::from_vec(request.signature) {
-        Ok(result) => result,
-        Err(e) => {
-            return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
-                verified: false,
-                error: Some(format!("{:?}", e)),
-            })
-            .unwrap())
-        }
-    };
-
-    match signature.verify(&pk, &generators, &messages) {
-        true => {
-            return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
-                verified: true,
+                verified: result,
                 error: None,
             })
             .unwrap())
         }
-        false => {
+        Err(e) => {
             return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
                 verified: false,
-                error: None,
+                error: Some(format!("{:?}", e.message())),
             })
             .unwrap())
         }
@@ -233,61 +172,24 @@ pub async fn bls12381_bbs_derive_proof(
     set_panic_hook();
 
     // Cast the JSON request into a rust struct
-    let request: BbsDeriveProofRequest = request.try_into()?;
+    let request: BbsDeriveProofRequestDto = request.try_into()?;
 
-    // Parse public key from request
-    let pk = match PublicKey::from_vec(request.publicKey) {
-        Ok(result) => result,
-        Err(e) => return Err(serde_wasm_bindgen::Error::new(format!("{:?}", e))),
-    };
-
-    // Parse signature from request
-    let signature = match bbs::Signature::from_vec(request.signature) {
-        Ok(result) => result,
-        Err(e) => return Err(serde_wasm_bindgen::Error::new(format!("{:?}", e))),
-    };
-
-    // Digest the supplied messages
-    let messages = digest_messages(
-        request
+    match derive_proof(BbsDeriveProofRequest {
+        public_key: request.publicKey,
+        messages: request
             .messages
             .iter()
-            .map(|element| element.value.clone())
+            .map(|item| BbsDeriveProofRevealMessageRequest {
+                reveal: item.reveal,
+                value: item.value.clone(),
+            })
             .collect(),
-    )
-    .unwrap();
-
-    // Use generators derived from the signers public key
-    // TODO this approach is likely to change soon
-    let generators = bbs::MessageGenerators::from_public_key(pk, messages.len());
-
-    // Verify the signature to check the messages supplied are valid
-    match signature.verify(&pk, &generators, &messages) {
-        false => {
-            return Err(serde_wasm_bindgen::Error::new(
-                "Invalid signature, unable to verify",
-            ))
-        }
-        true => {}
-    };
-
-    // Digest the supplied messages
-    let proof_messages: Vec<ProofMessage> = match digest_proof_messages(request.messages) {
-        Ok(messages) => messages,
-        Err(err) => return Err(serde_wasm_bindgen::Error::new(err.as_str())),
-    };
-
-    let presentation_message = core::PresentationMessage::hash(request.presentationMessage);
-
-    let proof = bbs::Prover::derive_signature_pok(
-        signature,
-        &generators,
-        presentation_message,
-        &proof_messages,
-    )
-    .unwrap();
-
-    Ok(serde_wasm_bindgen::to_value(&proof.to_bytes()).unwrap())
+        signature: request.signature,
+        presentation_message: request.presentationMessage,
+    }) {
+        Ok(proof) => Ok(serde_wasm_bindgen::to_value(&proof).unwrap()),
+        Err(e) => Err(serde_wasm_bindgen::Error::new(e.message())),
+    }
 }
 
 /// Verifies a signature proof of knowledge proof
@@ -315,55 +217,25 @@ pub async fn bls12381_bbs_verify_proof(
     set_panic_hook();
 
     // Cast the JSON request into a rust struct
-    let request: BbsVerifyProofRequest = request.try_into()?;
+    let request: BbsVerifyProofRequestDto = request.try_into()?;
 
-    // Digest the revealed proof messages
-    let messages: Vec<(usize, Message)> =
-        match digest_revealed_proof_messages(request.messages, request.totalMessageCount) {
-            Ok(result) => result,
-            Err(e) => {
-                return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
-                    verified: false,
-                    error: Some(format!("{:?}", e)),
-                })
-                .unwrap())
-            }
-        };
-
-    // Parse public key from request
-    let pk = match PublicKey::from_vec(request.publicKey) {
-        Ok(result) => result,
-        Err(e) => {
-            return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
-                verified: false,
-                error: Some(format!("{:?}", e)),
-            })
-            .unwrap())
-        }
-    };
-
-    // Use generators derived from the signers public key
-    // TODO this approach is likely to change soon
-    let generators = bbs::MessageGenerators::from_public_key(pk, request.totalMessageCount);
-
-    // TODO dont use unwrap here
-    let proof = bbs::PokSignatureProof::from_bytes(request.proof).unwrap();
-
-    let presentation_message = PresentationMessage::hash(request.presentationMessage);
-
-    match bbs::Verifier::verify_signature_pok(
-        messages.as_slice(),
-        pk,
-        proof,
-        &generators,
-        presentation_message,
-    ) {
+    match verify_proof(BbsVerifyProofRequest {
+        public_key: request.publicKey,
+        presentation_message: request.presentationMessage,
+        proof: request.proof,
+        total_message_count: request.totalMessageCount,
+        messages: request
+            .messages
+            .iter()
+            .map(|(key, value)| (key.parse::<usize>().unwrap(), value.clone()))
+            .collect(),
+    }) {
         Ok(verified) => {
             return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
-                verified,
+                verified, // TODO need to check test cases here
                 error: None,
             })
-            .unwrap())
+            .unwrap());
         }
         Err(e) => {
             return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {

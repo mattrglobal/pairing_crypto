@@ -71,7 +71,7 @@ describe("bls12381", () => {
           ],
         };
         await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
-          "Secret key length incorrect expected 32 bytes"
+          "Error: Failed to parse secret key"
         );
       });
 
@@ -88,7 +88,7 @@ describe("bls12381", () => {
           ],
         };
         await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
-          "Secret key length incorrect expected 32 bytes"
+          "Error: Failed to parse secret key"
         );
       });
 
@@ -112,7 +112,7 @@ describe("bls12381", () => {
           ],
         };
         await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
-          "Failed to sign"
+          "Error: invalid secret key"
         );
       });
     });
