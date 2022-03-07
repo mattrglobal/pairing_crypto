@@ -25,7 +25,7 @@
 mod curves;
 
 /// Supported schemes from pairing crypto
-pub mod schemes;
+mod schemes;
 
 /// Supported constructs for the BLS12-381 curve
 pub mod bls12_381 {

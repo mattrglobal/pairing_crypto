@@ -53,13 +53,21 @@ impl SecretKey {
     /// Number of bytes needed to represent the secret key
     pub const BYTES: usize = 32;
 
+    /// Computes a new secret key either from a supplied seed or random
+    pub fn new(salt: &[u8], data: Option<Vec<u8>>) -> Option<Self> {
+        match data {
+            Some(s) => SecretKey::from_seed(salt, s.to_vec()),
+            None => SecretKey::random(salt),
+        }
+    }
+
     /// Compute a secret key from seed via an HKDF
-    pub fn from_seed<B: AsRef<[u8]>>(salt: &[u8], data: B) -> Option<Self> {
+    fn from_seed<B: AsRef<[u8]>>(salt: &[u8], data: B) -> Option<Self> {
         generate_secret_key(salt, data.as_ref())
     }
 
     /// Compute a secret key from a CS-PRNG
-    pub fn random(salt: &[u8]) -> Option<Self> {
+    fn random(salt: &[u8]) -> Option<Self> {
         let mut rng = thread_rng();
         let mut data = [0u8; Self::BYTES];
         rng.fill_bytes(&mut data);

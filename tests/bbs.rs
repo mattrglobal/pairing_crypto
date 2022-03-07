@@ -35,7 +35,7 @@ const EXPECTED_SIGS: [&str; 7] = [
 #[test]
 fn signing() {
     // TODO these test vectors need to be swapped to use the correct secret key
-    use pairing_crypto::schemes::bls::SECRET_KEY_SALT;
+    use pairing_crypto::bls12_381::bls::SECRET_KEY_SALT;
 
     let test_atts = TEST_CLAIMS
         .iter()
@@ -43,7 +43,7 @@ fn signing() {
         .collect::<Vec<Message>>();
 
     for i in 0..TEST_KEYS.len() {
-        let sk_opt = bbs::SecretKey::from_seed(SECRET_KEY_SALT, TEST_KEYS[i]);
+        let sk_opt = bbs::SecretKey::new(SECRET_KEY_SALT, Some(TEST_KEYS[i].to_vec()));
         assert!(sk_opt.is_some());
         let sk = sk_opt.unwrap();
         let pk = bbs::PublicKey::from(&sk);
@@ -64,7 +64,8 @@ fn signing() {
 #[test]
 fn proofs() {
     // TODO these test vectors need to be swapped to use the correct secret key
-    use pairing_crypto::schemes::bls::SECRET_KEY_SALT;
+    use pairing_crypto::bls12_381::bbs::*;
+    use pairing_crypto::bls12_381::bls::SECRET_KEY_SALT;
     use pairing_crypto::MockRng;
     use rand::SeedableRng;
     let mut rng = MockRng::from_seed([1u8; 16]);
@@ -136,7 +137,7 @@ fn proofs() {
 
     for i in 0..TEST_KEYS.len() {
         let pk = bbs::PublicKey::from(
-            &bbs::SecretKey::from_seed(SECRET_KEY_SALT, TEST_KEYS[i]).unwrap(),
+            &bbs::SecretKey::new(SECRET_KEY_SALT, Some(TEST_KEYS[i].to_vec())).unwrap(),
         );
         let gens = bbs::MessageGenerators::from_public_key(pk, test_atts.len());
         let sig = bbs::Signature::from_bytes(
@@ -171,17 +172,20 @@ fn proofs() {
             assert_eq!(proof.to_bytes(), e_proof);
             let mut revealed_msgs = Vec::new();
             for k in 0..j {
-                revealed_msgs.push((k, test_atts[k]));
+                revealed_msgs.push((k as usize, test_atts[k].to_bytes().to_vec()));
             }
 
-            assert!(bbs::Verifier::verify_signature_pok(
-                revealed_msgs.as_slice(),
-                pk,
-                proof,
-                &gens,
-                presentation_message,
-            )
-            .unwrap());
+            assert_eq!(
+                verify_proof(BbsVerifyProofRequest {
+                    public_key: pk.to_bytes().to_vec(),
+                    presentation_message: presentation_message.to_bytes().to_vec(),
+                    proof: proof.to_bytes().to_vec(),
+                    total_message_count: proof_msgs.len(),
+                    messages: revealed_msgs.as_slice().to_vec()
+                })
+                .unwrap(),
+                true
+            );
         }
     }
 }

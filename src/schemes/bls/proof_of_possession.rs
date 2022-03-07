@@ -86,7 +86,7 @@ impl ProofOfPossession {
 fn pop_works() {
     use super::SECRET_KEY_SALT;
 
-    let sk = SecretKey::random(SECRET_KEY_SALT).unwrap();
+    let sk = SecretKey::new(SECRET_KEY_SALT, None).unwrap();
     let pop = ProofOfPossession::new(&sk).unwrap();
     let pk = PublicKey::from(&sk);
     assert_eq!(pop.verify(pk).unwrap_u8(), 1);

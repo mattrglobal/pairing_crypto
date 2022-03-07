@@ -100,7 +100,7 @@ fn signature_vt_works() {
 
     let seed = [2u8; 16];
     let mut rng = MockRng::from_seed(seed);
-    let sk = SecretKey::random(b"SALT").unwrap();
+    let sk = SecretKey::new(b"SALT", None).unwrap();
     let mut msg = [0u8; 12];
     rng.fill_bytes(&mut msg);
     let sig = SignatureVt::new(&sk, msg).unwrap();

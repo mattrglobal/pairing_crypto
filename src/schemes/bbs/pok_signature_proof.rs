@@ -133,6 +133,7 @@ impl PokSignatureProof {
         hasher: &mut impl Update,
     ) -> Result<(), String> {
         // TODO check revealed messages vs hidden message count on proof
+        // TODO need to account for generators being 0?
         if generators.len() - self.hidden_message_count != rvl_msgs.len() {
             // TODO review error formatting
             return Err("Incorrect number of revealed messages".to_string());
