@@ -1,18 +1,15 @@
-macro_rules! add_set_key_bytes_impl {
-    ($name:ident,$static:expr,$property:ident,$type:ident) => {
+macro_rules! set_byte_array_impl {
+    ($name:ident,$static:expr,$property:ident) => {
         #[no_mangle]
         pub extern "C" fn $name(handle: u64, value: ByteArray, err: &mut ExternError) -> i32 {
             let value = value.to_vec();
             if value.is_empty() {
-                *err = ExternError::new_error(
-                    ErrorCode::new(1),
-                    &format!("{} cannot be empty", stringify!($type)),
-                );
+                *err = ExternError::new_error(ErrorCode::new(1), "value cannot be empty");
                 return 1;
             }
             $static.call_with_result_mut(err, handle, |ctx| -> Result<(), PairingCryptoFfiError> {
-                let v = $type::from_vec(value.to_vec())?;
-                ctx.$property = Some(v);
+                let v = value.to_vec();
+                ctx.$property = v;
                 Ok(())
             });
             err.get_code().code()
@@ -20,24 +17,21 @@ macro_rules! add_set_key_bytes_impl {
     };
 }
 
-macro_rules! add_set_message_bytes_impl {
+macro_rules! add_byte_array_impl {
     (
      $name_bytes:ident,
-     $static:expr
+     $static:expr,
+     $property:ident
     ) => {
         #[no_mangle]
-        pub extern "C" fn $name_bytes(
-            handle: u64,
-            message: ByteArray,
-            err: &mut ExternError,
-        ) -> i32 {
-            let message = message.to_vec();
-            if message.is_empty() {
-                *err = ExternError::new_error(ErrorCode::new(1), "Message cannot be empty");
+        pub extern "C" fn $name_bytes(handle: u64, value: ByteArray, err: &mut ExternError) -> i32 {
+            let value = value.to_vec();
+            if value.is_empty() {
+                *err = ExternError::new_error(ErrorCode::new(1), "value cannot be empty");
                 return 1;
             }
             $static.call_with_output_mut(err, handle, |ctx| {
-                ctx.messages.push(Message::hash(message));
+                ctx.$property.push(value);
             });
             err.get_code().code()
         }

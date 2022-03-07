@@ -14,6 +14,9 @@ int main(int argc, char** argv) {
     ByteArray** messages = (ByteArray**) malloc(message_count * sizeof(ByteArray*));
     ByteArray* signature = (ByteArray*) malloc(sizeof(ByteArray));
 
+    ByteArray* presentation_message = (ByteArray*) malloc(sizeof(ByteArray));
+    ByteArray* proof = (ByteArray*) malloc(sizeof(ByteArray));
+
     ExternError* err = (ExternError*) malloc(sizeof(ExternError));
 
     uint64_t handle;
@@ -21,6 +24,10 @@ int main(int argc, char** argv) {
 
     seed->length = 0;
     seed->data = NULL;
+
+    presentation_message->length = 16;
+    presentation_message->data = (uint8_t *)malloc(60);
+    memset((uint8_t *)presentation_message->data, 15, 16);
 
     printf("Create BLS12381 G2 key pair...");
     fflush(stdout);
@@ -71,7 +78,7 @@ int main(int argc, char** argv) {
     printf("Set messages sign context...");
     fflush(stdout);
     for (i = 0; i < message_count; i++) {
-        if (bls12381_bbs_sign_context_set_message(handle, *messages[i], err) != 0) {
+        if (bls12381_bbs_sign_context_add_message(handle, *messages[i], err) != 0) {
             printf("fail\n");
             goto Fail;
         }
@@ -133,6 +140,111 @@ int main(int argc, char** argv) {
     printf("Verifying signature...");
     fflush(stdout);
     if (bls12381_bbs_verify_context_finish(handle, err) != 0) {
+        printf("fail\n");
+        goto Fail;
+    }
+    printf("pass\n");
+
+    printf("Create new derive proof context...");
+    fflush(stdout);
+    handle = bls12381_bbs_derive_proof_context_init(err);
+    if (handle == 0) {
+        printf("fail\n");
+        goto Fail;
+    }
+    printf("pass\n");
+
+    printf("Adding messages to proof context...");
+    fflush(stdout);
+    for (i = 0; i < message_count; i++) {
+        if (bls12381_bbs_derive_proof_context_add_message(handle, messages[i], true, err) != 0) {
+            printf("fail\n");
+            goto Fail;
+        }
+    }
+    printf("pass\n");
+
+    printf("Setting signature in proof context...");
+    fflush(stdout);
+    if (bls12381_bbs_derive_proof_context_set_signature(handle, *signature, err) != 0) {
+        printf("fail\n");
+        goto Fail;
+    }
+    printf("pass\n");
+
+    printf("Set public key in proof context...");
+    fflush(stdout);
+    if (bls12381_bbs_derive_proof_context_set_public_key(handle, *public_key, err) != 0) {
+        printf("fail\n");
+        goto Fail;
+    }
+    printf("pass\n");
+
+    printf("Set presentation message in proof context...");
+    fflush(stdout);
+    if (bls12381_bbs_derive_proof_context_set_presentation_message(handle, *presentation_message, err) != 0) {
+        printf("fail\n");
+        goto Fail;
+    }
+    printf("pass\n");
+
+    printf("Creating proof...");
+    fflush(stdout);
+    if (bls12381_bbs_derive_proof_context_finish(handle, (ByteBuffer*)proof, err) != 0) {
+        printf("fail\n");
+        goto Fail;
+    }
+    printf("pass\n");
+
+    
+    printf("Create new verify proof context...");
+    fflush(stdout);
+    handle = bls12381_bbs_verify_proof_context_init(err);
+    if (handle == 0) {
+        printf("fail\n");
+        goto Fail;
+    }
+    printf("pass\n");
+
+    printf("Adding messages to proof context...");
+    fflush(stdout);
+    for (i = 0; i < message_count; i++) {
+        if (bls12381_bbs_verify_proof_context_add_message(handle, messages[i], true, err) != 0) {
+            printf("fail\n");
+            goto Fail;
+        }
+    }
+    printf("pass\n");
+
+    printf("Setting proof in proof context...");
+    fflush(stdout);
+    if (bls12381_bbs_verify_proof_context_set_proof(handle, *proof, err) != 0) {
+        printf("fail\n");
+        goto Fail;
+    }
+    printf("pass\n");
+
+    printf("Set public key in proof context...");
+    fflush(stdout);
+    if (bls12381_bbs_verify_proof_context_set_public_key(handle, *public_key, err) != 0) {
+        printf("fail\n");
+        goto Fail;
+    }
+    printf("pass\n");
+
+    printf("Set presentation message in proof context...");
+    fflush(stdout);
+    if (bls12381_bbs_verify_proof_context_set_presentation_message(handle, *presentation_message, err) != 0) {
+        printf("fail\n");
+        goto Fail;
+    }
+    printf("pass\n");
+
+    // TODO this is passing for some reason
+
+    printf("Verifying proof...");
+    fflush(stdout);
+    if (bls12381_bbs_verify_proof_context_finish(handle, err) != 0) {
         printf("fail\n");
         goto Fail;
     }

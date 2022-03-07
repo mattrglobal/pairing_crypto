@@ -1,6 +1,5 @@
 use ffi_support::{ByteBuffer, ErrorCode, ExternError};
 use pairing_crypto::bls12_381::*;
-use pairing_crypto::schemes::*;
 use std::{ptr, slice};
 
 /// Wrapper to convert a string to ExternError and PairingCryptoError
@@ -114,15 +113,35 @@ impl From<ByteBuffer> for ByteArray {
 
 define_bytebuffer_destructor!(pairing_crypto_byte_buffer_free);
 
-// TODO need to namespace these to be BBS based
-pub struct SignContext {
-    pub messages: Vec<core::Message>,
-    pub secret_key: Option<SecretKey>,
-    pub signature: Option<bbs::Signature>,
+// TODO would be nice to drop the option here?
+
+pub struct BbsSignRequestDto {
+    pub messages: Vec<Vec<u8>>,
+    pub secret_key: Vec<u8>,
 }
 
-pub struct VerifyContext {
-    pub messages: Vec<core::Message>,
-    pub public_key: Option<PublicKey>,
-    pub signature: Option<bbs::Signature>,
+pub struct BbsVerifyRequestDto {
+    pub messages: Vec<Vec<u8>>,
+    pub public_key: Vec<u8>,
+    pub signature: Vec<u8>,
+}
+
+pub struct BbsDeriveProofRevealMessageRequestDto {
+    pub reveal: bool,
+    pub value: Vec<u8>,
+}
+
+pub struct BbsDeriveProofRequestDto {
+    pub public_key: Vec<u8>,
+    pub messages: Vec<BbsDeriveProofRevealMessageRequestDto>,
+    pub signature: Vec<u8>,
+    pub presentation_message: Vec<u8>,
+}
+
+pub struct BbsVerifyProofRequestDto {
+    pub public_key: Vec<u8>,
+    pub proof: Vec<u8>,
+    pub presentation_message: Vec<u8>,
+    pub total_message_count: usize,
+    pub messages: Vec<(usize, Vec<u8>)>,
 }
