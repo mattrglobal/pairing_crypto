@@ -18,7 +18,7 @@
 //!
 //!
 //!
-#![warn(missing_docs, missing_crate_level_docs, rust_2018_idioms)]
+#![warn(missing_docs, rustdoc::missing_crate_level_docs, rust_2018_idioms)]
 #![deny(dead_code, redundant_semicolons, unused, unsafe_code, while_true)]
 
 /// Supported curves from pairing crypto
