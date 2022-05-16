@@ -10,7 +10,7 @@ For a more exhaustive list of those published by the [CFRG](https://irtf.org/cfr
 
 ## Supported Signature Algorithms
 
-- [Basic BLS Signatures](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-04#section-3.1)
+- [BBS+ Signatures](https://identity.foundation/bbs-signature/draft-bbs-signatures.html)
 
 ## API Design
 
@@ -31,16 +31,14 @@ Below is an outline of the repositories structure
 │   │   ├── bls_12381.rs
 │   │   └── bls_12381
 │   └ schemes - Defines the different cryptographic schemes (e.g signatures) supported by the library
-│       ├── bls.rs
-│       ├── bls
 │       ├── bbs.rs
 │       └── bbs
-│       ├── ps.rs
-│       └── ps
+
 ├── tests - Integration Tests
+├── wrappers - Bindings to other languages
 ├── benches - Benchmarks
 ├── Cargo.toml
 ├── Cargo.lock
 ├── README.md
-└── CONTRIBUTING.md
+└── docs/CONTRIBUTING.md
 ```

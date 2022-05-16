@@ -37,7 +37,7 @@ const EXPECTED_SIGS: [&str; 7] = [
 #[test]
 fn signing() {
     // TODO these test vectors need to be swapped to use the correct secret key
-    use pairing_crypto::bls12_381::bls::SECRET_KEY_SALT;
+    use pairing_crypto::bls12_381::bbs::SECRET_KEY_SALT;
 
     let test_atts = TEST_CLAIMS
         .iter()
@@ -66,8 +66,8 @@ fn signing() {
 #[test]
 fn proofs() {
     // TODO these test vectors need to be swapped to use the correct secret key
+    use pairing_crypto::bls12_381::bbs::SECRET_KEY_SALT;
     use pairing_crypto::bls12_381::bbs::*;
-    use pairing_crypto::bls12_381::bls::SECRET_KEY_SALT;
     use pairing_crypto::MockRng;
     use rand::SeedableRng;
     let mut rng = MockRng::from_seed([1u8; 16]);
