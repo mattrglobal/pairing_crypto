@@ -18,15 +18,15 @@ Operation is the function to be executed such as: key_gen, sign, verify, blind_s
 
 ## Curve Operations
 
-1. {curve}.keygen(ikm, is_vt) -> kp = {pk, sk} says use the BLS12-381 curve for the BLS signature to create a new secret key using the provided input key material and corresponding public key in G1 or the variant G2.
+1. {curve}.keygen(ikm, is_vt) -> kp = {pk, sk} says use the BLS12-381 curve for the BBS signature to create a new secret key using the provided input key material and corresponding public key in G1 or the variant G2.
 
 ## Schemes
 
-1. Accumulator
-1. BLS
 1. BBS
 
-### BLS Operations
+### BBS Operations
 
-1. {curve}.bls.sign(kp, msg) -> &sigma;
-1. {curve}.bls.verify(pk, msg, &sigma;) -> true or false
+1. {curve}.bbs.sign(kp, messages, generators) -> &sigma;
+2. {curve}.bbs.verify(pk, messages, &sigma;) -> true or false
+3. {curve}.bbs.proof_gen(pk, &sigma; messages, generators, reveal_indices) -> proof
+4. {curve}.bbs.proof_verify(pk, proof, reveal_messages, generators, reveal_indices) -> true or false

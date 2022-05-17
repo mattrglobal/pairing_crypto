@@ -33,7 +33,6 @@ pub mod bls12_381 {
     pub use super::curves::bls12_381::PublicKeyVt;
     pub use super::curves::bls12_381::SecretKey;
     pub use super::schemes::bbs;
-    pub use super::schemes::bls;
     pub use super::schemes::core::{
         Challenge, Commitment, Error, HiddenMessage, Message, Nonce, PresentationMessage,
         ProofMessage, SignatureBlinding, COMMITMENT_G1_BYTES, COMMITMENT_G2_BYTES, FIELD_BYTES,

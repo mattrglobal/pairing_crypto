@@ -19,4 +19,3 @@ pub use api::signature::verify;
 pub const SECRET_KEY_SALT: &[u8] = b"BBS-SIG-KEYGEN-SALT-";
 
 pub use crate::curves::bls12_381::{PublicKey, SecretKey};
-pub use crate::schemes::bls::ProofOfPossession;
