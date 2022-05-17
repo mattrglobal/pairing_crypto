@@ -10,7 +10,7 @@ For a more exhaustive list of those published by the [CFRG](https://irtf.org/cfr
 
 ## Supported Signature Algorithms
 
-- [BBS+ Signatures](https://identity.foundation/bbs-signature/draft-bbs-signatures.html)
+- [BBS Signatures](https://identity.foundation/bbs-signature/draft-bbs-signatures.html)
 
 ## API Design
 

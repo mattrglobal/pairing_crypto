@@ -24,7 +24,7 @@ Operation is the function to be executed such as: key_gen, sign, verify, blind_s
 
 1. BBS
 
-### BBS+ Operations
+### BBS Operations
 
 1. {curve}.bbs.sign(kp, messages, generators) -> &sigma;
 2. {curve}.bbs.verify(pk, messages, &sigma;) -> true or false
