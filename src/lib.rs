@@ -21,17 +21,11 @@
 #![warn(missing_docs, rustdoc::missing_crate_level_docs, rust_2018_idioms)]
 #![deny(dead_code, redundant_semicolons, unused, unsafe_code, while_true)]
 
-/// Supported curves from pairing crypto
-mod curves;
-
 /// Supported schemes from pairing crypto
 mod schemes;
 
 /// Supported constructs for the BLS12-381 curve
 pub mod bls12_381 {
-    pub use super::curves::bls12_381::PublicKey;
-    pub use super::curves::bls12_381::PublicKeyVt;
-    pub use super::curves::bls12_381::SecretKey;
     pub use super::schemes::bbs;
     pub use super::schemes::core::{
         Challenge, Commitment, Error, HiddenMessage, Message, Nonce, PresentationMessage,
