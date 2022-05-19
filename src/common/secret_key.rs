@@ -1,20 +1,23 @@
-use super::util::vec_to_byte_array;
-use crate::curves::bls12_381::Scalar;
-use hkdf::HkdfExtract;
-use rand::{thread_rng, RngCore};
+use blst_lib::{
+    blst_bendian_from_scalar, blst_scalar, blst_scalar_from_bendian,
+    blst_sk_check,
+};
+use rand::{CryptoRng, RngCore};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use zeroize::Zeroize;
+
+use super::{error::Error, util::vec_to_byte_array};
 
 /// The secret key is field element 0 < `x` < `r`
 /// where `r` is the curve order. See Section 4.3 in
 /// <https://eprint.iacr.org/2016/663.pdf>
 #[derive(Clone, Debug, Eq, PartialEq, Zeroize)]
 #[zeroize(drop)]
-pub struct SecretKey(pub Scalar);
+pub struct SecretKey(pub(crate) blst_scalar);
 
 impl Default for SecretKey {
     fn default() -> Self {
-        Self(Scalar::zero())
+        Self(blst_scalar::default())
     }
 }
 
@@ -35,17 +38,42 @@ impl Serialize for SecretKey {
     where
         S: Serializer,
     {
-        self.0.serialize(s)
+        self.to_bytes().serialize(s)
     }
 }
 
 impl<'de> Deserialize<'de> for SecretKey {
-    fn deserialize<D>(d: D) -> Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        let scalar = Scalar::deserialize(d)?;
-        Ok(Self(scalar))
+        struct BytesVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for BytesVisitor {
+            type Value = SecretKey;
+
+            fn expecting(
+                &self,
+                formatter: &mut ::core::fmt::Formatter<'_>,
+            ) -> ::core::fmt::Result {
+                formatter.write_str("a valid byte string")
+            }
+
+            fn visit_bytes<E>(self, v: &[u8]) -> Result<SecretKey, E>
+            where
+                E: serde::de::Error,
+            {
+                if v.len() == SecretKey::BYTES {
+                    SecretKey::from_bytes(v).map_err(|_error| {
+                        serde::de::Error::custom("decompression failed")
+                    })
+                } else {
+                    Err(serde::de::Error::invalid_length(v.len(), &self))
+                }
+            }
+        }
+
+        deserializer.deserialize_bytes(BytesVisitor)
     }
 }
 
@@ -54,80 +82,105 @@ impl SecretKey {
     pub const BYTES: usize = 32;
 
     /// Computes a new secret key either from a supplied seed or random
-    pub fn new(salt: &[u8], data: Option<Vec<u8>>) -> Option<Self> {
-        match data {
-            Some(s) => SecretKey::from_seed(salt, s.to_vec()),
-            None => SecretKey::random(salt),
-        }
+    pub fn new<T: AsRef<[u8]>>(seed: T, key_info: T) -> Option<Self> {
+        Self::from_seed(seed, key_info)
     }
 
     /// Compute a secret key from seed via an HKDF
-    fn from_seed<B: AsRef<[u8]>>(salt: &[u8], data: B) -> Option<Self> {
-        generate_secret_key(salt, data.as_ref())
+    fn from_seed<T: AsRef<[u8]>>(seed: T, key_info: T) -> Option<Self> {
+        generate_secret_key(seed, key_info).ok()
     }
 
     /// Compute a secret key from a CS-PRNG
-    fn random(salt: &[u8]) -> Option<Self> {
-        let mut rng = thread_rng();
-        let mut data = [0u8; Self::BYTES];
-        rng.fill_bytes(&mut data);
-        generate_secret_key(salt, &data)
-    }
+    pub fn random<R>(rng: &mut R) -> Option<Self>
+    where
+        R: RngCore + CryptoRng,
+    {
+        let mut seed = [0u8; Self::BYTES];
+        rng.try_fill_bytes(&mut seed)
+            .expect("randomness generation failed");
 
-    /// Get the byte representation of this key
-    pub fn to_bytes(&self) -> [u8; Self::BYTES] {
-        let mut bytes = self.0.to_bytes();
-        // Make big endian
-        bytes.reverse();
-        bytes
+        let key_info = [0u8; Self::BYTES];
+
+        Self::from_seed(seed, key_info)
     }
 
     /// Convert a vector of bytes of big-endian representation of the secret key
-    pub fn from_vec(bytes: Vec<u8>) -> Result<Self, String> {
+    pub fn from_vec(bytes: Vec<u8>) -> Result<Self, Error> {
         match vec_to_byte_array::<{ Self::BYTES }>(bytes) {
             Ok(result) => Self::from_bytes(&result),
-            Err(_) => return Err("Secret key length incorrect expected 32 bytes".to_string()),
+            Err(_) => return Err(Error::Conversion),
         }
     }
 
-    /// Convert a big-endian representation of the secret key
-    pub fn from_bytes(bytes: &[u8; Self::BYTES]) -> Result<Self, String> {
-        let mut t = [0u8; Self::BYTES];
-        t.copy_from_slice(bytes);
-        t.reverse();
-        let result = Scalar::from_bytes(&t).map(SecretKey);
-
-        if result.is_some().unwrap_u8() == 1u8 {
-            Ok(result.unwrap())
-        } else {
-            Err("Failed to decompress secret key from bytes".to_string())
+    // serialize
+    fn serialize(&self) -> [u8; 32] {
+        let mut sk_out = [0; 32];
+        unsafe {
+            blst_bendian_from_scalar(sk_out.as_mut_ptr(), &self.0);
         }
+        sk_out
+    }
+
+    // deserialize
+    fn deserialize(sk_in: &[u8]) -> Result<Self, Error> {
+        let mut sk = blst_scalar::default();
+        if sk_in.len() != 32 {
+            return Err(Error::CryptoBadEncoding);
+        }
+        unsafe {
+            blst_scalar_from_bendian(&mut sk, sk_in.as_ptr());
+            if !blst_sk_check(&sk) {
+                return Err(Error::CryptoBadEncoding);
+            }
+        }
+        Ok(Self(sk))
+    }
+
+    pub fn to_bytes(&self) -> [u8; 32] {
+        SecretKey::serialize(&self)
+    }
+
+    pub fn from_bytes(sk_in: &[u8]) -> Result<Self, Error> {
+        SecretKey::deserialize(sk_in)
     }
 }
 
-fn generate_secret_key(salt: &[u8], ikm: &[u8]) -> Option<SecretKey> {
-    const INFO: [u8; 2] = [0u8, 48u8];
-
-    let mut extracter = HkdfExtract::<sha2::Sha256>::new(Some(salt));
-    extracter.input_ikm(ikm);
-    extracter.input_ikm(&[0u8]);
-    let (_, h) = extracter.finalize();
-
-    let mut output = [0u8; 48];
-    if h.expand(&INFO, &mut output).is_err() {
-        None
-    } else {
-        Some(SecretKey(Scalar::from_okm(&output)))
+/// Generates a secret key as defined in
+/// https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.1
+fn generate_secret_key<T: AsRef<[u8]>>(
+    ikm: T,
+    key_info: T,
+) -> Result<SecretKey, Error> {
+    let ikm = ikm.as_ref();
+    if ikm.len() < SecretKey::BYTES {
+        return Err(Error::CryptoInvalidIkmLength);
     }
+
+    let key_info = key_info.as_ref();
+    let mut out = blst_lib::blst_scalar::default();
+    unsafe {
+        blst_lib::blst_keygen(
+            &mut out,
+            ikm.as_ptr(),
+            ikm.len(),
+            key_info.as_ptr(),
+            key_info.len(),
+        )
+    };
+
+    Ok(SecretKey(out))
 }
 
 #[test]
 fn test_from_seed() {
     let seed = [0u8; 32];
-    let sk = SecretKey::from_seed(b"BLS-SIG-KEYGEN-SALT-", seed);
+    let key_info = [0u8; 32];
+
+    let sk = SecretKey::new(seed, key_info);
     let expected = [
-        4, 86, 144, 246, 168, 251, 111, 172, 156, 231, 193, 23, 23, 64, 228, 226, 225, 245, 114, 3,
-        98, 64, 230, 167, 160, 145, 192, 218, 227, 59, 53, 74,
+        25, 226, 206, 49, 243, 163, 5, 65, 109, 59, 93, 241, 131, 89, 233, 208,
+        89, 145, 234, 225, 7, 19, 70, 193, 238, 78, 164, 52, 85, 176, 39, 119,
     ];
-    assert_eq!(sk.unwrap().0.to_bytes(), expected);
+    assert_eq!(sk.unwrap().to_bytes(), expected);
 }
