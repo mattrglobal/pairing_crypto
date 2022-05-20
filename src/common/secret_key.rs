@@ -149,8 +149,10 @@ impl SecretKey {
     }
 }
 
-/// Generates a secret key as defined in
-/// https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.1
+    /// Computes a secret key from an IKM, as defined by 
+    /// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.3
+    /// Note this procedure does not follow
+    /// https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-keygen
 fn generate_secret_key<T: AsRef<[u8]>>(
     ikm: T,
     key_info: T,
