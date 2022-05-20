@@ -1,8 +1,11 @@
 use super::dtos::{BbsDeriveProofRequest, BbsVerifyProofRequest};
 use super::utils::{
-    digest_messages, digest_proof_messages, digest_revealed_proof_messages, BbsErrorCode,
+    digest_messages, digest_proof_messages, digest_revealed_proof_messages,
+    BbsErrorCode,
 };
-use crate::bls12_381::bbs::{MessageGenerators, PokSignature, PokSignatureProof, Signature};
+use crate::bls12_381::bbs::{
+    MessageGenerators, PokSignature, PokSignatureProof, Signature,
+};
 use crate::bls12_381::PublicKey;
 use crate::schemes::core::*;
 use digest::{ExtendableOutput, Update, XofReader};
@@ -32,12 +35,15 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
 
     // Use generators derived from the signers public key
     // TODO this approach is likely to change soon
-    let generators = MessageGenerators::from_public_key(pk, request.messages.len());
+    let generators =
+        MessageGenerators::from_public_key(pk, request.messages.len());
 
     // Parse signature from request
     let signature = match Signature::from_vec(request.signature) {
         Ok(result) => result,
-        Err(e) => return Err(Error::new_bbs_error(BbsErrorCode::ParsingError, &e)),
+        Err(e) => {
+            return Err(Error::new_bbs_error(BbsErrorCode::ParsingError, &e))
+        }
     };
 
     // Verify the signature to check the messages supplied are valid
@@ -52,12 +58,14 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     };
 
     // Digest the supplied messages
-    let messages: Vec<ProofMessage> = match digest_proof_messages(request.messages) {
-        Ok(messages) => messages,
-        Err(e) => return Err(e),
-    };
+    let messages: Vec<ProofMessage> =
+        match digest_proof_messages(request.messages) {
+            Ok(messages) => messages,
+            Err(e) => return Err(e),
+        };
 
-    let presentation_message = PresentationMessage::hash(request.presentation_message);
+    let presentation_message =
+        PresentationMessage::hash(request.presentation_message);
 
     let mut pok = match PokSignature::init(signature, &generators, &messages) {
         Ok(proof) => proof,
@@ -92,15 +100,20 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
     };
 
     // Digest the revealed proof messages
-    let messages: Vec<(usize, Message)> =
-        match digest_revealed_proof_messages(request.messages, request.total_message_count) {
-            Ok(result) => result,
-            Err(e) => return Err(e),
-        };
+    let messages: Vec<(usize, Message)> = match digest_revealed_proof_messages(
+        request.messages,
+        request.total_message_count,
+    ) {
+        Ok(result) => result,
+        Err(e) => return Err(e),
+    };
 
     // Use generators derived from the signers public key
     // TODO this approach is likely to change soon
-    let generators = MessageGenerators::from_public_key(public_key, request.total_message_count);
+    let generators = MessageGenerators::from_public_key(
+        public_key,
+        request.total_message_count,
+    );
 
     // TODO dont use unwrap here
     let proof = match PokSignatureProof::from_bytes(request.proof) {
@@ -113,12 +126,18 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
         }
     };
 
-    let presentation_message = PresentationMessage::hash(request.presentation_message);
+    let presentation_message =
+        PresentationMessage::hash(request.presentation_message);
 
     let mut data = [0u8; COMMITMENT_G1_BYTES];
     let mut hasher = sha3::Shake256::default();
 
-    match proof.add_challenge_contribution(&generators, &messages, proof.challenge, &mut hasher) {
+    match proof.add_challenge_contribution(
+        &generators,
+        &messages,
+        proof.challenge,
+        &mut hasher,
+    ) {
         Err(_) => {
             return Err(Error::new_bbs_error(
                 BbsErrorCode::InvalidProof,

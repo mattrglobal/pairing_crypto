@@ -1,7 +1,7 @@
 use super::MessageGenerators;
 use crate::curves::bls12_381::{
-    multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective, PublicKey,
-    Scalar, SecretKey,
+    multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared,
+    G2Projective, PublicKey, Scalar, SecretKey,
 };
 use crate::schemes::core::*;
 use core::convert::TryFrom;
@@ -105,7 +105,11 @@ impl Signature {
     pub const BYTES: usize = 112;
 
     /// Generate a new signature where all messages are known to the signer
-    pub fn new<M>(sk: &SecretKey, generators: &MessageGenerators, msgs: M) -> Result<Self, Error>
+    pub fn new<M>(
+        sk: &SecretKey,
+        generators: &MessageGenerators,
+        msgs: M,
+    ) -> Result<Self, Error>
     where
         M: AsRef<[Message]>,
     {
@@ -141,7 +145,12 @@ impl Signature {
     }
 
     /// Verify a signature
-    pub fn verify<M>(&self, pk: &PublicKey, generators: &MessageGenerators, msgs: M) -> bool
+    pub fn verify<M>(
+        &self,
+        pk: &PublicKey,
+        generators: &MessageGenerators,
+        msgs: M,
+    ) -> bool
     where
         M: AsRef<[Message]>,
     {
@@ -186,14 +195,20 @@ impl Signature {
     pub fn from_vec(bytes: Vec<u8>) -> Result<Self, String> {
         match vec_to_byte_array::<{ Self::BYTES }>(bytes) {
             Ok(result) => Self::from_bytes(&result),
-            Err(_) => return Err("Public key length incorrect expected 32 bytes".to_string()),
+            Err(_) => {
+                return Err(
+                    "Public key length incorrect expected 32 bytes".to_string()
+                )
+            }
         }
     }
 
     /// Convert a byte sequence into a signature
     pub fn from_bytes(data: &[u8; Self::BYTES]) -> Result<Self, String> {
-        let a_res = G1Affine::from_compressed(&<[u8; 48]>::try_from(&data[0..48]).unwrap())
-            .map(G1Projective::from);
+        let a_res = G1Affine::from_compressed(
+            &<[u8; 48]>::try_from(&data[0..48]).unwrap(),
+        )
+        .map(G1Projective::from);
         let mut e_bytes = <[u8; 32]>::try_from(&data[48..80]).unwrap();
         e_bytes.reverse();
         let e_res = Scalar::from_bytes(&e_bytes);
@@ -204,19 +219,25 @@ impl Signature {
         let a = if a_res.is_some().unwrap_u8() == 1u8 {
             a_res.unwrap()
         } else {
-            return Err("Failed to decompress `a` component of signature".to_string());
+            return Err(
+                "Failed to decompress `a` component of signature".to_string()
+            );
         };
 
         let e = if e_res.is_some().unwrap_u8() == 1u8 {
             e_res.unwrap()
         } else {
-            return Err("Failed to decompress `e` component of signature".to_string());
+            return Err(
+                "Failed to decompress `e` component of signature".to_string()
+            );
         };
 
         let s = if s_res.is_some().unwrap_u8() == 1u8 {
             s_res.unwrap()
         } else {
-            return Err("Failed to decompress `s` component of signature".to_string());
+            return Err(
+                "Failed to decompress `s` component of signature".to_string()
+            );
         };
 
         Ok(Signature { a, e, s })

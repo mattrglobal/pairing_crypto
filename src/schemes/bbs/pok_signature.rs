@@ -49,7 +49,10 @@ impl PokSignature {
         mut rng: impl RngCore + CryptoRng,
     ) -> Result<Self, Error> {
         if messages.len() != generators.len() {
-            return Err(Error::new(1, "mismatched messages with and generators"));
+            return Err(Error::new(
+                1,
+                "mismatched messages with and generators",
+            ));
         }
         let r1 = Scalar::random(&mut rng);
         let r2 = Scalar::random(&mut rng);
@@ -69,7 +72,10 @@ impl PokSignature {
         let a_bar = b * r1 - a_prime * signature.e;
 
         // d = b * r1 + h0 * r2
-        let d = G1Projective::sum_of_products_in_place(&[b, generators.h0], [r1, r2].as_mut());
+        let d = G1Projective::sum_of_products_in_place(
+            &[b, generators.h0],
+            [r1, r2].as_mut(),
+        );
 
         // s' = s - r2 r3
         let s_prime = signature.s + r2 * r3;
@@ -100,7 +106,9 @@ impl PokSignature {
 
         for i in 0..generators.len() {
             match messages[i] {
-                ProofMessage::Hidden(HiddenMessage::ProofSpecificBlinding(m)) => {
+                ProofMessage::Hidden(HiddenMessage::ProofSpecificBlinding(
+                    m,
+                )) => {
                     proof2.commit_random(generators.get(i), &mut rng);
                     secrets2.push(m.0);
                 }
@@ -133,7 +141,10 @@ impl PokSignature {
     }
 
     /// Generate the Schnorr challenges for the selective disclosure proofs
-    pub fn generate_proof(self, challenge: Challenge) -> Result<PokSignatureProof, Error> {
+    pub fn generate_proof(
+        self,
+        challenge: Challenge,
+    ) -> Result<PokSignatureProof, Error> {
         let proof1 = self
             .proof1
             .generate_proof(challenge.0, self.secrets1.as_ref())?;

@@ -90,7 +90,9 @@ pub fn scalar_from_bytes(bytes: &[u8; 32]) -> CtOption<Scalar> {
 }
 
 /// Convert a vector of bytes to a fixed length byte array
-pub fn vec_to_byte_array<const N: usize>(vec: Vec<u8>) -> Result<[u8; N], String> {
+pub fn vec_to_byte_array<const N: usize>(
+    vec: Vec<u8>,
+) -> Result<[u8; N], String> {
     match <[u8; N]>::try_from(vec) {
         Ok(result) => Ok(result),
         // TODO specify mismatch in length?

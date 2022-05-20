@@ -9,7 +9,14 @@ use subtle::ConstantTimeEq;
 
 struct ProofCommittedBuilderCache<B, C>
 where
-    B: Clone + Copy + Debug + Default + ConstantTimeEq + PartialEq + Eq + Curve<AffineRepr = C>,
+    B: Clone
+        + Copy
+        + Debug
+        + Default
+        + ConstantTimeEq
+        + PartialEq
+        + Eq
+        + Curve<AffineRepr = C>,
     C: GroupEncoding + Debug,
 {
     commitment: B,
@@ -19,7 +26,14 @@ where
 
 impl<B, C> Default for ProofCommittedBuilderCache<B, C>
 where
-    B: Clone + Copy + Debug + Default + ConstantTimeEq + PartialEq + Eq + Curve<AffineRepr = C>,
+    B: Clone
+        + Copy
+        + Debug
+        + Default
+        + ConstantTimeEq
+        + PartialEq
+        + Eq
+        + Curve<AffineRepr = C>,
     C: GroupEncoding + Debug,
 {
     fn default() -> Self {
@@ -31,9 +45,17 @@ where
     }
 }
 
-impl<B, C> PartialEq<ProofCommittedBuilder<B, C>> for ProofCommittedBuilderCache<B, C>
+impl<B, C> PartialEq<ProofCommittedBuilder<B, C>>
+    for ProofCommittedBuilderCache<B, C>
 where
-    B: Clone + Copy + Debug + Default + ConstantTimeEq + PartialEq + Eq + Curve<AffineRepr = C>,
+    B: Clone
+        + Copy
+        + Debug
+        + Default
+        + ConstantTimeEq
+        + PartialEq
+        + Eq
+        + Curve<AffineRepr = C>,
     C: GroupEncoding + Debug,
 {
     fn eq(&self, other: &ProofCommittedBuilder<B, C>) -> bool {
@@ -53,7 +75,14 @@ where
 /// each message has a blinding factor
 pub struct ProofCommittedBuilder<B, C>
 where
-    B: Clone + Copy + Debug + Default + ConstantTimeEq + PartialEq + Eq + Curve<AffineRepr = C>,
+    B: Clone
+        + Copy
+        + Debug
+        + Default
+        + ConstantTimeEq
+        + PartialEq
+        + Eq
+        + Curve<AffineRepr = C>,
     C: GroupEncoding + Debug,
 {
     cache: ProofCommittedBuilderCache<B, C>,
@@ -64,7 +93,14 @@ where
 
 impl<B, C> Default for ProofCommittedBuilder<B, C>
 where
-    B: Clone + Copy + Debug + Default + ConstantTimeEq + PartialEq + Eq + Curve<AffineRepr = C>,
+    B: Clone
+        + Copy
+        + Debug
+        + Default
+        + ConstantTimeEq
+        + PartialEq
+        + Eq
+        + Curve<AffineRepr = C>,
     C: GroupEncoding + Debug,
 {
     fn default() -> Self {
@@ -74,7 +110,14 @@ where
 
 impl<B, C> ProofCommittedBuilder<B, C>
 where
-    B: Clone + Copy + Debug + Default + ConstantTimeEq + PartialEq + Eq + Curve<AffineRepr = C>,
+    B: Clone
+        + Copy
+        + Debug
+        + Default
+        + ConstantTimeEq
+        + PartialEq
+        + Eq
+        + Curve<AffineRepr = C>,
     C: GroupEncoding + Debug,
 {
     /// Create a new builder
@@ -104,7 +147,8 @@ where
     pub fn add_challenge_contribution(&mut self, hasher: &mut impl Update) {
         if !self.cache.eq(self) {
             let mut scalars = self.scalars.clone();
-            let commitment = (self.sum_of_products)(self.points.as_ref(), scalars.as_mut());
+            let commitment =
+                (self.sum_of_products)(self.points.as_ref(), scalars.as_mut());
             self.cache = ProofCommittedBuilderCache {
                 points: self.points.clone(),
                 scalars,
@@ -124,7 +168,10 @@ where
         secrets: &[Scalar],
     ) -> Result<Vec<Scalar>, Error> {
         if secrets.len() != self.cache.points.len() {
-            return Err(Error::new(1, "secrets is not equal to blinding factors"));
+            return Err(Error::new(
+                1,
+                "secrets is not equal to blinding factors",
+            ));
         }
         for i in 0..self.cache.scalars.len() {
             self.cache.scalars[i] += secrets[i] * challenge;
