@@ -1,14 +1,19 @@
+use super::error::Error;
+use super::secret_key::SecretKey;
 use super::util::vec_to_byte_array;
-use super::SecretKey;
-use crate::curves::bls12_381::{G2Affine, G2Projective};
+use blstrs::{G2Affine, G2Projective};
 use core::ops::{BitOr, Not};
+use group::prime::PrimeCurveAffine;
 use group::Curve;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use group::Group;
+use serde::{Deserialize, Serialize};
 use subtle::Choice;
 
-/// A BLS public key
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct PublicKey(pub G2Projective);
+/// Number of bytes needed to represent the public key in compressed form
+pub(crate) const G2_COMPRESSED_SIZE: usize = 96;
+/// A BBS public key
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PublicKey(pub(crate) G2Projective);
 
 impl Default for PublicKey {
     fn default() -> Self {
@@ -18,44 +23,36 @@ impl Default for PublicKey {
 
 impl From<&SecretKey> for PublicKey {
     fn from(s: &SecretKey) -> Self {
-        Self(G2Projective::generator() * s.0)
+        //Self(G2Projective::generator() * s.0)
+        let mut pk = G2Affine::identity();
+
+        unsafe {
+            blst_lib::blst_sk_to_pk2_in_g2(
+                std::ptr::null_mut(),
+                pk.as_mut(),
+                &s.0.into(),
+            );
+        }
+
+        PublicKey(pk.into())
     }
 }
 
-impl From<PublicKey> for [u8; PublicKey::BYTES] {
+impl From<PublicKey> for [u8; PublicKey::SIZE_BYTES] {
     fn from(pk: PublicKey) -> Self {
         pk.to_bytes()
     }
 }
 
-impl<'a> From<&'a PublicKey> for [u8; PublicKey::BYTES] {
-    fn from(pk: &'a PublicKey) -> [u8; PublicKey::BYTES] {
+impl<'a> From<&'a PublicKey> for [u8; PublicKey::SIZE_BYTES] {
+    fn from(pk: &'a PublicKey) -> [u8; PublicKey::SIZE_BYTES] {
         pk.to_bytes()
     }
 }
 
-impl Serialize for PublicKey {
-    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        self.0.serialize(s)
-    }
-}
-
-impl<'de> Deserialize<'de> for PublicKey {
-    fn deserialize<D>(d: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let p = G2Projective::deserialize(d)?;
-        Ok(Self(p))
-    }
-}
-
 impl PublicKey {
-    /// Number of bytes needed to represent the public key
-    pub const BYTES: usize = 96;
+    /// Number of bytes needed to represent the public key in compressed form
+    pub const SIZE_BYTES: usize = G2_COMPRESSED_SIZE;
 
     /// Check if this signature is valid
     pub fn is_valid(&self) -> Choice {
@@ -68,26 +65,27 @@ impl PublicKey {
     }
 
     /// Get the byte representation of this key
-    pub fn to_bytes(&self) -> [u8; Self::BYTES] {
+    pub fn to_bytes(&self) -> [u8; Self::SIZE_BYTES] {
         self.0.to_affine().to_compressed()
     }
 
     /// Convert a vector of bytes of big-endian representation of the public key
-    pub fn from_vec(bytes: Vec<u8>) -> Result<Self, String> {
-        match vec_to_byte_array::<{ Self::BYTES }>(bytes) {
+    pub fn from_vec(bytes: Vec<u8>) -> Result<Self, Error> {
+        match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
             Ok(result) => Self::from_bytes(&result),
-            Err(_) => return Err("Public key length incorrect expected 96 bytes".to_string()),
+            Err(e) => Err(e),
         }
     }
 
     /// Convert a big-endian representation of the public key
-    pub fn from_bytes(bytes: &[u8; Self::BYTES]) -> Result<Self, String> {
-        let result = G2Affine::from_compressed(bytes).map(|p| Self(G2Projective::from(&p)));
+    pub fn from_bytes(bytes: &[u8; Self::SIZE_BYTES]) -> Result<Self, Error> {
+        let result = G2Affine::from_compressed(bytes)
+            .map(|p| Self(G2Projective::from(&p)));
 
         if result.is_some().unwrap_u8() == 1u8 {
             Ok(result.unwrap())
         } else {
-            Err("Failed to decompress public key from bytes".to_string())
+            Err(Error::CryptoBadEncoding)
         }
     }
 }

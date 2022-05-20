@@ -66,7 +66,7 @@ impl SecretKey {
     pub fn from_vec(bytes: Vec<u8>) -> Result<Self, Error> {
         match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
             Ok(result) => Self::from_bytes(&result),
-            Err(_) => return Err(Error::CryptoBadEncoding),
+            Err(e) => Err(e),
         }
     }
 
