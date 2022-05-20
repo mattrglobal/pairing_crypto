@@ -101,7 +101,7 @@ impl SecretKey {
     {
         let mut seed = [0u8; Self::BYTES];
         rng.try_fill_bytes(&mut seed)
-            .expect("randomness generation failed");
+            .expect("failed to draw bytes from random number generator");
 
         let key_info = [0u8; Self::BYTES];
 
