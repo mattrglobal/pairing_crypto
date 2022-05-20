@@ -48,7 +48,7 @@ impl std::fmt::Display for Error {
                 write!(f, "A data conversion failed.")
             }
             Error::CryptoOps => {
-                write!(f, "Cryptographic operation unknown failure.")
+                write!(f, "Unexpected failure in cryptographic operation.")
             }
             Error::CryptoInvalidIkmLength => {
                 write!(f, "IKM data size is not valid.")
