@@ -17,7 +17,6 @@ ff = "0.12.0"
 group = "0.12.0"
 hashbrown = "0.11"
 heapless = "0.6"
-hkdf = "0.10"
 rand = { version = "0.8", features = ["getrandom"] }
 getrandom = { version = "0.2", optional = true, features = ["js"] }
 rand_core = "0.6"
