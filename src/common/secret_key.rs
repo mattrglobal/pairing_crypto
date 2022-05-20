@@ -1,97 +1,51 @@
-use blst_lib::{
-    blst_bendian_from_scalar, blst_scalar, blst_scalar_from_bendian,
-    blst_sk_check,
-};
-use rand::{CryptoRng, RngCore};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use zeroize::Zeroize;
-
 use super::{error::Error, util::vec_to_byte_array};
+use crate::common::MIN_IKM_LENGTH_BYTES;
+use blstrs::Scalar;
+use ff::{Field, PrimeField};
+use rand::{CryptoRng, RngCore};
+use serde::{Deserialize, Serialize};
+use zeroize::DefaultIsZeroes;
 
 /// The secret key is field element 0 < `x` < `r`
 /// where `r` is the curve order. See Section 4.3 in
 /// <https://eprint.iacr.org/2016/663.pdf>
-#[derive(Clone, Debug, Eq, PartialEq, Zeroize)]
-#[zeroize(drop)]
-pub struct SecretKey(pub(crate) blst_scalar);
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct SecretKey(pub Scalar);
 
 impl Default for SecretKey {
     fn default() -> Self {
-        Self(blst_scalar::default())
+        Self(Scalar::zero())
     }
 }
 
-impl From<SecretKey> for [u8; SecretKey::BYTES] {
-    fn from(sk: SecretKey) -> [u8; SecretKey::BYTES] {
+impl DefaultIsZeroes for SecretKey {}
+
+impl From<SecretKey> for [u8; SecretKey::SIZE_BYTES] {
+    fn from(sk: SecretKey) -> [u8; SecretKey::SIZE_BYTES] {
         sk.to_bytes()
     }
 }
 
-impl<'a> From<&'a SecretKey> for [u8; SecretKey::BYTES] {
-    fn from(sk: &'a SecretKey) -> [u8; SecretKey::BYTES] {
+impl<'a> From<&'a SecretKey> for [u8; SecretKey::SIZE_BYTES] {
+    fn from(sk: &'a SecretKey) -> [u8; SecretKey::SIZE_BYTES] {
         sk.to_bytes()
-    }
-}
-
-impl Serialize for SecretKey {
-    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        self.to_bytes().serialize(s)
-    }
-}
-
-impl<'de> Deserialize<'de> for SecretKey {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        struct BytesVisitor;
-
-        impl<'de> serde::de::Visitor<'de> for BytesVisitor {
-            type Value = SecretKey;
-
-            fn expecting(
-                &self,
-                formatter: &mut ::core::fmt::Formatter<'_>,
-            ) -> ::core::fmt::Result {
-                formatter.write_str("a valid byte string")
-            }
-
-            fn visit_bytes<E>(self, v: &[u8]) -> Result<SecretKey, E>
-            where
-                E: serde::de::Error,
-            {
-                if v.len() == SecretKey::BYTES {
-                    SecretKey::from_bytes(v).map_err(|_error| {
-                        serde::de::Error::custom("decompression failed")
-                    })
-                } else {
-                    Err(serde::de::Error::invalid_length(v.len(), &self))
-                }
-            }
-        }
-
-        deserializer.deserialize_bytes(BytesVisitor)
     }
 }
 
 impl SecretKey {
     /// Number of bytes needed to represent the secret key
-    pub const BYTES: usize = 32;
+    pub const SIZE_BYTES: usize = (Scalar::NUM_BITS as usize + 8 - 1) / 8;
 
-    /// Computes a new secret key either from a supplied seed or random
-    pub fn new<T: AsRef<[u8]>>(seed: T, key_info: T) -> Option<Self> {
-        Self::from_seed(seed, key_info)
-    }
-
-    /// Computes a secret key from an IKM, as defined by 
+    /// Computes a secret key from an IKM, as defined by
     /// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.3
     /// Note this procedure does not follow
     /// https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-keygen
-    fn from_seed<T: AsRef<[u8]>>(seed: T, key_info: T) -> Option<Self> {
-        generate_secret_key(seed, key_info).ok()
+    pub fn new<T1, T2>(ikm: T1, key_info: T2) -> Option<Self>
+    where
+        T1: AsRef<[u8]>,
+        T2: AsRef<[u8]>,
+    {
+        generate_secret_key(ikm, key_info).ok()
     }
 
     /// Compute a secret key from a CS-PRNG
@@ -99,66 +53,55 @@ impl SecretKey {
     where
         R: RngCore + CryptoRng,
     {
-        let mut seed = [0u8; Self::BYTES];
-        rng.try_fill_bytes(&mut seed)
+        let mut ikm = [0u8; Self::SIZE_BYTES];
+        rng.try_fill_bytes(&mut ikm)
             .expect("failed to draw bytes from random number generator");
 
-        let key_info = [0u8; Self::BYTES];
+        let key_info = [];
 
-        Self::from_seed(seed, key_info)
+        Self::new(ikm, key_info)
     }
 
     /// Convert a vector of bytes of big-endian representation of the secret key
     pub fn from_vec(bytes: Vec<u8>) -> Result<Self, Error> {
-        match vec_to_byte_array::<{ Self::BYTES }>(bytes) {
+        match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
             Ok(result) => Self::from_bytes(&result),
-            Err(_) => return Err(Error::Conversion),
+            Err(_) => return Err(Error::CryptoBadEncoding),
         }
     }
 
-    // serialize
-    fn serialize(&self) -> [u8; 32] {
-        let mut sk_out = [0; 32];
-        unsafe {
-            blst_bendian_from_scalar(sk_out.as_mut_ptr(), &self.0);
-        }
-        sk_out
+    /// Convert the secret key to a big-endian representation
+    pub fn to_bytes(&self) -> [u8; Self::SIZE_BYTES] {
+        self.0.to_bytes_be()
     }
 
-    // deserialize
-    fn deserialize(sk_in: &[u8]) -> Result<Self, Error> {
-        let mut sk = blst_scalar::default();
-        if sk_in.len() != 32 {
-            return Err(Error::CryptoBadEncoding);
-        }
-        unsafe {
-            blst_scalar_from_bendian(&mut sk, sk_in.as_ptr());
-            if !blst_sk_check(&sk) {
-                return Err(Error::CryptoBadEncoding);
-            }
-        }
-        Ok(Self(sk))
-    }
+    /// Convert a big-endian representation of the secret key
+    pub fn from_bytes(bytes: &[u8; Self::SIZE_BYTES]) -> Result<Self, Error> {
+        let result = Scalar::from_bytes_be(bytes).map(SecretKey);
 
-    pub fn to_bytes(&self) -> [u8; 32] {
-        SecretKey::serialize(&self)
-    }
-
-    pub fn from_bytes(sk_in: &[u8]) -> Result<Self, Error> {
-        SecretKey::deserialize(sk_in)
+        if result.is_some().unwrap_u8() == 1u8 {
+            Ok(result.unwrap())
+        } else {
+            Err(Error::CryptoBadEncoding)
+        }
     }
 }
 
-    /// Computes a secret key from an IKM, as defined by 
-    /// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.3
-    /// Note this procedure does not follow
-    /// https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-keygen
-fn generate_secret_key<T: AsRef<[u8]>>(
-    ikm: T,
-    key_info: T,
-) -> Result<SecretKey, Error> {
+/// Computes a secret key from an IKM, as defined by
+/// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.3
+/// Note this procedure does not follow
+/// https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-keygen
+fn generate_secret_key<T1, T2>(
+    ikm: T1,
+    key_info: T2,
+) -> Result<SecretKey, Error>
+where
+    T1: AsRef<[u8]>,
+    T2: AsRef<[u8]>,
+{
+    use core::convert::TryInto;
     let ikm = ikm.as_ref();
-    if ikm.len() < SecretKey::BYTES {
+    if ikm.len() < MIN_IKM_LENGTH_BYTES {
         return Err(Error::CryptoInvalidIkmLength);
     }
 
@@ -174,18 +117,21 @@ fn generate_secret_key<T: AsRef<[u8]>>(
         )
     };
 
+    let out: Scalar = out.try_into().expect("error during key generation");
+
     Ok(SecretKey(out))
 }
 
 #[test]
 fn test_from_seed() {
-    let seed = [0u8; 32];
-    let key_info = [0u8; 32];
+    let seed = [0u8; MIN_IKM_LENGTH_BYTES];
+    let key_info = [];
 
     let sk = SecretKey::new(seed, key_info);
     let expected = [
-        25, 226, 206, 49, 243, 163, 5, 65, 109, 59, 93, 241, 131, 89, 233, 208,
-        89, 145, 234, 225, 7, 19, 70, 193, 238, 78, 164, 52, 85, 176, 39, 119,
+        77, 18, 154, 25, 223, 134, 160, 245, 52, 91, 173, 76, 198, 242, 73,
+        236, 42, 129, 156, 204, 51, 134, 137, 91, 235, 79, 125, 152, 179, 219,
+        98, 53,
     ];
     assert_eq!(sk.unwrap().to_bytes(), expected);
 }

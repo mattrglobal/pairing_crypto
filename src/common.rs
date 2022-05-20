@@ -1,3 +1,5 @@
+/// Minimum ikm size in bytes.
+pub const MIN_IKM_LENGTH_BYTES: usize = 32;
 /// Errors.
 pub mod error;
 

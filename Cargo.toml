@@ -13,8 +13,8 @@ wasm = ["getrandom"]
 
 [dependencies]
 digest = "0.9"
-ff = "0.12.0"
-group = "0.12.0"
+ff = "0.11.0"
+group = "0.11.0"
 hashbrown = "0.11"
 heapless = "0.6"
 rand = { version = "0.8", features = ["getrandom"] }

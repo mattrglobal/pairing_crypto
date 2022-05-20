@@ -2,7 +2,7 @@
 #[derive(Debug)]
 pub enum Error {
     /// A conversion between compatible data types failed.
-    Conversion,
+    Conversion { cause: String },
 
     /// A generic failure during underlying cryptographic operation.
     CryptoOps,
@@ -29,7 +29,7 @@ pub enum Error {
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match *self {
-            Error::Conversion => None,
+            Error::Conversion { .. } => None,
             Error::CryptoOps => None,
             Error::CryptoInvalidIkmLength => None,
             Error::CryptoBadEncoding => None,
@@ -44,8 +44,8 @@ impl std::error::Error for Error {
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
-            Error::Conversion => {
-                write!(f, "A data conversion failed.")
+            Error::Conversion { ref cause } => {
+                write!(f, "A data conversion failed: cause: {}", cause)
             }
             Error::CryptoOps => {
                 write!(f, "Unexpected failure in cryptographic operation.")
