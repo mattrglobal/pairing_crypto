@@ -86,7 +86,10 @@ impl SecretKey {
         Self::from_seed(seed, key_info)
     }
 
-    /// Compute a secret key from seed via an HKDF
+    /// Computes a secret key from an IKM, as defined by 
+    /// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.3
+    /// Note this procedure does not follow
+    /// https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-keygen
     fn from_seed<T: AsRef<[u8]>>(seed: T, key_info: T) -> Option<Self> {
         generate_secret_key(seed, key_info).ok()
     }
