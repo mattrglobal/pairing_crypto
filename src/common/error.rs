@@ -45,25 +45,25 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
             Error::Conversion { ref cause } => {
-                write!(f, "A data conversion failed: cause: {}", cause)
+                write!(f, "data conversion failed: cause: {}", cause)
             }
             Error::CryptoOps => {
-                write!(f, "Unexpected failure in cryptographic operation.")
+                write!(f, "unexpected failure in cryptographic operation.")
             }
             Error::CryptoInvalidIkmLength => {
                 write!(f, "IKM data size is not valid.")
             }
             Error::CryptoBadEncoding => {
-                write!(f, "Type encoding is malformed.")
+                write!(f, "bad encoding encountered.")
             }
             Error::CryptoPointNotOnCurve => {
-                write!(f, "Point is not on underlying curve.")
+                write!(f, "point is not on underlying curve.")
             }
             Error::CryptoPointNotOnGroup => {
-                write!(f, "Point is not in underlying group.")
+                write!(f, "point is not in underlying group.")
             }
-            Error::CryptoBadScalar => write!(f, "Scalar is invalid."),
-            Error::Serde => write!(f, "Error during ser-de operation."),
+            Error::CryptoBadScalar => write!(f, "scalar is invalid."),
+            Error::Serde => write!(f, "error during ser-de operation."),
         }
     }
 }

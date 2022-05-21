@@ -55,7 +55,7 @@ impl SecretKey {
     {
         let mut ikm = [0u8; Self::SIZE_BYTES];
         rng.try_fill_bytes(&mut ikm)
-            .expect("failed to draw bytes from random number generator");
+            .expect("failed to draw bytes from random number generator.");
 
         let key_info = [];
 

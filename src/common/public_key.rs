@@ -11,6 +11,7 @@ use subtle::Choice;
 
 /// Number of bytes needed to represent the public key in compressed form
 pub(crate) const G2_COMPRESSED_SIZE: usize = 96;
+
 /// A BBS public key
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PublicKey(pub(crate) G2Projective);
