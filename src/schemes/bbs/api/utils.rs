@@ -21,7 +21,9 @@ use crate::schemes::*;
 
 /// Digests the set of input messages and returns in the form of an internal
 /// structure
-pub fn digest_messages(messages: Vec<Vec<u8>>) -> Result<Vec<core::Message>, Error> {
+pub fn digest_messages(
+    messages: Vec<Vec<u8>>,
+) -> Result<Vec<core::Message>, Error> {
     if messages.len() < 1 {
         return Err(Error::new_bbs_error(
             BbsErrorCode::EmptyMessages,
@@ -52,9 +54,9 @@ pub fn digest_proof_messages(
             if element.reveal {
                 return ProofMessage::Revealed(digested_message);
             } else {
-                return ProofMessage::Hidden(HiddenMessage::ProofSpecificBlinding(
-                    digested_message,
-                ));
+                return ProofMessage::Hidden(
+                    HiddenMessage::ProofSpecificBlinding(digested_message),
+                );
             }
         })
         .collect())
@@ -64,7 +66,8 @@ pub fn digest_revealed_proof_messages(
     messages: Vec<(usize, Vec<u8>)>,
     total_message_count: usize,
 ) -> Result<Vec<(usize, Message)>, Error> {
-    let revealed_message_indexes: Vec<usize> = messages.iter().map(|item| item.0).collect();
+    let revealed_message_indexes: Vec<usize> =
+        messages.iter().map(|item| item.0).collect();
 
     if revealed_message_indexes
         .iter()

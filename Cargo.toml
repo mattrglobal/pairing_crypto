@@ -13,16 +13,17 @@ wasm = ["getrandom"]
 
 [dependencies]
 digest = "0.9"
-ff = "0.9"
-group = "0.9"
+ff = "0.11.0"
+group = "0.11.0"
 hashbrown = "0.11"
 heapless = "0.6"
-hkdf = "0.10"
 rand = { version = "0.8", features = ["getrandom"] }
 getrandom = { version = "0.2", optional = true, features = ["js"] }
 rand_core = "0.6"
 rand_xorshift = { version = "0.3", optional = true }
-pairing = "0.19"
+pairing = "0.22.0"
+blst_lib = { version = "=0.3.7", package = "blst" }
+blstrs = { version = "0.4.2"}
 serde = { version = "1.0", features = ["derive"] }
 sha2 = "0.9"
 sha3 = "0.9"

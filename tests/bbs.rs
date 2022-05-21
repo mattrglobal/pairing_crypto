@@ -46,7 +46,8 @@ fn signing() {
         .collect::<Vec<Message>>();
 
     for i in 0..TEST_KEYS.len() {
-        let sk_opt = bbs::SecretKey::new(SECRET_KEY_SALT, Some(TEST_KEYS[i].to_vec()));
+        let sk_opt =
+            bbs::SecretKey::new(SECRET_KEY_SALT, Some(TEST_KEYS[i].to_vec()));
         assert!(sk_opt.is_some());
         let sk = sk_opt.unwrap();
         let pk = bbs::PublicKey::from(&sk);
@@ -56,8 +57,10 @@ fn signing() {
 
         let sig = sig_res.unwrap();
         let cte_sig = bbs::Signature::from_bytes(
-            &<[u8; bbs::Signature::BYTES]>::try_from(hex::decode(EXPECTED_SIGS[i]).unwrap())
-                .unwrap(),
+            &<[u8; bbs::Signature::BYTES]>::try_from(
+                hex::decode(EXPECTED_SIGS[i]).unwrap(),
+            )
+            .unwrap(),
         );
         let e_sig = cte_sig.unwrap();
         assert_eq!(sig, e_sig);
@@ -91,25 +94,35 @@ fn proofs() {
 
     for i in 0..TEST_KEYS.len() {
         let pk = bbs::PublicKey::from(
-            &bbs::SecretKey::new(SECRET_KEY_SALT, Some(TEST_KEYS[i].to_vec())).unwrap(),
+            &bbs::SecretKey::new(SECRET_KEY_SALT, Some(TEST_KEYS[i].to_vec()))
+                .unwrap(),
         );
         let gens = bbs::MessageGenerators::from_public_key(pk, test_atts.len());
         let sig = bbs::Signature::from_bytes(
-            &<[u8; bbs::Signature::BYTES]>::try_from(hex::decode(EXPECTED_SIGS[i]).unwrap())
-                .unwrap(),
+            &<[u8; bbs::Signature::BYTES]>::try_from(
+                hex::decode(EXPECTED_SIGS[i]).unwrap(),
+            )
+            .unwrap(),
         )
         .unwrap();
         // start with all hidden messages
         let mut proof_msgs: Vec<ProofMessage> = test_atts
             .iter()
-            .map(|a| ProofMessage::Hidden(HiddenMessage::ProofSpecificBlinding(*a)))
+            .map(|a| {
+                ProofMessage::Hidden(HiddenMessage::ProofSpecificBlinding(*a))
+            })
             .collect();
 
         let mut proof_values: Vec<String> = Vec::new();
 
         // Reveal 1 message at a time
         for j in 0..proof_msgs.len() {
-            let res = bbs::PokSignature::init_with_rng(sig, &gens, proof_msgs.as_slice(), &mut rng);
+            let res = bbs::PokSignature::init_with_rng(
+                sig,
+                &gens,
+                proof_msgs.as_slice(),
+                &mut rng,
+            );
             assert!(res.is_ok());
             let mut pok = res.unwrap();
             let mut hasher = sha3::Shake256::default();

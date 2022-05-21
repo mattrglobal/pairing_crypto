@@ -1,4 +1,6 @@
-use crate::curves::bls12_381::{ExpandMsgXof, G1Projective, PublicKey, SecretKey};
+use crate::curves::bls12_381::{
+    ExpandMsgXof, G1Projective, PublicKey, SecretKey,
+};
 use crate::schemes::core::*;
 use core::convert::TryFrom;
 use group::Curve;
@@ -44,7 +46,8 @@ impl Iterator for MessageGeneratorIter {
             return None;
         }
         self.index += 1;
-        self.state[193..197].copy_from_slice(&(self.index as u32).to_be_bytes());
+        self.state[193..197]
+            .copy_from_slice(&(self.index as u32).to_be_bytes());
         Some(G1Projective::hash::<ExpandMsgXof<sha3::Shake256>>(
             &self.state[..],
             DST,
@@ -90,7 +93,8 @@ impl MessageGenerators {
         state[..192].copy_from_slice(&pk.0.to_affine().to_uncompressed());
         state[197..201].copy_from_slice(&count);
 
-        let h0 = G1Projective::hash::<ExpandMsgXof<sha3::Shake256>>(&state[..], DST);
+        let h0 =
+            G1Projective::hash::<ExpandMsgXof<sha3::Shake256>>(&state[..], DST);
 
         Self { h0, length, state }
     }
@@ -106,14 +110,17 @@ impl MessageGenerators {
 
     /// Convert a sequence of bytes to a message generator
     pub fn from_bytes(bytes: &[u8; 205]) -> Self {
-        let length = u32::from_be_bytes(<[u8; 4]>::try_from(&bytes[..4]).unwrap()) as usize;
+        let length =
+            u32::from_be_bytes(<[u8; 4]>::try_from(&bytes[..4]).unwrap())
+                as usize;
         let mut state = [0u8; 201];
         state.copy_from_slice(&bytes[4..]);
         state[193] = 0;
         state[194] = 0;
         state[195] = 0;
         state[196] = 0;
-        let h0 = G1Projective::hash::<ExpandMsgXof<sha3::Shake256>>(&state[..], DST);
+        let h0 =
+            G1Projective::hash::<ExpandMsgXof<sha3::Shake256>>(&state[..], DST);
         Self { h0, length, state }
     }
 

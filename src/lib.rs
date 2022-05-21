@@ -19,23 +19,21 @@
 //!
 //!
 #![warn(missing_docs, rustdoc::missing_crate_level_docs, rust_2018_idioms)]
-#![deny(dead_code, redundant_semicolons, unused, unsafe_code, while_true)]
+#![deny(dead_code, redundant_semicolons, unused, while_true)]
 
-/// Supported curves from pairing crypto
-mod curves;
+/// Common types
+mod common;
 
 /// Supported schemes from pairing crypto
 mod schemes;
 
 /// Supported constructs for the BLS12-381 curve
 pub mod bls12_381 {
-    pub use super::curves::bls12_381::PublicKey;
-    pub use super::curves::bls12_381::PublicKeyVt;
-    pub use super::curves::bls12_381::SecretKey;
     pub use super::schemes::bbs;
     pub use super::schemes::core::{
-        Challenge, Commitment, Error, HiddenMessage, Message, Nonce, PresentationMessage,
-        ProofMessage, SignatureBlinding, COMMITMENT_G1_BYTES, COMMITMENT_G2_BYTES, FIELD_BYTES,
+        Challenge, Commitment, Error, HiddenMessage, Message, Nonce,
+        PresentationMessage, ProofMessage, SignatureBlinding,
+        COMMITMENT_G1_BYTES, COMMITMENT_G2_BYTES, FIELD_BYTES,
     };
 }
 
@@ -69,7 +67,10 @@ impl rand_core::RngCore for MockRng {
         self.0.fill_bytes(dest)
     }
 
-    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand_core::Error> {
+    fn try_fill_bytes(
+        &mut self,
+        dest: &mut [u8],
+    ) -> Result<(), rand_core::Error> {
         self.0.try_fill_bytes(dest)
     }
 }

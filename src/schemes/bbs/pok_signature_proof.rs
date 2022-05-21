@@ -1,6 +1,7 @@
 use super::MessageGenerators;
 use crate::curves::bls12_381::{
-    multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared, PublicKey, Scalar,
+    multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared, PublicKey,
+    Scalar,
 };
 use crate::schemes::core::*;
 use core::convert::TryFrom;
@@ -35,7 +36,8 @@ impl PokSignatureProof {
     /// [48,    ,48    ,48 ,64(2*32)          , 32*N]
     /// [a_prime, a_bar, d, proof1(2 of these), [0...N]]
     pub fn to_bytes(&self) -> Vec<u8> {
-        let size = FIELD_BYTES * (3 + self.proofs2.len()) + COMMITMENT_G1_BYTES * 3;
+        let size =
+            FIELD_BYTES * (3 + self.proofs2.len()) + COMMITMENT_G1_BYTES * 3;
         let mut buffer = Vec::with_capacity(size);
 
         buffer.extend_from_slice(&self.a_prime.to_affine().to_compressed());
@@ -67,14 +69,29 @@ impl PokSignatureProof {
         let hidden_message_count = (buffer.len() - size) / FIELD_BYTES;
         let mut offset = COMMITMENT_G1_BYTES;
         let mut end = 2 * COMMITMENT_G1_BYTES;
-        let a_prime = G1Affine::from_compressed(slicer!(buffer, 0, offset, COMMITMENT_G1_BYTES))
-            .map(G1Projective::from);
-        let a_bar = G1Affine::from_compressed(slicer!(buffer, offset, end, COMMITMENT_G1_BYTES))
-            .map(G1Projective::from);
+        let a_prime = G1Affine::from_compressed(slicer!(
+            buffer,
+            0,
+            offset,
+            COMMITMENT_G1_BYTES
+        ))
+        .map(G1Projective::from);
+        let a_bar = G1Affine::from_compressed(slicer!(
+            buffer,
+            offset,
+            end,
+            COMMITMENT_G1_BYTES
+        ))
+        .map(G1Projective::from);
         offset = end;
         end = offset + COMMITMENT_G1_BYTES;
-        let d = G1Affine::from_compressed(slicer!(buffer, offset, end, COMMITMENT_G1_BYTES))
-            .map(G1Projective::from);
+        let d = G1Affine::from_compressed(slicer!(
+            buffer,
+            offset,
+            end,
+            COMMITMENT_G1_BYTES
+        ))
+        .map(G1Projective::from);
 
         if a_prime.is_none().unwrap_u8() == 1
             || a_bar.is_none().unwrap_u8() == 1
@@ -85,7 +102,8 @@ impl PokSignatureProof {
 
         offset = end;
         end = offset + FIELD_BYTES;
-        let challenge = Challenge::from_bytes(slicer!(buffer, offset, end, FIELD_BYTES));
+        let challenge =
+            Challenge::from_bytes(slicer!(buffer, offset, end, FIELD_BYTES));
         offset = end;
         end = offset + FIELD_BYTES;
 
@@ -94,17 +112,30 @@ impl PokSignatureProof {
             CtOption::new(Challenge::default(), Choice::from(0u8)),
         ];
         for proof in &mut proofs1 {
-            *proof = Challenge::from_bytes(slicer!(buffer, offset, end, FIELD_BYTES));
+            *proof = Challenge::from_bytes(slicer!(
+                buffer,
+                offset,
+                end,
+                FIELD_BYTES
+            ));
             offset = end;
             end = offset + FIELD_BYTES;
         }
-        if proofs1[0].is_none().unwrap_u8() == 1 || proofs1[1].is_none().unwrap_u8() == 1 {
+        if proofs1[0].is_none().unwrap_u8() == 1
+            || proofs1[1].is_none().unwrap_u8() == 1
+        {
             return None;
         }
 
-        let mut proofs2 = Vec::<Challenge>::with_capacity(hidden_message_count + 2);
+        let mut proofs2 =
+            Vec::<Challenge>::with_capacity(hidden_message_count + 2);
         for _ in 0..(hidden_message_count + 2) {
-            let c = Challenge::from_bytes(slicer!(buffer, offset, end, FIELD_BYTES));
+            let c = Challenge::from_bytes(slicer!(
+                buffer,
+                offset,
+                end,
+                FIELD_BYTES
+            ));
             offset = end;
             end = offset + FIELD_BYTES;
             if c.is_none().unwrap_u8() == 1 {
@@ -144,13 +175,18 @@ impl PokSignatureProof {
         hasher.update(self.d.to_affine().to_uncompressed());
 
         let proof1_points = [self.a_bar - self.d, self.a_prime, generators.h0];
-        let mut proof1_scalars = [challenge.0, self.proofs1[0].0, self.proofs1[1].0];
-        let commitment_proofs1 =
-            G1Projective::sum_of_products_in_place(&proof1_points, &mut proof1_scalars);
+        let mut proof1_scalars =
+            [challenge.0, self.proofs1[0].0, self.proofs1[1].0];
+        let commitment_proofs1 = G1Projective::sum_of_products_in_place(
+            &proof1_points,
+            &mut proof1_scalars,
+        );
         hasher.update(commitment_proofs1.to_affine().to_bytes());
 
-        let mut r_points = Vec::with_capacity(generators.len() - self.hidden_message_count);
-        let mut r_scalars = Vec::with_capacity(generators.len() - self.hidden_message_count);
+        let mut r_points =
+            Vec::with_capacity(generators.len() - self.hidden_message_count);
+        let mut r_scalars =
+            Vec::with_capacity(generators.len() - self.hidden_message_count);
 
         r_points.push(G1Projective::generator());
         r_scalars.push(Scalar::one());
@@ -162,12 +198,17 @@ impl PokSignatureProof {
             r_scalars.push(msg.0);
         }
 
-        let r = G1Projective::sum_of_products_in_place(r_points.as_ref(), r_scalars.as_mut());
+        let r = G1Projective::sum_of_products_in_place(
+            r_points.as_ref(),
+            r_scalars.as_mut(),
+        );
 
-        let mut proof2_points =
-            Vec::with_capacity(3 + generators.len() - self.hidden_message_count);
-        let mut proof2_scalars =
-            Vec::with_capacity(3 + generators.len() - self.hidden_message_count);
+        let mut proof2_points = Vec::with_capacity(
+            3 + generators.len() - self.hidden_message_count,
+        );
+        let mut proof2_scalars = Vec::with_capacity(
+            3 + generators.len() - self.hidden_message_count,
+        );
 
         // r^c
         proof2_points.push(r);
@@ -190,8 +231,10 @@ impl PokSignatureProof {
             proof2_scalars.push(self.proofs2[j].0);
             j += 1;
         }
-        let commitment_proofs2 =
-            G1Projective::sum_of_products_in_place(proof2_points.as_ref(), proof2_scalars.as_mut());
+        let commitment_proofs2 = G1Projective::sum_of_products_in_place(
+            proof2_points.as_ref(),
+            proof2_scalars.as_mut(),
+        );
         hasher.update(commitment_proofs2.to_affine().to_bytes());
 
         Ok(())

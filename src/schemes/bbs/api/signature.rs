@@ -1,6 +1,8 @@
 use super::dtos::{BbsSignRequest, BbsVerifyRequest};
 use super::utils::{digest_messages, BbsErrorCode};
-use crate::bls12_381::bbs::{MessageGenerators, PublicKey, SecretKey, Signature};
+use crate::bls12_381::bbs::{
+    MessageGenerators, PublicKey, SecretKey, Signature,
+};
 use crate::bls12_381::{Error, Message};
 
 /// Creates a signature
@@ -62,7 +64,9 @@ pub fn verify(request: BbsVerifyRequest) -> Result<bool, Error> {
     // Parse signature from request
     let signature = match Signature::from_vec(request.signature) {
         Ok(result) => result,
-        Err(e) => return Err(Error::new_bbs_error(BbsErrorCode::ParsingError, &e)),
+        Err(e) => {
+            return Err(Error::new_bbs_error(BbsErrorCode::ParsingError, &e))
+        }
     };
 
     Ok(signature.verify(&pk, &generators, &messages))
