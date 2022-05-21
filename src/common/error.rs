@@ -51,7 +51,7 @@ impl std::fmt::Display for Error {
                 write!(f, "unexpected failure in cryptographic operation.")
             }
             Error::CryptoInvalidIkmLength => {
-                write!(f, "IKM data size is not valid.")
+                write!(f, "IKM size is too short.")
             }
             Error::CryptoBadEncoding => {
                 write!(f, "bad encoding encountered.")

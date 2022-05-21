@@ -24,7 +24,6 @@ impl Default for PublicKey {
 
 impl From<&SecretKey> for PublicKey {
     fn from(s: &SecretKey) -> Self {
-        //Self(G2Projective::generator() * s.0)
         let mut pk = G2Affine::identity();
 
         unsafe {
