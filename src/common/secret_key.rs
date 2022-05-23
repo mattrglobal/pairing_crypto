@@ -1,6 +1,5 @@
 use super::{error::Error, util::vec_to_byte_array};
-use crate::common::MIN_IKM_LENGTH_BYTES;
-use blstrs::Scalar;
+use blstrs::{generate_secret_key, Scalar};
 use ff::{Field, PrimeField};
 use rand::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
@@ -45,7 +44,10 @@ impl SecretKey {
         T1: AsRef<[u8]>,
         T2: AsRef<[u8]>,
     {
-        generate_secret_key(ikm, key_info).ok()
+        if let Some(out) = generate_secret_key(ikm, key_info) {
+            return Some(SecretKey(out));
+        }
+        None
     }
 
     /// Compute a secret key from a CS-PRNG
@@ -54,12 +56,13 @@ impl SecretKey {
         R: RngCore + CryptoRng,
     {
         let mut ikm = [0u8; Self::SIZE_BYTES];
-        rng.try_fill_bytes(&mut ikm)
-            .expect("failed to draw bytes from random number generator.");
 
-        let key_info = [];
+        if rng.try_fill_bytes(&mut ikm).is_ok() {
+            let key_info = [];
 
-        Self::new(ikm, key_info)
+            return Self::new(ikm, key_info);
+        }
+        None
     }
 
     /// Convert a vector of bytes of big-endian representation of the secret key
@@ -87,43 +90,10 @@ impl SecretKey {
     }
 }
 
-/// Computes a secret key from an IKM, as defined by
-/// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.3
-/// Note this procedure does not follow
-/// https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-keygen
-fn generate_secret_key<T1, T2>(
-    ikm: T1,
-    key_info: T2,
-) -> Result<SecretKey, Error>
-where
-    T1: AsRef<[u8]>,
-    T2: AsRef<[u8]>,
-{
-    use core::convert::TryInto;
-    let ikm = ikm.as_ref();
-    if ikm.len() < MIN_IKM_LENGTH_BYTES {
-        return Err(Error::CryptoInvalidIkmLength);
-    }
-
-    let key_info = key_info.as_ref();
-    let mut out = blst_lib::blst_scalar::default();
-    unsafe {
-        blst_lib::blst_keygen(
-            &mut out,
-            ikm.as_ptr(),
-            ikm.len(),
-            key_info.as_ptr(),
-            key_info.len(),
-        )
-    };
-
-    let out: Scalar = out.try_into().expect("error during key generation");
-
-    Ok(SecretKey(out))
-}
-
 #[test]
 fn test_from_seed() {
+    pub const MIN_IKM_LENGTH_BYTES: usize = 32;
+
     let seed = [0u8; MIN_IKM_LENGTH_BYTES];
     let key_info = [];
 

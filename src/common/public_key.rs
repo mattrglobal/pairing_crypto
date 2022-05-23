@@ -1,9 +1,8 @@
 use super::error::Error;
 use super::secret_key::SecretKey;
 use super::util::vec_to_byte_array;
-use blstrs::{G2Affine, G2Projective};
+use blstrs::{sk_to_pk_in_g2, G2Affine, G2Projective};
 use core::ops::{BitOr, Not};
-use group::prime::PrimeCurveAffine;
 use group::Curve;
 use group::Group;
 use serde::{Deserialize, Serialize};
@@ -24,17 +23,7 @@ impl Default for PublicKey {
 
 impl From<&SecretKey> for PublicKey {
     fn from(s: &SecretKey) -> Self {
-        let mut pk = G2Affine::identity();
-
-        unsafe {
-            blst_lib::blst_sk_to_pk2_in_g2(
-                std::ptr::null_mut(),
-                pk.as_mut(),
-                &s.0.into(),
-            );
-        }
-
-        PublicKey(pk.into())
+        Self(sk_to_pk_in_g2(&s.0))
     }
 }
 
