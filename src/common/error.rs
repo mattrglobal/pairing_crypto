@@ -1,5 +1,9 @@
+/// A `Result` with an error of type `CryptoError`.
+pub type Result<T> = std::result::Result<T, Error>;
+
 /// Error enumerates all possible errors occuring in this library.
-#[derive(Debug)]
+/// An error returned by the crypto component.
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub enum Error {
     /// A conversion between compatible data types failed.
     Conversion { cause: String },
@@ -22,26 +26,16 @@ pub enum Error {
     /// Scalar is invalid.
     CryptoBadScalar,
 
+    /// A failure occured during Schnorr challenge computation.
+    CryptoSchnorrChallengeComputation { cause: String },
+
     /// Error during serialization deserialization in Serde.
     Serde,
 }
 
-impl std::error::Error for Error {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match *self {
-            Error::Conversion { .. } => None,
-            Error::CryptoOps => None,
-            Error::CryptoInvalidIkmLength => None,
-            Error::CryptoBadEncoding => None,
-            Error::CryptoPointNotOnCurve => None,
-            Error::CryptoPointNotOnGroup => None,
-            Error::CryptoBadScalar => None,
-            Error::Serde => None,
-        }
-    }
-}
+impl std::error::Error for Error {}
 
-impl core::fmt::Display for Error {
+impl core::fmt::Debug for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
             Error::Conversion { ref cause } => {
@@ -64,6 +58,19 @@ impl core::fmt::Display for Error {
             }
             Error::CryptoBadScalar => write!(f, "scalar is invalid."),
             Error::Serde => write!(f, "error during ser-de operation."),
+            Error::CryptoSchnorrChallengeComputation { cause } => {
+                write!(
+                    f,
+                    "schnorr challenge computation failed: cause: {}",
+                    cause
+                )
+            }
         }
+    }
+}
+
+impl core::fmt::Display for Error {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{:?}", self)
     }
 }
