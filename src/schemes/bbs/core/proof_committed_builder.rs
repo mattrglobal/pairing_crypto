@@ -1,6 +1,6 @@
-use super::*;
-
+use crate::common::error::Error;
 use crate::curves::bls12_381::Scalar;
+use core::fmt::Debug;
 use digest::Update;
 use ff::Field;
 use group::{Curve, GroupEncoding};
@@ -168,10 +168,11 @@ where
         secrets: &[Scalar],
     ) -> Result<Vec<Scalar>, Error> {
         if secrets.len() != self.cache.points.len() {
-            return Err(Error::new(
-                1,
-                "secrets is not equal to blinding factors",
-            ));
+            return Err(Error::CryptoSchnorrChallengeComputation {
+                cause: format!(
+                    "secrets length {} is not equal to blinding factors length {}", secrets.len(), self.cache.points.len()
+                ),
+            });
         }
         for i in 0..self.cache.scalars.len() {
             self.cache.scalars[i] += secrets[i] * challenge;

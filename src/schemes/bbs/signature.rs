@@ -5,6 +5,7 @@ use crate::curves::bls12_381::{
     Scalar,
 };
 use core::convert::TryFrom;
+use core::fmt;
 use core::ops::Neg;
 use digest::{ExtendableOutput, Update, XofReader};
 use ff::Field;
@@ -117,7 +118,7 @@ impl Signature {
         if generators.len() < msgs.len() {
             return Err(Error::new(1, "not enough message generators"));
         }
-        if sk.0.is_zero() {
+        if sk.0.is_zero().unwrap_u8() == 1 {
             return Err(Error::new(2, "invalid secret key"));
         }
 

@@ -2,13 +2,14 @@ use super::core::*;
 use super::MessageGenerators;
 use super::PublicKey;
 use crate::curves::bls12_381::{
-    pairing_engine, G1Affine, G1Projective, G2Affine, G2Prepared, Scalar,
+    G1Affine, G1Projective, G2Affine, G2Prepared, Scalar,
 };
 use crate::slicer;
 use core::convert::TryFrom;
 use digest::Update;
-use group::{Curve, Group, GroupEncoding};
+use group::{prime::PrimeCurveAffine, Curve, Group, GroupEncoding};
 use hashbrown::HashSet;
+use pairing::MultiMillerLoop;
 use serde::{Deserialize, Serialize};
 use subtle::{Choice, CtOption};
 
