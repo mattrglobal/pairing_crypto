@@ -1,9 +1,9 @@
 use super::MessageGenerators;
+use super::{core::*, PublicKey, SecretKey};
 use crate::curves::bls12_381::{
-    multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared,
-    G2Projective, PublicKey, Scalar, SecretKey,
+    pairing_engine, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective,
+    Scalar,
 };
-use crate::schemes::core::*;
 use core::convert::TryFrom;
 use core::ops::Neg;
 use digest::{ExtendableOutput, Update, XofReader};
@@ -167,7 +167,7 @@ impl Signature {
         let a = G2Projective::generator() * self.e + pk.0;
         let b = Self::compute_b(self.s, msgs, generators).neg();
 
-        multi_miller_loop(&[
+        pairing_engine::multi_miller_loop(&[
             (&self.a.to_affine(), &G2Prepared::from(a.to_affine())),
             (&b.to_affine(), &G2Prepared::from(G2Affine::generator())),
         ])

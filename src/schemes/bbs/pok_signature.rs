@@ -1,6 +1,6 @@
+use super::core::*;
 use super::{MessageGenerators, PokSignatureProof, Signature};
 use crate::curves::bls12_381::{G1Affine, G1Projective, Scalar};
-use crate::schemes::core::*;
 use digest::Update;
 use ff::Field;
 use group::Curve;

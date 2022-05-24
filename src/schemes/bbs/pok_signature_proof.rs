@@ -1,9 +1,10 @@
+use super::core::*;
 use super::MessageGenerators;
+use super::PublicKey;
 use crate::curves::bls12_381::{
-    multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared, PublicKey,
-    Scalar,
+    pairing_engine, G1Affine, G1Projective, G2Affine, G2Prepared, Scalar,
 };
-use crate::schemes::core::*;
+use crate::slicer;
 use core::convert::TryFrom;
 use digest::Update;
 use group::{Curve, Group, GroupEncoding};
@@ -248,7 +249,7 @@ impl PokSignatureProof {
         if self.a_prime.is_identity().unwrap_u8() == 1 {
             return false;
         }
-        multi_miller_loop(&[
+        pairing_engine::multi_miller_loop(&[
             (
                 &self.a_prime.to_affine(),
                 &G2Prepared::from(public_key.0.to_affine()),

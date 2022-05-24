@@ -24,18 +24,16 @@
 /// Common types
 mod common;
 
-/* /// Supported schemes from pairing crypto
+/// Supported Curves
+mod curves;
+
+/// Supported schemes from pairing crypto
 mod schemes;
 
 /// Supported constructs for the BLS12-381 curve
 pub mod bls12_381 {
     pub use super::schemes::bbs;
-    pub use super::schemes::core::{
-        Challenge, Commitment, Error, HiddenMessage, Message, Nonce,
-        PresentationMessage, ProofMessage, SignatureBlinding,
-        COMMITMENT_G1_BYTES, COMMITMENT_G2_BYTES, FIELD_BYTES,
-    };
-} */
+}
 
 /// A testable RNG
 #[cfg(any(test, feature = "test"))]

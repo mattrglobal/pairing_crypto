@@ -1,6 +1,6 @@
-use super::error::Error;
 use super::secret_key::SecretKey;
-use super::util::vec_to_byte_array;
+use crate::common::error::Error;
+use crate::common::util::vec_to_byte_array;
 use blstrs::{sk_to_pk_in_g2, G2Affine, G2Projective};
 use core::ops::{BitOr, Not};
 use group::Curve;

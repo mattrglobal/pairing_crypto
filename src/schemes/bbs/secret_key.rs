@@ -1,4 +1,5 @@
-use super::{error::Error, util::vec_to_byte_array};
+use crate::common::error::Error;
+use crate::common::util::vec_to_byte_array;
 use blstrs::{generate_sk, Scalar};
 use ff::{Field, PrimeField};
 use rand::{CryptoRng, RngCore};
