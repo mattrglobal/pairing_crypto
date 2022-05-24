@@ -16,14 +16,13 @@
  */
 
 use super::dtos::BbsDeriveProofRevealMessageRequest;
-use crate::bls12_381::*;
-use crate::schemes::*;
+use crate::bls12_381::bbs::core::{
+    Error, HiddenMessage, Message, ProofMessage,
+};
 
 /// Digests the set of input messages and returns in the form of an internal
 /// structure
-pub fn digest_messages(
-    messages: Vec<Vec<u8>>,
-) -> Result<Vec<core::Message>, Error> {
+pub fn digest_messages(messages: Vec<Vec<u8>>) -> Result<Vec<Message>, Error> {
     if messages.len() < 1 {
         return Err(Error::new_bbs_error(
             BbsErrorCode::EmptyMessages,
@@ -31,13 +30,13 @@ pub fn digest_messages(
         ));
     }
 
-    Ok(messages.iter().map(|m| core::Message::hash(m)).collect())
+    Ok(messages.iter().map(|m| Message::hash(m)).collect())
 }
 
 /// Digests a set of supplied proof messages
 pub fn digest_proof_messages(
     messages: Vec<BbsDeriveProofRevealMessageRequest>,
-) -> Result<Vec<core::ProofMessage>, Error> {
+) -> Result<Vec<ProofMessage>, Error> {
     if messages.len() < 1 {
         return Err(Error::new_bbs_error(
             BbsErrorCode::EmptyMessages,
@@ -48,7 +47,7 @@ pub fn digest_proof_messages(
     Ok(messages
         .iter()
         .map(|element| {
-            let digested_message = core::Message::hash(element.value.clone());
+            let digested_message = Message::hash(element.value.clone());
 
             // Change this to an enum
             if element.reveal {
@@ -82,7 +81,7 @@ pub fn digest_revealed_proof_messages(
     // TODO deal with the unwrap here and the error response
     Ok(messages
         .iter()
-        .map(|(key, value)| (*key, core::Message::hash(value)))
+        .map(|(key, value)| (*key, Message::hash(value)))
         .collect())
 }
 

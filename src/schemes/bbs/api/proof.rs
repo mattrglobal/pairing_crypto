@@ -3,11 +3,10 @@ use super::utils::{
     digest_messages, digest_proof_messages, digest_revealed_proof_messages,
     BbsErrorCode,
 };
+use crate::bls12_381::bbs::core::*;
 use crate::bls12_381::bbs::{
-    MessageGenerators, PokSignature, PokSignatureProof, Signature,
+    MessageGenerators, PokSignature, PokSignatureProof, PublicKey, Signature,
 };
-use crate::bls12_381::PublicKey;
-use crate::schemes::core::*;
 use digest::{ExtendableOutput, Update, XofReader};
 
 /// Derives a signature proof of knowledge

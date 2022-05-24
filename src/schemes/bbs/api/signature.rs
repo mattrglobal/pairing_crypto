@@ -1,9 +1,9 @@
 use super::dtos::{BbsSignRequest, BbsVerifyRequest};
 use super::utils::{digest_messages, BbsErrorCode};
 use crate::bls12_381::bbs::{
-    MessageGenerators, PublicKey, SecretKey, Signature,
+    core::Error, core::Message, MessageGenerators, PublicKey, SecretKey,
+    Signature,
 };
-use crate::bls12_381::{Error, Message};
 
 /// Creates a signature
 pub fn sign(request: BbsSignRequest) -> Result<[u8; 112], Error> {
