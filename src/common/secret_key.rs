@@ -1,5 +1,5 @@
 use super::{error::Error, util::vec_to_byte_array};
-use blstrs::{generate_secret_key, Scalar};
+use blstrs::{generate_sk, Scalar};
 use ff::{Field, PrimeField};
 use rand::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
@@ -44,7 +44,7 @@ impl SecretKey {
         T1: AsRef<[u8]>,
         T2: AsRef<[u8]>,
     {
-        if let Some(out) = generate_secret_key(ikm, key_info) {
+        if let Some(out) = generate_sk(ikm, key_info) {
             return Some(SecretKey(out));
         }
         None
