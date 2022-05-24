@@ -24,7 +24,7 @@
 /// Common types
 mod common;
 
-/// Supported schemes from pairing crypto
+/* /// Supported schemes from pairing crypto
 mod schemes;
 
 /// Supported constructs for the BLS12-381 curve
@@ -35,7 +35,7 @@ pub mod bls12_381 {
         PresentationMessage, ProofMessage, SignatureBlinding,
         COMMITMENT_G1_BYTES, COMMITMENT_G2_BYTES, FIELD_BYTES,
     };
-}
+} */
 
 /// A testable RNG
 #[cfg(any(test, feature = "test"))]

@@ -67,19 +67,3 @@ impl std::fmt::Display for Error {
         }
     }
 }
-
-impl From<blst_lib::BLST_ERROR> for Error {
-    fn from(err: blst_lib::BLST_ERROR) -> Error {
-        match err {
-            blst_lib::BLST_ERROR::BLST_BAD_ENCODING => Error::CryptoBadEncoding,
-            blst_lib::BLST_ERROR::BLST_POINT_NOT_ON_CURVE => {
-                Error::CryptoPointNotOnCurve
-            }
-            blst_lib::BLST_ERROR::BLST_POINT_NOT_IN_GROUP => {
-                Error::CryptoPointNotOnGroup
-            }
-            blst_lib::BLST_ERROR::BLST_BAD_SCALAR => Error::CryptoBadScalar,
-            _ => Error::CryptoOps,
-        }
-    }
-}
