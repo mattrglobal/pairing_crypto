@@ -1,15 +1,15 @@
-/// A `Result` with an error of type `CryptoError`.
-pub type Result<T> = std::result::Result<T, Error>;
-
 /// Error enumerates all possible errors occuring in this library.
 /// An error returned by the crypto component.
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub enum Error {
+    /// Invalid arguments are provided in an API call.
+    BadParams { cause: String },
+
     /// A conversion between compatible data types failed.
     Conversion { cause: String },
 
     /// A generic failure during underlying cryptographic operation.
-    CryptoOps,
+    CryptoOps { cause: String },
 
     /// IKM data size is not valid.
     CryptoInvalidIkmLength,
@@ -29,6 +29,24 @@ pub enum Error {
     /// A failure occured during Schnorr challenge computation.
     CryptoSchnorrChallengeComputation { cause: String },
 
+    /// Secret key is not valid.
+    CryptoInvalidSecretKey,
+
+    /// Public key is malformed.
+    CryptoMalformedPublicKey,
+
+    /// Signature is malformed.
+    CryptoMalformedSignature,
+
+    /// Proof is malformed.
+    CryptoMalformedProof,
+
+    /// Not enough message generators.
+    CryptoNotEnoughMessageGenerators { generators: usize, messages: usize },
+
+    /// Signature verification failed.
+    CryptoSignatureVerification,
+
     /// Error during serialization deserialization in Serde.
     Serde,
 }
@@ -38,11 +56,18 @@ impl std::error::Error for Error {}
 impl core::fmt::Debug for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
+            Error::BadParams { ref cause } => {
+                write!(f, "bad arguments: cause: {}", cause)
+            }
             Error::Conversion { ref cause } => {
                 write!(f, "data conversion failed: cause: {}", cause)
             }
-            Error::CryptoOps => {
-                write!(f, "unexpected failure in cryptographic operation.")
+            Error::CryptoOps { ref cause } => {
+                write!(
+                    f,
+                    "unexpected failure in cryptographic operation: cause {}",
+                    cause
+                )
             }
             Error::CryptoInvalidIkmLength => {
                 write!(f, "IKM size is too short.")
@@ -64,6 +89,31 @@ impl core::fmt::Debug for Error {
                     "schnorr challenge computation failed: cause: {}",
                     cause
                 )
+            }
+            Error::CryptoInvalidSecretKey => {
+                write!(f, "secret key is not valid.")
+            }
+            Error::CryptoMalformedPublicKey => {
+                write!(f, "public key is malformed.")
+            }
+            Error::CryptoMalformedSignature => {
+                write!(f, "signature is malformed.")
+            }
+            Error::CryptoMalformedProof => {
+                write!(f, "proof is malformed.")
+            }
+            Error::CryptoNotEnoughMessageGenerators {
+                generators,
+                messages,
+            } => {
+                write!(
+                    f,
+                    "not enough generators, #generators: {}, #messages: {}.",
+                    generators, messages
+                )
+            }
+            Error::CryptoSignatureVerification => {
+                write!(f, "bad encoding encountered.")
             }
         }
     }

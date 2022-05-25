@@ -121,10 +121,13 @@ impl Signature {
     {
         let msgs = msgs.as_ref();
         if generators.len() < msgs.len() {
-            return Err(Error::new(1, "not enough message generators"));
+            return Err(Error::CryptoNotEnoughMessageGenerators {
+                generators: generators.len(),
+                messages: msgs.len(),
+            });
         }
         if sk.0.is_zero().unwrap_u8() == 1 {
-            return Err(Error::new(2, "invalid secret key"));
+            return Err(Error::CryptoInvalidSecretKey);
         }
 
         let mut hasher = Shake256::default();
@@ -196,21 +199,16 @@ impl Signature {
         bytes
     }
 
-    // TODO
     /// Convert a vector of bytes of big-endian representation of the public key
-    pub fn from_vec(bytes: Vec<u8>) -> Result<Self, String> {
+    pub fn from_vec(bytes: Vec<u8>) -> Result<Self, Error> {
         match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
             Ok(result) => Self::from_bytes(&result),
-            Err(_) => {
-                return Err(
-                    "Public key length incorrect expected 32 bytes".to_string()
-                )
-            }
+            Err(e) => Err(e),
         }
     }
 
     /// Convert a byte sequence into a signature
-    pub fn from_bytes(data: &[u8; Self::SIZE_BYTES]) -> Result<Self, String> {
+    pub fn from_bytes(data: &[u8; Self::SIZE_BYTES]) -> Result<Self, Error> {
         let a_res = G1Affine::from_compressed(
             &<[u8; 48]>::try_from(&data[0..48]).unwrap(),
         )
@@ -225,25 +223,28 @@ impl Signature {
         let a = if a_res.is_some().unwrap_u8() == 1u8 {
             a_res.unwrap()
         } else {
-            return Err(
-                "Failed to decompress `a` component of signature".to_string()
-            );
+            return Err(Error::CryptoMalformedSignature {
+                cause: "Failed to decompress `a` component of signature"
+                    .to_string(),
+            });
         };
 
         let e = if e_res.is_some().unwrap_u8() == 1u8 {
             e_res.unwrap()
         } else {
-            return Err(
-                "Failed to decompress `e` component of signature".to_string()
-            );
+            return Err(Error::CryptoMalformedSignature {
+                cause: "Failed to decompress `e` component of signature"
+                    .to_string(),
+            });
         };
 
         let s = if s_res.is_some().unwrap_u8() == 1u8 {
             s_res.unwrap()
         } else {
-            return Err(
-                "Failed to decompress `s` component of signature".to_string()
-            );
+            return Err(Error::CryptoMalformedSignature {
+                cause: "Failed to decompress `s` component of signature"
+                    .to_string(),
+            });
         };
 
         Ok(Signature { a, e, s })

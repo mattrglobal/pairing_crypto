@@ -2,6 +2,7 @@ use super::{
     Challenge, HiddenMessage, MessageGenerators, PokSignatureProof,
     ProofCommittedBuilder, ProofMessage, Signature,
 };
+use crate::common::error::Error;
 use crate::curves::bls12_381::{G1Affine, G1Projective, Scalar};
 use digest::Update;
 use ff::Field;
@@ -51,10 +52,9 @@ impl PokSignature {
         mut rng: impl RngCore + CryptoRng,
     ) -> Result<Self, Error> {
         if messages.len() != generators.len() {
-            return Err(Error::new(
-                1,
-                "mismatched messages with and generators",
-            ));
+            return Err(Error::BadParams {
+                cause: format!("mismatched length: number of messages {}, number of generators {}", messages.len(), generators.len() ),
+            });
         }
         let r1 = Scalar::random(&mut rng);
         let r2 = Scalar::random(&mut rng);

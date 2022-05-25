@@ -17,15 +17,17 @@
 
 use super::dtos::BbsDeriveProofRevealMessageRequest;
 use crate::bls12_381::bbs::core::{HiddenMessage, Message, ProofMessage};
+use crate::common::error::Error;
 
 /// Digests the set of input messages and returns in the form of an internal
 /// structure
 pub fn digest_messages(messages: Vec<Vec<u8>>) -> Result<Vec<Message>, Error> {
     if messages.len() < 1 {
-        return Err(Error::new_bbs_error(
-            BbsErrorCode::EmptyMessages,
-            "Messages to sign empty, expected > 1",
-        ));
+        return Err(Error::BadParams {
+            cause:
+                "message list to sign is empty, expected at least one message"
+                    .to_owned(),
+        });
     }
 
     Ok(messages.iter().map(|m| Message::hash(m)).collect())
@@ -36,10 +38,11 @@ pub fn digest_proof_messages(
     messages: Vec<BbsDeriveProofRevealMessageRequest>,
 ) -> Result<Vec<ProofMessage>, Error> {
     if messages.len() < 1 {
-        return Err(Error::new_bbs_error(
-            BbsErrorCode::EmptyMessages,
-            "Messages to sign empty, expected > 1",
-        ));
+        return Err(Error::BadParams {
+            cause:
+                "message list to sign is empty, expected at least one message"
+                    .to_owned(),
+        });
     }
 
     Ok(messages
@@ -70,10 +73,9 @@ pub fn digest_revealed_proof_messages(
         .iter()
         .any(|r| *r >= total_message_count)
     {
-        return Err(Error::new_bbs_error(
-            BbsErrorCode::EmptyMessages,
-            "Revealed message index out of bounds, value is >= total_message_count",
-        ));
+        return Err(Error::BadParams{ cause:
+            format!("revealed message index is out of bounds, total_message_count is {}", total_message_count),
+    });
     }
 
     // TODO deal with the unwrap here and the error response
@@ -81,27 +83,4 @@ pub fn digest_revealed_proof_messages(
         .iter()
         .map(|(key, value)| (*key, Message::hash(value)))
         .collect())
-}
-
-/// Enumeration of error codes
-pub enum BbsErrorCode {
-    /// Key Generation failed
-    KeyGenerationError = 1,
-    /// Failed to parse a request element
-    ParsingError = 2,
-    /// Messages supplied were empty
-    EmptyMessages = 3,
-    /// Invalid messages
-    InvalidMessages = 4,
-    /// Invalid signature
-    InvalidSignature = 5,
-    /// Invalid proof
-    InvalidProof = 6,
-}
-
-impl Error {
-    /// Create a new error
-    pub fn new_bbs_error(code: BbsErrorCode, message: &str) -> Self {
-        Error::new(code as u32, &String::from(message))
-    }
 }

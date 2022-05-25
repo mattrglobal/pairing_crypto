@@ -1,26 +1,19 @@
 use super::dtos::{BbsDeriveProofRequest, BbsVerifyProofRequest};
 use super::utils::{
     digest_messages, digest_proof_messages, digest_revealed_proof_messages,
-    BbsErrorCode,
 };
 use crate::bls12_381::bbs::core::{
-    g1_affine_compressed_size, Challenge, MessageGenerators, PokSignature,
-    PokSignatureProof, PresentationMessage, ProofMessage, PublicKey, Signature,
+    g1_affine_compressed_size, Challenge, Message, MessageGenerators,
+    PokSignature, PokSignatureProof, PresentationMessage, ProofMessage,
+    PublicKey, Signature,
 };
+use crate::common::error::Error;
 use digest::{ExtendableOutput, Update, XofReader};
 
 /// Derives a signature proof of knowledge
 pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     // Parse public key from request
-    let pk = match PublicKey::from_vec(request.public_key) {
-        Ok(result) => result,
-        Err(_) => {
-            return Err(Error::new_bbs_error(
-                BbsErrorCode::ParsingError,
-                "Failed to parse public key",
-            ))
-        }
-    };
+    let pk = PublicKey::from_vec(request.public_key)?;
 
     // Digest the supplied messages
     let digested_messages = digest_messages(
@@ -41,17 +34,14 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     let signature = match Signature::from_vec(request.signature) {
         Ok(result) => result,
         Err(e) => {
-            return Err(Error::new_bbs_error(BbsErrorCode::ParsingError, &e))
+            return Err(Error::CryptoMalformedSignature);
         }
     };
 
     // Verify the signature to check the messages supplied are valid
     match signature.verify(&pk, &generators, &digested_messages) {
         false => {
-            return Err(Error::new_bbs_error(
-                BbsErrorCode::InvalidSignature,
-                "Invalid signature, unable to verify",
-            ))
+            return Err(Error::CryptoSignatureVerification);
         }
         true => {}
     };
@@ -66,10 +56,7 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     let presentation_message =
         PresentationMessage::hash(request.presentation_message);
 
-    let mut pok = match PokSignature::init(signature, &generators, &messages) {
-        Ok(proof) => proof,
-        Err(e) => return Err(e),
-    };
+    let mut pok = PokSignature::init(signature, &generators, &messages)?;
 
     let mut data = [0u8; g1_affine_compressed_size()];
     let mut hasher = sha3::Shake256::default();
@@ -88,24 +75,13 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
 /// Verifies a signature proof of knowledge
 pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
     // Parse public key from request
-    let public_key = match PublicKey::from_vec(request.public_key) {
-        Ok(result) => result,
-        Err(_) => {
-            return Err(Error::new_bbs_error(
-                BbsErrorCode::ParsingError,
-                "Failed to parse public key",
-            ))
-        }
-    };
+    let public_key = PublicKey::from_vec(request.public_key)?;
 
     // Digest the revealed proof messages
-    let messages: Vec<(usize, Message)> = match digest_revealed_proof_messages(
+    let messages: Vec<(usize, Message)> = digest_revealed_proof_messages(
         request.messages,
         request.total_message_count,
-    ) {
-        Ok(result) => result,
-        Err(e) => return Err(e),
-    };
+    )?;
 
     // Use generators derived from the signers public key
     // TODO this approach is likely to change soon
@@ -114,14 +90,12 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
         request.total_message_count,
     );
 
-    // TODO dont use unwrap here
     let proof = match PokSignatureProof::from_bytes(request.proof) {
         Some(result) => result,
         None => {
-            return Err(Error::new_bbs_error(
-                BbsErrorCode::ParsingError,
-                "Failed to parse proof",
-            ))
+            return Err(Error::Conversion {
+                cause: "failed to parse signature-PoK proof".into(),
+            });
         }
     };
 
@@ -131,20 +105,12 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
     let mut data = [0u8; g1_affine_compressed_size()];
     let mut hasher = sha3::Shake256::default();
 
-    match proof.add_challenge_contribution(
+    proof.add_challenge_contribution(
         &generators,
         &messages,
         proof.challenge,
         &mut hasher,
-    ) {
-        Err(_) => {
-            return Err(Error::new_bbs_error(
-                BbsErrorCode::InvalidProof,
-                "Failed to recompute challenge",
-            ))
-        }
-        _ => {}
-    }
+    )?;
 
     hasher.update(&presentation_message.to_bytes()[..]);
     let mut reader = hasher.finalize_xof();

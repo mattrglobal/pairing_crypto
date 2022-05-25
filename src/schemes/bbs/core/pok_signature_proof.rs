@@ -2,8 +2,9 @@ use super::{
     g1_affine_compressed_size, scalar_size, Challenge, Message,
     MessageGenerators, PublicKey,
 };
-use crate::curves::bls12_381::{
-    G1Affine, G1Projective, G2Affine, G2Prepared, Scalar,
+use crate::{
+    common::error::Error,
+    curves::bls12_381::{G1Affine, G1Projective, G2Affine, G2Prepared, Scalar},
 };
 use core::convert::TryFrom;
 use digest::Update;
@@ -179,12 +180,13 @@ impl PokSignatureProof {
         rvl_msgs: &[(usize, Message)],
         challenge: Challenge,
         hasher: &mut impl Update,
-    ) -> Result<(), String> {
+    ) -> Result<(), Error> {
         // TODO check revealed messages vs hidden message count on proof
         // TODO need to account for generators being 0?
         if generators.len() - self.hidden_message_count != rvl_msgs.len() {
-            // TODO review error formatting
-            return Err("Incorrect number of revealed messages".to_string());
+            return Err(Error::BadParams {
+                cause: format!("Incorrect number of revealed messages: #generators: {}, #hidden_messages: {}, #revealed_messages: {}", generators.len(), self.hidden_message_count, rvl_msgs.len()),
+            });
         }
 
         hasher.update(self.a_prime.to_affine().to_uncompressed());
