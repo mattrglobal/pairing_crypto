@@ -36,7 +36,7 @@ pub enum Error {
     CryptoMalformedPublicKey,
 
     /// Signature is malformed.
-    CryptoMalformedSignature,
+    CryptoMalformedSignature { cause: String },
 
     /// Proof is malformed.
     CryptoMalformedProof,
@@ -96,8 +96,8 @@ impl core::fmt::Debug for Error {
             Error::CryptoMalformedPublicKey => {
                 write!(f, "public key is malformed.")
             }
-            Error::CryptoMalformedSignature => {
-                write!(f, "signature is malformed.")
+            Error::CryptoMalformedSignature { ref cause } => {
+                write!(f, "signature is malformed: cause: {}", cause)
             }
             Error::CryptoMalformedProof => {
                 write!(f, "proof is malformed.")
