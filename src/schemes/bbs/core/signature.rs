@@ -267,7 +267,7 @@ impl Signature {
             .chain(msgs.iter().map(|c| c.0))
             .collect();
 
-        G1Projective::sum_of_products_in_place(&points[..], &mut scalars[..])
+        G1Projective::multi_exp(&points, &scalars)
     }
 }
 

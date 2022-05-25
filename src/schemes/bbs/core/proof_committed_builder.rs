@@ -88,7 +88,7 @@ where
     cache: ProofCommittedBuilderCache<B, C>,
     points: Vec<B>,
     scalars: Vec<Scalar>,
-    sum_of_products: fn(&[B], &mut [Scalar]) -> B,
+    sum_of_products: fn(&[B], &[Scalar]) -> B,
 }
 
 impl<B, C> Default for ProofCommittedBuilder<B, C>
@@ -121,7 +121,7 @@ where
     C: GroupEncoding + Debug,
 {
     /// Create a new builder
-    pub fn new(sum_of_products: fn(&[B], &mut [Scalar]) -> B) -> Self {
+    pub fn new(sum_of_products: fn(&[B], &[Scalar]) -> B) -> Self {
         Self {
             cache: ProofCommittedBuilderCache::default(),
             points: Vec::new(),

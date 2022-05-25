@@ -74,10 +74,7 @@ impl PokSignature {
         let a_bar = b * r1 - a_prime * signature.e;
 
         // d = b * r1 + h0 * r2
-        let d = G1Projective::sum_of_products_in_place(
-            &[b, generators.h0],
-            [r1, r2].as_mut(),
-        );
+        let d = G1Projective::multi_exp(&[b, generators.h0], &[r1, r2]);
 
         // s' = s - r2 r3
         let s_prime = signature.s + r2 * r3;
@@ -87,7 +84,7 @@ impl PokSignature {
 
         // For proving relation a_bar / d == a_prime^{-e} * h_0^r2
         let mut proof1 = ProofCommittedBuilder::<G1Projective, G1Affine>::new(
-            G1Projective::sum_of_products_in_place,
+            G1Projective::multi_exp,
         );
 
         // Compute the components of C1 = A' * e~ + h0 * r2~
@@ -98,7 +95,7 @@ impl PokSignature {
 
         // Compute the components of C2 = ...
         let mut proof2 = ProofCommittedBuilder::<G1Projective, G1Affine>::new(
-            G1Projective::sum_of_products_in_place,
+            G1Projective::multi_exp,
         );
 
         // for d * -r3

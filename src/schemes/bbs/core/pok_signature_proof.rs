@@ -11,7 +11,7 @@ use crate::{
 use core::convert::TryFrom;
 use digest::Update;
 use ff::Field;
-use group::{prime::PrimeCurveAffine, Curve, Group};
+use group::{prime::PrimeCurveAffine, Curve, Group, GroupEncoding};
 use hashbrown::HashSet;
 use pairing::{MillerLoopResult as _, MultiMillerLoop};
 use serde::{Deserialize, Serialize};
@@ -198,10 +198,8 @@ impl PokSignatureProof {
         let proof1_points = [self.a_bar - self.d, self.a_prime, generators.h0];
         let mut proof1_scalars =
             [challenge.0, self.proofs1[0].0, self.proofs1[1].0];
-        let commitment_proofs1 = G1Projective::sum_of_products_in_place(
-            &proof1_points,
-            &mut proof1_scalars,
-        );
+        let commitment_proofs1 =
+            G1Projective::multi_exp(&proof1_points, &proof1_scalars);
         hasher.update(commitment_proofs1.to_affine().to_bytes());
 
         let mut r_points =
@@ -219,10 +217,7 @@ impl PokSignatureProof {
             r_scalars.push(msg.0);
         }
 
-        let r = G1Projective::sum_of_products_in_place(
-            r_points.as_ref(),
-            r_scalars.as_mut(),
-        );
+        let r = G1Projective::multi_exp(r_points.as_ref(), r_scalars.as_ref());
 
         let mut proof2_points = Vec::with_capacity(
             3 + generators.len() - self.hidden_message_count,
@@ -252,9 +247,9 @@ impl PokSignatureProof {
             proof2_scalars.push(self.proofs2[j].0);
             j += 1;
         }
-        let commitment_proofs2 = G1Projective::sum_of_products_in_place(
+        let commitment_proofs2 = G1Projective::multi_exp(
             proof2_points.as_ref(),
-            proof2_scalars.as_mut(),
+            proof2_scalars.as_ref(),
         );
         hasher.update(commitment_proofs2.to_affine().to_bytes());
 
