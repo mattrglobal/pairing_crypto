@@ -48,6 +48,11 @@ macro_rules! scalar_wrapper {
                 }
             }
 
+            /// Convert a 48 byte digest into a struct
+            pub fn from_okm(bytes: &[u8; super::COMMITMENT_G1_BYTES]) -> Self {
+                Self(Scalar::from_okm(bytes))
+            }
+
         }
     };
 }
