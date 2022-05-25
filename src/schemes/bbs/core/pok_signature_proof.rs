@@ -4,14 +4,16 @@ use super::{
 };
 use crate::{
     common::error::Error,
-    curves::bls12_381::{G1Affine, G1Projective, G2Affine, G2Prepared, Scalar},
+    curves::bls12_381::{
+        Bls12, G1Affine, G1Projective, G2Affine, G2Prepared, Scalar,
+    },
 };
 use core::convert::TryFrom;
 use digest::Update;
 use ff::Field;
 use group::{prime::PrimeCurveAffine, Curve, Group};
 use hashbrown::HashSet;
-use pairing::MultiMillerLoop;
+use pairing::{MillerLoopResult as _, MultiMillerLoop};
 use serde::{Deserialize, Serialize};
 use subtle::{Choice, CtOption};
 
@@ -267,7 +269,7 @@ impl PokSignatureProof {
         if self.a_prime.is_identity().unwrap_u8() == 1 {
             return false;
         }
-        pairing_engine::multi_miller_loop(&[
+        Bls12::multi_miller_loop(&[
             (
                 &self.a_prime.to_affine(),
                 &G2Prepared::from(public_key.0.to_affine()),

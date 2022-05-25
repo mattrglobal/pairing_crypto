@@ -4,8 +4,7 @@ use super::{
 };
 use crate::common::{error::Error, util::vec_to_byte_array};
 use crate::curves::bls12_381::{
-    pairing_engine, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective,
-    Scalar,
+    Bls12, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective, Scalar,
 };
 use core::convert::TryFrom;
 use core::fmt;
@@ -14,6 +13,7 @@ use digest::{ExtendableOutput, Update, XofReader};
 use ff::Field;
 use group::prime::PrimeCurveAffine;
 use group::{Curve, Group};
+use pairing::{MillerLoopResult as _, MultiMillerLoop};
 use serde::{
     de::{Error as DError, SeqAccess, Visitor},
     ser::SerializeTuple,
@@ -176,7 +176,7 @@ impl Signature {
         let a = G2Projective::generator() * self.e + pk.0;
         let b = Self::compute_b(self.s, msgs, generators).neg();
 
-        pairing_engine::multi_miller_loop(&[
+        Bls12::multi_miller_loop(&[
             (&self.a.to_affine(), &G2Prepared::from(a.to_affine())),
             (&b.to_affine(), &G2Prepared::from(G2Affine::generator())),
         ])
