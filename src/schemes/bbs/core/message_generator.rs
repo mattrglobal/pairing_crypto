@@ -1,4 +1,5 @@
-use super::{core::*, public_key::PublicKey, secret_key::SecretKey};
+use super::g1_affine_compressed_size;
+use super::{PublicKey, SecretKey};
 use crate::curves::bls12_381::{ExpandMsgXof, G1Projective};
 use core::convert::TryFrom;
 use group::Curve;
@@ -56,7 +57,7 @@ impl Iterator for MessageGeneratorIter {
 
 impl MessageGenerators {
     /// Number of bytes needed to represent a message generator
-    pub const GENERATOR_BYTES: usize = COMMITMENT_G1_BYTES;
+    pub const GENERATOR_BYTES: usize = g1_affine_compressed_size();
 
     /// The number of generators this object can generate
     pub fn len(&self) -> usize {

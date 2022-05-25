@@ -1,10 +1,23 @@
-/// Common types for BBS signature schemes
 mod constants;
+mod message_generator;
+mod pok_signature;
+mod pok_signature_proof;
+mod public_key;
+mod secret_key;
+mod signature;
 mod types;
 
 mod proof_committed_builder;
 
-pub use constants::*;
+pub use constants::{
+    g1_affine_compressed_size, g2_affine_compressed_size, scalar_size,
+};
+pub use message_generator::*;
+pub use pok_signature::*;
+pub use pok_signature_proof::*;
+pub use signature::*;
+pub use {public_key::PublicKey, secret_key::SecretKey};
+
 pub use proof_committed_builder::ProofCommittedBuilder;
 
 pub use types::{

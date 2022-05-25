@@ -1,5 +1,7 @@
-use super::core::*;
-use super::{MessageGenerators, PokSignatureProof, Signature};
+use super::{
+    Challenge, HiddenMessage, MessageGenerators, PokSignatureProof,
+    ProofCommittedBuilder, ProofMessage, Signature,
+};
 use crate::curves::bls12_381::{G1Affine, G1Projective, Scalar};
 use digest::Update;
 use ff::Field;

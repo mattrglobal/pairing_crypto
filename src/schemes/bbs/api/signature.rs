@@ -1,8 +1,7 @@
 use super::dtos::{BbsSignRequest, BbsVerifyRequest};
 use super::utils::{digest_messages, BbsErrorCode};
-use crate::bls12_381::bbs::{
-    core::Error, core::Message, MessageGenerators, PublicKey, SecretKey,
-    Signature,
+use crate::bls12_381::bbs::core::{
+    Message, MessageGenerators, PublicKey, SecretKey, Signature,
 };
 
 /// Creates a signature

@@ -1,5 +1,8 @@
-use super::MessageGenerators;
-use super::{core::*, PublicKey, SecretKey};
+use super::{
+    g1_affine_compressed_size, scalar_size, Message, MessageGenerators,
+    PublicKey, SecretKey,
+};
+use crate::common::{error::Error, util::vec_to_byte_array};
 use crate::curves::bls12_381::{
     pairing_engine, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective,
     Scalar,
@@ -9,6 +12,7 @@ use core::fmt;
 use core::ops::Neg;
 use digest::{ExtendableOutput, Update, XofReader};
 use ff::Field;
+use group::prime::PrimeCurveAffine;
 use group::{Curve, Group};
 use serde::{
     de::{Error as DError, SeqAccess, Visitor},
@@ -59,7 +63,7 @@ impl<'de> Deserialize<'de> for Signature {
             where
                 A: SeqAccess<'de>,
             {
-                let mut arr = [0u8; Signature::BYTES];
+                let mut arr = [0u8; Signature::SIZE_BYTES];
                 for i in 0..arr.len() {
                     arr[i] = seq
                         .next_element()?
@@ -77,7 +81,7 @@ impl<'de> Deserialize<'de> for Signature {
             }
         }
 
-        d.deserialize_tuple(Signature::BYTES, ArrayVisitor)
+        d.deserialize_tuple(Signature::SIZE_BYTES, ArrayVisitor)
     }
 }
 
@@ -103,7 +107,8 @@ impl ConditionallySelectable for Signature {
 
 impl Signature {
     /// The number of bytes in a signature
-    pub const BYTES: usize = 112;
+    pub const SIZE_BYTES: usize =
+        g1_affine_compressed_size() + 2 * scalar_size();
 
     /// Generate a new signature where all messages are known to the signer
     pub fn new<M>(
@@ -136,9 +141,9 @@ impl Signature {
         reader.read(&mut res);
 
         // Should yield non-zero values for `e` and `s`, very small likelihood of it being zero
-        let e = Scalar::from_bytes_wide(&res);
+        let e = Scalar::from_bytes_wide(&res).unwrap();
         reader.read(&mut res);
-        let s = Scalar::from_bytes_wide(&res);
+        let s = Scalar::from_bytes_wide(&res).unwrap();
         let b = Self::compute_b(s, msgs, generators);
         let exp = (e + sk.0).invert().unwrap();
 
@@ -179,13 +184,13 @@ impl Signature {
     }
 
     /// Get the byte representation of this signature
-    pub fn to_bytes(&self) -> [u8; Self::BYTES] {
-        let mut bytes = [0u8; Self::BYTES];
+    pub fn to_bytes(&self) -> [u8; Self::SIZE_BYTES] {
+        let mut bytes = [0u8; Self::SIZE_BYTES];
         bytes[0..48].copy_from_slice(&self.a.to_affine().to_compressed());
-        let mut e = self.e.to_bytes();
+        let mut e = self.e.to_bytes_be();
         e.reverse();
         bytes[48..80].copy_from_slice(&e[..]);
-        let mut s = self.s.to_bytes();
+        let mut s = self.s.to_bytes_be();
         s.reverse();
         bytes[80..112].copy_from_slice(&s[..]);
         bytes
@@ -194,7 +199,7 @@ impl Signature {
     // TODO
     /// Convert a vector of bytes of big-endian representation of the public key
     pub fn from_vec(bytes: Vec<u8>) -> Result<Self, String> {
-        match vec_to_byte_array::<{ Self::BYTES }>(bytes) {
+        match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
             Ok(result) => Self::from_bytes(&result),
             Err(_) => {
                 return Err(
@@ -205,17 +210,17 @@ impl Signature {
     }
 
     /// Convert a byte sequence into a signature
-    pub fn from_bytes(data: &[u8; Self::BYTES]) -> Result<Self, String> {
+    pub fn from_bytes(data: &[u8; Self::SIZE_BYTES]) -> Result<Self, String> {
         let a_res = G1Affine::from_compressed(
             &<[u8; 48]>::try_from(&data[0..48]).unwrap(),
         )
         .map(G1Projective::from);
         let mut e_bytes = <[u8; 32]>::try_from(&data[48..80]).unwrap();
         e_bytes.reverse();
-        let e_res = Scalar::from_bytes(&e_bytes);
+        let e_res = Scalar::from_bytes_be(&e_bytes);
         let mut s_bytes = <[u8; 32]>::try_from(&data[80..112]).unwrap();
         s_bytes.reverse();
-        let s_res = Scalar::from_bytes(&s_bytes);
+        let s_res = Scalar::from_bytes_be(&s_bytes);
 
         let a = if a_res.is_some().unwrap_u8() == 1u8 {
             a_res.unwrap()

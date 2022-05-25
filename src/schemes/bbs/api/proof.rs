@@ -3,9 +3,9 @@ use super::utils::{
     digest_messages, digest_proof_messages, digest_revealed_proof_messages,
     BbsErrorCode,
 };
-use crate::bls12_381::bbs::core::*;
-use crate::bls12_381::bbs::{
-    MessageGenerators, PokSignature, PokSignatureProof, PublicKey, Signature,
+use crate::bls12_381::bbs::core::{
+    g1_affine_compressed_size, Challenge, MessageGenerators, PokSignature,
+    PokSignatureProof, PresentationMessage, ProofMessage, PublicKey, Signature,
 };
 use digest::{ExtendableOutput, Update, XofReader};
 
@@ -71,7 +71,7 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
         Err(e) => return Err(e),
     };
 
-    let mut data = [0u8; COMMITMENT_G1_BYTES];
+    let mut data = [0u8; g1_affine_compressed_size()];
     let mut hasher = sha3::Shake256::default();
     pok.add_proof_contribution(&mut hasher);
     hasher.update(presentation_message.to_bytes());
@@ -128,7 +128,7 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
     let presentation_message =
         PresentationMessage::hash(request.presentation_message);
 
-    let mut data = [0u8; COMMITMENT_G1_BYTES];
+    let mut data = [0u8; g1_affine_compressed_size()];
     let mut hasher = sha3::Shake256::default();
 
     match proof.add_challenge_contribution(

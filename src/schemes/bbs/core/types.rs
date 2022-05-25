@@ -1,12 +1,9 @@
-use crate::common::error::Error;
-use crate::curves::bls12_381::Scalar;
-use blstrs::{G1Affine, G1Projective};
-use ff::PrimeField;
+use crate::curves::bls12_381::{G1Affine, G1Projective, Scalar};
 use group::Curve;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use subtle::CtOption;
 
-use super::COMMITMENT_G1_BYTES;
+use super::g1_affine_compressed_size;
 
 macro_rules! scalar_wrapper {
     ($(#[$docs:meta])*
@@ -24,7 +21,7 @@ macro_rules! scalar_wrapper {
 
         impl $name {
             /// The number of bytes needed to represent this struct
-            pub const SIZE_BYTES: usize = (Scalar::NUM_BITS as usize + 8 - 1) / 8;
+            pub const SIZE_BYTES: usize = super::scalar_size();
 
             /// Generate a random struct
             pub fn random(rng: impl rand_core::RngCore) -> Self {
@@ -38,18 +35,12 @@ macro_rules! scalar_wrapper {
             }
 
             /// Convert a big-endian representation of the secret key
-            pub fn from_bytes(bytes: &[u8; Self::SIZE_BYTES]) -> Result<Self, Error> {
-                let result = Scalar::from_bytes_be(bytes).map($name);
-
-                if result.is_some().unwrap_u8() == 1u8 {
-                    Ok(result.unwrap())
-                } else {
-                    Err(Error::CryptoBadEncoding)
-                }
+            pub fn from_bytes(bytes: &[u8; Self::SIZE_BYTES]) -> CtOption<Self> {
+                Scalar::from_bytes_be(bytes).map($name)
             }
 
             /// Convert a 48 byte digest into a struct
-            pub fn from_okm(bytes: &[u8; super::COMMITMENT_G1_BYTES]) -> Self {
+            pub fn from_okm(bytes: &[u8; super::g1_affine_compressed_size()]) -> Self {
                 Self(Scalar::from_okm(bytes))
             }
 
@@ -140,7 +131,7 @@ impl<'de> Deserialize<'de> for Commitment {
 
 impl Commitment {
     /// Number of bytes needed to represent the commitment
-    pub const SIZE_BYTES: usize = COMMITMENT_G1_BYTES;
+    pub const SIZE_BYTES: usize = g1_affine_compressed_size();
 
     /// Get the byte sequence that represents this signature
     pub fn to_bytes(&self) -> [u8; Self::SIZE_BYTES] {
