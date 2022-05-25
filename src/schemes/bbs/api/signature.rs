@@ -1,5 +1,5 @@
 use super::dtos::{BbsSignRequest, BbsVerifyRequest};
-use super::utils::{digest_messages, BbsErrorCode};
+use super::utils::{digest_messages};
 use crate::bls12_381::bbs::core::{
     Message, MessageGenerators, PublicKey, SecretKey, Signature,
 };
@@ -21,7 +21,7 @@ pub fn sign(request: BbsSignRequest) -> Result<[u8; 112], Error> {
     let generators = MessageGenerators::from_public_key(pk, messages.len());
 
     // Produce the signature and return
-    Signature::new(&sk, &generators, &messages)?;
+    Signature::new(&sk, &generators, &messages).map(|sig| sig.to_bytes())
 }
 
 /// Verifies a signature
