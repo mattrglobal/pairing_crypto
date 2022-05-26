@@ -1,10 +1,9 @@
 use super::{
-    g1_affine_compressed_size,
-    scalar_size,
-    Message,
-    MessageGenerators,
-    PublicKey,
-    SecretKey,
+    constants::{g1_affine_compressed_size, scalar_size},
+    message_generator::MessageGenerators,
+    public_key::PublicKey,
+    secret_key::SecretKey,
+    types::Message,
 };
 use crate::{
     common::util::vec_to_byte_array,

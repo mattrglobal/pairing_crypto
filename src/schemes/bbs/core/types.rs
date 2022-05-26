@@ -1,9 +1,8 @@
+use super::constants::{g1_affine_compressed_size, scalar_size};
 use crate::curves::bls12_381::{G1Affine, G1Projective, Scalar};
 use group::Curve;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use subtle::CtOption;
-
-use super::g1_affine_compressed_size;
 
 macro_rules! scalar_wrapper {
     ($(#[$docs:meta])*
@@ -21,7 +20,7 @@ macro_rules! scalar_wrapper {
 
         impl $name {
             /// The number of bytes needed to represent this struct
-            pub const SIZE_BYTES: usize = super::scalar_size();
+            pub const SIZE_BYTES: usize = scalar_size();
 
             /// Generate a random struct
             pub fn random(rng: impl rand_core::RngCore) -> Self {
@@ -40,7 +39,7 @@ macro_rules! scalar_wrapper {
             }
 
             /// Convert a 48 byte digest into a struct
-            pub fn from_okm(bytes: &[u8; super::g1_affine_compressed_size()]) -> Self {
+            pub fn from_okm(bytes: &[u8; g1_affine_compressed_size()]) -> Self {
                 Self(Scalar::from_okm(bytes))
             }
 

@@ -1,11 +1,9 @@
 use super::{
-    Challenge,
-    HiddenMessage,
-    MessageGenerators,
-    PokSignatureProof,
-    ProofCommittedBuilder,
-    ProofMessage,
-    Signature,
+    message_generator::MessageGenerators,
+    pok_signature_proof::PokSignatureProof,
+    proof_committed_builder::ProofCommittedBuilder,
+    signature::Signature,
+    types::{Challenge, HiddenMessage, ProofMessage},
 };
 use crate::{
     curves::bls12_381::{G1Affine, G1Projective, Scalar},

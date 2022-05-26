@@ -7,7 +7,8 @@ use super::{
     },
 };
 use crate::{
-    bls12_381::bbs::core::{
+    error::Error,
+    schemes::bbs::ciphersuites::bls12_381::{
         g1_affine_compressed_size,
         Challenge,
         Message,
@@ -19,7 +20,6 @@ use crate::{
         PublicKey,
         Signature,
     },
-    error::Error,
 };
 use digest::{ExtendableOutput, Update, XofReader};
 

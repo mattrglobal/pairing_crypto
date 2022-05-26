@@ -3,14 +3,14 @@ use super::{
     utils::digest_messages,
 };
 use crate::{
-    bls12_381::bbs::core::{
+    error::Error,
+    schemes::bbs::ciphersuites::bls12_381::{
         Message,
         MessageGenerators,
         PublicKey,
         SecretKey,
         Signature,
     },
-    error::Error,
 };
 
 /// Creates a signature

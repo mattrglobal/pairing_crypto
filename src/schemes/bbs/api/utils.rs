@@ -15,8 +15,12 @@
 
 use super::dtos::BbsDeriveProofRevealMessageRequest;
 use crate::{
-    bls12_381::bbs::core::{HiddenMessage, Message, ProofMessage},
     error::Error,
+    schemes::bbs::ciphersuites::bls12_381::{
+        HiddenMessage,
+        Message,
+        ProofMessage,
+    },
 };
 
 /// Digests the set of input messages and returns in the form of an internal

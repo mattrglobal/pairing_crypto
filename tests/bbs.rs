@@ -1,12 +1,9 @@
 use core::convert::TryFrom;
 use digest::{ExtendableOutput, Update, XofReader};
-use pairing_crypto::bls12_381::{
-    bbs::{self, Signature},
-    Challenge,
-    HiddenMessage,
-    Message,
-    PresentationMessage,
-    ProofMessage,
+use pairing_crypto::bbs::ciphersuites::bls12_381::{
+    verify_proof, BbsVerifyProofRequest, Challenge, HiddenMessage, Message,
+    MessageGenerators, PokSignature, PresentationMessage, ProofMessage,
+    PublicKey, SecretKey, Signature, SECRET_KEY_SALT,
 };
 
 const TEST_KEYS: [&[u8]; 7] = [
@@ -42,7 +39,6 @@ const EXPECTED_SIGS: [&str; 7] = [
 #[test]
 fn signing() {
     // TODO these test vectors need to be swapped to use the correct secret key
-    use pairing_crypto::bls12_381::bbs::SECRET_KEY_SALT;
 
     let test_atts = TEST_CLAIMS
         .iter()
@@ -50,18 +46,17 @@ fn signing() {
         .collect::<Vec<Message>>();
 
     for i in 0..TEST_KEYS.len() {
-        let sk_opt =
-            bbs::SecretKey::new(SECRET_KEY_SALT, Some(TEST_KEYS[i].to_vec()));
+        let sk_opt = SecretKey::new(SECRET_KEY_SALT, TEST_KEYS[i].to_vec());
         assert!(sk_opt.is_some());
         let sk = sk_opt.unwrap();
-        let pk = bbs::PublicKey::from(&sk);
-        let gens = bbs::MessageGenerators::from_public_key(pk, test_atts.len());
-        let sig_res = bbs::Signature::new(&sk, &gens, &test_atts);
+        let pk = PublicKey::from(&sk);
+        let gens = MessageGenerators::from_public_key(pk, test_atts.len());
+        let sig_res = Signature::new(&sk, &gens, &test_atts);
         assert!(sig_res.is_ok());
 
         let sig = sig_res.unwrap();
-        let cte_sig = bbs::Signature::from_bytes(
-            &<[u8; bbs::Signature::BYTES]>::try_from(
+        let cte_sig = Signature::from_bytes(
+            &<[u8; Signature::SIZE_BYTES]>::try_from(
                 hex::decode(EXPECTED_SIGS[i]).unwrap(),
             )
             .unwrap(),
@@ -74,10 +69,7 @@ fn signing() {
 #[test]
 fn proofs() {
     // TODO these test vectors need to be swapped to use the correct secret key
-    use pairing_crypto::{
-        bls12_381::bbs::{SECRET_KEY_SALT, *},
-        MockRng,
-    };
+    use pairing_crypto::MockRng;
     use rand::SeedableRng;
     let mut rng = MockRng::from_seed([1u8; 16]);
     let test_atts = TEST_CLAIMS
@@ -98,13 +90,12 @@ fn proofs() {
     let presentation_message = PresentationMessage::hash(PRESENTATION_MESSAGE);
 
     for i in 0..TEST_KEYS.len() {
-        let pk = bbs::PublicKey::from(
-            &bbs::SecretKey::new(SECRET_KEY_SALT, Some(TEST_KEYS[i].to_vec()))
-                .unwrap(),
+        let pk = PublicKey::from(
+            &SecretKey::new(SECRET_KEY_SALT, TEST_KEYS[i].to_vec()).unwrap(),
         );
-        let gens = bbs::MessageGenerators::from_public_key(pk, test_atts.len());
-        let sig = bbs::Signature::from_bytes(
-            &<[u8; bbs::Signature::BYTES]>::try_from(
+        let gens = MessageGenerators::from_public_key(pk, test_atts.len());
+        let sig = Signature::from_bytes(
+            &<[u8; Signature::SIZE_BYTES]>::try_from(
                 hex::decode(EXPECTED_SIGS[i]).unwrap(),
             )
             .unwrap(),
@@ -122,7 +113,7 @@ fn proofs() {
 
         // Reveal 1 message at a time
         for j in 0..proof_msgs.len() {
-            let res = bbs::PokSignature::init_with_rng(
+            let res = PokSignature::init_with_rng(
                 sig,
                 &gens,
                 proof_msgs.as_slice(),

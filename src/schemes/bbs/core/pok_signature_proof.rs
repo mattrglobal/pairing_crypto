@@ -1,10 +1,8 @@
 use super::{
-    g1_affine_compressed_size,
-    scalar_size,
-    Challenge,
-    Message,
-    MessageGenerators,
-    PublicKey,
+    constants::{g1_affine_compressed_size, scalar_size},
+    message_generator::MessageGenerators,
+    public_key::PublicKey,
+    types::{Challenge, Message},
 };
 use crate::{
     curves::bls12_381::{
