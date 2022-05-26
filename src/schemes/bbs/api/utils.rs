@@ -17,7 +17,7 @@
 
 use super::dtos::BbsDeriveProofRevealMessageRequest;
 use crate::bls12_381::bbs::core::{HiddenMessage, Message, ProofMessage};
-use crate::common::error::Error;
+use crate::error::Error;
 
 /// Digests the set of input messages and returns in the form of an internal
 /// structure

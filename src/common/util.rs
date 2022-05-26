@@ -1,4 +1,4 @@
-use crate::common::error::Error;
+use crate::error::Error;
 
 pub fn vec_to_byte_array<const N: usize>(
     vec: Vec<u8>,

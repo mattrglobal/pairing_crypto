@@ -7,7 +7,7 @@ use crate::bls12_381::bbs::core::{
     PokSignature, PokSignatureProof, PresentationMessage, ProofMessage,
     PublicKey, Signature,
 };
-use crate::common::error::Error;
+use crate::error::Error;
 use digest::{ExtendableOutput, Update, XofReader};
 
 /// Derives a signature proof of knowledge

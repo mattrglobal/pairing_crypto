@@ -3,10 +3,10 @@ use super::{
     MessageGenerators, PublicKey,
 };
 use crate::{
-    common::error::Error,
     curves::bls12_381::{
         Bls12, G1Affine, G1Projective, G2Affine, G2Prepared, Scalar,
     },
+    error::Error,
 };
 use core::convert::TryFrom;
 use digest::Update;

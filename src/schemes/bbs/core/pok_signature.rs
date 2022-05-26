@@ -2,8 +2,8 @@ use super::{
     Challenge, HiddenMessage, MessageGenerators, PokSignatureProof,
     ProofCommittedBuilder, ProofMessage, Signature,
 };
-use crate::common::error::Error;
 use crate::curves::bls12_381::{G1Affine, G1Projective, Scalar};
+use crate::error::Error;
 use digest::Update;
 use ff::Field;
 use group::Curve;

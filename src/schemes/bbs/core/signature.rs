@@ -2,10 +2,10 @@ use super::{
     g1_affine_compressed_size, scalar_size, Message, MessageGenerators,
     PublicKey, SecretKey,
 };
-use crate::common::{error::Error, util::vec_to_byte_array};
 use crate::curves::bls12_381::{
     Bls12, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective, Scalar,
 };
+use crate::{common::util::vec_to_byte_array, error::Error};
 use core::convert::TryFrom;
 use core::fmt;
 use core::ops::Neg;

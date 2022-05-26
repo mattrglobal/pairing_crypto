@@ -1,4 +1,4 @@
-use crate::common::error::Error;
+use crate::error::Error;
 use crate::common::util::vec_to_byte_array;
 use crate::curves::bls12_381::{generate_sk, Scalar};
 use ff::Field;

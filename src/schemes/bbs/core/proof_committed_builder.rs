@@ -1,5 +1,5 @@
-use crate::common::error::Error;
 use crate::curves::bls12_381::Scalar;
+use crate::error::Error;
 use core::fmt::Debug;
 use digest::Update;
 use ff::Field;
