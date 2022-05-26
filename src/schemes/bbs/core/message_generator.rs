@@ -1,12 +1,19 @@
 use super::g1_affine_compressed_size;
 use super::{PublicKey, SecretKey};
-use crate::curves::bls12_381::{ExpandMsgXof, G1Projective};
+use crate::curves::bls12_381::G1Projective;
 use core::convert::TryFrom;
-use group::Curve;
-use group::Group;
+use core::marker::PhantomData;
+use group::{Curve, Group};
 
 const DATA_SIZE: usize = 201;
 const DST: &[u8] = b"BLS12381G1_XOF:SHAKE256_SSWU_RO_BBS+_SIGNATURES:1_0_0";
+
+/// TODO remove it from here
+/// Placeholder type for implementing expand_message_xof based on a hash function
+#[derive(Debug)]
+pub struct ExpandMsgXof<HashT> {
+    phantom: PhantomData<HashT>,
+}
 
 /// The generators that are used to sign a vector of commitments for a BBS signature
 /// These must be the same generators used by sign, verify, prove, and open

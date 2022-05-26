@@ -44,6 +44,11 @@ macro_rules! scalar_wrapper {
                 Self(Scalar::from_okm(bytes))
             }
 
+            /// Hash arbitrary data to this struct
+            pub fn hash<B: AsRef<[u8]>>(_data: B) -> Self {
+                todo!()
+            }
+
         }
     };
 }
