@@ -1,23 +1,36 @@
 use super::{
-    g1_affine_compressed_size, scalar_size, Message, MessageGenerators,
-    PublicKey, SecretKey,
+    g1_affine_compressed_size,
+    scalar_size,
+    Message,
+    MessageGenerators,
+    PublicKey,
+    SecretKey,
 };
-use crate::curves::bls12_381::{
-    Bls12, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective, Scalar,
+use crate::{
+    common::util::vec_to_byte_array,
+    curves::bls12_381::{
+        Bls12,
+        G1Affine,
+        G1Projective,
+        G2Affine,
+        G2Prepared,
+        G2Projective,
+        Scalar,
+    },
+    error::Error,
 };
-use crate::{common::util::vec_to_byte_array, error::Error};
-use core::convert::TryFrom;
-use core::fmt;
-use core::ops::Neg;
+use core::{convert::TryFrom, fmt, ops::Neg};
 use digest::{ExtendableOutput, Update, XofReader};
 use ff::Field;
-use group::prime::PrimeCurveAffine;
-use group::{Curve, Group};
+use group::{prime::PrimeCurveAffine, Curve, Group};
 use pairing::{MillerLoopResult as _, MultiMillerLoop};
 use serde::{
     de::{Error as DError, SeqAccess, Visitor},
     ser::SerializeTuple,
-    Deserialize, Deserializer, Serialize, Serializer,
+    Deserialize,
+    Deserializer,
+    Serialize,
+    Serializer,
 };
 use sha3::Shake256;
 use subtle::{Choice, ConditionallySelectable};
@@ -143,7 +156,8 @@ impl Signature {
         let mut reader = hasher.finalize_xof();
         reader.read(&mut res);
 
-        // Should yield non-zero values for `e` and `s`, very small likelihood of it being zero
+        // Should yield non-zero values for `e` and `s`, very small likelihood
+        // of it being zero
         let e = Scalar::from_bytes_wide(&res).unwrap();
         reader.read(&mut res);
         let s = Scalar::from_bytes_wide(&res).unwrap();
@@ -164,7 +178,8 @@ impl Signature {
         M: AsRef<[Message]>,
     {
         let msgs = msgs.as_ref();
-        // If there are more messages then generators then we cannot verify the signature return false
+        // If there are more messages then generators then we cannot verify the
+        // signature return false
         if generators.len() < msgs.len() {
             return false;
         }

@@ -1,13 +1,26 @@
-use super::dtos::{BbsDeriveProofRequest, BbsVerifyProofRequest};
-use super::utils::{
-    digest_messages, digest_proof_messages, digest_revealed_proof_messages,
+use super::{
+    dtos::{BbsDeriveProofRequest, BbsVerifyProofRequest},
+    utils::{
+        digest_messages,
+        digest_proof_messages,
+        digest_revealed_proof_messages,
+    },
 };
-use crate::bls12_381::bbs::core::{
-    g1_affine_compressed_size, Challenge, Message, MessageGenerators,
-    PokSignature, PokSignatureProof, PresentationMessage, ProofMessage,
-    PublicKey, Signature,
+use crate::{
+    bls12_381::bbs::core::{
+        g1_affine_compressed_size,
+        Challenge,
+        Message,
+        MessageGenerators,
+        PokSignature,
+        PokSignatureProof,
+        PresentationMessage,
+        ProofMessage,
+        PublicKey,
+        Signature,
+    },
+    error::Error,
 };
-use crate::error::Error;
 use digest::{ExtendableOutput, Update, XofReader};
 
 /// Derives a signature proof of knowledge

@@ -1,3 +1,15 @@
 # stable options
 max_width = 80
 use_field_init_shorthand = true
+
+# unstable options
+unstable_features = true
+indent_style = "Block"
+imports_layout = "HorizontalVertical"
+imports_granularity = "Crate"
+combine_control_expr = false
+comment_width = 100
+condense_wildcard_suffixes = true
+format_strings = true
+normalize_comments = true
+wrap_comments = true 

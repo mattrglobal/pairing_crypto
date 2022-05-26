@@ -1,6 +1,8 @@
-use crate::error::Error;
-use crate::common::util::vec_to_byte_array;
-use crate::curves::bls12_381::{generate_sk, Scalar};
+use crate::{
+    common::util::vec_to_byte_array,
+    curves::bls12_381::{generate_sk, Scalar},
+    error::Error,
+};
 use ff::Field;
 use rand::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};

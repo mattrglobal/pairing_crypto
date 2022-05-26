@@ -85,8 +85,8 @@ pub enum HiddenMessage {
     ///     so a blinding factor will be generated specific to this proof
     ProofSpecificBlinding(Message),
     /// Indicates the message is hidden but it is involved with other proofs
-    ///     like boundchecks, set memberships or inequalities, so the blinding factor
-    ///     is provided from an external source.
+    ///     like boundchecks, set memberships or inequalities, so the blinding
+    /// factor     is provided from an external source.
     ExternalBlinding(Message, Nonce),
 }
 

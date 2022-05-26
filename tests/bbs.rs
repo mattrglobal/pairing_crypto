@@ -2,7 +2,11 @@ use core::convert::TryFrom;
 use digest::{ExtendableOutput, Update, XofReader};
 use pairing_crypto::bls12_381::{
     bbs::{self, Signature},
-    Challenge, HiddenMessage, Message, PresentationMessage, ProofMessage,
+    Challenge,
+    HiddenMessage,
+    Message,
+    PresentationMessage,
+    ProofMessage,
 };
 
 const TEST_KEYS: [&[u8]; 7] = [
@@ -70,9 +74,10 @@ fn signing() {
 #[test]
 fn proofs() {
     // TODO these test vectors need to be swapped to use the correct secret key
-    use pairing_crypto::bls12_381::bbs::SECRET_KEY_SALT;
-    use pairing_crypto::bls12_381::bbs::*;
-    use pairing_crypto::MockRng;
+    use pairing_crypto::{
+        bls12_381::bbs::{SECRET_KEY_SALT, *},
+        MockRng,
+    };
     use rand::SeedableRng;
     let mut rng = MockRng::from_seed([1u8; 16]);
     let test_atts = TEST_CLAIMS

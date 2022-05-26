@@ -1,5 +1,4 @@
-use crate::curves::bls12_381::Scalar;
-use crate::error::Error;
+use crate::{curves::bls12_381::Scalar, error::Error};
 use core::fmt::Debug;
 use digest::Update;
 use ff::Field;
@@ -170,7 +169,10 @@ where
         if secrets.len() != self.cache.points.len() {
             return Err(Error::CryptoSchnorrChallengeComputation {
                 cause: format!(
-                    "secrets length {} is not equal to blinding factors length {}", secrets.len(), self.cache.points.len()
+                    "secrets length {} is not equal to blinding factors \
+                     length {}",
+                    secrets.len(),
+                    self.cache.points.len()
                 ),
             });
         }

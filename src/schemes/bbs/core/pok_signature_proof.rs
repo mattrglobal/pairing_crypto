@@ -1,10 +1,19 @@
 use super::{
-    g1_affine_compressed_size, scalar_size, Challenge, Message,
-    MessageGenerators, PublicKey,
+    g1_affine_compressed_size,
+    scalar_size,
+    Challenge,
+    Message,
+    MessageGenerators,
+    PublicKey,
 };
 use crate::{
     curves::bls12_381::{
-        Bls12, G1Affine, G1Projective, G2Affine, G2Prepared, Scalar,
+        Bls12,
+        G1Affine,
+        G1Projective,
+        G2Affine,
+        G2Prepared,
+        Scalar,
     },
     error::Error,
 };
@@ -187,7 +196,13 @@ impl PokSignatureProof {
         // TODO need to account for generators being 0?
         if generators.len() - self.hidden_message_count != rvl_msgs.len() {
             return Err(Error::BadParams {
-                cause: format!("Incorrect number of revealed messages: #generators: {}, #hidden_messages: {}, #revealed_messages: {}", generators.len(), self.hidden_message_count, rvl_msgs.len()),
+                cause: format!(
+                    "Incorrect number of revealed messages: #generators: {}, \
+                     #hidden_messages: {}, #revealed_messages: {}",
+                    generators.len(),
+                    self.hidden_message_count,
+                    rvl_msgs.len()
+                ),
             });
         }
 

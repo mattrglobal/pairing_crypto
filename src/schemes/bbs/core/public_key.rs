@@ -1,11 +1,11 @@
-use super::constants::g2_affine_compressed_size;
-use super::secret_key::SecretKey;
-use crate::common::util::vec_to_byte_array;
-use crate::curves::bls12_381::{sk_to_pk_in_g2, G2Affine, G2Projective};
-use crate::error::Error;
+use super::{constants::g2_affine_compressed_size, secret_key::SecretKey};
+use crate::{
+    common::util::vec_to_byte_array,
+    curves::bls12_381::{sk_to_pk_in_g2, G2Affine, G2Projective},
+    error::Error,
+};
 use core::ops::{BitOr, Not};
-use group::Curve;
-use group::Group;
+use group::{Curve, Group};
 use serde::{Deserialize, Serialize};
 use subtle::Choice;
 

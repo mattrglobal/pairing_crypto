@@ -1,32 +1,32 @@
-/*
- * Copyright 2020
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * ------------------------------------------------------------------------------
- */
+// Copyright 2020
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// ------------------------------------------------------------------------------
 
 use super::dtos::BbsDeriveProofRevealMessageRequest;
-use crate::bls12_381::bbs::core::{HiddenMessage, Message, ProofMessage};
-use crate::error::Error;
+use crate::{
+    bls12_381::bbs::core::{HiddenMessage, Message, ProofMessage},
+    error::Error,
+};
 
 /// Digests the set of input messages and returns in the form of an internal
 /// structure
 pub fn digest_messages(messages: Vec<Vec<u8>>) -> Result<Vec<Message>, Error> {
     if messages.len() < 1 {
         return Err(Error::BadParams {
-            cause:
-                "message list to sign is empty, expected at least one message"
-                    .to_owned(),
+            cause: "message list to sign is empty, expected at least one \
+                    message"
+                .to_owned(),
         });
     }
 
@@ -39,9 +39,9 @@ pub fn digest_proof_messages(
 ) -> Result<Vec<ProofMessage>, Error> {
     if messages.len() < 1 {
         return Err(Error::BadParams {
-            cause:
-                "message list to sign is empty, expected at least one message"
-                    .to_owned(),
+            cause: "message list to sign is empty, expected at least one \
+                    message"
+                .to_owned(),
         });
     }
 
@@ -73,9 +73,13 @@ pub fn digest_revealed_proof_messages(
         .iter()
         .any(|r| *r >= total_message_count)
     {
-        return Err(Error::BadParams{ cause:
-            format!("revealed message index is out of bounds, total_message_count is {}", total_message_count),
-    });
+        return Err(Error::BadParams {
+            cause: format!(
+                "revealed message index is out of bounds, total_message_count \
+                 is {}",
+                total_message_count
+            ),
+        });
     }
 
     // TODO deal with the unwrap here and the error response

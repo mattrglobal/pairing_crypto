@@ -1,25 +1,25 @@
-use super::g1_affine_compressed_size;
-use super::{PublicKey, SecretKey};
+use super::{g1_affine_compressed_size, PublicKey, SecretKey};
 use crate::curves::bls12_381::G1Projective;
-use core::convert::TryFrom;
-use core::marker::PhantomData;
+use core::{convert::TryFrom, marker::PhantomData};
 use group::{Curve, Group};
 
 const DATA_SIZE: usize = 201;
 const DST: &[u8] = b"BLS12381G1_XOF:SHAKE256_SSWU_RO_BBS+_SIGNATURES:1_0_0";
 
 /// TODO remove it from here
-/// Placeholder type for implementing expand_message_xof based on a hash function
+/// Placeholder type for implementing expand_message_xof based on a hash
+/// function
 #[derive(Debug)]
 pub struct ExpandMsgXof<HashT> {
     phantom: PhantomData<HashT>,
 }
 
-/// The generators that are used to sign a vector of commitments for a BBS signature
-/// These must be the same generators used by sign, verify, prove, and open
+/// The generators that are used to sign a vector of commitments for a BBS
+/// signature These must be the same generators used by sign, verify, prove, and
+/// open
 ///
-/// These are generated in a deterministic manner, use MessageGenerators::from_secret_key or
-/// MessageGenerators::from_public_key
+/// These are generated in a deterministic manner, use
+/// MessageGenerators::from_secret_key or MessageGenerators::from_public_key
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MessageGenerators {
     /// Blinding factor generator
@@ -90,10 +90,11 @@ impl MessageGenerators {
 
     /// Create generators from the public key
     pub fn from_public_key(pk: PublicKey, length: usize) -> Self {
-        // Convert to a normal public key but deterministically derive all the generators
-        // using the hash to curve algorithm BLS12381G1_XMD:SHA-256_SSWU_RO denoted as H2C
-        // h_0 <- H2C(w || I2OSP(0, 4) || I2OSP(0, 1) || I2OSP(message_count, 4))
-        // h_i <- H2C(w || I2OSP(i, 4) || I2OSP(0, 1) || I2OSP(message_count, 4))
+        // Convert to a normal public key but deterministically derive all the
+        // generators using the hash to curve algorithm
+        // BLS12381G1_XMD:SHA-256_SSWU_RO denoted as H2C h_0 <- H2C(w ||
+        // I2OSP(0, 4) || I2OSP(0, 1) || I2OSP(message_count, 4)) h_i <-
+        // H2C(w || I2OSP(i, 4) || I2OSP(0, 1) || I2OSP(message_count, 4))
 
         let count = (length as u32).to_be_bytes();
         let mut state = [0u8; DATA_SIZE];
