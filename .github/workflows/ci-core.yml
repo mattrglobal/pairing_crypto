@@ -63,5 +63,5 @@ jobs:
 
       - uses: actions-rs/cargo@v1
         with:
-          command: fmt
+          command: +nightly fmt
           args: --all -- --check
