@@ -1,7 +1,5 @@
 mod api;
 
-mod ciphersuites;
-
 /// Core implementation of BBS scheme.
 #[macro_use]
 pub mod core;
