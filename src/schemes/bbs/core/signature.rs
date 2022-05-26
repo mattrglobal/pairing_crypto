@@ -261,7 +261,7 @@ impl Signature {
             .copied()
             .chain(generators.iter())
             .collect();
-        let mut scalars: Vec<_> = [Scalar::one(), s]
+        let scalars: Vec<_> = [Scalar::one(), s]
             .iter()
             .copied()
             .chain(msgs.iter().map(|c| c.0))

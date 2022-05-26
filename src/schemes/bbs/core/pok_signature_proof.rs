@@ -42,8 +42,8 @@ pub struct PokSignatureProof {
 }
 
 impl PokSignatureProof {
-    pub const FIELD_BYTES: usize = scalar_size();
-    pub const COMMITMENT_G1_BYTES: usize = g1_affine_compressed_size();
+    const FIELD_BYTES: usize = scalar_size();
+    const COMMITMENT_G1_BYTES: usize = g1_affine_compressed_size();
 
     /// Store the proof as a sequence of bytes
     /// Each point is compressed to big-endian format
@@ -196,7 +196,7 @@ impl PokSignatureProof {
         hasher.update(self.d.to_affine().to_uncompressed());
 
         let proof1_points = [self.a_bar - self.d, self.a_prime, generators.h0];
-        let mut proof1_scalars =
+        let proof1_scalars =
             [challenge.0, self.proofs1[0].0, self.proofs1[1].0];
         let commitment_proofs1 =
             G1Projective::multi_exp(&proof1_points, &proof1_scalars);
