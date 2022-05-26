@@ -17,7 +17,9 @@ use super::dtos::BbsDeriveProofRevealMessageRequest;
 use crate::{
     error::Error,
     schemes::bbs::ciphersuites::bls12_381::{
-        HiddenMessage, Message, ProofMessage,
+        HiddenMessage,
+        Message,
+        ProofMessage,
     },
 };
 

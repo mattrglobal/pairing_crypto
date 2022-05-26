@@ -8,7 +8,12 @@ use super::{
 use crate::{
     common::util::vec_to_byte_array,
     curves::bls12_381::{
-        Bls12, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective,
+        Bls12,
+        G1Affine,
+        G1Projective,
+        G2Affine,
+        G2Prepared,
+        G2Projective,
         Scalar,
     },
     error::Error,
@@ -21,7 +26,10 @@ use pairing::{MillerLoopResult as _, MultiMillerLoop};
 use serde::{
     de::{Error as DError, SeqAccess, Visitor},
     ser::SerializeTuple,
-    Deserialize, Deserializer, Serialize, Serializer,
+    Deserialize,
+    Deserializer,
+    Serialize,
+    Serializer,
 };
 use sha3::Shake256;
 use subtle::{Choice, ConditionallySelectable};
