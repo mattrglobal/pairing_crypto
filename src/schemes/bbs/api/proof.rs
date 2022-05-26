@@ -33,7 +33,7 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     // Parse signature from request
     let signature = match Signature::from_vec(request.signature) {
         Ok(result) => result,
-        Err(e) => {
+        Err(_) => {
             return Err(Error::CryptoMalformedSignature {
                 cause: "parsing failed".to_owned(),
             });

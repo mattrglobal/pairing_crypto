@@ -83,7 +83,7 @@ impl core::fmt::Debug for Error {
             }
             Error::CryptoBadScalar => write!(f, "scalar is invalid."),
             Error::Serde => write!(f, "error during ser-de operation."),
-            Error::CryptoSchnorrChallengeComputation { cause } => {
+            Error::CryptoSchnorrChallengeComputation { ref cause } => {
                 write!(
                     f,
                     "schnorr challenge computation failed: cause: {}",
