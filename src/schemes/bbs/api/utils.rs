@@ -17,16 +17,14 @@ use super::dtos::BbsDeriveProofRevealMessageRequest;
 use crate::{
     error::Error,
     schemes::bbs::ciphersuites::bls12_381::{
-        HiddenMessage,
-        Message,
-        ProofMessage,
+        HiddenMessage, Message, ProofMessage,
     },
 };
 
 /// Digests the set of input messages and returns in the form of an internal
 /// structure
 pub fn digest_messages(messages: Vec<Vec<u8>>) -> Result<Vec<Message>, Error> {
-    if messages.len() < 1 {
+    if messages.is_empty() {
         return Err(Error::BadParams {
             cause: "message list to sign is empty, expected at least one \
                     message"
@@ -34,14 +32,14 @@ pub fn digest_messages(messages: Vec<Vec<u8>>) -> Result<Vec<Message>, Error> {
         });
     }
 
-    Ok(messages.iter().map(|m| Message::hash(m)).collect())
+    Ok(messages.iter().map(Message::hash).collect())
 }
 
 /// Digests a set of supplied proof messages
 pub fn digest_proof_messages(
     messages: Vec<BbsDeriveProofRevealMessageRequest>,
 ) -> Result<Vec<ProofMessage>, Error> {
-    if messages.len() < 1 {
+    if messages.is_empty() {
         return Err(Error::BadParams {
             cause: "message list to sign is empty, expected at least one \
                     message"
@@ -56,11 +54,11 @@ pub fn digest_proof_messages(
 
             // Change this to an enum
             if element.reveal {
-                return ProofMessage::Revealed(digested_message);
+                ProofMessage::Revealed(digested_message)
             } else {
-                return ProofMessage::Hidden(
-                    HiddenMessage::ProofSpecificBlinding(digested_message),
-                );
+                ProofMessage::Hidden(HiddenMessage::ProofSpecificBlinding(
+                    digested_message,
+                ))
             }
         })
         .collect())

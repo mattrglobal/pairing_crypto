@@ -8,12 +8,7 @@ use super::{
 use crate::{
     common::util::vec_to_byte_array,
     curves::bls12_381::{
-        Bls12,
-        G1Affine,
-        G1Projective,
-        G2Affine,
-        G2Prepared,
-        G2Projective,
+        Bls12, G1Affine, G1Projective, G2Affine, G2Prepared, G2Projective,
         Scalar,
     },
     error::Error,
@@ -26,10 +21,7 @@ use pairing::{MillerLoopResult as _, MultiMillerLoop};
 use serde::{
     de::{Error as DError, SeqAccess, Visitor},
     ser::SerializeTuple,
-    Deserialize,
-    Deserializer,
-    Serialize,
-    Serializer,
+    Deserialize, Deserializer, Serialize, Serializer,
 };
 use sha3::Shake256;
 use subtle::{Choice, ConditionallySelectable};
@@ -81,15 +73,12 @@ impl<'de> Deserialize<'de> for Signature {
                         .next_element()?
                         .ok_or_else(|| DError::invalid_length(i, &self))?;
                 }
-                let res = Signature::from_bytes(&arr);
-                if res.is_ok() {
-                    Ok(res.unwrap())
-                } else {
-                    Err(DError::invalid_value(
+                Signature::from_bytes(&arr).map_err(|_| {
+                    DError::invalid_value(
                         serde::de::Unexpected::Bytes(&arr),
                         &self,
-                    ))
-                }
+                    )
+                })
             }
         }
 
