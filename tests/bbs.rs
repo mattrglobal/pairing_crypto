@@ -1,9 +1,19 @@
 use core::convert::TryFrom;
 use digest::{ExtendableOutput, Update, XofReader};
 use pairing_crypto::bbs::ciphersuites::bls12_381::{
-    verify_proof, BbsVerifyProofRequest, Challenge, HiddenMessage, Message,
-    MessageGenerators, PokSignature, PresentationMessage, ProofMessage,
-    PublicKey, SecretKey, Signature, SECRET_KEY_SALT,
+    verify_proof,
+    BbsVerifyProofRequest,
+    Challenge,
+    HiddenMessage,
+    Message,
+    MessageGenerators,
+    PokSignature,
+    PresentationMessage,
+    ProofMessage,
+    PublicKey,
+    SecretKey,
+    Signature,
+    SECRET_KEY_SALT,
 };
 
 const TEST_KEYS: [&[u8]; 7] = [
