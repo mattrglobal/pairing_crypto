@@ -1,18 +1,35 @@
-use super::MessageGenerators;
-use crate::curves::bls12_381::{
-    multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared,
-    G2Projective, PublicKey, Scalar, SecretKey,
+use super::{
+    constants::{g1_affine_compressed_size, scalar_size},
+    message_generator::MessageGenerators,
+    public_key::PublicKey,
+    secret_key::SecretKey,
+    types::Message,
 };
-use crate::schemes::core::*;
-use core::convert::TryFrom;
-use core::ops::Neg;
+use crate::{
+    common::util::vec_to_byte_array,
+    curves::bls12_381::{
+        Bls12,
+        G1Affine,
+        G1Projective,
+        G2Affine,
+        G2Prepared,
+        G2Projective,
+        Scalar,
+    },
+    error::Error,
+};
+use core::{convert::TryFrom, fmt, ops::Neg};
 use digest::{ExtendableOutput, Update, XofReader};
 use ff::Field;
-use group::{Curve, Group};
+use group::{prime::PrimeCurveAffine, Curve, Group};
+use pairing::{MillerLoopResult as _, MultiMillerLoop};
 use serde::{
     de::{Error as DError, SeqAccess, Visitor},
     ser::SerializeTuple,
-    Deserialize, Deserializer, Serialize, Serializer,
+    Deserialize,
+    Deserializer,
+    Serialize,
+    Serializer,
 };
 use sha3::Shake256;
 use subtle::{Choice, ConditionallySelectable};
@@ -58,25 +75,22 @@ impl<'de> Deserialize<'de> for Signature {
             where
                 A: SeqAccess<'de>,
             {
-                let mut arr = [0u8; Signature::BYTES];
+                let mut arr = [0u8; Signature::SIZE_BYTES];
                 for i in 0..arr.len() {
                     arr[i] = seq
                         .next_element()?
                         .ok_or_else(|| DError::invalid_length(i, &self))?;
                 }
-                let res = Signature::from_bytes(&arr);
-                if res.is_ok() {
-                    Ok(res.unwrap())
-                } else {
-                    Err(DError::invalid_value(
+                Signature::from_bytes(&arr).map_err(|_| {
+                    DError::invalid_value(
                         serde::de::Unexpected::Bytes(&arr),
                         &self,
-                    ))
-                }
+                    )
+                })
             }
         }
 
-        d.deserialize_tuple(Signature::BYTES, ArrayVisitor)
+        d.deserialize_tuple(Signature::SIZE_BYTES, ArrayVisitor)
     }
 }
 
@@ -102,7 +116,8 @@ impl ConditionallySelectable for Signature {
 
 impl Signature {
     /// The number of bytes in a signature
-    pub const BYTES: usize = 112;
+    pub const SIZE_BYTES: usize =
+        g1_affine_compressed_size() + 2 * scalar_size();
 
     /// Generate a new signature where all messages are known to the signer
     pub fn new<M>(
@@ -115,10 +130,13 @@ impl Signature {
     {
         let msgs = msgs.as_ref();
         if generators.len() < msgs.len() {
-            return Err(Error::new(1, "not enough message generators"));
+            return Err(Error::CryptoNotEnoughMessageGenerators {
+                generators: generators.len(),
+                messages: msgs.len(),
+            });
         }
-        if sk.0.is_zero() {
-            return Err(Error::new(2, "invalid secret key"));
+        if sk.0.is_zero().unwrap_u8() == 1 {
+            return Err(Error::CryptoInvalidSecretKey);
         }
 
         let mut hasher = Shake256::default();
@@ -134,10 +152,11 @@ impl Signature {
         let mut reader = hasher.finalize_xof();
         reader.read(&mut res);
 
-        // Should yield non-zero values for `e` and `s`, very small likelihood of it being zero
-        let e = Scalar::from_bytes_wide(&res);
+        // Should yield non-zero values for `e` and `s`, very small likelihood
+        // of it being zero
+        let e = Scalar::from_bytes_wide(&res).unwrap();
         reader.read(&mut res);
-        let s = Scalar::from_bytes_wide(&res);
+        let s = Scalar::from_bytes_wide(&res).unwrap();
         let b = Self::compute_b(s, msgs, generators);
         let exp = (e + sk.0).invert().unwrap();
 
@@ -155,7 +174,8 @@ impl Signature {
         M: AsRef<[Message]>,
     {
         let msgs = msgs.as_ref();
-        // If there are more messages then generators then we cannot verify the signature return false
+        // If there are more messages then generators then we cannot verify the
+        // signature return false
         if generators.len() < msgs.len() {
             return false;
         }
@@ -167,7 +187,7 @@ impl Signature {
         let a = G2Projective::generator() * self.e + pk.0;
         let b = Self::compute_b(self.s, msgs, generators).neg();
 
-        multi_miller_loop(&[
+        Bls12::multi_miller_loop(&[
             (&self.a.to_affine(), &G2Prepared::from(a.to_affine())),
             (&b.to_affine(), &G2Prepared::from(G2Affine::generator())),
         ])
@@ -178,66 +198,64 @@ impl Signature {
     }
 
     /// Get the byte representation of this signature
-    pub fn to_bytes(&self) -> [u8; Self::BYTES] {
-        let mut bytes = [0u8; Self::BYTES];
+    pub fn to_bytes(&self) -> [u8; Self::SIZE_BYTES] {
+        let mut bytes = [0u8; Self::SIZE_BYTES];
         bytes[0..48].copy_from_slice(&self.a.to_affine().to_compressed());
-        let mut e = self.e.to_bytes();
+        let mut e = self.e.to_bytes_be();
         e.reverse();
         bytes[48..80].copy_from_slice(&e[..]);
-        let mut s = self.s.to_bytes();
+        let mut s = self.s.to_bytes_be();
         s.reverse();
         bytes[80..112].copy_from_slice(&s[..]);
         bytes
     }
 
-    // TODO
     /// Convert a vector of bytes of big-endian representation of the public key
-    pub fn from_vec(bytes: Vec<u8>) -> Result<Self, String> {
-        match vec_to_byte_array::<{ Self::BYTES }>(bytes) {
+    pub fn from_vec(bytes: Vec<u8>) -> Result<Self, Error> {
+        match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
             Ok(result) => Self::from_bytes(&result),
-            Err(_) => {
-                return Err(
-                    "Public key length incorrect expected 32 bytes".to_string()
-                )
-            }
+            Err(e) => Err(e),
         }
     }
 
     /// Convert a byte sequence into a signature
-    pub fn from_bytes(data: &[u8; Self::BYTES]) -> Result<Self, String> {
+    pub fn from_bytes(data: &[u8; Self::SIZE_BYTES]) -> Result<Self, Error> {
         let a_res = G1Affine::from_compressed(
             &<[u8; 48]>::try_from(&data[0..48]).unwrap(),
         )
         .map(G1Projective::from);
         let mut e_bytes = <[u8; 32]>::try_from(&data[48..80]).unwrap();
         e_bytes.reverse();
-        let e_res = Scalar::from_bytes(&e_bytes);
+        let e_res = Scalar::from_bytes_be(&e_bytes);
         let mut s_bytes = <[u8; 32]>::try_from(&data[80..112]).unwrap();
         s_bytes.reverse();
-        let s_res = Scalar::from_bytes(&s_bytes);
+        let s_res = Scalar::from_bytes_be(&s_bytes);
 
         let a = if a_res.is_some().unwrap_u8() == 1u8 {
             a_res.unwrap()
         } else {
-            return Err(
-                "Failed to decompress `a` component of signature".to_string()
-            );
+            return Err(Error::CryptoMalformedSignature {
+                cause: "Failed to decompress `a` component of signature"
+                    .to_string(),
+            });
         };
 
         let e = if e_res.is_some().unwrap_u8() == 1u8 {
             e_res.unwrap()
         } else {
-            return Err(
-                "Failed to decompress `e` component of signature".to_string()
-            );
+            return Err(Error::CryptoMalformedSignature {
+                cause: "Failed to decompress `e` component of signature"
+                    .to_string(),
+            });
         };
 
         let s = if s_res.is_some().unwrap_u8() == 1u8 {
             s_res.unwrap()
         } else {
-            return Err(
-                "Failed to decompress `s` component of signature".to_string()
-            );
+            return Err(Error::CryptoMalformedSignature {
+                cause: "Failed to decompress `s` component of signature"
+                    .to_string(),
+            });
         };
 
         Ok(Signature { a, e, s })
@@ -254,13 +272,13 @@ impl Signature {
             .copied()
             .chain(generators.iter())
             .collect();
-        let mut scalars: Vec<_> = [Scalar::one(), s]
+        let scalars: Vec<_> = [Scalar::one(), s]
             .iter()
             .copied()
             .chain(msgs.iter().map(|c| c.0))
             .collect();
 
-        G1Projective::sum_of_products_in_place(&points[..], &mut scalars[..])
+        G1Projective::multi_exp(&points, &scalars)
     }
 }
 

@@ -1,15 +1,13 @@
-use super::error::Error;
-use super::secret_key::SecretKey;
-use super::util::vec_to_byte_array;
-use blstrs::{sk_to_pk_in_g2, G2Affine, G2Projective};
+use super::{constants::g2_affine_compressed_size, secret_key::SecretKey};
+use crate::{
+    common::util::vec_to_byte_array,
+    curves::bls12_381::{sk_to_pk_in_g2, G2Affine, G2Projective},
+    error::Error,
+};
 use core::ops::{BitOr, Not};
-use group::Curve;
-use group::Group;
+use group::{Curve, Group};
 use serde::{Deserialize, Serialize};
 use subtle::Choice;
-
-/// Number of bytes needed to represent the public key in compressed form
-pub(crate) const G2_COMPRESSED_SIZE: usize = 96;
 
 /// A BBS public key
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -41,7 +39,7 @@ impl<'a> From<&'a PublicKey> for [u8; PublicKey::SIZE_BYTES] {
 
 impl PublicKey {
     /// Number of bytes needed to represent the public key in compressed form
-    pub const SIZE_BYTES: usize = G2_COMPRESSED_SIZE;
+    pub const SIZE_BYTES: usize = g2_affine_compressed_size();
 
     /// Check if this signature is valid
     pub fn is_valid(&self) -> Choice {

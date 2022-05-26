@@ -1,6 +1,5 @@
-use super::*;
-
-use crate::curves::bls12_381::Scalar;
+use crate::{curves::bls12_381::Scalar, error::Error};
+use core::fmt::Debug;
 use digest::Update;
 use ff::Field;
 use group::{Curve, GroupEncoding};
@@ -88,7 +87,7 @@ where
     cache: ProofCommittedBuilderCache<B, C>,
     points: Vec<B>,
     scalars: Vec<Scalar>,
-    sum_of_products: fn(&[B], &mut [Scalar]) -> B,
+    sum_of_products: fn(&[B], &[Scalar]) -> B,
 }
 
 impl<B, C> Default for ProofCommittedBuilder<B, C>
@@ -121,7 +120,7 @@ where
     C: GroupEncoding + Debug,
 {
     /// Create a new builder
-    pub fn new(sum_of_products: fn(&[B], &mut [Scalar]) -> B) -> Self {
+    pub fn new(sum_of_products: fn(&[B], &[Scalar]) -> B) -> Self {
         Self {
             cache: ProofCommittedBuilderCache::default(),
             points: Vec::new(),
@@ -168,10 +167,14 @@ where
         secrets: &[Scalar],
     ) -> Result<Vec<Scalar>, Error> {
         if secrets.len() != self.cache.points.len() {
-            return Err(Error::new(
-                1,
-                "secrets is not equal to blinding factors",
-            ));
+            return Err(Error::CryptoSchnorrChallengeComputation {
+                cause: format!(
+                    "secrets length {} is not equal to blinding factors \
+                     length {}",
+                    secrets.len(),
+                    self.cache.points.len()
+                ),
+            });
         }
         for i in 0..self.cache.scalars.len() {
             self.cache.scalars[i] += secrets[i] * challenge;

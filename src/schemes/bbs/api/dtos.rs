@@ -24,11 +24,13 @@ pub struct BbsDeriveProofRevealMessageRequest {
     pub value: Vec<u8>,
 }
 
-/// Derive proof request for computing a signature proof of knowledge for a supplied BBS signature
+/// Derive proof request for computing a signature proof of knowledge for a
+/// supplied BBS signature
 pub struct BbsDeriveProofRequest {
     /// Public key associated to the BBS signature
     pub public_key: Vec<u8>,
-    /// Vector of messages protected by the signature, including a flag indicating which to reveal in the derived proof
+    /// Vector of messages protected by the signature, including a flag
+    /// indicating which to reveal in the derived proof
     pub messages: Vec<BbsDeriveProofRevealMessageRequest>,
     /// Signature to derive the signature proof of knowledge from
     pub signature: Vec<u8>,
@@ -38,13 +40,15 @@ pub struct BbsDeriveProofRequest {
 
 /// Verify proof request for verifying a supplied signature proof of knowledge
 pub struct BbsVerifyProofRequest {
-    /// Public key associated to the signature proof of knowledge (who signed the original BBS signature the proof is derived from)
+    /// Public key associated to the signature proof of knowledge (who signed
+    /// the original BBS signature the proof is derived from)
     pub public_key: Vec<u8>,
     /// Proof to verify
     pub proof: Vec<u8>,
     /// Presentation message associated to the signature proof of knowledge
     pub presentation_message: Vec<u8>,
-    /// Total message count of the messages signed in the original signature (including unrevealed messages)
+    /// Total message count of the messages signed in the original signature
+    /// (including unrevealed messages)
     pub total_message_count: usize,
     /// Revealed messages to validate against the signature proof of knowledge
     pub messages: Vec<(usize, Vec<u8>)>,

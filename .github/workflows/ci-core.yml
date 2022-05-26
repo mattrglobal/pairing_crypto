@@ -22,18 +22,6 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-          components: "rustfmt, clippy"
-
-      - name: Run cargo format
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: "--all -- --check"
-
-      - name: Run cargo clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
 
       - name: Run cargo check
         uses: actions-rs/cargo@v1
@@ -55,3 +43,26 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
+  fmt-clippy:
+    name: Rust Format & Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+          components: rustfmt, clippy
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings
+

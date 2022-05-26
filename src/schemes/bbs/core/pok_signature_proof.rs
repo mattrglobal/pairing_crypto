@@ -1,15 +1,35 @@
-use super::MessageGenerators;
-use crate::curves::bls12_381::{
-    multi_miller_loop, G1Affine, G1Projective, G2Affine, G2Prepared, PublicKey,
-    Scalar,
+use super::{
+    constants::{g1_affine_compressed_size, scalar_size},
+    message_generator::MessageGenerators,
+    public_key::PublicKey,
+    types::{Challenge, Message},
 };
-use crate::schemes::core::*;
+use crate::{
+    curves::bls12_381::{
+        Bls12,
+        G1Affine,
+        G1Projective,
+        G2Affine,
+        G2Prepared,
+        Scalar,
+    },
+    error::Error,
+};
 use core::convert::TryFrom;
 use digest::Update;
-use group::{Curve, Group, GroupEncoding};
+use ff::Field;
+use group::{prime::PrimeCurveAffine, Curve, Group, GroupEncoding};
 use hashbrown::HashSet;
+use pairing::{MillerLoopResult as _, MultiMillerLoop};
 use serde::{Deserialize, Serialize};
 use subtle::{Choice, CtOption};
+
+/// Convert slice to a fixed array
+macro_rules! slicer {
+    ($d:expr, $b:expr, $e:expr, $s:expr) => {
+        &<[u8; $s]>::try_from(&$d[$b..$e]).unwrap()
+    };
+}
 
 /// The actual proof that is sent from prover to verifier.
 ///
@@ -29,6 +49,9 @@ pub struct PokSignatureProof {
 }
 
 impl PokSignatureProof {
+    const FIELD_BYTES: usize = scalar_size();
+    const COMMITMENT_G1_BYTES: usize = g1_affine_compressed_size();
+
     /// Store the proof as a sequence of bytes
     /// Each point is compressed to big-endian format
     /// Needs 32 * (N + 2) + 48 * 3 space otherwise it will panic
@@ -36,8 +59,8 @@ impl PokSignatureProof {
     /// [48,    ,48    ,48 ,64(2*32)          , 32*N]
     /// [a_prime, a_bar, d, proof1(2 of these), [0...N]]
     pub fn to_bytes(&self) -> Vec<u8> {
-        let size =
-            FIELD_BYTES * (3 + self.proofs2.len()) + COMMITMENT_G1_BYTES * 3;
+        let size = Self::FIELD_BYTES * (3 + self.proofs2.len())
+            + Self::COMMITMENT_G1_BYTES * 3;
         let mut buffer = Vec::with_capacity(size);
 
         buffer.extend_from_slice(&self.a_prime.to_affine().to_compressed());
@@ -57,39 +80,39 @@ impl PokSignatureProof {
     // TODO update the expected sizes here
     /// Expected size is (N + 1) * 32 + 48 bytes
     pub fn from_bytes<B: AsRef<[u8]>>(bytes: B) -> Option<Self> {
-        let size = FIELD_BYTES * 5 + COMMITMENT_G1_BYTES * 3;
+        let size = Self::FIELD_BYTES * 5 + Self::COMMITMENT_G1_BYTES * 3;
         let buffer = bytes.as_ref();
         if buffer.len() < size {
             return None;
         }
-        if (buffer.len() - COMMITMENT_G1_BYTES) % FIELD_BYTES != 0 {
+        if (buffer.len() - Self::COMMITMENT_G1_BYTES) % Self::FIELD_BYTES != 0 {
             return None;
         }
 
-        let hidden_message_count = (buffer.len() - size) / FIELD_BYTES;
-        let mut offset = COMMITMENT_G1_BYTES;
-        let mut end = 2 * COMMITMENT_G1_BYTES;
+        let hidden_message_count = (buffer.len() - size) / Self::FIELD_BYTES;
+        let mut offset = Self::COMMITMENT_G1_BYTES;
+        let mut end = 2 * Self::COMMITMENT_G1_BYTES;
         let a_prime = G1Affine::from_compressed(slicer!(
             buffer,
             0,
             offset,
-            COMMITMENT_G1_BYTES
+            Self::COMMITMENT_G1_BYTES
         ))
         .map(G1Projective::from);
         let a_bar = G1Affine::from_compressed(slicer!(
             buffer,
             offset,
             end,
-            COMMITMENT_G1_BYTES
+            Self::COMMITMENT_G1_BYTES
         ))
         .map(G1Projective::from);
         offset = end;
-        end = offset + COMMITMENT_G1_BYTES;
+        end = offset + Self::COMMITMENT_G1_BYTES;
         let d = G1Affine::from_compressed(slicer!(
             buffer,
             offset,
             end,
-            COMMITMENT_G1_BYTES
+            Self::COMMITMENT_G1_BYTES
         ))
         .map(G1Projective::from);
 
@@ -101,11 +124,15 @@ impl PokSignatureProof {
         }
 
         offset = end;
-        end = offset + FIELD_BYTES;
-        let challenge =
-            Challenge::from_bytes(slicer!(buffer, offset, end, FIELD_BYTES));
+        end = offset + Self::FIELD_BYTES;
+        let challenge = Challenge::from_bytes(slicer!(
+            buffer,
+            offset,
+            end,
+            Self::FIELD_BYTES
+        ));
         offset = end;
-        end = offset + FIELD_BYTES;
+        end = offset + Self::FIELD_BYTES;
 
         let mut proofs1 = [
             CtOption::new(Challenge::default(), Choice::from(0u8)),
@@ -116,10 +143,10 @@ impl PokSignatureProof {
                 buffer,
                 offset,
                 end,
-                FIELD_BYTES
+                Self::FIELD_BYTES
             ));
             offset = end;
-            end = offset + FIELD_BYTES;
+            end = offset + Self::FIELD_BYTES;
         }
         if proofs1[0].is_none().unwrap_u8() == 1
             || proofs1[1].is_none().unwrap_u8() == 1
@@ -134,10 +161,10 @@ impl PokSignatureProof {
                 buffer,
                 offset,
                 end,
-                FIELD_BYTES
+                Self::FIELD_BYTES
             ));
             offset = end;
-            end = offset + FIELD_BYTES;
+            end = offset + Self::FIELD_BYTES;
             if c.is_none().unwrap_u8() == 1 {
                 return None;
             }
@@ -162,12 +189,19 @@ impl PokSignatureProof {
         rvl_msgs: &[(usize, Message)],
         challenge: Challenge,
         hasher: &mut impl Update,
-    ) -> Result<(), String> {
+    ) -> Result<(), Error> {
         // TODO check revealed messages vs hidden message count on proof
         // TODO need to account for generators being 0?
         if generators.len() - self.hidden_message_count != rvl_msgs.len() {
-            // TODO review error formatting
-            return Err("Incorrect number of revealed messages".to_string());
+            return Err(Error::BadParams {
+                cause: format!(
+                    "Incorrect number of revealed messages: #generators: {}, \
+                     #hidden_messages: {}, #revealed_messages: {}",
+                    generators.len(),
+                    self.hidden_message_count,
+                    rvl_msgs.len()
+                ),
+            });
         }
 
         hasher.update(self.a_prime.to_affine().to_uncompressed());
@@ -175,12 +209,10 @@ impl PokSignatureProof {
         hasher.update(self.d.to_affine().to_uncompressed());
 
         let proof1_points = [self.a_bar - self.d, self.a_prime, generators.h0];
-        let mut proof1_scalars =
+        let proof1_scalars =
             [challenge.0, self.proofs1[0].0, self.proofs1[1].0];
-        let commitment_proofs1 = G1Projective::sum_of_products_in_place(
-            &proof1_points,
-            &mut proof1_scalars,
-        );
+        let commitment_proofs1 =
+            G1Projective::multi_exp(&proof1_points, &proof1_scalars);
         hasher.update(commitment_proofs1.to_affine().to_bytes());
 
         let mut r_points =
@@ -198,10 +230,7 @@ impl PokSignatureProof {
             r_scalars.push(msg.0);
         }
 
-        let r = G1Projective::sum_of_products_in_place(
-            r_points.as_ref(),
-            r_scalars.as_mut(),
-        );
+        let r = G1Projective::multi_exp(r_points.as_ref(), r_scalars.as_ref());
 
         let mut proof2_points = Vec::with_capacity(
             3 + generators.len() - self.hidden_message_count,
@@ -231,9 +260,9 @@ impl PokSignatureProof {
             proof2_scalars.push(self.proofs2[j].0);
             j += 1;
         }
-        let commitment_proofs2 = G1Projective::sum_of_products_in_place(
+        let commitment_proofs2 = G1Projective::multi_exp(
             proof2_points.as_ref(),
-            proof2_scalars.as_mut(),
+            proof2_scalars.as_ref(),
         );
         hasher.update(commitment_proofs2.to_affine().to_bytes());
 
@@ -248,7 +277,7 @@ impl PokSignatureProof {
         if self.a_prime.is_identity().unwrap_u8() == 1 {
             return false;
         }
-        multi_miller_loop(&[
+        Bls12::multi_miller_loop(&[
             (
                 &self.a_prime.to_affine(),
                 &G2Prepared::from(public_key.0.to_affine()),

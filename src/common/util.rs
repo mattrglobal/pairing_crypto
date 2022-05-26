@@ -1,4 +1,4 @@
-use crate::common::error::Error;
+use crate::error::Error;
 
 pub fn vec_to_byte_array<const N: usize>(
     vec: Vec<u8>,
@@ -8,7 +8,11 @@ pub fn vec_to_byte_array<const N: usize>(
     match <[u8; N]>::try_from(vec) {
         Ok(result) => Ok(result),
         Err(_) => Err(Error::Conversion {
-            cause: format!("source vector size {}, expected destination byte array size {}", data_len, N),
+            cause: format!(
+                "source vector size {}, expected destination byte array size \
+                 {}",
+                data_len, N
+            ),
         }),
     }
 }

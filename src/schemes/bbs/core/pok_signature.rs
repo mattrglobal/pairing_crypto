@@ -1,6 +1,14 @@
-use super::{MessageGenerators, PokSignatureProof, Signature};
-use crate::curves::bls12_381::{G1Affine, G1Projective, Scalar};
-use crate::schemes::core::*;
+use super::{
+    message_generator::MessageGenerators,
+    pok_signature_proof::PokSignatureProof,
+    proof_committed_builder::ProofCommittedBuilder,
+    signature::Signature,
+    types::{Challenge, HiddenMessage, ProofMessage},
+};
+use crate::{
+    curves::bls12_381::{G1Affine, G1Projective, Scalar},
+    error::Error,
+};
 use digest::Update;
 use ff::Field;
 use group::Curve;
@@ -19,7 +27,9 @@ pub struct PokSignature {
     proof1: ProofCommittedBuilder<G1Projective, G1Affine>,
     /// Secrets of e and r2 associated to proof1
     secrets1: [Scalar; 2],
-    /// For proving relation g1 * h1^m1 * h2^m2.... for all disclosed messages m_i == d^r3 * h_0^{-s_prime} * h1^-m1 * h2^-m2.... for all undisclosed messages m_i
+    /// For proving relation g1 * h1^m1 * h2^m2.... for all disclosed messages
+    /// m_i == d^r3 * h_0^{-s_prime} * h1^-m1 * h2^-m2.... for all undisclosed
+    /// messages m_i
     proof2: ProofCommittedBuilder<G1Projective, G1Affine>,
     /// The blinding factors
     secrets2: Vec<Scalar>,
@@ -49,10 +59,14 @@ impl PokSignature {
         mut rng: impl RngCore + CryptoRng,
     ) -> Result<Self, Error> {
         if messages.len() != generators.len() {
-            return Err(Error::new(
-                1,
-                "mismatched messages with and generators",
-            ));
+            return Err(Error::BadParams {
+                cause: format!(
+                    "mismatched length: number of messages {}, number of \
+                     generators {}",
+                    messages.len(),
+                    generators.len()
+                ),
+            });
         }
         let r1 = Scalar::random(&mut rng);
         let r2 = Scalar::random(&mut rng);
@@ -63,7 +77,8 @@ impl PokSignature {
         let mut secrets2 = Vec::new();
         let m: Vec<_> = messages.iter().map(|m| m.get_message()).collect();
 
-        // b = commitment + h0 \* s + h\[1\] \* msg\[1\] + ... + h\[L\] \* msg\[L\]
+        // b = commitment + h0 \* s + h\[1\] \* msg\[1\] + ... + h\[L\] \*
+        // msg\[L\]
         let b = Signature::compute_b(signature.s, m.as_ref(), generators);
 
         // A' = A \* r1
@@ -72,10 +87,7 @@ impl PokSignature {
         let a_bar = b * r1 - a_prime * signature.e;
 
         // d = b * r1 + h0 * r2
-        let d = G1Projective::sum_of_products_in_place(
-            &[b, generators.h0],
-            [r1, r2].as_mut(),
-        );
+        let d = G1Projective::multi_exp(&[b, generators.h0], &[r1, r2]);
 
         // s' = s - r2 r3
         let s_prime = signature.s + r2 * r3;
@@ -85,7 +97,7 @@ impl PokSignature {
 
         // For proving relation a_bar / d == a_prime^{-e} * h_0^r2
         let mut proof1 = ProofCommittedBuilder::<G1Projective, G1Affine>::new(
-            G1Projective::sum_of_products_in_place,
+            G1Projective::multi_exp,
         );
 
         // Compute the components of C1 = A' * e~ + h0 * r2~
@@ -96,7 +108,7 @@ impl PokSignature {
 
         // Compute the components of C2 = ...
         let mut proof2 = ProofCommittedBuilder::<G1Projective, G1Affine>::new(
-            G1Projective::sum_of_products_in_place,
+            G1Projective::multi_exp,
         );
 
         // for d * -r3
@@ -155,7 +167,8 @@ impl PokSignature {
             .iter()
             .map(|s| Challenge(*s))
             .collect();
-        let hidden_message_count = proofs2.len() - 2; // TODO this is a hack because proof2 is currently a massively overloaded structure
+        let hidden_message_count = proofs2.len() - 2; // TODO this is a hack because proof2 is currently a massively
+                                                      // overloaded structure
         Ok(PokSignatureProof {
             a_prime: self.a_prime,
             a_bar: self.a_bar,
