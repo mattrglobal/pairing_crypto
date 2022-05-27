@@ -26,6 +26,9 @@ pub enum Error {
     /// Scalar is invalid.
     CryptoBadScalar,
 
+    /// Hast-to-field operation failed.
+    CryptoHashToFieldConversion,
+
     /// A failure occured during Schnorr challenge computation.
     CryptoSchnorrChallengeComputation { cause: String },
 
@@ -34,6 +37,9 @@ pub enum Error {
 
     /// Public key is malformed.
     CryptoMalformedPublicKey,
+
+    /// Message signing failed.
+    CryptoSigning { cause: String },
 
     /// Signature is malformed.
     CryptoMalformedSignature { cause: String },
@@ -82,7 +88,10 @@ impl core::fmt::Debug for Error {
                 write!(f, "point is not in underlying group.")
             }
             Error::CryptoBadScalar => write!(f, "scalar is invalid."),
-            Error::Serde => write!(f, "error during ser-de operation."),
+            Error::CryptoHashToFieldConversion => {
+                write!(f, "hash to field conversion failed.")
+            }
+
             Error::CryptoSchnorrChallengeComputation { ref cause } => {
                 write!(
                     f,
@@ -95,6 +104,9 @@ impl core::fmt::Debug for Error {
             }
             Error::CryptoMalformedPublicKey => {
                 write!(f, "public key is malformed.")
+            }
+            Error::CryptoSigning { ref cause } => {
+                write!(f, "signing failed: cause: {}", cause)
             }
             Error::CryptoMalformedSignature { ref cause } => {
                 write!(f, "signature is malformed: cause: {}", cause)
@@ -115,6 +127,7 @@ impl core::fmt::Debug for Error {
             Error::CryptoSignatureVerification => {
                 write!(f, "bad encoding encountered.")
             }
+            Error::Serde => write!(f, "error during ser-de operation."),
         }
     }
 }

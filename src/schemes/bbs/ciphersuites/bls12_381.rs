@@ -1,8 +1,7 @@
 pub use crate::schemes::bbs::core::{
     constants::{
-        g1_affine_compressed_size,
-        g2_affine_compressed_size,
-        scalar_size,
+        g1_affine_compressed_size, g2_affine_compressed_size, scalar_size,
+        APP_MESSAGE_DST,
     },
     message_generator::*,
     pok_signature::*,
@@ -12,14 +11,8 @@ pub use crate::schemes::bbs::core::{
     secret_key::SecretKey,
     signature::*,
     types::{
-        Challenge,
-        Commitment,
-        HiddenMessage,
-        Message,
-        Nonce,
-        PresentationMessage,
-        ProofMessage,
-        SignatureBlinding,
+        Challenge, Commitment, HiddenMessage, Message, Nonce,
+        PresentationMessage, ProofMessage, SignatureBlinding,
     },
 };
 

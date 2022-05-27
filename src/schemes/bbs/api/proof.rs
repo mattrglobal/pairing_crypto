@@ -1,24 +1,15 @@
 use super::{
     dtos::{BbsDeriveProofRequest, BbsVerifyProofRequest},
     utils::{
-        digest_messages,
-        digest_proof_messages,
-        digest_revealed_proof_messages,
+        digest_messages, digest_proof_messages, digest_revealed_proof_messages,
     },
 };
 use crate::{
     error::Error,
     schemes::bbs::ciphersuites::bls12_381::{
-        g1_affine_compressed_size,
-        Challenge,
-        Message,
-        MessageGenerators,
-        PokSignature,
-        PokSignatureProof,
-        PresentationMessage,
-        ProofMessage,
-        PublicKey,
-        Signature,
+        g1_affine_compressed_size, Challenge, Message, MessageGenerators,
+        PokSignature, PokSignatureProof, PresentationMessage, ProofMessage,
+        PublicKey, Signature, APP_MESSAGE_DST,
     },
 };
 use digest::{ExtendableOutput, Update, XofReader};
@@ -68,8 +59,10 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
             Err(e) => return Err(e),
         };
 
-    let presentation_message =
-        PresentationMessage::hash(request.presentation_message);
+    let presentation_message = PresentationMessage::hash(
+        request.presentation_message,
+        APP_MESSAGE_DST,
+    )?;
 
     let mut pok = PokSignature::init(signature, &generators, &messages)?;
 
@@ -79,7 +72,7 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     hasher.update(presentation_message.to_bytes());
     let mut reader = hasher.finalize_xof();
     reader.read(&mut data[..]);
-    let challenge = Challenge::from_okm(&data);
+    let challenge = Challenge::hash(&data, APP_MESSAGE_DST)?;
 
     match pok.generate_proof(challenge) {
         Ok(proof) => Ok(proof.to_bytes()),
@@ -114,8 +107,10 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
         }
     };
 
-    let presentation_message =
-        PresentationMessage::hash(request.presentation_message);
+    let presentation_message = PresentationMessage::hash(
+        request.presentation_message,
+        APP_MESSAGE_DST,
+    )?;
 
     let mut data = [0u8; g1_affine_compressed_size()];
     let mut hasher = sha3::Shake256::default();
@@ -130,7 +125,7 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
     hasher.update(&presentation_message.to_bytes()[..]);
     let mut reader = hasher.finalize_xof();
     reader.read(&mut data[..]);
-    let v_challenge = Challenge::from_okm(&data);
+    let v_challenge = Challenge::hash(&data, APP_MESSAGE_DST)?;
 
     Ok(proof.verify(public_key) && proof.challenge == v_challenge)
 }

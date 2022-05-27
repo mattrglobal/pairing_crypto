@@ -1,5 +1,6 @@
 use super::constants::{g1_affine_compressed_size, scalar_size};
 use crate::curves::bls12_381::{G1Affine, G1Projective, Scalar};
+use crate::error::Error;
 use group::Curve;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use subtle::CtOption;
@@ -38,14 +39,18 @@ macro_rules! scalar_wrapper {
                 Scalar::from_bytes_be(bytes).map($name)
             }
 
-            /// Convert a 48 byte digest into a struct
-            pub fn from_okm(bytes: &[u8; g1_affine_compressed_size()]) -> Self {
-                Self(Scalar::from_okm(bytes))
-            }
-
             /// Hash arbitrary data to this struct
-            pub fn hash<B: AsRef<[u8]>>(_data: B) -> Self {
-                todo!()
+            pub fn hash<T1, T2>(msg: T1, dst: T2) -> Result<Self, Error>
+            where
+            T1: AsRef<[u8]>,
+            T2: AsRef<[u8]>,
+            {
+                let s = Scalar::hash_to(msg, dst).map($name);
+                if s.is_some().unwrap_u8() == 1u8 {
+                    Ok(s.unwrap())
+                } else {
+                    Err(Error::CryptoHashToFieldConversion)
+                }
             }
 
         }

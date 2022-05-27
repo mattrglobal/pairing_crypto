@@ -1,6 +1,10 @@
 use crate::curves::bls12_381::{G1Affine, G2Affine, Scalar};
 use ff::PrimeField;
 
+/// DST for messages.
+/// TODO define properly for different type of messages
+pub const APP_MESSAGE_DST: &[u8; 19] = b"BBS_SIG_MESSAGE_DST";
+
 /// Number of bytes to store a scalar.
 pub const fn scalar_size() -> usize {
     (Scalar::NUM_BITS as usize + 8 - 1) / 8

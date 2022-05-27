@@ -1,6 +1,5 @@
 use super::{
-    constants::g1_affine_compressed_size,
-    public_key::PublicKey,
+    constants::g1_affine_compressed_size, public_key::PublicKey,
     secret_key::SecretKey,
 };
 use crate::curves::bls12_381::G1Projective;
@@ -59,10 +58,7 @@ impl Iterator for MessageGeneratorIter {
         self.index += 1;
         self.state[193..197]
             .copy_from_slice(&(self.index as u32).to_be_bytes());
-        Some(G1Projective::hash::<ExpandMsgXof<sha3::Shake256>>(
-            &self.state[..],
-            DST,
-        ))
+        Some(G1Projective::hash_to_curve(&self.state[..], DST, &[]))
     }
 }
 
@@ -84,7 +80,7 @@ impl MessageGenerators {
     pub fn get(&self, index: usize) -> G1Projective {
         let mut state = self.state;
         state[193..197].copy_from_slice(&((index + 1) as u32).to_be_bytes());
-        G1Projective::hash::<ExpandMsgXof<sha3::Shake256>>(&state[..], DST)
+        G1Projective::hash_to_curve(&state[..], DST, &[])
     }
 
     /// Create generators from the secret key
@@ -105,8 +101,7 @@ impl MessageGenerators {
         state[..192].copy_from_slice(&pk.0.to_affine().to_uncompressed());
         state[197..201].copy_from_slice(&count);
 
-        let h0 =
-            G1Projective::hash::<ExpandMsgXof<sha3::Shake256>>(&state[..], DST);
+        let h0 = G1Projective::hash_to_curve(&state[..], DST, &[]);
 
         Self { h0, length, state }
     }
@@ -131,8 +126,7 @@ impl MessageGenerators {
         state[194] = 0;
         state[195] = 0;
         state[196] = 0;
-        let h0 =
-            G1Projective::hash::<ExpandMsgXof<sha3::Shake256>>(&state[..], DST);
+        let h0 = G1Projective::hash_to_curve(&state[..], DST, &[]);
         Self { h0, length, state }
     }
 
