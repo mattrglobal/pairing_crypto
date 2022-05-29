@@ -6,6 +6,10 @@ use pairing_crypto::bbs::ciphersuites::bls12_381::{
     PublicKey, SecretKey, Signature, APP_MESSAGE_DST,
 };
 
+mod common;
+
+use common::mock::MockRng;
+
 const KEY_GEN_SEED: &[u8; 32] = b"not_A_random_seed_at_Allllllllll";
 
 const TEST_KEY_INFOS: [&[u8]; 7] = [
@@ -68,7 +72,6 @@ fn signing() {
 
 #[test]
 fn proofs() {
-    use pairing_crypto::MockRng;
     use rand::SeedableRng;
     let mut rng = MockRng::from_seed([1u8; 16]);
     let test_atts = TEST_CLAIMS
