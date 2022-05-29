@@ -24,7 +24,7 @@ macro_rules! scalar_wrapper {
             pub const SIZE_BYTES: usize = scalar_size();
 
             /// Generate a random struct
-            pub fn random(rng: impl rand_core::RngCore) -> Self {
+            pub fn random<R: rand_core::RngCore>(rng: &mut R) -> Self {
                 use ff::Field;
                 Self(Scalar::random(rng))
             }
