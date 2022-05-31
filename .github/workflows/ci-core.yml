@@ -16,7 +16,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          path: pairing_crypto # TODO remove once temp build step below is removed
+          path: main # TODO remove once temp build step below is removed
 
       - name: Setup rust toolchain
         uses: actions-rs/toolchain@v1
@@ -62,7 +62,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          path: pairing_crypto # TODO remove once temp build step below is removed
+          path: main # TODO remove once temp build step below is removed
 
       - uses: actions-rs/toolchain@v1
         with:
