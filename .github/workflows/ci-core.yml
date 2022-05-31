@@ -86,13 +86,15 @@ jobs:
           override: true
           components: rustfmt, clippy
 
-      - uses: marcopolo/cargo@master
+      - name: Run cargo format
+        uses: marcopolo/cargo@master
         with:
           command: fmt
           working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
           args: --all -- --check
 
-      - uses: marcopolo/cargo@master
+      - name: Run cargo clippy
+        uses: marcopolo/cargo@master
         with:
           command: clippy
           working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
