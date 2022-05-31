@@ -39,22 +39,25 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
+          args: --manifest-path main/Cargo.toml # TODO remove once temp build step below is removed
 
       - name: Run cargo audit
         uses: actions-rs/cargo@v1
         with:
           command: audit
+          args: --manifest-path main/Cargo.toml # TODO remove once temp build step below is removed
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: "--release"
+          args: --release --manifest-path main/Cargo.toml # TODO remove once temp build step below is removed
 
       - name: Run cargo build
         uses: actions-rs/cargo@v1
         with:
           command: build
+          args: --manifest-path main/Cargo.toml # TODO remove once temp build step below is removed
 
   fmt-clippy:
     name: Rust Format & Clippy
@@ -85,9 +88,9 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all -- --check
+          args: --all -- --check --manifest-path main/Cargo.toml # TODO remove once temp build step below is removed
 
       - uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: -- -D warnings
+          args: -- -D warnings --manifest-path main/Cargo.toml # TODO remove once temp build step below is removed
