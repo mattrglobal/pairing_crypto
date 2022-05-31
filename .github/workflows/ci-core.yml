@@ -28,11 +28,6 @@ jobs:
         with:
           path: main # TODO remove once temp build step below is removed
 
-      # TODO remove once temp build step below is removed
-      - name: Change working directory
-        working-directory: main
-        run: ls
-
       - name: Setup rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -41,25 +36,29 @@ jobs:
           override: true
 
       - name: Run cargo check
-        uses: actions-rs/cargo@v1
+        uses: marcopolo/cargo@master
         with:
           command: check
+          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
 
       - name: Run cargo audit
-        uses: actions-rs/cargo@v1
+        uses: marcopolo/cargo@master
         with:
           command: audit
+          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
 
       - name: Run cargo test
-        uses: actions-rs/cargo@v1
+        uses: marcopolo/cargo@master
         with:
           command: test
+          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
           args: "--release"
 
       - name: Run cargo build
-        uses: actions-rs/cargo@v1
+        uses: marcopolo/cargo@master
         with:
           command: build
+          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
 
   fmt-clippy:
     name: Rust Format & Clippy
@@ -80,11 +79,6 @@ jobs:
         with:
           path: main # TODO remove once temp build step below is removed
 
-      # TODO remove once temp build step below is removed
-      - name: Change working directory
-        working-directory: main
-        run: ls
-
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -92,12 +86,14 @@ jobs:
           override: true
           components: rustfmt, clippy
 
-      - uses: actions-rs/cargo@v1
+      - uses: marcopolo/cargo@master
         with:
           command: fmt
+          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
           args: --all -- --check
 
-      - uses: actions-rs/cargo@v1
+      - uses: marcopolo/cargo@master
         with:
           command: clippy
+          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
           args: -- -D warnings
