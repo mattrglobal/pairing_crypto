@@ -28,6 +28,10 @@ jobs:
         with:
           path: main # TODO remove once temp build step below is removed
 
+      # TODO remove once temp build step below is removed
+      - name: Change working directory
+        working-directory: main
+
       - name: Setup rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -39,25 +43,22 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --manifest-path main/Cargo.toml # TODO remove once temp build step below is removed
 
       - name: Run cargo audit
         uses: actions-rs/cargo@v1
         with:
           command: audit
-          args: --manifest-path main/Cargo.toml # TODO remove once temp build step below is removed
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --release --manifest-path main/Cargo.toml # TODO remove once temp build step below is removed
+          args: "--release"
 
       - name: Run cargo build
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --manifest-path main/Cargo.toml # TODO remove once temp build step below is removed
 
   fmt-clippy:
     name: Rust Format & Clippy
@@ -78,6 +79,10 @@ jobs:
         with:
           path: main # TODO remove once temp build step below is removed
 
+      # TODO remove once temp build step below is removed
+      - name: Change working directory
+        working-directory: main
+
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -88,9 +93,9 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all -- --check --manifest-path main/Cargo.toml # TODO remove once temp build step below is removed
+          args: --all -- --check
 
       - uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: -- -D warnings --manifest-path main/Cargo.toml # TODO remove once temp build step below is removed
+          args: -- -D warnings
