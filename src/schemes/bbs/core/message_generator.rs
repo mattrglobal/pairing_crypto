@@ -1,5 +1,6 @@
 use super::{
-    constants::g1_affine_compressed_size, public_key::PublicKey,
+    constants::g1_affine_compressed_size,
+    public_key::PublicKey,
     secret_key::SecretKey,
 };
 use crate::curves::bls12_381::G1Projective;

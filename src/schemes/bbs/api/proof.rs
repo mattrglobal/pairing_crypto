@@ -1,15 +1,25 @@
 use super::{
     dtos::{BbsDeriveProofRequest, BbsVerifyProofRequest},
     utils::{
-        digest_messages, digest_proof_messages, digest_revealed_proof_messages,
+        digest_messages,
+        digest_proof_messages,
+        digest_revealed_proof_messages,
     },
 };
 use crate::{
     error::Error,
     schemes::bbs::ciphersuites::bls12_381::{
-        g1_affine_compressed_size, Challenge, Message, MessageGenerators,
-        PokSignature, PokSignatureProof, PresentationMessage, ProofMessage,
-        PublicKey, Signature, APP_MESSAGE_DST,
+        g1_affine_compressed_size,
+        Challenge,
+        Message,
+        MessageGenerators,
+        PokSignature,
+        PokSignatureProof,
+        PresentationMessage,
+        ProofMessage,
+        PublicKey,
+        Signature,
+        APP_MESSAGE_DST,
     },
 };
 use digest::{ExtendableOutput, Update, XofReader};

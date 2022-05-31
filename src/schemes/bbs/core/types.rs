@@ -1,6 +1,8 @@
 use super::constants::{g1_affine_compressed_size, scalar_size};
-use crate::curves::bls12_381::{G1Affine, G1Projective, Scalar};
-use crate::error::Error;
+use crate::{
+    curves::bls12_381::{G1Affine, G1Projective, Scalar},
+    error::Error,
+};
 use group::Curve;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use subtle::CtOption;
