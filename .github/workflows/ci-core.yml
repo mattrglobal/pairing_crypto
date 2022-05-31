@@ -15,8 +15,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          path: main # TODO remove once temp build step below is removed
 
       - name: Setup rust toolchain
         uses: actions-rs/toolchain@v1
@@ -33,30 +31,26 @@ jobs:
         with:
           repository: mattrglobal/blstrs
           token: ${{ secrets.MATTR_BLSTRS_PAT }}
-          path: blstrs # TODO remove once temp build step below is removed
+          path: ./blstrs # TODO remove once temp build step below is removed
 
       - name: Run cargo check
         uses: actions-rs/cargo@v1
-        working-directory: ./main # TODO remove once temp build step below is removed
         with:
           command: check
 
       - name: Run cargo audit
         uses: actions-rs/cargo@v1
-        working-directory: ./main # TODO remove once temp build step below is removed
         with:
           command: audit
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1
-        working-directory: ./main # TODO remove once temp build step below is removed
         with:
           command: test
           args: "--release"
 
       - name: Run cargo build
         uses: actions-rs/cargo@v1
-        working-directory: ./main # TODO remove once temp build step below is removed
         with:
           command: build
 
@@ -65,8 +59,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-          path: main # TODO remove once temp build step below is removed
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -83,16 +75,14 @@ jobs:
         with:
           repository: mattrglobal/blstrs
           token: ${{ secrets.MATTR_BLSTRS_PAT }}
-          path: blstrs # TODO remove once temp build step below is removed
+          path: ./blstrs # TODO remove once temp build step below is removed
 
       - uses: actions-rs/cargo@v1
-        working-directory: ./main # TODO remove once temp build step below is removed
         with:
           command: fmt
           args: --all -- --check
 
       - uses: actions-rs/cargo@v1
-        working-directory: ./main # TODO remove once temp build step below is removed
         with:
           command: clippy
           args: -- -D warnings
