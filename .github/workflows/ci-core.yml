@@ -31,6 +31,7 @@ jobs:
       # TODO remove once temp build step below is removed
       - name: Change working directory
         working-directory: main
+        run: ls
 
       - name: Setup rust toolchain
         uses: actions-rs/toolchain@v1
@@ -82,6 +83,7 @@ jobs:
       # TODO remove once temp build step below is removed
       - name: Change working directory
         working-directory: main
+        run: ls
 
       - uses: actions-rs/toolchain@v1
         with:
