@@ -37,27 +37,27 @@ jobs:
 
       - name: Run cargo check
         uses: actions-rs/cargo@v1
+        working-directory: ./main # TODO remove once temp build step below is removed
         with:
-          working-directory: ./main # TODO remove once temp build step below is removed
           command: check
 
       - name: Run cargo audit
         uses: actions-rs/cargo@v1
+        working-directory: ./main # TODO remove once temp build step below is removed
         with:
-          working-directory: ./main # TODO remove once temp build step below is removed
           command: audit
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1
+        working-directory: ./main # TODO remove once temp build step below is removed
         with:
-          working-directory: ./main # TODO remove once temp build step below is removed
           command: test
           args: "--release"
 
       - name: Run cargo build
         uses: actions-rs/cargo@v1
+        working-directory: ./main # TODO remove once temp build step below is removed
         with:
-          working-directory: ./main # TODO remove once temp build step below is removed
           command: build
 
   fmt-clippy:
@@ -86,13 +86,13 @@ jobs:
           path: blstrs # TODO remove once temp build step below is removed
 
       - uses: actions-rs/cargo@v1
+        working-directory: ./main # TODO remove once temp build step below is removed
         with:
-          working-directory: ./main # TODO remove once temp build step below is removed
           command: fmt
           args: --all -- --check
 
       - uses: actions-rs/cargo@v1
+        working-directory: ./main # TODO remove once temp build step below is removed
         with:
-          working-directory: ./main # TODO remove once temp build step below is removed
           command: clippy
           args: -- -D warnings
