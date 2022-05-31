@@ -35,6 +35,7 @@ jobs:
           toolchain: stable
           override: true
 
+      # Note some of the rules we use for fmt and clippy are only available with the nightly toolchain
       - name: Setup nightly rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -47,7 +48,7 @@ jobs:
         uses: marcopolo/cargo@master
         with:
           command: fmt
-          toolchain: nightly
+          toolchain: nightly # Note some of the rules we use for fmt are only available with the nightly toolchain
           working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
           args: --all -- --check
 
@@ -55,7 +56,7 @@ jobs:
         uses: marcopolo/cargo@master
         with:
           command: clippy
-          toolchain: nightly
+          toolchain: nightly # Note some of the rules we use for clippy are only available with the nightly toolchain
           working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
           args: -- -D warnings
 

@@ -1,5 +1,7 @@
 name: ci-wrapper-c
 
+# TODO this job should only execute on success of ci-core
+
 on:
   pull_request:
     branches:
@@ -19,28 +21,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Setup rust toolchain
+      - name: Setup stable rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
           override: true
           components: "rustfmt, clippy"
-
-      - name: Run cargo format
-        run: make format
-        shell: bash
-
-      - name: Run cargo clippy
-        run: make clippy
-        shell: bash
-
-      - name: Run cargo check
-        run: make check
-        shell: bash
-
-      - name: Run cargo audit
-        run: make audit
-        shell: bash
 
       - name: Generate header
         run: make generate_headers
