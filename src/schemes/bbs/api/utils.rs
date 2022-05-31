@@ -20,6 +20,7 @@ use crate::{
         HiddenMessage,
         Message,
         ProofMessage,
+        APP_MESSAGE_DST,
     },
 };
 
@@ -34,7 +35,10 @@ pub fn digest_messages(messages: Vec<Vec<u8>>) -> Result<Vec<Message>, Error> {
         });
     }
 
-    Ok(messages.iter().map(Message::hash).collect())
+    messages
+        .iter()
+        .map(|msg| Message::hash(msg, APP_MESSAGE_DST))
+        .collect()
 }
 
 /// Digests a set of supplied proof messages
@@ -49,21 +53,26 @@ pub fn digest_proof_messages(
         });
     }
 
-    Ok(messages
+    messages
         .iter()
         .map(|element| {
-            let digested_message = Message::hash(element.value.clone());
-
-            // Change this to an enum
-            if element.reveal {
-                ProofMessage::Revealed(digested_message)
-            } else {
-                ProofMessage::Hidden(HiddenMessage::ProofSpecificBlinding(
-                    digested_message,
-                ))
+            match Message::hash(element.value.clone(), APP_MESSAGE_DST) {
+                Ok(digested_message) => {
+                    // Change this to an enum
+                    if element.reveal {
+                        Ok(ProofMessage::Revealed(digested_message))
+                    } else {
+                        Ok(ProofMessage::Hidden(
+                            HiddenMessage::ProofSpecificBlinding(
+                                digested_message,
+                            ),
+                        ))
+                    }
+                }
+                Err(e) => Err(e),
             }
         })
-        .collect())
+        .collect()
 }
 
 pub fn digest_revealed_proof_messages(
@@ -86,9 +95,11 @@ pub fn digest_revealed_proof_messages(
         });
     }
 
-    // TODO deal with the unwrap here and the error response
-    Ok(messages
+    messages
         .iter()
-        .map(|(key, value)| (*key, Message::hash(value)))
-        .collect())
+        .map(|(i, m)| match Message::hash(m, APP_MESSAGE_DST) {
+            Ok(m) => Ok((*i, m)),
+            Err(e) => Err(e),
+        })
+        .collect()
 }

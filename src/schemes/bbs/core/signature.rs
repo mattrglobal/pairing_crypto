@@ -154,11 +154,38 @@ impl Signature {
 
         // Should yield non-zero values for `e` and `s`, very small likelihood
         // of it being zero
-        let e = Scalar::from_bytes_wide(&res).unwrap();
+        let e = Scalar::from_bytes_wide(&res);
+        let e = if e.is_some().unwrap_u8() == 1u8 {
+            e.unwrap()
+        } else {
+            return Err(Error::CryptoSigning {
+                cause: "Failed to generate `a` component of signature"
+                    .to_string(),
+            });
+        };
+
         reader.read(&mut res);
-        let s = Scalar::from_bytes_wide(&res).unwrap();
+        let s = Scalar::from_bytes_wide(&res);
+        let s = if s.is_some().unwrap_u8() == 1u8 {
+            s.unwrap()
+        } else {
+            return Err(Error::CryptoSigning {
+                cause: "Failed to generate `s` component of signature"
+                    .to_string(),
+            });
+        };
+
         let b = Self::compute_b(s, msgs, generators);
-        let exp = (e + sk.0).invert().unwrap();
+        let exp = (e + sk.0).invert();
+        let exp = if exp.is_some().unwrap_u8() == 1u8 {
+            exp.unwrap()
+        } else {
+            return Err(Error::CryptoSigning {
+                cause: "Failed to generate `exp` for `a` component of \
+                        signature"
+                    .to_string(),
+            });
+        };
 
         Ok(Self { a: b * exp, e, s })
     }

@@ -3,6 +3,8 @@ pub use crate::schemes::bbs::core::{
         g1_affine_compressed_size,
         g2_affine_compressed_size,
         scalar_size,
+        APP_MESSAGE_DST,
+        BBS_SECRET_KEY_SALT,
     },
     message_generator::*,
     pok_signature::*,
@@ -28,6 +30,3 @@ pub use crate::schemes::bbs::api::{
     proof::{derive as derive_proof, verify as verify_proof},
     signature::{sign, verify},
 };
-
-/// Secret key salt used for deriving keys in the BBS signature scheme
-pub const SECRET_KEY_SALT: &[u8] = b"BBS-SIG-KEYGEN-SALT-";
