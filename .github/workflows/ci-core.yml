@@ -28,58 +28,15 @@ jobs:
         with:
           path: main # TODO remove once temp build step below is removed
 
-      - name: Setup rust toolchain
+      - name: Setup stable rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
 
-      - name: Run cargo check
-        uses: marcopolo/cargo@master
-        with:
-          command: check
-          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
-
-      - name: Run cargo audit
-        uses: marcopolo/cargo@master
-        with:
-          command: audit
-          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
-
-      - name: Run cargo test
-        uses: marcopolo/cargo@master
-        with:
-          command: test
-          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
-          args: "--release"
-
-      - name: Run cargo build
-        uses: marcopolo/cargo@master
-        with:
-          command: build
-          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
-
-  fmt-clippy:
-    name: Rust Format & Clippy
-    runs-on: ubuntu-latest
-    steps:
-      # This is a temporary build step that clones another
-      # repository as a private un-published dependency 'blstrs'
-      # it uses a GH personal access token with read only permission
-      - name: Check out mattrglobal/blstrs
-        uses: actions/checkout@master
-        with:
-          repository: mattrglobal/blstrs
-          token: ${{ secrets.MATTR_BLSTRS_PAT }}
-          path: blstrs
-
-      - name: Checkout pairing_crypto
-        uses: actions/checkout@v2
-        with:
-          path: main # TODO remove once temp build step below is removed
-
-      - uses: actions-rs/toolchain@v1
+      - name: Setup nightly rust toolchain
+        uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: nightly
@@ -90,6 +47,7 @@ jobs:
         uses: marcopolo/cargo@master
         with:
           command: fmt
+          toolchain: nightly
           working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
           args: --all -- --check
 
@@ -97,5 +55,36 @@ jobs:
         uses: marcopolo/cargo@master
         with:
           command: clippy
+          toolchain: nightly
           working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
           args: -- -D warnings
+
+      - name: Run cargo check
+        uses: marcopolo/cargo@master
+        with:
+          command: check
+          toolchain: stable
+          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
+
+      - name: Run cargo audit
+        uses: marcopolo/cargo@master
+        with:
+          command: audit
+          toolchain: stable
+          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
+
+      - name: Run cargo test
+        uses: marcopolo/cargo@master
+        with:
+          command: test
+          toolchain: stable
+          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
+          args: "--release"
+
+      - name: Run cargo build
+        uses: marcopolo/cargo@master
+        with:
+          command: build
+          toolchain: stable
+          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
+
