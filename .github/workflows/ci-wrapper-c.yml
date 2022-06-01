@@ -34,7 +34,7 @@ jobs:
       - name: Setup stable rust toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: nightly # Note this has to be nightly because the header generation step does not work on stable
           override: true
 
       - name: Generate headers
