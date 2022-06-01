@@ -61,8 +61,9 @@ fn signing() {
         .expect("claims to `Message` conversion failed");
 
     for i in 0..TEST_KEY_INFOS.len() {
-        let sk = SecretKey::new(KEY_GEN_SEED, TEST_KEY_INFOS[i].to_vec())
-            .expect("secret key generation failed");
+        let sk =
+            SecretKey::new(KEY_GEN_SEED.as_ref(), TEST_KEY_INFOS[i].as_ref())
+                .expect("secret key generation failed");
         let pk = PublicKey::from(&sk);
         let gens = MessageGenerators::from_public_key(pk, test_atts.len());
         let signature =
@@ -106,7 +107,7 @@ fn proofs() {
 
     for i in 0..TEST_KEY_INFOS.len() {
         let pk = PublicKey::from(
-            &SecretKey::new(KEY_GEN_SEED, TEST_KEY_INFOS[i].to_vec())
+            &SecretKey::new(KEY_GEN_SEED.as_ref(), TEST_KEY_INFOS[i].as_ref())
                 .expect("secret key generation failed"),
         );
         let gens = MessageGenerators::from_public_key(pk, test_atts.len());

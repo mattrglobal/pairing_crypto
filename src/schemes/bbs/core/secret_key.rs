@@ -44,10 +44,9 @@ impl SecretKey {
     /// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.3
     /// Note this procedure does not follow
     /// https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-keygen
-    pub fn new<T1, T2>(ikm: T1, key_info: T2) -> Option<Self>
+    pub fn new<T>(ikm: T, key_info: T) -> Option<Self>
     where
-        T1: AsRef<[u8]>,
-        T2: AsRef<[u8]>,
+        T: AsRef<[u8]>,
     {
         if let Some(out) = generate_sk(ikm, key_info) {
             return Some(SecretKey(out));
@@ -65,7 +64,7 @@ impl SecretKey {
         if rng.try_fill_bytes(&mut ikm).is_ok() {
             let key_info = [];
 
-            return Self::new(ikm, key_info);
+            return Self::new(ikm.as_ref(), key_info.as_ref());
         }
         None
     }
@@ -102,7 +101,7 @@ fn test_from_seed() {
     let seed = [0u8; MIN_IKM_LENGTH_BYTES];
     let key_info = [];
 
-    let sk = SecretKey::new(seed, key_info);
+    let sk = SecretKey::new(seed.as_ref(), key_info.as_ref());
     let expected = [
         77, 18, 154, 25, 223, 134, 160, 245, 52, 91, 173, 76, 198, 242, 73,
         236, 42, 129, 156, 204, 51, 134, 137, 91, 235, 79, 125, 152, 179, 219,
