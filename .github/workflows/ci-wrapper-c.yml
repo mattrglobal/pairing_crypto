@@ -14,42 +14,37 @@ jobs:
     runs-on: macos-latest
     defaults:
       run:
-        working-directory: ./wrappers/c
+        working-directory: ./main/wrappers/c
     steps:
-      - name: Checkout
+      # This is a temporary build step that clones another
+      # repository as a private un-published dependency 'blstrs'
+      # it uses a GH personal access token with read only permission
+      - name: Check out mattrglobal/blstrs
+        uses: actions/checkout@master
+        with:
+          repository: mattrglobal/blstrs
+          token: ${{ secrets.MATTR_BLSTRS_PAT }}
+          path: blstrs
+
+      - name: Checkout pairing_crypto
         uses: actions/checkout@v2
+        with:
+          path: main # TODO remove once temp build step below is removed
 
       - name: Setup rust toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: nightly # Note this has to be nightly because the header generation step does not work on stable
           override: true
-          components: "rustfmt, clippy"
 
-      - name: Run cargo format
-        run: make format
-        shell: bash
-
-      - name: Run cargo clippy
-        run: make clippy
-        shell: bash
-
-      - name: Run cargo check
-        run: make check
-        shell: bash
-
-      - name: Run cargo audit
-        run: make audit
-        shell: bash
-
-      - name: Generate header
+      - name: Generate headers
         run: make generate_headers
         shell: bash
 
-      - name: Run cargo build
+      - name: Build
         run: make build
         shell: bash
 
-      - name: Run tests
+      - name: Test
         run: make test
         shell: bash

@@ -13,56 +13,79 @@ jobs:
     name: Build & Test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      # This is a temporary build step that clones another
+      # repository as a private un-published dependency 'blstrs'
+      # it uses a GH personal access token with read only permission
+      - name: Check out mattrglobal/blstrs
+        uses: actions/checkout@master
+        with:
+          repository: mattrglobal/blstrs
+          token: ${{ secrets.MATTR_BLSTRS_PAT }}
+          path: blstrs
 
-      - name: Setup rust toolchain
+      - name: Checkout pairing_crypto
+        uses: actions/checkout@v2
+        with:
+          path: main # TODO remove once temp build step below is removed
+
+      - name: Setup stable rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
 
-      - name: Run cargo check
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-
-      - name: Run cargo audit
-        uses: actions-rs/cargo@v1
-        with:
-          command: audit
-
-      - name: Run cargo test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: "--release"
-
-      - name: Run cargo build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-  fmt-clippy:
-    name: Rust Format & Clippy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions-rs/toolchain@v1
+      # Note some of the rules we use for fmt and clippy are only available with the nightly toolchain
+      - name: Setup nightly rust toolchain
+        uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: nightly
           override: true
           components: rustfmt, clippy
 
-      - uses: actions-rs/cargo@v1
+      - name: Run cargo format
+        uses: marcopolo/cargo@master
         with:
           command: fmt
+          toolchain: nightly # Note some of the rules we use for fmt are only available with the nightly toolchain
+          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
           args: --all -- --check
 
-      - uses: actions-rs/cargo@v1
+      - name: Run cargo clippy
+        uses: marcopolo/cargo@master
         with:
           command: clippy
+          toolchain: nightly # Note some of the rules we use for clippy are only available with the nightly toolchain
+          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
           args: -- -D warnings
+
+      - name: Run cargo check
+        uses: marcopolo/cargo@master
+        with:
+          command: check
+          toolchain: stable
+          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
+
+      - name: Run cargo audit
+        uses: marcopolo/cargo@master
+        with:
+          command: audit
+          toolchain: stable
+          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
+
+      - name: Run cargo test
+        uses: marcopolo/cargo@master
+        with:
+          command: test
+          toolchain: stable
+          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
+          args: "--release"
+
+      - name: Run cargo build
+        uses: marcopolo/cargo@master
+        with:
+          command: build
+          toolchain: stable
+          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
 
