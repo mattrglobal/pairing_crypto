@@ -3,6 +3,8 @@ name: ci-wrapper-c
 on:
   workflow_run:
     workflows: ["ci-core"]
+    branches:
+      - *
     types:
       - completed
 
