@@ -1,14 +1,10 @@
 name: ci-wrapper-wasm
 
-# TODO this job should only execute on success of ci-core
-
 on:
-  pull_request:
-    branches:
-      - master
-  push:
-    branches:
-      - master
+  workflow_run:
+    workflows: ["ci-core"]
+    types:
+      - completed
 
 jobs:
   build_test:
@@ -16,10 +12,22 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./wrappers/wasm
+        working-directory: ./main/wrappers/wasm
     steps:
-      - name: Checkout
+      # This is a temporary build step that clones another
+      # repository as a private un-published dependency 'blstrs'
+      # it uses a GH personal access token with read only permission
+      - name: Check out mattrglobal/blstrs
+        uses: actions/checkout@master
+        with:
+          repository: mattrglobal/blstrs
+          token: ${{ secrets.MATTR_BLSTRS_PAT }}
+          path: blstrs
+
+      - name: Checkout pairing_crypto
         uses: actions/checkout@v2
+        with:
+          path: main # TODO remove once temp build step below is removed
 
       - name: Setup rust toolchain
         uses: actions-rs/toolchain@v1
