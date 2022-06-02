@@ -21,6 +21,9 @@ pub fn sign(request: BbsSignRequest) -> Result<[u8; 112], Error> {
     // Parse the secret key
     let sk = SecretKey::from_vec(request.secret_key)?;
 
+    // Parse public key from request
+    let pk = PublicKey::from_vec(request.public_key)?;
+
     // Digest the supplied messages
     let messages: Vec<Message> = digest_messages(request.messages)?;
 
@@ -33,7 +36,8 @@ pub fn sign(request: BbsSignRequest) -> Result<[u8; 112], Error> {
     );
 
     // Produce the signature and return
-    Signature::new(&sk, &generators, &messages).map(|sig| sig.to_bytes())
+    Signature::new(&sk, &pk, &request.header, &generators, &messages)
+        .map(|sig| sig.to_bytes())
 }
 
 /// Verifies a signature
@@ -55,5 +59,5 @@ pub fn verify(request: BbsVerifyRequest) -> Result<bool, Error> {
     // Parse signature from request
     let signature = Signature::from_vec(request.signature)?;
 
-    Ok(signature.verify(&pk, &generators, &messages))
+    signature.verify(&pk, &request.header, &generators, &messages)
 }

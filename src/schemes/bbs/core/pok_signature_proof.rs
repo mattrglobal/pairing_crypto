@@ -1,8 +1,11 @@
+#![allow(non_snake_case)]
+
 use super::{
     constants::{g1_affine_compressed_size, scalar_size},
     generator::Generators,
     public_key::PublicKey,
     types::{Challenge, Message},
+    utils::compute_domain,
 };
 use crate::{
     curves::bls12_381::{
@@ -36,12 +39,12 @@ macro_rules! slicer {
 /// Contains the proof of 2 discrete log relations.
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct PokSignatureProof {
-    /// A' in section 4.5
-    pub(crate) a_prime: G1Projective,
-    /// \overline{A} in section 4.5
-    pub(crate) a_bar: G1Projective,
-    /// d in section 4.5
-    pub(crate) d: G1Projective,
+    /// A'
+    pub(crate) A_prime: G1Projective,
+    /// \overline{A}
+    pub(crate) A_bar: G1Projective,
+    /// D
+    pub(crate) D: G1Projective,
     pub(crate) proofs1: [Challenge; 2],
     pub(crate) proofs2: Vec<Challenge>,
     pub(crate) challenge: Challenge,
@@ -63,9 +66,9 @@ impl PokSignatureProof {
             + Self::COMMITMENT_G1_BYTES * 3;
         let mut buffer = Vec::with_capacity(size);
 
-        buffer.extend_from_slice(&self.a_prime.to_affine().to_compressed());
-        buffer.extend_from_slice(&self.a_bar.to_affine().to_compressed());
-        buffer.extend_from_slice(&self.d.to_affine().to_compressed());
+        buffer.extend_from_slice(&self.A_prime.to_affine().to_compressed());
+        buffer.extend_from_slice(&self.A_bar.to_affine().to_compressed());
+        buffer.extend_from_slice(&self.D.to_affine().to_compressed());
         buffer.extend_from_slice(&self.challenge.to_bytes());
 
         for i in 0..self.proofs1.len() {
@@ -92,14 +95,14 @@ impl PokSignatureProof {
         let hidden_message_count = (buffer.len() - size) / Self::FIELD_BYTES;
         let mut offset = Self::COMMITMENT_G1_BYTES;
         let mut end = 2 * Self::COMMITMENT_G1_BYTES;
-        let a_prime = G1Affine::from_compressed(slicer!(
+        let A_prime = G1Affine::from_compressed(slicer!(
             buffer,
             0,
             offset,
             Self::COMMITMENT_G1_BYTES
         ))
         .map(G1Projective::from);
-        let a_bar = G1Affine::from_compressed(slicer!(
+        let A_bar = G1Affine::from_compressed(slicer!(
             buffer,
             offset,
             end,
@@ -108,7 +111,7 @@ impl PokSignatureProof {
         .map(G1Projective::from);
         offset = end;
         end = offset + Self::COMMITMENT_G1_BYTES;
-        let d = G1Affine::from_compressed(slicer!(
+        let D = G1Affine::from_compressed(slicer!(
             buffer,
             offset,
             end,
@@ -116,9 +119,9 @@ impl PokSignatureProof {
         ))
         .map(G1Projective::from);
 
-        if a_prime.is_none().unwrap_u8() == 1
-            || a_bar.is_none().unwrap_u8() == 1
-            || d.is_none().unwrap_u8() == 1
+        if A_prime.is_none().unwrap_u8() == 1
+            || A_bar.is_none().unwrap_u8() == 1
+            || D.is_none().unwrap_u8() == 1
         {
             return None;
         }
@@ -172,9 +175,9 @@ impl PokSignatureProof {
             proofs2.push(c.unwrap());
         }
         Some(Self {
-            a_prime: a_prime.unwrap(),
-            a_bar: a_bar.unwrap(),
-            d: d.unwrap(),
+            A_prime: A_prime.unwrap(),
+            A_bar: A_bar.unwrap(),
+            D: D.unwrap(),
             challenge: challenge.unwrap(),
             proofs1: [proofs1[0].unwrap(), proofs1[1].unwrap()],
             proofs2,
@@ -182,14 +185,20 @@ impl PokSignatureProof {
         })
     }
 
-    /// Convert the committed values to bytes for the fiat-shamir challenge
-    pub fn add_challenge_contribution(
+    /// Convert the committed values to bytes for the fiat-shamir challenge as
+    /// defined in `ProofVerify` API in BBS Signature spec <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.7>
+    pub fn add_challenge_contribution<T>(
         &self,
+        PK: &PublicKey,
+        header: T,
         generators: &Generators,
         rvl_msgs: &[(usize, Message)],
         challenge: Challenge,
         hasher: &mut impl Update,
-    ) -> Result<(), Error> {
+    ) -> Result<(), Error>
+    where
+        T: AsRef<[u8]>,
+    {
         // TODO check revealed messages vs hidden message count on proof
         // TODO need to account for generators being 0?
         if generators.message_blinding_points_length()
@@ -207,36 +216,40 @@ impl PokSignatureProof {
             });
         }
 
-        hasher.update(self.a_prime.to_affine().to_uncompressed());
-        hasher.update(self.a_bar.to_affine().to_uncompressed());
-        hasher.update(self.d.to_affine().to_uncompressed());
+        // domain
+        //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
+        // TODO include Ciphersuite_ID
+        let domain = compute_domain(PK, header, generators);
 
-        let proof1_points =
-            [self.a_bar - self.d, self.a_prime, generators.H_s()];
-        let proof1_scalars =
-            [challenge.0, self.proofs1[0].0, self.proofs1[1].0];
-        let commitment_proofs1 =
-            G1Projective::multi_exp(&proof1_points, &proof1_scalars);
-        hasher.update(commitment_proofs1.to_affine().to_bytes());
+        // Adding data to hasher to calculate `cv` is done in many steps
+        // whenever the data is ready
+        // cv = hash_to_scalar((PK || Abar || A' || D || C1 || C2 || ph), 1)
+        hasher.update(PK.to_bytes());
+        hasher.update(self.A_prime.to_affine().to_uncompressed());
+        hasher.update(self.A_bar.to_affine().to_uncompressed());
+        hasher.update(self.D.to_affine().to_uncompressed());
 
-        let mut r_points = Vec::with_capacity(
-            generators.message_blinding_points_length()
-                - self.hidden_message_count,
-        );
-        let mut r_scalars = Vec::with_capacity(
-            generators.message_blinding_points_length()
-                - self.hidden_message_count,
-        );
+        // C1 = (Abar - D) * c + A' * e^ + H_s * r2^
+        let C1_points = [self.A_bar - self.D, self.A_prime, generators.H_s()];
+        let C1_scalars = [challenge.0, self.proofs1[0].0, self.proofs1[1].0];
+        let C1 = G1Projective::multi_exp(&C1_points, &C1_scalars);
+        hasher.update(C1.to_affine().to_bytes());
 
-        r_points.push(G1Projective::generator());
-        r_scalars.push(Scalar::one());
-
-        let mut hidden = HashSet::new();
+        // T = P1 + H_s * domain + H_i1 * msg_i1 + ... H_iR * msg_iR
+        let T_len = 1 + 1 + rvl_msgs.len();
+        let mut T_points = Vec::with_capacity(T_len);
+        let mut T_scalars = Vec::with_capacity(T_len);
+        let P1 = G1Projective::generator();
+        T_points.push(P1);
+        T_scalars.push(Scalar::one());
+        T_points.push(generators.H_d());
+        T_scalars.push(domain);
+        let mut revealed = HashSet::new();
         for (idx, msg) in rvl_msgs {
-            hidden.insert(*idx);
+            revealed.insert(*idx);
             if let Some(g) = generators.get_message_blinding_point(*idx) {
-                r_points.push(g);
-                r_scalars.push(msg.0);
+                T_points.push(g);
+                T_scalars.push(msg.0);
             } else {
                 // as we have already check about length, this should not happen
                 return Err(Error::BadParams {
@@ -244,67 +257,57 @@ impl PokSignatureProof {
                 });
             }
         }
+        let T = G1Projective::multi_exp(T_points.as_ref(), T_scalars.as_ref());
 
-        let r = G1Projective::multi_exp(r_points.as_ref(), r_scalars.as_ref());
-
-        let mut proof2_points = Vec::with_capacity(
-            3 + generators.message_blinding_points_length()
-                - self.hidden_message_count,
-        );
-        let mut proof2_scalars = Vec::with_capacity(
-            3 + generators.message_blinding_points_length()
-                - self.hidden_message_count,
-        );
-
-        // r^c
-        proof2_points.push(r);
-        proof2_scalars.push(challenge.0);
-
-        // d^-r3_hat
-        proof2_points.push(-self.d);
-        proof2_scalars.push(self.proofs2[0].0);
-
-        // H_s^s_tick_hat
-        proof2_points.push(generators.H_s());
-        proof2_scalars.push(self.proofs2[1].0);
-
+        // Compute C2 = T * c + D * (-r3^) + H_s * s^ +
+        //           H_j1 * m^_j1 + ... + H_jU * m^_jU
+        let C2_len = 1 + 1 + 1 + self.hidden_message_count;
+        let mut C2_points = Vec::with_capacity(C2_len);
+        let mut C2_scalars = Vec::with_capacity(C2_len);
+        // T*c
+        C2_points.push(T);
+        C2_scalars.push(challenge.0);
+        // D * (-r3^)
+        C2_points.push(-self.D);
+        C2_scalars.push(self.proofs2[0].0);
+        // H_s * s^
+        C2_points.push(generators.H_s());
+        C2_scalars.push(self.proofs2[1].0);
+        // H_j1 * m^_j1 + ... + H_jU * m^_jU
         let mut j = 2;
         for (i, generator) in
             generators.message_blinding_points_iter().enumerate()
         {
-            if hidden.contains(&i) {
+            if revealed.contains(&i) {
                 continue;
             }
-            proof2_points.push(*generator);
-            proof2_scalars.push(self.proofs2[j].0);
+            C2_points.push(*generator);
+            C2_scalars.push(self.proofs2[j].0);
             j += 1;
         }
-        let commitment_proofs2 = G1Projective::multi_exp(
-            proof2_points.as_ref(),
-            proof2_scalars.as_ref(),
-        );
-        hasher.update(commitment_proofs2.to_affine().to_bytes());
+        let C2 =
+            G1Projective::multi_exp(C2_points.as_ref(), C2_scalars.as_ref());
+        hasher.update(C2.to_affine().to_bytes());
 
         Ok(())
     }
 
-    /// Validate the proof, only checks the signature proof
+    /// Validate the proof, as defined in `ProofVerify` API in BBS Signature spec <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.7>,
+    /// only checks the signature proof,
     /// the selective disclosure proof is checked by verifying
-    /// self.challenge == computed_challenge
+    /// `self.challenge == computed_challenge`.
     pub fn verify(&self, public_key: PublicKey) -> bool {
         // check the signature proof
-        if self.a_prime.is_identity().unwrap_u8() == 1 {
+        if self.A_prime.is_identity().unwrap_u8() == 1 {
             return false;
         }
+        let P2 = G2Affine::generator();
         Bls12::multi_miller_loop(&[
             (
-                &self.a_prime.to_affine(),
+                &self.A_prime.to_affine(),
                 &G2Prepared::from(public_key.0.to_affine()),
             ),
-            (
-                &self.a_bar.to_affine(),
-                &G2Prepared::from(-G2Affine::generator()),
-            ),
+            (&self.A_bar.to_affine(), &G2Prepared::from(-P2)),
         ])
         .final_exponentiation()
         .is_identity()
@@ -316,9 +319,9 @@ impl PokSignatureProof {
 #[test]
 fn serialization_test() {
     let p = PokSignatureProof {
-        a_bar: G1Projective::generator(),
-        a_prime: G1Projective::generator(),
-        d: G1Projective::generator(),
+        A_bar: G1Projective::generator(),
+        A_prime: G1Projective::generator(),
+        D: G1Projective::generator(),
         challenge: Challenge::default(),
         proofs1: [Challenge::default(), Challenge::default()],
         proofs2: vec![Challenge::default(), Challenge::default()],
@@ -329,8 +332,8 @@ fn serialization_test() {
     let p2_opt = PokSignatureProof::from_bytes(&bytes);
     assert!(p2_opt.is_some());
     let p2 = p2_opt.unwrap();
-    assert_eq!(p.a_bar, p2.a_bar);
-    assert_eq!(p.a_prime, p2.a_prime);
-    assert_eq!(p.d, p2.d);
+    assert_eq!(p.A_bar, p2.A_bar);
+    assert_eq!(p.A_prime, p2.A_prime);
+    assert_eq!(p.D, p2.D);
     assert_eq!(p.hidden_message_count, p2.hidden_message_count);
 }

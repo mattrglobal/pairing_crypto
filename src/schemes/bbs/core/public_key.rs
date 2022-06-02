@@ -41,12 +41,12 @@ impl PublicKey {
     /// Number of bytes needed to represent the public key in compressed form
     pub const SIZE_BYTES: usize = g2_affine_compressed_size();
 
-    /// Check if this signature is valid
+    /// Check if this PublicKey is valid
     pub fn is_valid(&self) -> Choice {
         self.0.is_identity().not().bitor(self.0.is_on_curve())
     }
 
-    /// Check if this signature is invalid
+    /// Check if this PublicKey is invalid
     pub fn is_invalid(&self) -> Choice {
         self.0.is_identity().bitor(self.0.is_on_curve().not())
     }

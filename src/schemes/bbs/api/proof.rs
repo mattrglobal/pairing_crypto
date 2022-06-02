@@ -60,7 +60,12 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     };
 
     // Verify the signature to check the messages supplied are valid
-    match signature.verify(&pk, &generators, &digested_messages) {
+    match signature.verify(
+        &pk,
+        &request.header,
+        &generators,
+        &digested_messages,
+    )? {
         false => {
             return Err(Error::CryptoSignatureVerification);
         }
@@ -79,7 +84,13 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
         APP_MESSAGE_DST,
     )?;
 
-    let mut pok = PokSignature::init(signature, &generators, &messages)?;
+    let mut pok = PokSignature::init(
+        &pk,
+        &signature,
+        &request.header,
+        &generators,
+        &messages,
+    )?;
 
     let mut data = [0u8; g1_affine_compressed_size()];
     let mut hasher = sha3::Shake256::default();
@@ -132,6 +143,8 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
     let mut hasher = sha3::Shake256::default();
 
     proof.add_challenge_contribution(
+        &public_key,
+        &request.header,
         &generators,
         &messages,
         proof.challenge,

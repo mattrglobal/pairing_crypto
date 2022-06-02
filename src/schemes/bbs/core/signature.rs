@@ -1,28 +1,22 @@
+#![allow(non_snake_case)]
 use super::{
-    constants::{g1_affine_compressed_size, scalar_size},
+    constants::{g1_affine_compressed_size, scalar_size, XOF_NO_OF_BYTES},
     generator::Generators,
     public_key::PublicKey,
     secret_key::SecretKey,
     types::Message,
+    utils::{compute_B, compute_domain},
 };
 use crate::{
     common::util::vec_to_byte_array,
-    curves::bls12_381::{
-        Bls12,
-        G1Affine,
-        G1Projective,
-        G2Affine,
-        G2Prepared,
-        G2Projective,
-        Scalar,
-    },
+    curves::bls12_381::{Bls12, G1Affine, G1Projective, G2Projective, Scalar},
     error::Error,
 };
-use core::{convert::TryFrom, fmt, ops::Neg};
+use core::{convert::TryFrom, fmt};
 use digest::{ExtendableOutput, Update, XofReader};
 use ff::Field;
-use group::{prime::PrimeCurveAffine, Curve, Group};
-use pairing::{MillerLoopResult as _, MultiMillerLoop};
+use group::{Curve, Group};
+use pairing::Engine;
 use serde::{
     de::{Error as DError, SeqAccess, Visitor},
     ser::SerializeTuple,
@@ -35,9 +29,10 @@ use sha3::Shake256;
 use subtle::{Choice, ConditionallySelectable};
 
 /// A BBS+ signature
+#[allow(non_snake_case)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct Signature {
-    pub(crate) a: G1Projective,
+    pub(crate) A: G1Projective,
     pub(crate) e: Scalar,
     pub(crate) s: Scalar,
 }
@@ -97,7 +92,7 @@ impl<'de> Deserialize<'de> for Signature {
 impl Default for Signature {
     fn default() -> Self {
         Self {
-            a: G1Projective::identity(),
+            A: G1Projective::identity(),
             e: Scalar::zero(),
             s: Scalar::zero(),
         }
@@ -107,7 +102,7 @@ impl Default for Signature {
 impl ConditionallySelectable for Signature {
     fn conditional_select(a: &Self, b: &Self, choice: Choice) -> Self {
         Self {
-            a: G1Projective::conditional_select(&a.a, &b.a, choice),
+            A: G1Projective::conditional_select(&a.A, &b.A, choice),
             e: Scalar::conditional_select(&a.e, &b.e, choice),
             s: Scalar::conditional_select(&a.s, &b.s, choice),
         }
@@ -119,13 +114,18 @@ impl Signature {
     pub const SIZE_BYTES: usize =
         g1_affine_compressed_size() + 2 * scalar_size();
 
-    /// Generate a new signature where all messages are known to the signer
-    pub fn new<M>(
-        sk: &SecretKey,
+    /// Generate a new signature where all messages are known to the signer.
+    /// This method follows `Sign` API as defined in BBS Signature spec
+    /// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.4>
+    pub fn new<T, M>(
+        SK: &SecretKey,
+        PK: &PublicKey,
+        header: T,
         generators: &Generators,
         msgs: M,
     ) -> Result<Self, Error>
     where
+        T: AsRef<[u8]>,
         M: AsRef<[Message]>,
     {
         let msgs = msgs.as_ref();
@@ -135,21 +135,24 @@ impl Signature {
                 messages: msgs.len(),
             });
         }
-        if sk.0.is_zero().unwrap_u8() == 1 {
+        if SK.0.is_zero().unwrap_u8() == 1 {
             return Err(Error::CryptoInvalidSecretKey);
         }
 
+        // domain
+        //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
+        // TODO include Ciphersuite_ID
+        let domain = compute_domain(PK, header, generators);
+
+        // (e, s) = hash_to_scalar((SK  || domain || msg_1 || ... || msg_L), 2)
         let mut hasher = Shake256::default();
-        hasher.update(&sk.to_bytes());
-        hasher.update(generators.H_s().to_affine().to_uncompressed());
-        for generator in generators.message_blinding_points_iter() {
-            hasher.update(generator.to_uncompressed());
-        }
+        hasher.update(SK.to_bytes());
+        hasher.update(domain.to_bytes_be());
         for m in msgs {
             hasher.update(m.to_bytes())
         }
-        let mut res = [0u8; 64];
         let mut reader = hasher.finalize_xof();
+        let mut res = [0u8; XOF_NO_OF_BYTES];
         reader.read(&mut res);
 
         // Should yield non-zero values for `e` and `s`, very small likelihood
@@ -175,8 +178,9 @@ impl Signature {
             });
         };
 
-        let b = Self::compute_b(s, msgs, generators);
-        let exp = (e + sk.0).invert();
+        // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
+        let B = compute_B(&s, &domain, msgs, generators);
+        let exp = (e + SK.0).invert();
         let exp = if exp.is_some().unwrap_u8() == 1u8 {
             exp.unwrap()
         } else {
@@ -187,48 +191,61 @@ impl Signature {
             });
         };
 
-        Ok(Self { a: b * exp, e, s })
+        // A = B * (1 / (SK + e))
+        Ok(Self { A: B * exp, e, s })
     }
 
-    /// Verify a signature
-    pub fn verify<M>(
+    /// Verify a signature.
+    /// This method follows `Verify` API as defined in BBS Signature spec
+    /// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.5>
+    pub fn verify<T, M>(
         &self,
-        pk: &PublicKey,
+        PK: &PublicKey,
+        header: T,
         generators: &Generators,
         msgs: M,
-    ) -> bool
+    ) -> Result<bool, Error>
     where
+        T: AsRef<[u8]>,
         M: AsRef<[Message]>,
     {
         let msgs = msgs.as_ref();
-        // If there are more messages then generators then we cannot verify the
+        // If there are more messages than generators then we cannot verify the
         // signature return false
         if generators.message_blinding_points_length() < msgs.len() {
-            // TODO return error
-            return false;
-        }
-        // Identity point will always return true which is not what we want
-        if pk.0.is_identity().unwrap_u8() == 1 {
-            return false;
+            return Err(Error::CryptoSignatureVerification);
         }
 
-        let a = G2Projective::generator() * self.e + pk.0;
-        let b = Self::compute_b(self.s, msgs, generators).neg();
+        // Validate the public key if it's not an identity and also in subgroup.
+        if PK.is_valid().unwrap_u8() == 1 {
+            return Err(Error::CryptoSignatureVerification);
+        }
 
-        Bls12::multi_miller_loop(&[
-            (&self.a.to_affine(), &G2Prepared::from(a.to_affine())),
-            (&b.to_affine(), &G2Prepared::from(G2Affine::generator())),
-        ])
-        .final_exponentiation()
-        .is_identity()
-        .unwrap_u8()
-            == 1
+        let W = PK.0;
+
+        // domain
+        //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
+        // TODO include Ciphersuite_ID
+        let domain = compute_domain(PK, header, generators);
+
+        // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
+        let B = compute_B(&self.s, &domain, msgs, generators);
+
+        let P2 = G2Projective::identity();
+        // C1 = e(A, W + P2 * e)
+        let C1 =
+            Bls12::pairing(&self.A.to_affine(), &(W + P2 * self.e).to_affine());
+
+        // C2 = e(B, P2)
+        let C2 = Bls12::pairing(&B.to_affine(), &P2.to_affine());
+
+        Ok(C1 == C2)
     }
 
     /// Get the byte representation of this signature
     pub fn to_bytes(&self) -> [u8; Self::SIZE_BYTES] {
         let mut bytes = [0u8; Self::SIZE_BYTES];
-        bytes[0..48].copy_from_slice(&self.a.to_affine().to_compressed());
+        bytes[0..48].copy_from_slice(&self.A.to_affine().to_compressed());
         let mut e = self.e.to_bytes_be();
         e.reverse();
         bytes[48..80].copy_from_slice(&e[..]);
@@ -286,33 +303,14 @@ impl Signature {
             });
         };
 
-        Ok(Signature { a, e, s })
-    }
-
-    /// computes P1 + s * H_s + msgs[0] * h[0] + msgs[1] * h[1] ...
-    pub(crate) fn compute_b(
-        s: Scalar,
-        msgs: &[Message],
-        generators: &Generators,
-    ) -> G1Projective {
-        // Spec doesn't define P1, using G1Projective::generator() as P1
-        let mut points: Vec<_> =
-            vec![G1Projective::generator(), generators.H_s()];
-        points.extend(generators.message_blinding_points_iter());
-        let scalars: Vec<_> = [Scalar::one(), s]
-            .iter()
-            .copied()
-            .chain(msgs.iter().map(|c| c.0))
-            .collect();
-
-        G1Projective::multi_exp(&points, &scalars)
+        Ok(Signature { A: a, e, s })
     }
 }
 
 #[test]
 fn serialization_test() {
     let mut sig = Signature::default();
-    sig.a = G1Projective::generator();
+    sig.A = G1Projective::generator();
     sig.e = Scalar::one();
     sig.s = Scalar::one() + Scalar::one();
 
@@ -320,7 +318,7 @@ fn serialization_test() {
     assert_eq!(sig_clone.is_ok(), true);
     let sig2 = sig_clone.unwrap();
     assert_eq!(sig, sig2);
-    sig.a = G1Projective::identity();
+    sig.A = G1Projective::identity();
     sig.conditional_assign(&sig2, Choice::from(1u8));
     assert_eq!(sig, sig2);
 }
@@ -332,9 +330,9 @@ fn invalid_signature() {
     let sk = SecretKey::default();
     let msgs = [Message::default(), Message::default()];
     let generators = Generators::new(&[], &[], &[], 1);
-    assert!(Signature::new(&sk, &generators, &msgs).is_err());
-    assert_eq!(sig.verify(&pk, &generators, &msgs), false);
+    assert!(Signature::new(&sk, &pk, &[], &generators, &msgs).is_err());
+    assert_eq!(sig.verify(&pk, &[], &generators, &msgs).unwrap(), false);
     let generators = Generators::new(&[], &[], &[], 3);
-    assert_eq!(sig.verify(&pk, &generators, &msgs), false);
-    assert!(Signature::new(&sk, &generators, &msgs).is_err());
+    assert_eq!(sig.verify(&pk, &[], &generators, &msgs).unwrap(), false);
+    assert!(Signature::new(&sk, &pk, &[], &generators, &msgs).is_err());
 }

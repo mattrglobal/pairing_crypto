@@ -55,6 +55,8 @@ const EXPECTED_SIGS: [&str; 7] = [
 "b7f733bcaae199e3699c546de9797413244fbee37d8502e6ec21a43ceada558116804c0cd261e41d292acb02feb9b5a21f248bf7772933f7b31d38899de8e00e445d3de88c04d54f31af4e61cef8021614782211e7c4cf189d6103a3ad6b477fedec12573acb825e67fd4be8ccf0661e",
 ];
 
+const HEADER: &[u8; 16] = b"some_app_context";
+
 #[test]
 fn signing() {
     let test_atts = TEST_CLAIMS
@@ -74,11 +76,14 @@ fn signing() {
             GLOBAL_MESSAGE_GENERATOR_SEED,
             test_atts.len(),
         );
-        let signature =
-            Signature::new(&sk, &gens, &test_atts).expect("signing failed");
+        let signature = Signature::new(&sk, &pk, &HEADER, &gens, &test_atts)
+            .expect("signing failed");
         // println!("sig {:?} = {:?}", i, hex::encode(signature.to_bytes()));
 
-        assert_eq!(signature.verify(&pk, &gens, &test_atts), true);
+        assert_eq!(
+            signature.verify(&pk, &HEADER, &gens, &test_atts).unwrap(),
+            true
+        );
         let expected_signature = Signature::from_bytes(
             &<[u8; Signature::SIZE_BYTES]>::try_from(
                 hex::decode(EXPECTED_SIGS[i]).expect("hex decoding failed"),
@@ -132,7 +137,10 @@ fn proofs() {
             .expect("data conversion failed"),
         )
         .expect("signature deserialization failed");
-        assert_eq!(signature.verify(&pk, &gens, &test_atts), true);
+        assert_eq!(
+            signature.verify(&pk, &HEADER, &gens, &test_atts).unwrap(),
+            true
+        );
         // start with all hidden messages
         let mut proof_msgs: Vec<ProofMessage> = test_atts
             .iter()
@@ -146,7 +154,9 @@ fn proofs() {
         // Reveal 1 message at a time
         for j in 0..proof_msgs.len() {
             let mut pok = PokSignature::init_with_rng(
-                signature,
+                &pk,
+                &signature,
+                &HEADER,
                 &gens,
                 proof_msgs.as_slice(),
                 &mut rng,
@@ -179,10 +189,11 @@ fn proofs() {
             assert_eq!(
                 verify_proof(BbsVerifyProofRequest {
                     public_key: pk.to_bytes().to_vec(),
+                    header: HEADER.to_vec(),
                     presentation_message: PRESENTATION_MESSAGE.to_vec(),
                     proof: proof.to_bytes().to_vec(),
                     total_message_count: test_atts.len(),
-                    messages: revealed_msgs.as_slice().to_vec()
+                    messages: revealed_msgs.as_slice().to_vec(),
                 })
                 .expect("proof verification failed"),
                 true
