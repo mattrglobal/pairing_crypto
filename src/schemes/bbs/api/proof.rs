@@ -11,8 +11,8 @@ use crate::{
     schemes::bbs::ciphersuites::bls12_381::{
         g1_affine_compressed_size,
         Challenge,
+        Generators,
         Message,
-        MessageGenerators,
         PokSignature,
         PokSignatureProof,
         PresentationMessage,
@@ -20,6 +20,9 @@ use crate::{
         PublicKey,
         Signature,
         APP_MESSAGE_DST,
+        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
+        GLOBAL_MESSAGE_GENERATOR_SEED,
+        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
     },
 };
 use digest::{ExtendableOutput, Update, XofReader};
@@ -39,11 +42,13 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     )
     .unwrap();
 
-    // Use generators derived from the signers public key
-    // TODO this approach is likely to change soon
-    let generators =
-        MessageGenerators::from_public_key(pk, request.messages.len());
-
+    // Derive generators
+    let generators = Generators::new(
+        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
+        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+        GLOBAL_MESSAGE_GENERATOR_SEED,
+        request.messages.len(),
+    );
     // Parse signature from request
     let signature = match Signature::from_vec(request.signature) {
         Ok(result) => result,
@@ -101,10 +106,11 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
         request.total_message_count,
     )?;
 
-    // Use generators derived from the signers public key
-    // TODO this approach is likely to change soon
-    let generators = MessageGenerators::from_public_key(
-        public_key,
+    // Derive generators
+    let generators = Generators::new(
+        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
+        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+        GLOBAL_MESSAGE_GENERATOR_SEED,
         request.total_message_count,
     );
 

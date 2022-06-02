@@ -1,5 +1,5 @@
 use super::{
-    message_generator::MessageGenerators,
+    generator::Generators,
     pok_signature_proof::PokSignatureProof,
     proof_committed_builder::ProofCommittedBuilder,
     signature::Signature,
@@ -39,7 +39,7 @@ impl PokSignature {
     /// Creates the initial proof data before a Fiat-Shamir calculation
     pub fn init(
         signature: Signature,
-        generators: &MessageGenerators,
+        generators: &Generators,
         messages: &[ProofMessage],
     ) -> Result<Self, Error> {
         Self::init_with_rng(
@@ -54,17 +54,17 @@ impl PokSignature {
     #[allow(clippy::needless_range_loop)]
     pub fn init_with_rng(
         signature: Signature,
-        generators: &MessageGenerators,
+        generators: &Generators,
         messages: &[ProofMessage],
         mut rng: impl RngCore + CryptoRng,
     ) -> Result<Self, Error> {
-        if messages.len() != generators.len() {
+        if messages.len() != generators.message_blinding_points_length() {
             return Err(Error::BadParams {
                 cause: format!(
                     "mismatched length: number of messages {}, number of \
                      generators {}",
                     messages.len(),
-                    generators.len()
+                    generators.message_blinding_points_length()
                 ),
             });
         }
@@ -86,8 +86,8 @@ impl PokSignature {
         // a_bar = A' \* -e + b \* r1
         let a_bar = b * r1 - a_prime * signature.e;
 
-        // d = b * r1 + h0 * r2
-        let d = G1Projective::multi_exp(&[b, generators.h0], &[r1, r2]);
+        // d = b * r1 + H_s * r2
+        let d = G1Projective::multi_exp(&[b, generators.H_s()], &[r1, r2]);
 
         // s' = s - r2 r3
         let s_prime = signature.s + r2 * r3;
@@ -103,8 +103,8 @@ impl PokSignature {
         // Compute the components of C1 = A' * e~ + h0 * r2~
         // For A' * -e
         proof1.commit_random(a_prime, &mut rng);
-        // For h0 * r2
-        proof1.commit_random(generators.h0, &mut rng);
+        // For H_s * r2
+        proof1.commit_random(generators.H_s(), &mut rng);
 
         // Compute the components of C2 = ...
         let mut proof2 = ProofCommittedBuilder::<G1Projective, G1Affine>::new(
@@ -113,19 +113,21 @@ impl PokSignature {
 
         // for d * -r3
         proof2.commit_random(-d, &mut rng);
-        // for h0 * s_prime
-        proof2.commit_random(generators.h0, &mut rng);
+        // for H_s * s_prime
+        proof2.commit_random(generators.H_s(), &mut rng);
 
-        for i in 0..generators.len() {
+        for (i, generator) in
+            generators.message_blinding_points_iter().enumerate()
+        {
             match messages[i] {
                 ProofMessage::Hidden(HiddenMessage::ProofSpecificBlinding(
                     m,
                 )) => {
-                    proof2.commit_random(generators.get(i), &mut rng);
+                    proof2.commit_random(*generator, &mut rng);
                     secrets2.push(m.0);
                 }
                 ProofMessage::Hidden(HiddenMessage::ExternalBlinding(m, e)) => {
-                    proof2.commit(generators.get(i), e.0);
+                    proof2.commit(*generator, e.0);
                     secrets2.push(m.0);
                 }
                 _ => {}

@@ -1,6 +1,6 @@
 use super::{
     constants::{g1_affine_compressed_size, scalar_size},
-    message_generator::MessageGenerators,
+    generator::Generators,
     public_key::PublicKey,
     types::{Challenge, Message},
 };
@@ -185,19 +185,22 @@ impl PokSignatureProof {
     /// Convert the committed values to bytes for the fiat-shamir challenge
     pub fn add_challenge_contribution(
         &self,
-        generators: &MessageGenerators,
+        generators: &Generators,
         rvl_msgs: &[(usize, Message)],
         challenge: Challenge,
         hasher: &mut impl Update,
     ) -> Result<(), Error> {
         // TODO check revealed messages vs hidden message count on proof
         // TODO need to account for generators being 0?
-        if generators.len() - self.hidden_message_count != rvl_msgs.len() {
+        if generators.message_blinding_points_length()
+            - self.hidden_message_count
+            != rvl_msgs.len()
+        {
             return Err(Error::BadParams {
                 cause: format!(
                     "Incorrect number of revealed messages: #generators: {}, \
                      #hidden_messages: {}, #revealed_messages: {}",
-                    generators.len(),
+                    generators.message_blinding_points_length(),
                     self.hidden_message_count,
                     rvl_msgs.len()
                 ),
@@ -208,17 +211,22 @@ impl PokSignatureProof {
         hasher.update(self.a_bar.to_affine().to_uncompressed());
         hasher.update(self.d.to_affine().to_uncompressed());
 
-        let proof1_points = [self.a_bar - self.d, self.a_prime, generators.h0];
+        let proof1_points =
+            [self.a_bar - self.d, self.a_prime, generators.H_s()];
         let proof1_scalars =
             [challenge.0, self.proofs1[0].0, self.proofs1[1].0];
         let commitment_proofs1 =
             G1Projective::multi_exp(&proof1_points, &proof1_scalars);
         hasher.update(commitment_proofs1.to_affine().to_bytes());
 
-        let mut r_points =
-            Vec::with_capacity(generators.len() - self.hidden_message_count);
-        let mut r_scalars =
-            Vec::with_capacity(generators.len() - self.hidden_message_count);
+        let mut r_points = Vec::with_capacity(
+            generators.message_blinding_points_length()
+                - self.hidden_message_count,
+        );
+        let mut r_scalars = Vec::with_capacity(
+            generators.message_blinding_points_length()
+                - self.hidden_message_count,
+        );
 
         r_points.push(G1Projective::generator());
         r_scalars.push(Scalar::one());
@@ -226,17 +234,26 @@ impl PokSignatureProof {
         let mut hidden = HashSet::new();
         for (idx, msg) in rvl_msgs {
             hidden.insert(*idx);
-            r_points.push(generators.get(*idx));
-            r_scalars.push(msg.0);
+            if let Some(g) = generators.get_message_blinding_point(*idx) {
+                r_points.push(g);
+                r_scalars.push(msg.0);
+            } else {
+                // as we have already check about length, this should not happen
+                return Err(Error::BadParams {
+                    cause: "Generators out of range".to_owned(),
+                });
+            }
         }
 
         let r = G1Projective::multi_exp(r_points.as_ref(), r_scalars.as_ref());
 
         let mut proof2_points = Vec::with_capacity(
-            3 + generators.len() - self.hidden_message_count,
+            3 + generators.message_blinding_points_length()
+                - self.hidden_message_count,
         );
         let mut proof2_scalars = Vec::with_capacity(
-            3 + generators.len() - self.hidden_message_count,
+            3 + generators.message_blinding_points_length()
+                - self.hidden_message_count,
         );
 
         // r^c
@@ -247,16 +264,18 @@ impl PokSignatureProof {
         proof2_points.push(-self.d);
         proof2_scalars.push(self.proofs2[0].0);
 
-        // h0^s_tick_hat
-        proof2_points.push(generators.h0);
+        // H_s^s_tick_hat
+        proof2_points.push(generators.H_s());
         proof2_scalars.push(self.proofs2[1].0);
 
         let mut j = 2;
-        for i in 0..generators.len() {
+        for (i, generator) in
+            generators.message_blinding_points_iter().enumerate()
+        {
             if hidden.contains(&i) {
                 continue;
             }
-            proof2_points.push(generators.get(i));
+            proof2_points.push(*generator);
             proof2_scalars.push(self.proofs2[j].0);
             j += 1;
         }

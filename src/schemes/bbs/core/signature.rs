@@ -1,6 +1,6 @@
 use super::{
     constants::{g1_affine_compressed_size, scalar_size},
-    message_generator::MessageGenerators,
+    generator::Generators,
     public_key::PublicKey,
     secret_key::SecretKey,
     types::Message,
@@ -122,16 +122,16 @@ impl Signature {
     /// Generate a new signature where all messages are known to the signer
     pub fn new<M>(
         sk: &SecretKey,
-        generators: &MessageGenerators,
+        generators: &Generators,
         msgs: M,
     ) -> Result<Self, Error>
     where
         M: AsRef<[Message]>,
     {
         let msgs = msgs.as_ref();
-        if generators.len() < msgs.len() {
+        if generators.message_blinding_points_length() < msgs.len() {
             return Err(Error::CryptoNotEnoughMessageGenerators {
-                generators: generators.len(),
+                generators: generators.message_blinding_points_length(),
                 messages: msgs.len(),
             });
         }
@@ -141,9 +141,9 @@ impl Signature {
 
         let mut hasher = Shake256::default();
         hasher.update(&sk.to_bytes());
-        hasher.update(generators.h0.to_affine().to_uncompressed());
-        for i in 0..generators.len() {
-            hasher.update(generators.get(i).to_affine().to_uncompressed());
+        hasher.update(generators.H_s().to_affine().to_uncompressed());
+        for generator in generators.message_blinding_points_iter() {
+            hasher.update(generator.to_uncompressed());
         }
         for m in msgs {
             hasher.update(m.to_bytes())
@@ -194,7 +194,7 @@ impl Signature {
     pub fn verify<M>(
         &self,
         pk: &PublicKey,
-        generators: &MessageGenerators,
+        generators: &Generators,
         msgs: M,
     ) -> bool
     where
@@ -203,7 +203,8 @@ impl Signature {
         let msgs = msgs.as_ref();
         // If there are more messages then generators then we cannot verify the
         // signature return false
-        if generators.len() < msgs.len() {
+        if generators.message_blinding_points_length() < msgs.len() {
+            // TODO return error
             return false;
         }
         // Identity point will always return true which is not what we want
@@ -288,17 +289,16 @@ impl Signature {
         Ok(Signature { a, e, s })
     }
 
-    /// computes g1 + s * h0 + msgs[0] * h[0] + msgs[1] * h[1] ...
+    /// computes P1 + s * H_s + msgs[0] * h[0] + msgs[1] * h[1] ...
     pub(crate) fn compute_b(
         s: Scalar,
         msgs: &[Message],
-        generators: &MessageGenerators,
+        generators: &Generators,
     ) -> G1Projective {
-        let points: Vec<_> = [G1Projective::generator(), generators.h0]
-            .iter()
-            .copied()
-            .chain(generators.iter())
-            .collect();
+        // Spec doesn't define P1, using G1Projective::generator() as P1
+        let mut points: Vec<_> =
+            vec![G1Projective::generator(), generators.H_s()];
+        points.extend(generators.message_blinding_points_iter());
         let scalars: Vec<_> = [Scalar::one(), s]
             .iter()
             .copied()
@@ -331,10 +331,10 @@ fn invalid_signature() {
     let pk = PublicKey::default();
     let sk = SecretKey::default();
     let msgs = [Message::default(), Message::default()];
-    let generators = MessageGenerators::from_public_key(pk, 1);
+    let generators = Generators::new(&[], &[], &[], 1);
     assert!(Signature::new(&sk, &generators, &msgs).is_err());
     assert_eq!(sig.verify(&pk, &generators, &msgs), false);
-    let generators = MessageGenerators::from_public_key(pk, 3);
+    let generators = Generators::new(&[], &[], &[], 3);
     assert_eq!(sig.verify(&pk, &generators, &msgs), false);
     assert!(Signature::new(&sk, &generators, &msgs).is_err());
 }
