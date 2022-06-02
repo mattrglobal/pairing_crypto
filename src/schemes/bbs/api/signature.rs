@@ -5,11 +5,14 @@ use super::{
 use crate::{
     error::Error,
     schemes::bbs::ciphersuites::bls12_381::{
+        Generators,
         Message,
-        MessageGenerators,
         PublicKey,
         SecretKey,
         Signature,
+        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
+        GLOBAL_MESSAGE_GENERATOR_SEED,
+        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
     },
 };
 
@@ -19,14 +22,18 @@ pub fn sign(request: BbsSignRequest) -> Result<[u8; 112], Error> {
     let sk = SecretKey::from_vec(request.secret_key)?;
 
     // Derive the public key from the secret key
-    let pk = PublicKey::from(&sk);
+    // let pk = PublicKey::from(&sk);
 
     // Digest the supplied messages
     let messages: Vec<Message> = digest_messages(request.messages)?;
 
-    // Use generators derived from the signers public key
-    // TODO this approach is likely to change soon
-    let generators = MessageGenerators::from_public_key(pk, messages.len());
+    // Derive generators
+    let generators = Generators::new(
+        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
+        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+        GLOBAL_MESSAGE_GENERATOR_SEED,
+        messages.len(),
+    );
 
     // Produce the signature and return
     Signature::new(&sk, &generators, &messages).map(|sig| sig.to_bytes())
@@ -40,9 +47,13 @@ pub fn verify(request: BbsVerifyRequest) -> Result<bool, Error> {
     // Digest the supplied messages
     let messages: Vec<Message> = digest_messages(request.messages)?;
 
-    // Use generators derived from the signers public key
-    // TODO this approach is likely to change soon
-    let generators = MessageGenerators::from_public_key(pk, messages.len());
+    // Derive generators
+    let generators = Generators::new(
+        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
+        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+        GLOBAL_MESSAGE_GENERATOR_SEED,
+        messages.len(),
+    );
 
     // Parse signature from request
     let signature = Signature::from_vec(request.signature)?;
