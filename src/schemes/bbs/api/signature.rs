@@ -21,9 +21,6 @@ pub fn sign(request: BbsSignRequest) -> Result<[u8; 112], Error> {
     // Parse the secret key
     let sk = SecretKey::from_vec(request.secret_key)?;
 
-    // Derive the public key from the secret key
-    // let pk = PublicKey::from(&sk);
-
     // Digest the supplied messages
     let messages: Vec<Message> = digest_messages(request.messages)?;
 

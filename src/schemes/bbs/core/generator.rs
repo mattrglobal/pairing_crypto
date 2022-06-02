@@ -9,32 +9,25 @@ use sha3::{
 
 /// The generators that are used to sign a vector of commitments for a BBS
 /// signature. These must be the same generators used by sign, verify, prove,
-/// and open
-///
-/// These are generated in a deterministic manner, use
-/// MessageGenerators::from_secret_key or MessageGenerators::from_public_key
+/// and verify proof.
 #[allow(non_snake_case)]
 #[derive(Debug, Clone)]
 pub struct Generators {
     H_s: G1Projective,
     H_d: G1Projective,
-    message_blinding_points: Vec<G1Projective>,
+    message_generators: Vec<G1Projective>,
 }
 
 #[allow(non_snake_case)]
 impl Generators {
-    /// Construct a `Generators` from the given `seed` values.
-    /// It will aslo generate `message_blinding_points_length` number of message
-    /// blinding generators.
+    /// Construct `Generators` from the given `seed` values.
     /// The implementation follows `CreateGenerators` section as defined in <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-creategenerators>.
     pub fn new<T: AsRef<[u8]>>(
         blind_value_generator_seed: T,
         sig_domain_generator_seed: T,
         message_generator_seed: T,
-        message_blinding_points_length: usize,
+        no_of_message_generators: usize,
     ) -> Self {
-        // check params, emptyness
-
         // Generate H_s
         let H_s = Self::generate_single_point(blind_value_generator_seed);
 
@@ -44,16 +37,16 @@ impl Generators {
         // Generate H
 
         // Return early if requsted message blinding generators are zero
-        if message_blinding_points_length == 0 {
+        if no_of_message_generators == 0 {
             return Self {
                 H_s,
                 H_d,
-                message_blinding_points: vec![],
+                message_generators: vec![],
             };
         }
 
         let mut message_blinding_points =
-            Vec::with_capacity(message_blinding_points_length);
+            Vec::with_capacity(no_of_message_generators);
 
         let mut hasher = Shake256::default();
         hasher.update(message_generator_seed);
@@ -61,7 +54,7 @@ impl Generators {
 
         let mut xof_reader = hasher.finalize_xof();
 
-        for _ in 0..message_blinding_points_length {
+        for _ in 0..no_of_message_generators {
             message_blinding_points
                 .push(Self::generate_single_point_helper(&mut xof_reader));
         }
@@ -69,7 +62,7 @@ impl Generators {
         Self {
             H_s,
             H_d,
-            message_blinding_points,
+            message_generators: message_blinding_points,
         }
     }
 
@@ -87,7 +80,7 @@ impl Generators {
     /// The number of message blinding generators this `Generators` instance
     /// holds.
     pub fn message_blinding_points_length(&self) -> usize {
-        self.message_blinding_points.len()
+        self.message_generators.len()
     }
 
     /// Get the message blinding generator at `index`.
@@ -98,17 +91,17 @@ impl Generators {
         &self,
         index: usize,
     ) -> Option<G1Projective> {
-        if index >= self.message_blinding_points.len() {
+        if index >= self.message_generators.len() {
             return None;
         }
-        Some(self.message_blinding_points[index])
+        Some(self.message_generators[index])
     }
 
-    /// Get an `core::slice::Iter` for message blinding generators.
+    /// Get a `core::slice::Iter` for message blinding generators.
     pub fn message_blinding_points_iter(
         &self,
     ) -> core::slice::Iter<'_, G1Projective> {
-        self.message_blinding_points.iter()
+        self.message_generators.iter()
     }
 
     fn generate_single_point<T: AsRef<[u8]>>(seed: T) -> G1Projective {
