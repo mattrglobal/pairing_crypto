@@ -43,12 +43,10 @@ impl PublicKey {
 
     /// Check if this PublicKey is valid
     pub fn is_valid(&self) -> Choice {
-        self.0.is_identity().not().bitor(self.0.is_on_curve())
-    }
-
-    /// Check if this PublicKey is invalid
-    pub fn is_invalid(&self) -> Choice {
-        self.0.is_identity().bitor(self.0.is_on_curve().not())
+        self.0
+            .is_identity()
+            .not()
+            .bitor(self.0.to_affine().is_torsion_free())
     }
 
     /// Get the byte representation of this key
