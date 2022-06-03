@@ -375,4 +375,30 @@ mod tests {
         assert!(sig.verify(&pk, &[], &generators, &msgs).is_err());
         assert!(Signature::new(&sk, &pk, &[], &generators, &msgs).is_err());
     }
+
+    #[test]
+    fn nominal_signature_e2e() {
+        let msgs = [
+            Message::hash("message-1".as_ref(), TEST_MESSAGE_DST.as_ref())
+                .unwrap(),
+            Message::hash("message-2".as_ref(), TEST_MESSAGE_DST.as_ref())
+                .unwrap(),
+        ];
+        let sk =
+            SecretKey::new(TEST_KEY_GEN_SEED.as_ref(), TEST_KEY_INFO.as_ref())
+                .expect("secret key generation failed");
+        let pk = PublicKey::from(&sk);
+        let generators = Generators::new(&[], &[], &[], 2);
+
+        let signature =
+            Signature::new(&sk, &pk, TEST_HEADER.as_ref(), &generators, &msgs)
+                .unwrap();
+
+        assert_eq!(
+            signature
+                .verify(&pk, TEST_HEADER.as_ref(), &generators, &msgs)
+                .unwrap(),
+            true
+        );
+    }
 }
