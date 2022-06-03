@@ -35,8 +35,8 @@ pub enum Error {
     /// Secret key is not valid.
     CryptoInvalidSecretKey,
 
-    /// Public key is malformed.
-    CryptoMalformedPublicKey,
+    /// Public key is not valid.
+    CryptoInvalidPublicKey,
 
     /// Message signing failed.
     CryptoSigning { cause: String },
@@ -102,8 +102,8 @@ impl core::fmt::Debug for Error {
             Error::CryptoInvalidSecretKey => {
                 write!(f, "secret key is not valid.")
             }
-            Error::CryptoMalformedPublicKey => {
-                write!(f, "public key is malformed.")
+            Error::CryptoInvalidPublicKey => {
+                write!(f, "public key is invalid.")
             }
             Error::CryptoSigning { ref cause } => {
                 write!(f, "signing failed: cause: {}", cause)

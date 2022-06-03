@@ -128,7 +128,17 @@ impl Signature {
         T: AsRef<[u8]>,
         M: AsRef<[Message]>,
     {
+        let header = header.as_ref();
         let msgs = msgs.as_ref();
+
+        // Input parameter checks
+        // Error out if there is no `header` and also not any `Message`
+        if header.is_empty() && msgs.is_empty() {
+            return Err(Error::BadParams {
+                cause: "nothing to sign".to_owned(),
+            });
+        }
+        // Error out if blinding generators are less than messages
         if generators.message_blinding_points_length() < msgs.len() {
             return Err(Error::CryptoNotEnoughMessageGenerators {
                 generators: generators.message_blinding_points_length(),
@@ -209,16 +219,30 @@ impl Signature {
         T: AsRef<[u8]>,
         M: AsRef<[Message]>,
     {
+        let header = header.as_ref();
         let msgs = msgs.as_ref();
+
+        // Input parameter checks
+        // Error out if there is no `header` and also not any `Message`
+        if header.is_empty() && msgs.is_empty() {
+            return Err(Error::BadParams {
+                cause: "nothing to verify".to_owned(),
+            });
+        }
         // If there are more messages than generators then we cannot verify the
-        // signature return false
+        // signature
         if generators.message_blinding_points_length() < msgs.len() {
-            return Err(Error::CryptoSignatureVerification);
+            return Err(Error::CryptoNotEnoughMessageGenerators {
+                generators: generators.message_blinding_points_length(),
+                messages: msgs.len(),
+            });
         }
 
-        // Validate the public key if it's not an identity and also in subgroup.
-        if PK.is_valid().unwrap_u8() == 1 {
-            return Err(Error::CryptoSignatureVerification);
+        // Validate the public key; it should not be an identity and should
+        // belong to subgroup G2.
+        if PK.is_valid().unwrap_u8() == 0 {
+            println!("invalid pk");
+            return Err(Error::CryptoInvalidPublicKey);
         }
 
         let W = PK.0;
@@ -323,16 +347,32 @@ fn serialization_test() {
     assert_eq!(sig, sig2);
 }
 
-#[test]
-fn invalid_signature() {
-    let sig = Signature::default();
-    let pk = PublicKey::default();
-    let sk = SecretKey::default();
-    let msgs = [Message::default(), Message::default()];
-    let generators = Generators::new(&[], &[], &[], 1);
-    assert!(Signature::new(&sk, &pk, &[], &generators, &msgs).is_err());
-    assert_eq!(sig.verify(&pk, &[], &generators, &msgs).unwrap(), false);
-    let generators = Generators::new(&[], &[], &[], 3);
-    assert_eq!(sig.verify(&pk, &[], &generators, &msgs).unwrap(), false);
-    assert!(Signature::new(&sk, &pk, &[], &generators, &msgs).is_err());
+#[cfg(test)]
+mod tests {
+    use crate::bbs::core::{
+        generator::Generators,
+        public_key::PublicKey,
+        secret_key::SecretKey,
+        types::Message,
+    };
+
+    const TEST_KEY_GEN_SEED: &[u8; 32] = b"not_A_random_seed_at_Allllllllll";
+    const TEST_KEY_INFO: &[u8; 14] = b"signing-key-01";
+    const TEST_MESSAGE_DST: &[u8; 9] = b"app:dst-1";
+    const TEST_HEADER: &[u8; 11] = b"header_info";
+
+    use super::Signature;
+    #[test]
+    fn invalid_signature() {
+        let sig = Signature::default();
+        let pk = PublicKey::default();
+        let sk = SecretKey::default();
+        let msgs = [Message::default(), Message::default()];
+        let generators = Generators::new(&[], &[], &[], 1);
+        assert!(Signature::new(&sk, &pk, &[], &generators, &msgs).is_err());
+        assert!(sig.verify(&pk, &[], &generators, &msgs).is_err());
+        let generators = Generators::new(&[], &[], &[], 3);
+        assert!(sig.verify(&pk, &[], &generators, &msgs).is_err());
+        assert!(Signature::new(&sk, &pk, &[], &generators, &msgs).is_err());
+    }
 }
