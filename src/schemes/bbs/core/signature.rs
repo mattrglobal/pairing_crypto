@@ -241,7 +241,6 @@ impl Signature {
         // Validate the public key; it should not be an identity and should
         // belong to subgroup G2.
         if PK.is_valid().unwrap_u8() == 0 {
-            println!("invalid pk");
             return Err(Error::CryptoInvalidPublicKey);
         }
 
