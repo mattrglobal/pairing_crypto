@@ -6,7 +6,7 @@ use super::{
     proof_committed_builder::ProofCommittedBuilder,
     public_key::PublicKey,
     signature::Signature,
-    types::{Challenge, HiddenMessage, ProofMessage},
+    types::{Challenge, HiddenMessage, PresentationMessage, ProofMessage},
     utils::{compute_B, compute_domain},
 };
 use crate::{
@@ -86,6 +86,12 @@ impl PokSignature {
                     generators.message_blinding_points_length()
                 ),
             });
+        }
+
+        // Validate the public key; it should not be an identity and should
+        // belong to subgroup G2.
+        if PK.is_valid().unwrap_u8() == 0 {
+            return Err(Error::CryptoInvalidPublicKey);
         }
 
         // (r1, r2, e~, r2~, r3~, s~) = hash_to_scalar(PRF(8*ceil(log2(r))), 6)
@@ -185,12 +191,20 @@ impl PokSignature {
     }
 
     /// Convert the committed values to bytes for the fiat-shamir challenge
-    pub fn add_proof_contribution(&mut self, hasher: &mut impl Update) {
+    pub fn add_proof_contribution(
+        &mut self,
+        PK: &PublicKey,
+        ph: &PresentationMessage,
+        hasher: &mut impl Update,
+    ) {
+        // c = hash_to_scalar((PK || Abar || A' || D || C1 || C2 || ph), 1)
+        hasher.update(PK.to_bytes());
+        hasher.update(self.A_bar.to_affine().to_uncompressed());
         hasher.update(self.A_prime.to_affine().to_uncompressed());
-        hasher.update(self.A_bar.to_affine().to_uncompressed()); // TODO this is different from the spec
         hasher.update(self.D.to_affine().to_uncompressed());
         self.proof1.add_challenge_contribution(hasher);
         self.proof2.add_challenge_contribution(hasher);
+        hasher.update(ph.to_bytes());
     }
 
     /// Generate the Schnorr challenges for the selective disclosure proofs as

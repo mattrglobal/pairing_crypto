@@ -9,7 +9,7 @@ use super::{
 use crate::{
     error::Error,
     schemes::bbs::ciphersuites::bls12_381::{
-        g1_affine_compressed_size,
+        scalar_size,
         Challenge,
         Generators,
         Message,
@@ -25,7 +25,7 @@ use crate::{
         GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
     },
 };
-use digest::{ExtendableOutput, Update, XofReader};
+use digest::{ExtendableOutput, XofReader};
 
 /// Derives a signature proof of knowledge
 pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
@@ -92,10 +92,9 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
         &messages,
     )?;
 
-    let mut data = [0u8; g1_affine_compressed_size()];
+    let mut data = [0u8; 2 * scalar_size()];
     let mut hasher = sha3::Shake256::default();
-    pok.add_proof_contribution(&mut hasher);
-    hasher.update(presentation_message.to_bytes());
+    pok.add_proof_contribution(&pk, &presentation_message, &mut hasher);
     let mut reader = hasher.finalize_xof();
     reader.read(&mut data[..]);
     let challenge = Challenge::hash(data.as_ref(), APP_MESSAGE_DST.as_ref())?;
@@ -139,7 +138,7 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
         APP_MESSAGE_DST.as_ref(),
     )?;
 
-    let mut data = [0u8; g1_affine_compressed_size()];
+    let mut data = [0u8; 2 * scalar_size()];
     let mut hasher = sha3::Shake256::default();
 
     proof.add_challenge_contribution(
@@ -147,11 +146,11 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
         &request.header,
         &generators,
         &messages,
+        &presentation_message,
         proof.challenge,
         &mut hasher,
     )?;
 
-    hasher.update(&presentation_message.to_bytes()[..]);
     let mut reader = hasher.finalize_xof();
     reader.read(&mut data[..]);
     let v_challenge = Challenge::hash(data.as_ref(), APP_MESSAGE_DST.as_ref())?;

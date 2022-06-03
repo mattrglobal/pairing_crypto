@@ -4,7 +4,7 @@ use super::{
     constants::{g1_affine_compressed_size, scalar_size},
     generator::Generators,
     public_key::PublicKey,
-    types::{Challenge, Message},
+    types::{Challenge, Message, PresentationMessage},
     utils::compute_domain,
 };
 use crate::{
@@ -187,12 +187,14 @@ impl PokSignatureProof {
 
     /// Convert the committed values to bytes for the fiat-shamir challenge as
     /// defined in `ProofVerify` API in BBS Signature spec <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.7>
+    #[allow(clippy::too_many_arguments)]
     pub fn add_challenge_contribution<T>(
         &self,
         PK: &PublicKey,
         header: T,
         generators: &Generators,
         rvl_msgs: &[(usize, Message)],
+        ph: &PresentationMessage,
         challenge: Challenge,
         hasher: &mut impl Update,
     ) -> Result<(), Error>
@@ -214,6 +216,12 @@ impl PokSignatureProof {
                     rvl_msgs.len()
                 ),
             });
+        }
+
+        // Validate the public key; it should not be an identity and should
+        // belong to subgroup G2.
+        if PK.is_valid().unwrap_u8() == 0 {
+            return Err(Error::CryptoInvalidPublicKey);
         }
 
         // domain
@@ -289,6 +297,8 @@ impl PokSignatureProof {
             G1Projective::multi_exp(C2_points.as_ref(), C2_scalars.as_ref());
         hasher.update(C2.to_affine().to_bytes());
 
+        hasher.update(ph.to_bytes());
+
         Ok(())
     }
 
@@ -296,16 +306,20 @@ impl PokSignatureProof {
     /// only checks the signature proof,
     /// the selective disclosure proof is checked by verifying
     /// `self.challenge == computed_challenge`.
-    pub fn verify(&self, public_key: PublicKey) -> bool {
-        // check the signature proof
+    pub fn verify(&self, PK: PublicKey) -> bool {
+        // Check the signature proof
+        // if A' == 1, return INVALID
         if self.A_prime.is_identity().unwrap_u8() == 1 {
             return false;
         }
+
+        // if e(A', W) * e(Abar, -P2) != 1, return INVALID
+        // else return VALID
         let P2 = G2Affine::generator();
         Bls12::multi_miller_loop(&[
             (
                 &self.A_prime.to_affine(),
-                &G2Prepared::from(public_key.0.to_affine()),
+                &G2Prepared::from(PK.0.to_affine()),
             ),
             (&self.A_bar.to_affine(), &G2Prepared::from(-P2)),
         ])
