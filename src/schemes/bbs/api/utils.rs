@@ -37,7 +37,7 @@ pub fn digest_messages(messages: Vec<Vec<u8>>) -> Result<Vec<Message>, Error> {
 
     messages
         .iter()
-        .map(|msg| Message::hash(msg, APP_MESSAGE_DST))
+        .map(|msg| Message::hash(msg.as_ref(), APP_MESSAGE_DST.as_ref()))
         .collect()
 }
 
@@ -56,7 +56,10 @@ pub fn digest_proof_messages(
     messages
         .iter()
         .map(|element| {
-            match Message::hash(element.value.clone(), APP_MESSAGE_DST) {
+            match Message::hash(
+                element.value.clone().as_ref(),
+                APP_MESSAGE_DST.as_ref(),
+            ) {
                 Ok(digested_message) => {
                     // Change this to an enum
                     if element.reveal {
@@ -97,9 +100,11 @@ pub fn digest_revealed_proof_messages(
 
     messages
         .iter()
-        .map(|(i, m)| match Message::hash(m, APP_MESSAGE_DST) {
-            Ok(m) => Ok((*i, m)),
-            Err(e) => Err(e),
+        .map(|(i, m)| {
+            match Message::hash(m.as_ref(), APP_MESSAGE_DST.as_ref()) {
+                Ok(m) => Ok((*i, m)),
+                Err(e) => Err(e),
+            }
         })
         .collect()
 }

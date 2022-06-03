@@ -80,8 +80,8 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
         };
 
     let presentation_message = PresentationMessage::hash(
-        request.presentation_message,
-        APP_MESSAGE_DST,
+        request.presentation_message.as_ref(),
+        APP_MESSAGE_DST.as_ref(),
     )?;
 
     let mut pok = PokSignature::init(
@@ -98,7 +98,7 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     hasher.update(presentation_message.to_bytes());
     let mut reader = hasher.finalize_xof();
     reader.read(&mut data[..]);
-    let challenge = Challenge::hash(&data, APP_MESSAGE_DST)?;
+    let challenge = Challenge::hash(data.as_ref(), APP_MESSAGE_DST.as_ref())?;
 
     match pok.generate_proof(challenge) {
         Ok(proof) => Ok(proof.to_bytes()),
@@ -135,8 +135,8 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
     };
 
     let presentation_message = PresentationMessage::hash(
-        request.presentation_message,
-        APP_MESSAGE_DST,
+        request.presentation_message.as_ref(),
+        APP_MESSAGE_DST.as_ref(),
     )?;
 
     let mut data = [0u8; g1_affine_compressed_size()];
@@ -154,7 +154,7 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
     hasher.update(&presentation_message.to_bytes()[..]);
     let mut reader = hasher.finalize_xof();
     reader.read(&mut data[..]);
-    let v_challenge = Challenge::hash(&data, APP_MESSAGE_DST)?;
+    let v_challenge = Challenge::hash(data.as_ref(), APP_MESSAGE_DST.as_ref())?;
 
     Ok(proof.verify(public_key) && proof.challenge == v_challenge)
 }

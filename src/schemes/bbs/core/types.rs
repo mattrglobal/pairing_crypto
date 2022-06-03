@@ -42,10 +42,9 @@ macro_rules! scalar_wrapper {
             }
 
             /// Hash arbitrary data to this struct
-            pub fn hash<T1, T2>(msg: T1, dst: T2) -> Result<Self, Error>
+            pub fn hash<T>(msg: T, dst: T) -> Result<Self, Error>
             where
-            T1: AsRef<[u8]>,
-            T2: AsRef<[u8]>,
+            T: AsRef<[u8]>,
             {
                 let s = Scalar::hash_to(msg, dst).map($name);
                 if s.is_some().unwrap_u8() == 1u8 {
