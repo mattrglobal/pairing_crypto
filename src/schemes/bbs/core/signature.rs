@@ -9,14 +9,21 @@ use super::{
 };
 use crate::{
     common::util::vec_to_byte_array,
-    curves::bls12_381::{Bls12, G1Affine, G1Projective, G2Projective, Scalar},
+    curves::bls12_381::{
+        Bls12,
+        G1Affine,
+        G1Projective,
+        G2Prepared,
+        G2Projective,
+        Scalar,
+    },
     error::Error,
 };
 use core::{convert::TryFrom, fmt};
 use digest::{ExtendableOutput, Update, XofReader};
 use ff::Field;
 use group::{Curve, Group};
-use pairing::Engine;
+use pairing::{MillerLoopResult, MultiMillerLoop};
 use serde::{
     de::{Error as DError, SeqAccess, Visitor},
     ser::SerializeTuple,
@@ -255,15 +262,23 @@ impl Signature {
         let B = compute_B(&self.s, &domain, msgs, generators)?;
 
         let P2 = G2Projective::generator();
-        // C1 = e(A, W + P2 * e)
-        let C1 =
-            Bls12::pairing(&self.A.to_affine(), &(W + P2 * self.e).to_affine());
+        // C1 = (A, W + P2 * e)
+        let C1 = (
+            &self.A.to_affine(),
+            &G2Prepared::from((W + P2 * self.e).to_affine()),
+        );
 
-        // C2 = e(B, P2)
-        let C2 = Bls12::pairing(&B.to_affine(), &P2.to_affine());
+        // C2 = (B, -P2)
+        // -P2, because we use multi_miller_loop
+        let C2 = (&B.to_affine(), &G2Prepared::from(-P2.to_affine()));
 
         // C1 == C2
-        Ok(C1 == C2)
+        // multi_miller_loop(C1, C2) == 1
+        Ok(Bls12::multi_miller_loop(&[C1, C2])
+            .final_exponentiation()
+            .is_identity()
+            .unwrap_u8()
+            == 1)
     }
 
     /// Get the byte representation of this signature
