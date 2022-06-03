@@ -225,8 +225,8 @@ impl PokSignatureProof {
         // whenever the data is ready
         // cv = hash_to_scalar((PK || Abar || A' || D || C1 || C2 || ph), 1)
         hasher.update(PK.to_bytes());
-        hasher.update(self.A_prime.to_affine().to_uncompressed());
         hasher.update(self.A_bar.to_affine().to_uncompressed());
+        hasher.update(self.A_prime.to_affine().to_uncompressed());
         hasher.update(self.D.to_affine().to_uncompressed());
 
         // C1 = (Abar - D) * c + A' * e^ + H_s * r2^
