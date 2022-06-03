@@ -254,7 +254,7 @@ impl Signature {
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
         let B = compute_B(&self.s, &domain, msgs, generators);
 
-        let P2 = G2Projective::identity();
+        let P2 = G2Projective::generator();
         // C1 = e(A, W + P2 * e)
         let C1 =
             Bls12::pairing(&self.A.to_affine(), &(W + P2 * self.e).to_affine());
@@ -262,6 +262,7 @@ impl Signature {
         // C2 = e(B, P2)
         let C2 = Bls12::pairing(&B.to_affine(), &P2.to_affine());
 
+        // C1 == C2
         Ok(C1 == C2)
     }
 
