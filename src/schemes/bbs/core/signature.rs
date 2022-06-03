@@ -189,7 +189,7 @@ impl Signature {
         };
 
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let B = compute_B(&s, &domain, msgs, generators);
+        let B = compute_B(&s, &domain, msgs, generators)?;
         let exp = (e + SK.0).invert();
         let exp = if exp.is_some().unwrap_u8() == 1u8 {
             exp.unwrap()
@@ -252,7 +252,7 @@ impl Signature {
         let domain = compute_domain(PK, header, generators);
 
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let B = compute_B(&self.s, &domain, msgs, generators);
+        let B = compute_B(&self.s, &domain, msgs, generators)?;
 
         let P2 = G2Projective::generator();
         // C1 = e(A, W + P2 * e)

@@ -4,7 +4,10 @@ use super::{
     public_key::PublicKey,
     types::Message,
 };
-use crate::curves::bls12_381::{G1Projective, Scalar};
+use crate::{
+    curves::bls12_381::{G1Projective, Scalar},
+    error::Error,
+};
 use digest::{ExtendableOutput, Update, XofReader};
 use ff::Field;
 use group::{Curve, Group};
@@ -54,9 +57,21 @@ where
 pub(crate) fn compute_B(
     s: &Scalar,
     domain: &Scalar,
-    msgs: &[Message],
+    messages: &[Message],
     generators: &Generators,
-) -> G1Projective {
+) -> Result<G1Projective, Error> {
+    // Input params check
+    if messages.len() != generators.message_blinding_points_length() {
+        return Err(Error::BadParams {
+            cause: format!(
+                "mismatched length: number of messages {}, number of \
+                 generators {}",
+                messages.len(),
+                generators.message_blinding_points_length()
+            ),
+        });
+    }
+
     // Spec doesn't define P1, using G1Projective::generator() as P1
     let mut points: Vec<_> = vec![
         G1Projective::generator(),
@@ -67,8 +82,8 @@ pub(crate) fn compute_B(
     let scalars: Vec<_> = [Scalar::one(), *s, *domain]
         .iter()
         .copied()
-        .chain(msgs.iter().map(|c| c.0))
+        .chain(messages.iter().map(|c| c.0))
         .collect();
 
-    G1Projective::multi_exp(&points, &scalars)
+    Ok(G1Projective::multi_exp(&points, &scalars))
 }

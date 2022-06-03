@@ -106,7 +106,7 @@ impl PokSignature {
 
         let m: Vec<_> = messages.iter().map(|m| m.get_message()).collect();
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let B = compute_B(&signature.s, &domain, m.as_ref(), generators);
+        let B = compute_B(&signature.s, &domain, m.as_ref(), generators)?;
 
         // r3 = r1 ^ -1 mod r
         let r3 = r1.invert();
