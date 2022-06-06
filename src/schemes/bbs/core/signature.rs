@@ -5,13 +5,17 @@ use super::{
     public_key::PublicKey,
     secret_key::SecretKey,
     types::Message,
-    utils::{compute_B, compute_domain},
+    utils::{
+        compute_B,
+        compute_domain,
+        octets_to_point_g1,
+        point_to_octets_g1,
+    },
 };
 use crate::{
     common::util::vec_to_byte_array,
     curves::bls12_381::{
         Bls12,
-        G1Affine,
         G1Projective,
         G2Prepared,
         G2Projective,
@@ -49,7 +53,7 @@ impl Serialize for Signature {
     where
         S: Serializer,
     {
-        let bytes = self.to_bytes();
+        let bytes = self.signature_to_octets();
         let mut seq = s.serialize_tuple(bytes.len())?;
         for b in &bytes {
             seq.serialize_element(b)?;
@@ -83,7 +87,7 @@ impl<'de> Deserialize<'de> for Signature {
                         .next_element()?
                         .ok_or_else(|| DError::invalid_length(i, &self))?;
                 }
-                Signature::from_bytes(&arr).map_err(|_| {
+                Signature::octets_to_signature(&arr).map_err(|_| {
                     DError::invalid_value(
                         serde::de::Unexpected::Bytes(&arr),
                         &self,
@@ -117,11 +121,14 @@ impl ConditionallySelectable for Signature {
 }
 
 impl Signature {
-    /// The number of bytes in a signature
+    /// The number of bytes in a `Signature`.
     pub const SIZE_BYTES: usize =
         g1_affine_compressed_size() + 2 * scalar_size();
 
-    /// Generate a new signature where all messages are known to the signer.
+    const G1_COMPRESSED_SIZE: usize = g1_affine_compressed_size();
+    const SCALAR_SIZE: usize = scalar_size();
+
+    /// Generate a new `Signature` where all messages are known to the signer.
     /// This method follows `Sign` API as defined in BBS Signature spec
     /// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.4>
     pub fn new<T, M>(
@@ -179,7 +186,7 @@ impl Signature {
             e.unwrap()
         } else {
             return Err(Error::CryptoSigning {
-                cause: "Failed to generate `a` component of signature"
+                cause: "failed to generate `a` component of signature"
                     .to_string(),
             });
         };
@@ -190,7 +197,7 @@ impl Signature {
             s.unwrap()
         } else {
             return Err(Error::CryptoSigning {
-                cause: "Failed to generate `s` component of signature"
+                cause: "failed to generate `s` component of signature"
                     .to_string(),
             });
         };
@@ -202,7 +209,7 @@ impl Signature {
             exp.unwrap()
         } else {
             return Err(Error::CryptoSigning {
-                cause: "Failed to generate `exp` for `a` component of \
+                cause: "failed to generate `exp` for `a` component of \
                         signature"
                     .to_string(),
             });
@@ -281,68 +288,111 @@ impl Signature {
             == 1)
     }
 
-    /// Get the byte representation of this signature
-    pub fn to_bytes(&self) -> [u8; Self::SIZE_BYTES] {
+    /// Get the octets representation of `Signature` as defined in BBS spec <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-signaturetooctets>.
+    pub fn signature_to_octets(&self) -> [u8; Self::SIZE_BYTES] {
+        let mut offset = 0;
+        let mut end = Self::G1_COMPRESSED_SIZE;
         let mut bytes = [0u8; Self::SIZE_BYTES];
-        bytes[0..48].copy_from_slice(&self.A.to_affine().to_compressed());
-        let mut e = self.e.to_bytes_be();
-        e.reverse();
-        bytes[48..80].copy_from_slice(&e[..]);
-        let mut s = self.s.to_bytes_be();
-        s.reverse();
-        bytes[80..112].copy_from_slice(&s[..]);
+
+        // A_octets = point_to_octets_g1(A)
+        bytes[offset..end].copy_from_slice(&point_to_octets_g1(&self.A));
+        offset = end;
+
+        // e_octets = I2OSP(e, octet_scalar_length)
+        end += Self::SCALAR_SIZE;
+        bytes[offset..end].copy_from_slice(&self.e.to_bytes_be());
+        offset = end;
+
+        // s_octets = I2OSP(s, octet_scalar_length)
+        bytes[offset..].copy_from_slice(&self.s.to_bytes_be());
+
+        // return (a_octets || e_octets || s_octets)
         bytes
     }
 
     /// Convert a vector of bytes of big-endian representation of the public key
     pub fn from_vec(bytes: Vec<u8>) -> Result<Self, Error> {
         match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
-            Ok(result) => Self::from_bytes(&result),
+            Ok(result) => Self::octets_to_signature(&result),
             Err(e) => Err(e),
         }
     }
 
-    /// Convert a byte sequence into a signature
-    pub fn from_bytes(data: &[u8; Self::SIZE_BYTES]) -> Result<Self, Error> {
-        let a_res = G1Affine::from_compressed(
-            &<[u8; 48]>::try_from(&data[0..48]).unwrap(),
-        )
-        .map(G1Projective::from);
-        let mut e_bytes = <[u8; 32]>::try_from(&data[48..80]).unwrap();
-        e_bytes.reverse();
-        let e_res = Scalar::from_bytes_be(&e_bytes);
-        let mut s_bytes = <[u8; 32]>::try_from(&data[80..112]).unwrap();
-        s_bytes.reverse();
-        let s_res = Scalar::from_bytes_be(&s_bytes);
+    /// Get the `Signature` from a sequence of bytes in big endian
+    /// format. Each member of `Signature` is deserialized from
+    /// big-endian bytes as defined in BBS spec <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.11>.
+    /// Valid input size is G1_COMPRESSED_SIZE + SCALAR_SIZE * 2
+    /// where
+    ///      G1_COMPRESSED_SIZE, size of a point in G1 in ompressed form,
+    ///      SCALAR_SIZE, size of a `Scalar`
+    /// For BLS12-381 based implementation, G1_COMPRESSED_SIZE is 48 byes, and
+    /// SCALAR_SIZE is 32 bytes, then bytes sequence will be treated as
+    /// [48, 32, 32] to represent (A, e, s).    
+    pub fn octets_to_signature<T: AsRef<[u8]>>(data: T) -> Result<Self, Error> {
+        let data = data.as_ref();
+        if data.len() < Self::SIZE_BYTES {
+            return Err(Error::CryptoMalformedProof {
+                cause: format!(
+                    "not enough data, input buffer size: {} bytes, expected \
+                     data size: {}",
+                    data.len(),
+                    Self::SIZE_BYTES
+                ),
+            });
+        }
 
-        let a = if a_res.is_some().unwrap_u8() == 1u8 {
-            a_res.unwrap()
-        } else {
+        let mut offset = 0;
+        let mut end = Self::G1_COMPRESSED_SIZE;
+
+        // A = octets_to_point_g1(a_octets)
+        // if A is INVALID, return INVALID
+        let A = octets_to_point_g1(
+            &<[u8; Self::G1_COMPRESSED_SIZE]>::try_from(&data[offset..end])?,
+        )?;
+
+        // if A == Identity_G1, return INVALID
+        if A.is_identity().unwrap_u8() == 1 {
+            return Err(Error::CryptoPointIsIdentity);
+        }
+        offset = end;
+
+        // OS2IP(signature_octets[index..(index + octet_scalar_length - 1)])
+        // if e = 0 OR e >= r, return INVALID
+        end += Self::SCALAR_SIZE;
+        let e = Scalar::from_bytes_be(&<[u8; Self::SCALAR_SIZE]>::try_from(
+            &data[offset..end],
+        )?);
+        if e.is_none().unwrap_u8() == 1u8 {
             return Err(Error::CryptoMalformedSignature {
-                cause: "Failed to decompress `a` component of signature"
-                    .to_string(),
+                cause: "failed to deserialize `e` component of signature"
+                    .to_owned(),
             });
         };
+        let e = e.unwrap();
+        if e.is_zero().unwrap_u8() == 1 {
+            return Err(Error::CryptoScalarIsZero);
+        }
+        offset = end;
 
-        let e = if e_res.is_some().unwrap_u8() == 1u8 {
-            e_res.unwrap()
-        } else {
+        // s = OS2IP(signature_octets[index..(index + octet_scalar_length -
+        // 1)])
+        // if s = 0 OR s >= r, return INVALID
+        end += Self::SCALAR_SIZE;
+        let s = Scalar::from_bytes_be(&<[u8; Self::SCALAR_SIZE]>::try_from(
+            &data[offset..end],
+        )?);
+        if s.is_none().unwrap_u8() == 1u8 {
             return Err(Error::CryptoMalformedSignature {
-                cause: "Failed to decompress `e` component of signature"
-                    .to_string(),
+                cause: "failed to deserialize `s` component of signature"
+                    .to_owned(),
             });
         };
+        let s = s.unwrap();
+        if s.is_zero().unwrap_u8() == 1 {
+            return Err(Error::CryptoScalarIsZero);
+        }
 
-        let s = if s_res.is_some().unwrap_u8() == 1u8 {
-            s_res.unwrap()
-        } else {
-            return Err(Error::CryptoMalformedSignature {
-                cause: "Failed to decompress `s` component of signature"
-                    .to_string(),
-            });
-        };
-
-        Ok(Signature { A: a, e, s })
+        Ok(Signature { A, e, s })
     }
 }
 
@@ -353,7 +403,7 @@ fn serialization_test() {
     sig.e = Scalar::one();
     sig.s = Scalar::one() + Scalar::one();
 
-    let sig_clone = Signature::from_bytes(&sig.to_bytes());
+    let sig_clone = Signature::octets_to_signature(&sig.signature_to_octets());
     assert_eq!(sig_clone.is_ok(), true);
     let sig2 = sig_clone.unwrap();
     assert_eq!(sig, sig2);
