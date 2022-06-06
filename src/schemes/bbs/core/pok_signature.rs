@@ -7,7 +7,7 @@ use super::{
     public_key::PublicKey,
     signature::Signature,
     types::{Challenge, HiddenMessage, PresentationMessage, ProofMessage},
-    utils::{compute_B, compute_domain},
+    utils::{compute_B, compute_domain, point_to_octets_g1},
 };
 use crate::{
     curves::bls12_381::{G1Affine, G1Projective, Scalar},
@@ -15,7 +15,6 @@ use crate::{
 };
 use digest::Update;
 use ff::Field;
-use group::Curve;
 use rand_core::{CryptoRng, RngCore};
 
 /// Proof of Knowledge of a Signature that is used by the prover
@@ -197,13 +196,16 @@ impl PokSignature {
         ph: &PresentationMessage,
         hasher: &mut impl Update,
     ) {
+        self.proof1.add_challenge_contribution();
+        self.proof2.add_challenge_contribution();
+
         // c = hash_to_scalar((PK || Abar || A' || D || C1 || C2 || ph), 1)
-        hasher.update(PK.to_bytes());
-        hasher.update(self.A_bar.to_affine().to_uncompressed());
-        hasher.update(self.A_prime.to_affine().to_uncompressed());
-        hasher.update(self.D.to_affine().to_uncompressed());
-        self.proof1.add_challenge_contribution(hasher);
-        self.proof2.add_challenge_contribution(hasher);
+        hasher.update(PK.point_to_octets());
+        hasher.update(point_to_octets_g1(&self.A_bar));
+        hasher.update(point_to_octets_g1(&self.A_prime));
+        hasher.update(point_to_octets_g1(&self.D));
+        hasher.update(point_to_octets_g1(&self.proof1.cache.commitment));
+        hasher.update(point_to_octets_g1(&self.proof2.cache.commitment));
         hasher.update(ph.to_bytes());
     }
 
@@ -231,7 +233,7 @@ impl PokSignature {
             D: self.D,
             proofs1,
             proofs2,
-            challenge,
+            c: challenge,
             hidden_message_count,
         })
     }

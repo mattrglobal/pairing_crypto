@@ -124,14 +124,7 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
         request.total_message_count,
     );
 
-    let proof = match PokSignatureProof::from_bytes(request.proof) {
-        Some(result) => result,
-        None => {
-            return Err(Error::Conversion {
-                cause: "failed to parse signature-PoK proof".into(),
-            });
-        }
-    };
+    let proof = PokSignatureProof::from_bytes(request.proof)?;
 
     let presentation_message = PresentationMessage::hash(
         request.presentation_message.as_ref(),
@@ -147,13 +140,13 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
         &generators,
         &messages,
         &presentation_message,
-        proof.challenge,
+        proof.c,
         &mut hasher,
     )?;
 
     let mut reader = hasher.finalize_xof();
     reader.read(&mut data[..]);
-    let v_challenge = Challenge::hash(data.as_ref(), APP_MESSAGE_DST.as_ref())?;
+    let cv = Challenge::hash(data.as_ref(), APP_MESSAGE_DST.as_ref())?;
 
-    Ok(proof.verify(public_key) && proof.challenge == v_challenge)
+    Ok(proof.verify_signature_proof(public_key)? && proof.c == cv)
 }
