@@ -1,17 +1,38 @@
 use super::{
-    constants::XOF_NO_OF_BYTES,
+    constants::{g1_affine_compressed_size, XOF_NO_OF_BYTES},
     generator::Generators,
     public_key::PublicKey,
     types::Message,
 };
 use crate::{
-    curves::bls12_381::{G1Projective, Scalar},
+    curves::bls12_381::{G1Affine, G1Projective, Scalar},
     error::Error,
 };
 use digest::{ExtendableOutput, Update, XofReader};
 use ff::Field;
 use group::{Curve, Group};
 use sha3::Shake256;
+
+/// Get the representation of a point G1(in Projective form) to compressed
+/// and big-endian octets form.
+pub(crate) fn point_to_octets_g1(
+    p: &G1Projective,
+) -> [u8; g1_affine_compressed_size()] {
+    p.to_affine().to_compressed()
+}
+
+/// Convert from octets in affine, compressed and big-endian form to
+/// `G1Projective` type.
+pub(crate) fn octets_to_point_g1(
+    octets: &[u8; g1_affine_compressed_size()],
+) -> Result<G1Projective, Error> {
+    let result = G1Affine::from_compressed(octets).map(G1Projective::from);
+    if result.is_some().unwrap_u8() == 1u8 {
+        Ok(result.unwrap())
+    } else {
+        Err(Error::CryptoBadEncoding)
+    }
+}
 
 /// Computes `domain` value.
 /// domain =
@@ -28,13 +49,16 @@ where
     let mut res = [0u8; XOF_NO_OF_BYTES];
 
     let mut hasher = Shake256::default();
-    hasher.update(PK.to_bytes());
+
+    hasher.update(PK.point_to_octets());
+
     let L: usize = generators.message_blinding_points_length();
     hasher.update(L.to_be_bytes());
-    hasher.update(generators.H_s().to_affine().to_uncompressed());
-    hasher.update(generators.H_d().to_affine().to_uncompressed());
+
+    hasher.update(point_to_octets_g1(&generators.H_s()));
+    hasher.update(point_to_octets_g1(&generators.H_d()));
     for generator in generators.message_blinding_points_iter() {
-        hasher.update(generator.to_uncompressed());
+        hasher.update(point_to_octets_g1(generator));
     }
     hasher.update(header);
 
