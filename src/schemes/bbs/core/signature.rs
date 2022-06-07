@@ -146,7 +146,7 @@ impl Signature {
         let msgs = msgs.as_ref();
 
         // Input parameter checks
-        // Error out if there is no `header` and also not any `Message`
+        // Error out if there is no `header` and also not any `Messages`
         if header.is_empty() && msgs.is_empty() {
             return Err(Error::BadParams {
                 cause: "nothing to sign".to_owned(),
