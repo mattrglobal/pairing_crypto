@@ -106,7 +106,6 @@ impl PokSignature {
 
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
-        // TODO include Ciphersuite_ID
         let domain = compute_domain(PK, header, generators);
 
         let m: Vec<_> = messages.iter().map(|m| m.get_message()).collect();

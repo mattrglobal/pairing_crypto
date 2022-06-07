@@ -1,5 +1,9 @@
 use super::{
-    constants::{g1_affine_compressed_size, XOF_NO_OF_BYTES},
+    constants::{
+        g1_affine_compressed_size,
+        BBS_CIPHERSUITE_ID,
+        XOF_NO_OF_BYTES,
+    },
     generator::Generators,
     public_key::PublicKey,
     types::Message,
@@ -50,6 +54,9 @@ where
 
     let mut hasher = Shake256::default();
 
+    // domain = hash_to_scalar((PK || L || generators || Ciphersuite_ID ||
+    // header), 1)
+
     hasher.update(PK.point_to_octets());
 
     let L: usize = generators.message_blinding_points_length();
@@ -60,6 +67,10 @@ where
     for generator in generators.message_blinding_points_iter() {
         hasher.update(point_to_octets_g1(generator));
     }
+    // As of now we support only BLS12/381 ciphersuite, it's OK to use this
+    // constant here. This should be passed as ciphersuite specific const as
+    // generic parameter when initializing a curve specific ciphersuite.
+    hasher.update(BBS_CIPHERSUITE_ID);
     hasher.update(header);
 
     let mut reader = hasher.finalize_xof();
