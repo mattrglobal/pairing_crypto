@@ -87,12 +87,6 @@ impl PokSignature {
             });
         }
 
-        // Validate the public key; it should not be an identity and should
-        // belong to subgroup G2.
-        if PK.is_valid().unwrap_u8() == 0 {
-            return Err(Error::CryptoInvalidPublicKey);
-        }
-
         // (r1, r2, e~, r2~, r3~, s~) = hash_to_scalar(PRF(8*ceil(log2(r))), 6)
         // generate r1 and r2 here, rest of the random scalars will be generated
         // further below using ProofCommittedBuilder::commit_random(...)
