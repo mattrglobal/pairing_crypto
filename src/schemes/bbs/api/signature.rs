@@ -25,7 +25,7 @@ pub fn sign(request: BbsSignRequest) -> Result<[u8; 112], Error> {
     let pk = PublicKey::from_vec(request.public_key)?;
 
     // Digest the supplied messages
-    let messages: Vec<Message> = digest_messages(request.messages)?;
+    let messages: Vec<Message> = digest_messages(request.messages.as_ref())?;
 
     // Derive generators
     let generators = Generators::new(
@@ -46,7 +46,7 @@ pub fn verify(request: BbsVerifyRequest) -> Result<bool, Error> {
     let pk = PublicKey::from_vec(request.public_key)?;
 
     // Digest the supplied messages
-    let messages: Vec<Message> = digest_messages(request.messages)?;
+    let messages: Vec<Message> = digest_messages(request.messages.as_ref())?;
 
     // Derive generators
     let generators = Generators::new(

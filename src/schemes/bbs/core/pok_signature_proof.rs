@@ -234,7 +234,7 @@ impl PokSignatureProof {
         header: Option<T>,
         generators: &Generators,
         rvl_msgs: &[(usize, Message)],
-        ph: &PresentationMessage,
+        ph: Option<PresentationMessage>,
         challenge: Challenge,
         hasher: &mut impl Update,
     ) -> Result<(), Error>
@@ -334,8 +334,9 @@ impl PokSignatureProof {
         hasher.update(point_to_octets_g1(&self.D));
         hasher.update(point_to_octets_g1(&C1));
         hasher.update(point_to_octets_g1(&C2));
-        hasher.update(ph.to_bytes());
-
+        if let Some(ph) = ph {
+            hasher.update(ph.to_bytes());
+        }
         Ok(())
     }
 

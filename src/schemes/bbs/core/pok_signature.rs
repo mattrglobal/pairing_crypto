@@ -195,7 +195,7 @@ impl PokSignature {
     pub fn add_proof_contribution(
         &mut self,
         PK: &PublicKey,
-        ph: &PresentationMessage,
+        ph: Option<PresentationMessage>,
         hasher: &mut impl Update,
     ) {
         self.proof1.add_challenge_contribution();
@@ -208,7 +208,9 @@ impl PokSignature {
         hasher.update(point_to_octets_g1(&self.D));
         hasher.update(point_to_octets_g1(&self.proof1.cache.commitment));
         hasher.update(point_to_octets_g1(&self.proof2.cache.commitment));
-        hasher.update(ph.to_bytes());
+        if let Some(ph) = ph {
+            hasher.update(ph.to_bytes());
+        }
     }
 
     /// Generate the Schnorr challenges for the selective disclosure proofs as

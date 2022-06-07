@@ -175,7 +175,11 @@ fn proofs() {
             .expect("Signature PoK init failed");
 
             let mut hasher = sha3::Shake256::default();
-            pok.add_proof_contribution(&pk, &presentation_message, &mut hasher);
+            pok.add_proof_contribution(
+                &pk,
+                Some(presentation_message),
+                &mut hasher,
+            );
             let mut reader = hasher.finalize_xof();
             let mut data = [0u8; 64];
             reader.read(&mut data[..]);
@@ -199,10 +203,10 @@ fn proofs() {
                 verify_proof(BbsVerifyProofRequest {
                     public_key: pk.point_to_octets().to_vec(),
                     header: Some(HEADER.to_vec()),
-                    presentation_message: PRESENTATION_MESSAGE.to_vec(),
+                    presentation_message: Some(PRESENTATION_MESSAGE.to_vec()),
                     proof: proof.to_bytes().to_vec(),
                     total_message_count: test_atts.len(),
-                    messages: revealed_msgs.as_slice().to_vec(),
+                    messages: Some(revealed_msgs.as_slice().to_vec()),
                 })
                 .expect("proof verification failed"),
                 true

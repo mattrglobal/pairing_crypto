@@ -7,7 +7,7 @@ pub struct BbsSignRequest {
     /// Header containing context and application specific information
     pub header: Option<Vec<u8>>,
     /// Vector of messages to sign
-    pub messages: Vec<Vec<u8>>,
+    pub messages: Option<Vec<Vec<u8>>>,
 }
 
 /// Verify request for a BBS signature
@@ -17,12 +17,13 @@ pub struct BbsVerifyRequest {
     /// Header containing context and application specific information
     pub header: Option<Vec<u8>>,
     /// Vector of messages to verify against a signature
-    pub messages: Vec<Vec<u8>>,
+    pub messages: Option<Vec<Vec<u8>>>,
     /// Signature to verify
     pub signature: Vec<u8>,
 }
 
 /// Sub structure for describing which messages to reveal in a derived proof
+#[derive(Clone)]
 pub struct BbsDeriveProofRevealMessageRequest {
     /// Indicates whether to reveal the current message in the derived proof
     pub reveal: bool,
@@ -39,11 +40,11 @@ pub struct BbsDeriveProofRequest {
     pub header: Option<Vec<u8>>,
     /// Vector of messages protected by the signature, including a flag
     /// indicating which to reveal in the derived proof
-    pub messages: Vec<BbsDeriveProofRevealMessageRequest>,
+    pub messages: Option<Vec<BbsDeriveProofRevealMessageRequest>>,
     /// Signature to derive the signature proof of knowledge from
     pub signature: Vec<u8>,
     /// Presentation message to be bound to the signature proof of knowledge
-    pub presentation_message: Vec<u8>,
+    pub presentation_message: Option<Vec<u8>>,
 }
 
 /// Verify proof request for verifying a supplied signature proof of knowledge
@@ -56,10 +57,10 @@ pub struct BbsVerifyProofRequest {
     /// Proof to verify
     pub proof: Vec<u8>,
     /// Presentation message associated to the signature proof of knowledge
-    pub presentation_message: Vec<u8>,
+    pub presentation_message: Option<Vec<u8>>,
     /// Total message count of the messages signed in the original signature
     /// (including unrevealed messages)
     pub total_message_count: usize,
     /// Revealed messages to validate against the signature proof of knowledge
-    pub messages: Vec<(usize, Vec<u8>)>,
+    pub messages: Option<Vec<(usize, Vec<u8>)>>,
 }
