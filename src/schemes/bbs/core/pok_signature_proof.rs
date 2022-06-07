@@ -241,16 +241,15 @@ impl PokSignatureProof {
     where
         T: AsRef<[u8]>,
     {
-        // TODO check revealed messages vs hidden message count on proof
-        // TODO need to account for generators being 0?
-        if generators.message_blinding_points_length()
-            - self.hidden_message_count
-            != rvl_msgs.len()
+        // Input parameter checks
+        if self.hidden_message_count + rvl_msgs.len()
+            != generators.message_blinding_points_length()
         {
             return Err(Error::BadParams {
                 cause: format!(
-                    "Incorrect number of revealed messages: #generators: {}, \
-                     #hidden_messages: {}, #revealed_messages: {}",
+                    "Incorrect number of messages and generators: \
+                     [#generators: {}, #hidden_messages: {}, \
+                     #revealed_messages: {}]",
                     generators.message_blinding_points_length(),
                     self.hidden_message_count,
                     rvl_msgs.len()
@@ -267,7 +266,12 @@ impl PokSignatureProof {
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
         // TODO include Ciphersuite_ID
-        let domain = compute_domain(PK, header, generators);
+        let domain = compute_domain(
+            PK,
+            header,
+            generators.message_blinding_points_length(),
+            generators,
+        )?;
 
         // C1 = (Abar - D) * c + A' * e^ + H_s * r2^
         let C1_points = [self.A_bar - self.D, self.A_prime, generators.H_s()];

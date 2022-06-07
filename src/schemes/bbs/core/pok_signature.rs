@@ -79,14 +79,11 @@ impl PokSignature {
     where
         T: AsRef<[u8]>,
     {
+        // Error out if length of messages and generators are not equal
         if messages.len() != generators.message_blinding_points_length() {
-            return Err(Error::BadParams {
-                cause: format!(
-                    "mismatched length: number of messages {}, number of \
-                     generators {}",
-                    messages.len(),
-                    generators.message_blinding_points_length()
-                ),
+            return Err(Error::CryptoMessageGeneratorsLengthMismatch {
+                generators: generators.message_blinding_points_length(),
+                messages: messages.len(),
             });
         }
 
@@ -109,7 +106,7 @@ impl PokSignature {
 
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
-        let domain = compute_domain(PK, header, generators);
+        let domain = compute_domain(PK, header, messages.len(), generators)?;
 
         let m: Vec<_> = messages.iter().map(|m| m.get_message()).collect();
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L

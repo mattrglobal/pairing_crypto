@@ -48,7 +48,7 @@ pub enum Error {
     CryptoMalformedProof { cause: String },
 
     /// Not enough message generators.
-    CryptoNotEnoughMessageGenerators { generators: usize, messages: usize },
+    CryptoMessageGeneratorsLengthMismatch { generators: usize, messages: usize },
 
     /// The given point(from `G1` or `G2`) is an `Identity` element of
     /// respective subgroup.
@@ -124,7 +124,7 @@ impl core::fmt::Debug for Error {
             Error::CryptoMalformedProof { ref cause } => {
                 write!(f, "proof is malformed: cause: {}", cause)
             }
-            Error::CryptoNotEnoughMessageGenerators {
+            Error::CryptoMessageGeneratorsLengthMismatch {
                 generators,
                 messages,
             } => {

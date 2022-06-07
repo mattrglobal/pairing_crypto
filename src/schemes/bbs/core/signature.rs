@@ -136,27 +136,27 @@ impl Signature {
         PK: &PublicKey,
         header: Option<T>,
         generators: &Generators,
-        msgs: M,
+        messages: M,
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
         M: AsRef<[Message]>,
     {
         let header = header.as_ref();
-        let msgs = msgs.as_ref();
+        let messages = messages.as_ref();
 
         // Input parameter checks
         // Error out if there is no `header` and also not any `Messages`
-        if header.is_none() && msgs.is_empty() {
+        if header.is_none() && messages.is_empty() {
             return Err(Error::BadParams {
                 cause: "nothing to sign".to_owned(),
             });
         }
-        // Error out if message generators are less than messages
-        if generators.message_blinding_points_length() < msgs.len() {
-            return Err(Error::CryptoNotEnoughMessageGenerators {
+        // Error out if length of messages and generators are not equal
+        if messages.len() != generators.message_blinding_points_length() {
+            return Err(Error::CryptoMessageGeneratorsLengthMismatch {
                 generators: generators.message_blinding_points_length(),
-                messages: msgs.len(),
+                messages: messages.len(),
             });
         }
         if SK.0.is_zero().unwrap_u8() == 1 {
@@ -166,13 +166,13 @@ impl Signature {
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
         // TODO include Ciphersuite_ID
-        let domain = compute_domain(PK, header, generators);
+        let domain = compute_domain(PK, header, messages.len(), generators)?;
 
         // (e, s) = hash_to_scalar((SK  || domain || msg_1 || ... || msg_L), 2)
         let mut hasher = Shake256::default();
         hasher.update(SK.to_bytes());
         hasher.update(domain.to_bytes_be());
-        for m in msgs {
+        for m in messages {
             hasher.update(m.to_bytes())
         }
         let mut reader = hasher.finalize_xof();
@@ -203,7 +203,7 @@ impl Signature {
         };
 
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let B = compute_B(&s, &domain, msgs, generators)?;
+        let B = compute_B(&s, &domain, messages, generators)?;
         let exp = (e + SK.0).invert();
         let exp = if exp.is_some().unwrap_u8() == 1u8 {
             exp.unwrap()
@@ -227,28 +227,27 @@ impl Signature {
         PK: &PublicKey,
         header: Option<T>,
         generators: &Generators,
-        msgs: M,
+        messages: M,
     ) -> Result<bool, Error>
     where
         T: AsRef<[u8]>,
         M: AsRef<[Message]>,
     {
         let header = header.as_ref();
-        let msgs = msgs.as_ref();
+        let messages = messages.as_ref();
 
         // Input parameter checks
         // Error out if there is no `header` and also not any `Message`
-        if header.is_none() && msgs.is_empty() {
+        if header.is_none() && messages.is_empty() {
             return Err(Error::BadParams {
                 cause: "nothing to verify".to_owned(),
             });
         }
-        // If there are more messages than generators then we cannot verify the
-        // signature
-        if generators.message_blinding_points_length() < msgs.len() {
-            return Err(Error::CryptoNotEnoughMessageGenerators {
+        // Error out if length of messages and generators are not equal
+        if messages.len() != generators.message_blinding_points_length() {
+            return Err(Error::CryptoMessageGeneratorsLengthMismatch {
                 generators: generators.message_blinding_points_length(),
-                messages: msgs.len(),
+                messages: messages.len(),
             });
         }
 
@@ -263,10 +262,10 @@ impl Signature {
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
         // TODO include Ciphersuite_ID
-        let domain = compute_domain(PK, header, generators);
+        let domain = compute_domain(PK, header, messages.len(), generators)?;
 
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let B = compute_B(&self.s, &domain, msgs, generators)?;
+        let B = compute_B(&self.s, &domain, messages, generators)?;
 
         let P2 = G2Projective::generator();
         // C1 = (A, W + P2 * e)

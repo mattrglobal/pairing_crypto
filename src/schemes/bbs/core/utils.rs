@@ -45,11 +45,20 @@ pub(crate) fn octets_to_point_g1(
 pub(crate) fn compute_domain<T>(
     PK: &PublicKey,
     header: Option<T>,
+    L: usize,
     generators: &Generators,
-) -> Scalar
+) -> Result<Scalar, Error>
 where
     T: AsRef<[u8]>,
 {
+    // Error out if length of messages and generators are not equal
+    if L != generators.message_blinding_points_length() {
+        return Err(Error::CryptoMessageGeneratorsLengthMismatch {
+            generators: generators.message_blinding_points_length(),
+            messages: L,
+        });
+    }
+
     let mut res = [0u8; XOF_NO_OF_BYTES];
 
     let mut hasher = Shake256::default();
@@ -59,7 +68,6 @@ where
 
     hasher.update(PK.point_to_octets());
 
-    let L: usize = generators.message_blinding_points_length();
     hasher.update(L.to_be_bytes());
 
     hasher.update(point_to_octets_g1(&generators.H_s()));
@@ -83,7 +91,7 @@ where
         if domain.is_none().unwrap_u8() == 1u8 {
             continue;
         } else {
-            return domain.unwrap();
+            return Ok(domain.unwrap());
         }
     }
 }
@@ -98,14 +106,11 @@ pub(crate) fn compute_B(
     generators: &Generators,
 ) -> Result<G1Projective, Error> {
     // Input params check
+    // Error out if length of generators and messages are not equal
     if messages.len() != generators.message_blinding_points_length() {
-        return Err(Error::BadParams {
-            cause: format!(
-                "mismatched length: number of messages {}, number of \
-                 generators {}",
-                messages.len(),
-                generators.message_blinding_points_length()
-            ),
+        return Err(Error::CryptoMessageGeneratorsLengthMismatch {
+            generators: generators.message_blinding_points_length(),
+            messages: messages.len(),
         });
     }
 
