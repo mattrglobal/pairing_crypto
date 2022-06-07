@@ -48,7 +48,7 @@ impl PokSignature {
     pub fn init<T>(
         PK: &PublicKey,
         signature: &Signature,
-        header: T,
+        header: Option<T>,
         generators: &Generators,
         messages: &[ProofMessage],
     ) -> Result<Self, Error>
@@ -71,7 +71,7 @@ impl PokSignature {
     pub fn init_with_rng<T>(
         PK: &PublicKey,
         signature: &Signature,
-        header: T,
+        header: Option<T>,
         generators: &Generators,
         messages: &[ProofMessage],
         mut rng: impl RngCore + CryptoRng,

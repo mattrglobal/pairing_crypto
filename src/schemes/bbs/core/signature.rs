@@ -134,7 +134,7 @@ impl Signature {
     pub fn new<T, M>(
         SK: &SecretKey,
         PK: &PublicKey,
-        header: T,
+        header: Option<T>,
         generators: &Generators,
         msgs: M,
     ) -> Result<Self, Error>
@@ -147,7 +147,7 @@ impl Signature {
 
         // Input parameter checks
         // Error out if there is no `header` and also not any `Messages`
-        if header.is_empty() && msgs.is_empty() {
+        if header.is_none() && msgs.is_empty() {
             return Err(Error::BadParams {
                 cause: "nothing to sign".to_owned(),
             });
@@ -225,7 +225,7 @@ impl Signature {
     pub fn verify<T, M>(
         &self,
         PK: &PublicKey,
-        header: T,
+        header: Option<T>,
         generators: &Generators,
         msgs: M,
     ) -> Result<bool, Error>
@@ -238,7 +238,7 @@ impl Signature {
 
         // Input parameter checks
         // Error out if there is no `header` and also not any `Message`
-        if header.is_empty() && msgs.is_empty() {
+        if header.is_none() && msgs.is_empty() {
             return Err(Error::BadParams {
                 cause: "nothing to verify".to_owned(),
             });
@@ -434,11 +434,15 @@ mod tests {
         let sk = SecretKey::default();
         let msgs = [Message::default(), Message::default()];
         let generators = Generators::new(&[], &[], &[], 1);
-        assert!(Signature::new(&sk, &pk, &[], &generators, &msgs).is_err());
-        assert!(sig.verify(&pk, &[], &generators, &msgs).is_err());
+        assert!(
+            Signature::new(&sk, &pk, Some(&[]), &generators, &msgs).is_err()
+        );
+        assert!(sig.verify(&pk, Some(&[]), &generators, &msgs).is_err());
         let generators = Generators::new(&[], &[], &[], 3);
-        assert!(sig.verify(&pk, &[], &generators, &msgs).is_err());
-        assert!(Signature::new(&sk, &pk, &[], &generators, &msgs).is_err());
+        assert!(sig.verify(&pk, Some(&[]), &generators, &msgs).is_err());
+        assert!(
+            Signature::new(&sk, &pk, Some(&[]), &generators, &msgs).is_err()
+        );
     }
 
     #[test]
@@ -455,13 +459,18 @@ mod tests {
         let pk = PublicKey::from(&sk);
         let generators = Generators::new(&[], &[], &[], 2);
 
-        let signature =
-            Signature::new(&sk, &pk, TEST_HEADER.as_ref(), &generators, &msgs)
-                .unwrap();
+        let signature = Signature::new(
+            &sk,
+            &pk,
+            Some(TEST_HEADER.as_ref()),
+            &generators,
+            &msgs,
+        )
+        .unwrap();
 
         assert_eq!(
             signature
-                .verify(&pk, TEST_HEADER.as_ref(), &generators, &msgs)
+                .verify(&pk, Some(TEST_HEADER.as_ref()), &generators, &msgs)
                 .unwrap(),
             true
         );

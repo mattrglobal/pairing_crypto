@@ -231,7 +231,7 @@ impl PokSignatureProof {
     pub fn add_challenge_contribution<T>(
         &self,
         PK: &PublicKey,
-        header: T,
+        header: Option<T>,
         generators: &Generators,
         rvl_msgs: &[(usize, Message)],
         ph: &PresentationMessage,

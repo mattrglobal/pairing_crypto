@@ -5,7 +5,7 @@ pub struct BbsSignRequest {
     /// Public key
     pub public_key: Vec<u8>,
     /// Header containing context and application specific information
-    pub header: Vec<u8>,
+    pub header: Option<Vec<u8>>,
     /// Vector of messages to sign
     pub messages: Vec<Vec<u8>>,
 }
@@ -15,7 +15,7 @@ pub struct BbsVerifyRequest {
     /// Public key
     pub public_key: Vec<u8>,
     /// Header containing context and application specific information
-    pub header: Vec<u8>,
+    pub header: Option<Vec<u8>>,
     /// Vector of messages to verify against a signature
     pub messages: Vec<Vec<u8>>,
     /// Signature to verify
@@ -36,7 +36,7 @@ pub struct BbsDeriveProofRequest {
     /// Public key associated to the BBS signature
     pub public_key: Vec<u8>,
     /// Header containing context and application specific information
-    pub header: Vec<u8>,
+    pub header: Option<Vec<u8>>,
     /// Vector of messages protected by the signature, including a flag
     /// indicating which to reveal in the derived proof
     pub messages: Vec<BbsDeriveProofRevealMessageRequest>,
@@ -52,7 +52,7 @@ pub struct BbsVerifyProofRequest {
     /// the original BBS signature the proof is derived from)
     pub public_key: Vec<u8>,
     /// Header containing context and application specific information
-    pub header: Vec<u8>,
+    pub header: Option<Vec<u8>>,
     /// Proof to verify
     pub proof: Vec<u8>,
     /// Presentation message associated to the signature proof of knowledge

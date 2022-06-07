@@ -44,7 +44,7 @@ pub(crate) fn octets_to_point_g1(
 #[allow(non_snake_case)]
 pub(crate) fn compute_domain<T>(
     PK: &PublicKey,
-    header: T,
+    header: Option<T>,
     generators: &Generators,
 ) -> Scalar
 where
@@ -71,7 +71,9 @@ where
     // constant here. This should be passed as ciphersuite specific const as
     // generic parameter when initializing a curve specific ciphersuite.
     hasher.update(BBS_CIPHERSUITE_ID);
-    hasher.update(header);
+    if let Some(header) = header {
+        hasher.update(header);
+    }
 
     let mut reader = hasher.finalize_xof();
     loop {

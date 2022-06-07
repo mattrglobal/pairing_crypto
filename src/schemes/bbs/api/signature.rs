@@ -36,7 +36,7 @@ pub fn sign(request: BbsSignRequest) -> Result<[u8; 112], Error> {
     );
 
     // Produce the signature and return
-    Signature::new(&sk, &pk, &request.header, &generators, &messages)
+    Signature::new(&sk, &pk, request.header.as_ref(), &generators, &messages)
         .map(|sig| sig.signature_to_octets())
 }
 
@@ -59,5 +59,5 @@ pub fn verify(request: BbsVerifyRequest) -> Result<bool, Error> {
     // Parse signature from request
     let signature = Signature::from_vec(request.signature)?;
 
-    signature.verify(&pk, &request.header, &generators, &messages)
+    signature.verify(&pk, request.header.as_ref(), &generators, &messages)
 }

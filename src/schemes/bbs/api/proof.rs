@@ -63,7 +63,7 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     // Verify the signature to check the messages supplied are valid
     match signature.verify(
         &pk,
-        &request.header,
+        request.header.as_ref(),
         &generators,
         &digested_messages,
     )? {
@@ -88,7 +88,7 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     let mut pok = PokSignature::init(
         &pk,
         &signature,
-        &request.header,
+        request.header.as_ref(),
         &generators,
         &messages,
     )?;
@@ -137,7 +137,7 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
 
     proof.add_challenge_contribution(
         &public_key,
-        &request.header,
+        request.header.as_ref(),
         &generators,
         &messages,
         &presentation_message,

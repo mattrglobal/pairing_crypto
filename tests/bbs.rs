@@ -76,8 +76,9 @@ fn signing() {
             GLOBAL_MESSAGE_GENERATOR_SEED,
             test_atts.len(),
         );
-        let signature = Signature::new(&sk, &pk, &HEADER, &gens, &test_atts)
-            .expect("signing failed");
+        let signature =
+            Signature::new(&sk, &pk, Some(&HEADER), &gens, &test_atts)
+                .expect("signing failed");
         //         println!(
         // "sig {:?} = {:?}",
         // i,
@@ -85,7 +86,9 @@ fn signing() {
         // );
 
         assert_eq!(
-            signature.verify(&pk, &HEADER, &gens, &test_atts).unwrap(),
+            signature
+                .verify(&pk, Some(&HEADER), &gens, &test_atts)
+                .unwrap(),
             true
         );
         let expected_signature = Signature::octets_to_signature(
@@ -144,7 +147,9 @@ fn proofs() {
         )
         .expect("signature deserialization failed");
         assert_eq!(
-            signature.verify(&pk, &HEADER, &gens, &test_atts).unwrap(),
+            signature
+                .verify(&pk, Some(&HEADER), &gens, &test_atts)
+                .unwrap(),
             true
         );
         // start with all hidden messages
@@ -162,7 +167,7 @@ fn proofs() {
             let mut pok = PokSignature::init_with_rng(
                 &pk,
                 &signature,
-                &HEADER,
+                Some(&HEADER),
                 &gens,
                 proof_msgs.as_slice(),
                 &mut rng,
@@ -193,7 +198,7 @@ fn proofs() {
             assert_eq!(
                 verify_proof(BbsVerifyProofRequest {
                     public_key: pk.point_to_octets().to_vec(),
-                    header: HEADER.to_vec(),
+                    header: Some(HEADER.to_vec()),
                     presentation_message: PRESENTATION_MESSAGE.to_vec(),
                     proof: proof.to_bytes().to_vec(),
                     total_message_count: test_atts.len(),
