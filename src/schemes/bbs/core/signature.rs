@@ -152,7 +152,7 @@ impl Signature {
                 cause: "nothing to sign".to_owned(),
             });
         }
-        // Error out if blinding generators are less than messages
+        // Error out if message generators are less than messages
         if generators.message_blinding_points_length() < msgs.len() {
             return Err(Error::CryptoNotEnoughMessageGenerators {
                 generators: generators.message_blinding_points_length(),
