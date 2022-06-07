@@ -7,6 +7,7 @@ use super::{
     },
 };
 use crate::{
+    bbs::core::constants::XOF_NO_OF_BYTES,
     error::Error,
     schemes::bbs::ciphersuites::bls12_381::{
         scalar_size,
@@ -92,7 +93,7 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
         &messages,
     )?;
 
-    let mut data = [0u8; 2 * scalar_size()];
+    let mut data = [0u8; XOF_NO_OF_BYTES];
     let mut hasher = sha3::Shake256::default();
     pok.add_proof_contribution(&pk, &presentation_message, &mut hasher);
     let mut reader = hasher.finalize_xof();
