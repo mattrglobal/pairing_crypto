@@ -39,6 +39,9 @@ pub struct PokSignature {
 }
 
 impl PokSignature {
+    // Number of fixed secret points in proof2 or commitment2 vector are `r3`
+    // and `s'`.
+    const NUM_PROOF2_FIXED_POINTS: usize = 2;
     /// Creates the initial proof data before a Fiat-Shamir calculation.
     /// This method follows `ProofGen` API as defined in BBS Signature spec
     /// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.6>
@@ -224,8 +227,8 @@ impl PokSignature {
             .iter()
             .map(|s| Challenge(*s))
             .collect();
-        let hidden_message_count = proofs2.len() - 2; // TODO this is a hack because proof2 is currently a massively
-                                                      // overloaded structure
+        let hidden_message_count =
+            self.secrets2.len() - Self::NUM_PROOF2_FIXED_POINTS;
         Ok(PokSignatureProof {
             A_prime: self.A_prime,
             A_bar: self.A_bar,

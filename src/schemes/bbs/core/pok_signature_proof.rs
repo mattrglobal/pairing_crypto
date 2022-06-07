@@ -49,6 +49,10 @@ impl PokSignatureProof {
     const FIELD_BYTES: usize = scalar_size();
     const COMMITMENT_G1_BYTES: usize = g1_affine_compressed_size();
 
+    // Number of fixed secret points in proof2 or commitment2 vector are `r3`
+    // and `s'`.
+    const NUM_PROOF2_FIXED_POINTS: usize = 2;
+
     /// Store the proof as a sequence of bytes in big endian format.
     /// Each point is serialized to big-endian format.
     /// Needs G1_COMPRESSED_SIZE * 3 + SCALAR_SIZE * (5 + U) space where
@@ -309,7 +313,7 @@ impl PokSignatureProof {
         C2_points.push(generators.H_s());
         C2_scalars.push(self.proofs2[1].0);
         // H_j1 * m^_j1 + ... + H_jU * m^_jU
-        let mut j = 2;
+        let mut j = Self::NUM_PROOF2_FIXED_POINTS;
         for (i, generator) in
             generators.message_blinding_points_iter().enumerate()
         {
@@ -336,9 +340,8 @@ impl PokSignatureProof {
     }
 
     /// Validate the proof, as defined in `ProofVerify` API in BBS Signature spec <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.7>,
-    /// only checks the signature proof,
-    /// the selective disclosure proof is checked by verifying
-    /// `self.challenge == computed_challenge`.
+    /// only checks the signature proof, the selective disclosure proof is
+    /// checked by verifying `self.challenge == computed_challenge`.
     pub fn verify_signature_proof(&self, PK: PublicKey) -> Result<bool, Error> {
         // Check the signature proof
         // if A' == 1, return INVALID
