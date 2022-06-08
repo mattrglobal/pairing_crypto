@@ -26,6 +26,14 @@ pub enum Error {
     /// Scalar is invalid.
     CryptoBadScalar,
 
+    /// Maximum valid message size in octets is (2^64 -1) as per BBS signature
+    /// specification.
+    CryptoMessageIsTooLarge,
+
+    /// Maximum valid domain separation tag size in octets is (2^8 -1) as per
+    /// BBS signature specification.
+    CryptoDstIsTooLarge,
+
     /// Hast-to-field operation failed.
     CryptoHashToFieldConversion,
 
@@ -98,6 +106,12 @@ impl core::fmt::Debug for Error {
                 write!(f, "point is not in underlying group.")
             }
             Error::CryptoBadScalar => write!(f, "scalar is invalid."),
+            Error::CryptoMessageIsTooLarge => {
+                write!(f, "max valid size is (2^64 - 1) bytes.")
+            }
+            Error::CryptoDstIsTooLarge => {
+                write!(f, "max valid size is (2^8 - 1) bytes.")
+            }
             Error::CryptoHashToFieldConversion => {
                 write!(f, "hash to field conversion failed.")
             }

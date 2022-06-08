@@ -165,7 +165,6 @@ impl Signature {
 
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
-        // TODO include Ciphersuite_ID
         let domain = compute_domain(PK, header, messages.len(), generators)?;
 
         // (e, s) = hash_to_scalar((SK  || domain || msg_1 || ... || msg_L), 2)

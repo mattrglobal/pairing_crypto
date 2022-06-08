@@ -39,6 +39,14 @@ pub const HASH_TO_CURVE_G1_DST: &[u8] = b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO";
 /// creating generators or computing the e and s components of the signature.
 pub const XOF_NO_OF_BYTES: usize = 64usize;
 
+/// Maximum allowed DST size in bytes as per BBS Signature specification.
+/// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-encoding-of-elements-to-be->
+pub const MAX_DST_SIZE: u8 = u8::MAX - 1;
+
+/// Maximum allowed message size in bytes as per BBS Signature specification.
+/// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-encoding-of-elements-to-be->
+pub const MAX_MESSAGE_SIZE: u64 = u64::MAX - 1;
+
 /// Number of bytes to store a scalar.
 pub const fn scalar_size() -> usize {
     (Scalar::NUM_BITS as usize + 8 - 1) / 8

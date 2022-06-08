@@ -117,6 +117,9 @@ impl Generators {
     ) -> G1Projective {
         let mut data_to_hash = [0u8; XOF_NO_OF_BYTES];
 
+        // Note: If underlying H2C conversion from hashed data is returing
+        // Identity or base Generator P1 continuously, this loop will iterate
+        // infinetly.
         loop {
             xof_reader.read(&mut data_to_hash);
             let candidate = G1Projective::hash_to_curve(

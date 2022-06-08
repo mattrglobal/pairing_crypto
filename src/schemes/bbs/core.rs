@@ -1,5 +1,6 @@
 pub(crate) mod constants;
 pub(crate) mod generator;
+pub(crate) mod hash_utils;
 pub(crate) mod pok_signature;
 pub(crate) mod pok_signature_proof;
 pub(crate) mod proof_committed_builder;
