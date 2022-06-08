@@ -9,10 +9,11 @@ use super::{
     types::Message,
 };
 use crate::{
+    common::serialization::i2osp,
     curves::bls12_381::{G1Affine, G1Projective, Scalar},
     error::Error,
 };
-use digest::{ExtendableOutput, Update, XofReader};
+use digest::{consts::U8, ExtendableOutput, Update, XofReader};
 use ff::Field;
 use group::{Curve, Group};
 use sha3::Shake256;
@@ -68,7 +69,8 @@ where
 
     hasher.update(PK.point_to_octets());
 
-    hasher.update(L.to_be_bytes());
+    hasher.update(i2osp::<U8>(L)?);
+    // hasher.update(L.to_be_bytes());
 
     hasher.update(point_to_octets_g1(&generators.H_s()));
     hasher.update(point_to_octets_g1(&generators.H_d()));
@@ -78,7 +80,10 @@ where
     // As of now we support only BLS12/381 ciphersuite, it's OK to use this
     // constant here. This should be passed as ciphersuite specific const as
     // generic parameter when initializing a curve specific ciphersuite.
-    hasher.update(BBS_CIPHERSUITE_ID);
+    let id_len = i2osp::<U8>(BBS_CIPHERSUITE_ID.len())?;
+    let ciphersuite_data = [&id_len, BBS_CIPHERSUITE_ID.as_slice()].concat();
+    hasher.update(&ciphersuite_data);
+
     if let Some(header) = header {
         hasher.update(header);
     }
