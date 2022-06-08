@@ -1,6 +1,10 @@
 use crate::curves::bls12_381::{G1Affine, G2Affine, Scalar};
 use ff::PrimeField;
 
+/// BLS12-381 Ciphersuite ID.
+pub const BBS_CIPHERSUITE_ID: &[u8; 37] =
+    b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_";
+
 /// DST for messages.
 /// TODO define properly for different type of messages
 pub const APP_MESSAGE_DST: &[u8; 19] = b"BBS_SIG_MESSAGE_DST";

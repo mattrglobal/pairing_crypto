@@ -35,8 +35,8 @@ pub enum Error {
     /// Secret key is not valid.
     CryptoInvalidSecretKey,
 
-    /// Public key is malformed.
-    CryptoMalformedPublicKey,
+    /// Public key is not valid.
+    CryptoInvalidPublicKey,
 
     /// Message signing failed.
     CryptoSigning { cause: String },
@@ -45,13 +45,23 @@ pub enum Error {
     CryptoMalformedSignature { cause: String },
 
     /// Proof is malformed.
-    CryptoMalformedProof,
+    CryptoMalformedProof { cause: String },
 
     /// Not enough message generators.
-    CryptoNotEnoughMessageGenerators { generators: usize, messages: usize },
+    CryptoMessageGeneratorsLengthMismatch { generators: usize, messages: usize },
+
+    /// The given point(from `G1` or `G2`) is an `Identity` element of
+    /// respective subgroup.
+    CryptoPointIsIdentity,
+
+    /// The given `Scalar` is `Zero`.
+    CryptoScalarIsZero,
 
     /// Signature verification failed.
     CryptoSignatureVerification,
+
+    /// Proof verification failed.
+    CryptoProoferification,
 
     /// Error during serialization deserialization in Serde.
     Serde,
@@ -102,8 +112,8 @@ impl core::fmt::Debug for Error {
             Error::CryptoInvalidSecretKey => {
                 write!(f, "secret key is not valid.")
             }
-            Error::CryptoMalformedPublicKey => {
-                write!(f, "public key is malformed.")
+            Error::CryptoInvalidPublicKey => {
+                write!(f, "public key is invalid.")
             }
             Error::CryptoSigning { ref cause } => {
                 write!(f, "signing failed: cause: {}", cause)
@@ -111,10 +121,10 @@ impl core::fmt::Debug for Error {
             Error::CryptoMalformedSignature { ref cause } => {
                 write!(f, "signature is malformed: cause: {}", cause)
             }
-            Error::CryptoMalformedProof => {
-                write!(f, "proof is malformed.")
+            Error::CryptoMalformedProof { ref cause } => {
+                write!(f, "proof is malformed: cause: {}", cause)
             }
-            Error::CryptoNotEnoughMessageGenerators {
+            Error::CryptoMessageGeneratorsLengthMismatch {
                 generators,
                 messages,
             } => {
@@ -124,10 +134,27 @@ impl core::fmt::Debug for Error {
                     generators, messages
                 )
             }
+            Error::CryptoPointIsIdentity => {
+                write!(f, "unexpected `Identity` element.")
+            }
+            Error::CryptoScalarIsZero => {
+                write!(f, "unexpected `Zero` element.")
+            }
+            Error::CryptoProoferification => {
+                write!(f, "proof verification failed.")
+            }
             Error::CryptoSignatureVerification => {
-                write!(f, "bad encoding encountered.")
+                write!(f, "signature verification failed.")
             }
             Error::Serde => write!(f, "error during ser-de operation."),
+        }
+    }
+}
+
+impl From<core::array::TryFromSliceError> for Error {
+    fn from(_: core::array::TryFromSliceError) -> Self {
+        Error::Conversion {
+            cause: "slice to sized-array conversion".to_owned(),
         }
     }
 }

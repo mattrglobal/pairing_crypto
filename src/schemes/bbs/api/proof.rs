@@ -7,9 +7,10 @@ use super::{
     },
 };
 use crate::{
+    bbs::core::constants::XOF_NO_OF_BYTES,
     error::Error,
     schemes::bbs::ciphersuites::bls12_381::{
-        g1_affine_compressed_size,
+        scalar_size,
         Challenge,
         Generators,
         Message,
@@ -25,69 +26,71 @@ use crate::{
         GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
     },
 };
-use digest::{ExtendableOutput, Update, XofReader};
+use digest::{ExtendableOutput, XofReader};
 
 /// Derives a signature proof of knowledge
 pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     // Parse public key from request
     let pk = PublicKey::from_vec(request.public_key)?;
 
-    // Digest the supplied messages
-    let digested_messages = digest_messages(
-        request
-            .messages
+    let mut digested_messages = vec![];
+    if request.messages.is_some() {
+        let request_messages = request.messages.as_ref().unwrap();
+        let request_messages = request_messages
             .iter()
             .map(|element| element.value.clone())
-            .collect(),
-    )
-    .unwrap();
+            .collect::<Vec<Vec<u8>>>();
+        // Digest the supplied messages
+        digested_messages = digest_messages(Some(&request_messages))?;
+    }
 
     // Derive generators
     let generators = Generators::new(
         GLOBAL_BLIND_VALUE_GENERATOR_SEED,
         GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
         GLOBAL_MESSAGE_GENERATOR_SEED,
-        request.messages.len(),
+        digested_messages.len(),
     );
     // Parse signature from request
-    let signature = match Signature::from_vec(request.signature) {
-        Ok(result) => result,
-        Err(_) => {
-            return Err(Error::CryptoMalformedSignature {
-                cause: "parsing failed".to_owned(),
-            });
-        }
-    };
+    let signature = Signature::from_vec(request.signature)?;
 
     // Verify the signature to check the messages supplied are valid
-    match signature.verify(&pk, &generators, &digested_messages) {
-        false => {
-            return Err(Error::CryptoSignatureVerification);
-        }
-        true => {}
-    };
+    signature.verify(
+        &pk,
+        request.header.as_ref(),
+        &generators,
+        &digested_messages,
+    )?;
 
     // Digest the supplied messages
     let messages: Vec<ProofMessage> =
-        match digest_proof_messages(request.messages) {
+        match digest_proof_messages(request.messages.as_ref()) {
             Ok(messages) => messages,
             Err(e) => return Err(e),
         };
 
-    let presentation_message = PresentationMessage::hash(
-        request.presentation_message,
-        APP_MESSAGE_DST,
+    let presentation_message = match request.presentation_message {
+        Some(m) => Some(PresentationMessage::hash(
+            m.as_ref(),
+            APP_MESSAGE_DST.as_ref(),
+        )?),
+        _ => None,
+    };
+
+    let mut pok = PokSignature::init(
+        &pk,
+        &signature,
+        request.header.as_ref(),
+        &generators,
+        &messages,
     )?;
 
-    let mut pok = PokSignature::init(signature, &generators, &messages)?;
-
-    let mut data = [0u8; g1_affine_compressed_size()];
+    let mut data = [0u8; XOF_NO_OF_BYTES];
     let mut hasher = sha3::Shake256::default();
-    pok.add_proof_contribution(&mut hasher);
-    hasher.update(presentation_message.to_bytes());
+    pok.add_proof_contribution(&pk, presentation_message, &mut hasher);
     let mut reader = hasher.finalize_xof();
     reader.read(&mut data[..]);
-    let challenge = Challenge::hash(&data, APP_MESSAGE_DST)?;
+    let challenge = Challenge::hash(data.as_ref(), APP_MESSAGE_DST.as_ref())?;
 
     match pok.generate_proof(challenge) {
         Ok(proof) => Ok(proof.to_bytes()),
@@ -102,7 +105,7 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
 
     // Digest the revealed proof messages
     let messages: Vec<(usize, Message)> = digest_revealed_proof_messages(
-        request.messages,
+        request.messages.as_ref(),
         request.total_message_count,
     )?;
 
@@ -114,34 +117,32 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
         request.total_message_count,
     );
 
-    let proof = match PokSignatureProof::from_bytes(request.proof) {
-        Some(result) => result,
-        None => {
-            return Err(Error::Conversion {
-                cause: "failed to parse signature-PoK proof".into(),
-            });
-        }
+    let proof = PokSignatureProof::from_bytes(request.proof)?;
+
+    let presentation_message = match request.presentation_message {
+        Some(m) => Some(PresentationMessage::hash(
+            m.as_ref(),
+            APP_MESSAGE_DST.as_ref(),
+        )?),
+        _ => None,
     };
 
-    let presentation_message = PresentationMessage::hash(
-        request.presentation_message,
-        APP_MESSAGE_DST,
-    )?;
-
-    let mut data = [0u8; g1_affine_compressed_size()];
+    let mut data = [0u8; 2 * scalar_size()];
     let mut hasher = sha3::Shake256::default();
 
     proof.add_challenge_contribution(
+        &public_key,
+        request.header.as_ref(),
         &generators,
         &messages,
-        proof.challenge,
+        presentation_message,
+        proof.c,
         &mut hasher,
     )?;
 
-    hasher.update(&presentation_message.to_bytes()[..]);
     let mut reader = hasher.finalize_xof();
     reader.read(&mut data[..]);
-    let v_challenge = Challenge::hash(&data, APP_MESSAGE_DST)?;
+    let cv = Challenge::hash(data.as_ref(), APP_MESSAGE_DST.as_ref())?;
 
-    Ok(proof.verify(public_key) && proof.challenge == v_challenge)
+    Ok(proof.verify_signature_proof(public_key)? && proof.c == cv)
 }

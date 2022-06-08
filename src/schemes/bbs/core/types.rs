@@ -22,30 +22,29 @@ macro_rules! scalar_wrapper {
         }
 
         impl $name {
-            /// The number of bytes needed to represent this struct
+            /// The number of bytes needed to represent this type.
             pub const SIZE_BYTES: usize = scalar_size();
 
-            /// Generate a random struct
+            /// Generate a random value for this type.
             pub fn random<R: rand_core::RngCore>(rng: &mut R) -> Self {
                 use ff::Field;
                 Self(Scalar::random(rng))
             }
 
-            /// Convert the secret key to a big-endian representation
+            /// Convert this type to a big-endian representation.
             pub fn to_bytes(&self) -> [u8; Self::SIZE_BYTES] {
                 self.0.to_bytes_be()
             }
 
-            /// Convert a big-endian representation of the secret key
+            /// Convert a big-endian representation to this type.
             pub fn from_bytes(bytes: &[u8; Self::SIZE_BYTES]) -> CtOption<Self> {
                 Scalar::from_bytes_be(bytes).map($name)
             }
 
             /// Hash arbitrary data to this struct
-            pub fn hash<T1, T2>(msg: T1, dst: T2) -> Result<Self, Error>
+            pub fn hash<T>(msg: T, dst: T) -> Result<Self, Error>
             where
-            T1: AsRef<[u8]>,
-            T2: AsRef<[u8]>,
+            T: AsRef<[u8]>,
             {
                 let s = Scalar::hash_to(msg, dst).map($name);
                 if s.is_some().unwrap_u8() == 1u8 {

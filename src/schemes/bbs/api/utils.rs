@@ -26,59 +26,58 @@ use crate::{
 
 /// Digests the set of input messages and returns in the form of an internal
 /// structure
-pub fn digest_messages(messages: Vec<Vec<u8>>) -> Result<Vec<Message>, Error> {
-    if messages.is_empty() {
-        return Err(Error::BadParams {
-            cause: "message list to sign is empty, expected at least one \
-                    message"
-                .to_owned(),
-        });
+pub fn digest_messages(
+    messages: Option<&Vec<Vec<u8>>>,
+) -> Result<Vec<Message>, Error> {
+    if let Some(messages) = messages {
+        return messages
+            .iter()
+            .map(|msg| Message::hash(msg.as_ref(), APP_MESSAGE_DST.as_ref()))
+            .collect();
     }
-
-    messages
-        .iter()
-        .map(|msg| Message::hash(msg, APP_MESSAGE_DST))
-        .collect()
+    Ok(vec![])
 }
 
 /// Digests a set of supplied proof messages
 pub fn digest_proof_messages(
-    messages: Vec<BbsDeriveProofRevealMessageRequest>,
+    messages: Option<&Vec<BbsDeriveProofRevealMessageRequest>>,
 ) -> Result<Vec<ProofMessage>, Error> {
-    if messages.is_empty() {
-        return Err(Error::BadParams {
-            cause: "message list to sign is empty, expected at least one \
-                    message"
-                .to_owned(),
-        });
-    }
-
-    messages
-        .iter()
-        .map(|element| {
-            match Message::hash(element.value.clone(), APP_MESSAGE_DST) {
-                Ok(digested_message) => {
-                    // Change this to an enum
-                    if element.reveal {
-                        Ok(ProofMessage::Revealed(digested_message))
-                    } else {
-                        Ok(ProofMessage::Hidden(
-                            HiddenMessage::ProofSpecificBlinding(
-                                digested_message,
-                            ),
-                        ))
+    if let Some(messages) = messages {
+        return messages
+            .iter()
+            .map(|element| {
+                match Message::hash(
+                    element.value.clone().as_ref(),
+                    APP_MESSAGE_DST.as_ref(),
+                ) {
+                    Ok(digested_message) => {
+                        if element.reveal {
+                            Ok(ProofMessage::Revealed(digested_message))
+                        } else {
+                            Ok(ProofMessage::Hidden(
+                                HiddenMessage::ProofSpecificBlinding(
+                                    digested_message,
+                                ),
+                            ))
+                        }
                     }
+                    Err(e) => Err(e),
                 }
-                Err(e) => Err(e),
-            }
-        })
-        .collect()
+            })
+            .collect();
+    }
+    Ok(vec![])
 }
 
 pub fn digest_revealed_proof_messages(
-    messages: Vec<(usize, Vec<u8>)>,
+    messages: Option<&Vec<(usize, Vec<u8>)>>,
     total_message_count: usize,
 ) -> Result<Vec<(usize, Message)>, Error> {
+    if messages.is_none() {
+        return Ok(vec![]);
+    }
+    let messages = messages.unwrap();
+
     let revealed_message_indexes: Vec<usize> =
         messages.iter().map(|item| item.0).collect();
 
@@ -97,9 +96,11 @@ pub fn digest_revealed_proof_messages(
 
     messages
         .iter()
-        .map(|(i, m)| match Message::hash(m, APP_MESSAGE_DST) {
-            Ok(m) => Ok((*i, m)),
-            Err(e) => Err(e),
+        .map(|(i, m)| {
+            match Message::hash(m.as_ref(), APP_MESSAGE_DST.as_ref()) {
+                Ok(m) => Ok((*i, m)),
+                Err(e) => Err(e),
+            }
         })
         .collect()
 }

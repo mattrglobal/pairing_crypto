@@ -21,8 +21,11 @@ pub fn sign(request: BbsSignRequest) -> Result<[u8; 112], Error> {
     // Parse the secret key
     let sk = SecretKey::from_vec(request.secret_key)?;
 
+    // Parse public key from request
+    let pk = PublicKey::from_vec(request.public_key)?;
+
     // Digest the supplied messages
-    let messages: Vec<Message> = digest_messages(request.messages)?;
+    let messages: Vec<Message> = digest_messages(request.messages.as_ref())?;
 
     // Derive generators
     let generators = Generators::new(
@@ -33,7 +36,8 @@ pub fn sign(request: BbsSignRequest) -> Result<[u8; 112], Error> {
     );
 
     // Produce the signature and return
-    Signature::new(&sk, &generators, &messages).map(|sig| sig.to_bytes())
+    Signature::new(&sk, &pk, request.header.as_ref(), &generators, &messages)
+        .map(|sig| sig.signature_to_octets())
 }
 
 /// Verifies a signature
@@ -42,7 +46,7 @@ pub fn verify(request: BbsVerifyRequest) -> Result<bool, Error> {
     let pk = PublicKey::from_vec(request.public_key)?;
 
     // Digest the supplied messages
-    let messages: Vec<Message> = digest_messages(request.messages)?;
+    let messages: Vec<Message> = digest_messages(request.messages.as_ref())?;
 
     // Derive generators
     let generators = Generators::new(
@@ -55,5 +59,5 @@ pub fn verify(request: BbsVerifyRequest) -> Result<bool, Error> {
     // Parse signature from request
     let signature = Signature::from_vec(request.signature)?;
 
-    Ok(signature.verify(&pk, &generators, &messages))
+    signature.verify(&pk, request.header.as_ref(), &generators, &messages)
 }

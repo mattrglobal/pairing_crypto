@@ -1,12 +1,11 @@
 use crate::{curves::bls12_381::Scalar, error::Error};
 use core::fmt::Debug;
-use digest::Update;
 use ff::Field;
 use group::{Curve, GroupEncoding};
 use rand_core::RngCore;
 use subtle::ConstantTimeEq;
 
-struct ProofCommittedBuilderCache<B, C>
+pub(crate) struct ProofCommittedBuilderCache<B, C>
 where
     B: Clone
         + Copy
@@ -18,7 +17,7 @@ where
         + Curve<AffineRepr = C>,
     C: GroupEncoding + Debug,
 {
-    commitment: B,
+    pub(crate) commitment: B,
     points: Vec<B>,
     scalars: Vec<Scalar>,
 }
@@ -84,7 +83,7 @@ where
         + Curve<AffineRepr = C>,
     C: GroupEncoding + Debug,
 {
-    cache: ProofCommittedBuilderCache<B, C>,
+    pub(crate) cache: ProofCommittedBuilderCache<B, C>,
     points: Vec<B>,
     scalars: Vec<Scalar>,
     sum_of_products: fn(&[B], &[Scalar]) -> B,
@@ -143,7 +142,7 @@ where
     }
 
     /// Convert the committed values to bytes for the fiat-shamir challenge
-    pub fn add_challenge_contribution(&mut self, hasher: &mut impl Update) {
+    pub fn add_challenge_contribution(&mut self) {
         if !self.cache.eq(self) {
             let mut scalars = self.scalars.clone();
             let commitment =
@@ -154,8 +153,6 @@ where
                 commitment,
             }
         }
-
-        hasher.update(self.cache.commitment.to_affine().to_bytes());
     }
 
     /// Generate the Schnorr challenges given the specified secrets

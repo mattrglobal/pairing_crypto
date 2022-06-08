@@ -27,13 +27,13 @@ impl From<&SecretKey> for PublicKey {
 
 impl From<PublicKey> for [u8; PublicKey::SIZE_BYTES] {
     fn from(pk: PublicKey) -> Self {
-        pk.to_bytes()
+        pk.point_to_octets()
     }
 }
 
 impl<'a> From<&'a PublicKey> for [u8; PublicKey::SIZE_BYTES] {
     fn from(pk: &'a PublicKey) -> [u8; PublicKey::SIZE_BYTES] {
-        pk.to_bytes()
+        pk.point_to_octets()
     }
 }
 
@@ -41,31 +41,33 @@ impl PublicKey {
     /// Number of bytes needed to represent the public key in compressed form
     pub const SIZE_BYTES: usize = g2_affine_compressed_size();
 
-    /// Check if this signature is valid
+    /// Check if this PublicKey is valid
     pub fn is_valid(&self) -> Choice {
-        self.0.is_identity().not().bitor(self.0.is_on_curve())
+        self.0
+            .is_identity()
+            .not()
+            .bitor(self.0.to_affine().is_torsion_free())
     }
 
-    /// Check if this signature is invalid
-    pub fn is_invalid(&self) -> Choice {
-        self.0.is_identity().bitor(self.0.is_on_curve().not())
-    }
-
-    /// Get the byte representation of this key
-    pub fn to_bytes(&self) -> [u8; Self::SIZE_BYTES] {
+    /// Get the G2 representation in affine, compressed and big-endian form
+    /// of PublicKey.
+    pub fn point_to_octets(&self) -> [u8; Self::SIZE_BYTES] {
         self.0.to_affine().to_compressed()
     }
 
     /// Convert a vector of bytes of big-endian representation of the public key
     pub fn from_vec(bytes: Vec<u8>) -> Result<Self, Error> {
         match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
-            Ok(result) => Self::from_bytes(&result),
+            Ok(result) => Self::octets_to_point(&result),
             Err(e) => Err(e),
         }
     }
 
-    /// Convert a big-endian representation of the public key
-    pub fn from_bytes(bytes: &[u8; Self::SIZE_BYTES]) -> Result<Self, Error> {
+    /// Convert from G2 point in affine, compressed and big-endian form to
+    /// PublicKey.
+    pub fn octets_to_point(
+        bytes: &[u8; Self::SIZE_BYTES],
+    ) -> Result<Self, Error> {
         let result = G2Affine::from_compressed(bytes)
             .map(|p| Self(G2Projective::from(&p)));
 
