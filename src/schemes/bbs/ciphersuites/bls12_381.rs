@@ -22,7 +22,6 @@ pub use crate::schemes::bbs::core::{
         HiddenMessage,
         Message,
         Nonce,
-        PresentationMessage,
         ProofMessage,
         SignatureBlinding,
     },

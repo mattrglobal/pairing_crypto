@@ -6,7 +6,7 @@ use super::{
     proof_committed_builder::ProofCommittedBuilder,
     public_key::PublicKey,
     signature::Signature,
-    types::{Challenge, HiddenMessage, PresentationMessage, ProofMessage},
+    types::{Challenge, HiddenMessage, ProofMessage},
     utils::{compute_B, compute_domain, point_to_octets_g1},
 };
 use crate::{
@@ -183,12 +183,14 @@ impl PokSignature {
     }
 
     /// Convert the committed values to bytes for the fiat-shamir challenge
-    pub fn add_proof_contribution(
+    pub fn add_proof_contribution<T>(
         &mut self,
         PK: &PublicKey,
-        ph: Option<PresentationMessage>,
+        ph: Option<T>,
         hasher: &mut impl Update,
-    ) {
+    ) where
+        T: AsRef<[u8]>,
+    {
         self.proof1.add_challenge_contribution();
         self.proof2.add_challenge_contribution();
 
@@ -200,7 +202,7 @@ impl PokSignature {
         hasher.update(point_to_octets_g1(&self.proof1.cache.commitment));
         hasher.update(point_to_octets_g1(&self.proof2.cache.commitment));
         if let Some(ph) = ph {
-            hasher.update(ph.to_bytes());
+            hasher.update(ph.as_ref());
         }
     }
 

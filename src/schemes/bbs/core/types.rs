@@ -70,11 +70,6 @@ scalar_wrapper!(
 );
 
 scalar_wrapper!(
-    /// A presentation message that is used for zero-knowledge proofs
-    PresentationMessage
-);
-
-scalar_wrapper!(
     /// A blinding factor for blinding a signature
     SignatureBlinding
 );

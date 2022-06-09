@@ -16,7 +16,6 @@ use crate::{
         Message,
         PokSignature,
         PokSignatureProof,
-        PresentationMessage,
         ProofMessage,
         PublicKey,
         Signature,
@@ -69,15 +68,7 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
             Err(e) => return Err(e),
         };
 
-    let presentation_message = match request.presentation_message {
-        Some(m) => Some(PresentationMessage::map_to_scalar(
-            m.as_ref(),
-            MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
-        )?),
-        _ => None,
-    };
-
-    let mut pok = PokSignature::init(
+    let pok = PokSignature::init(
         &pk,
         &signature,
         request.header.as_ref(),
@@ -86,8 +77,7 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     )?;
 
     let mut data = [0u8; XOF_NO_OF_BYTES];
-    let mut hasher = sha3::Shake256::default();
-    pok.add_proof_contribution(&pk, presentation_message, &mut hasher);
+    let hasher = sha3::Shake256::default();
     let mut reader = hasher.finalize_xof();
     reader.read(&mut data[..]);
     let challenge = Challenge::map_to_scalar(
@@ -122,14 +112,6 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
 
     let proof = PokSignatureProof::from_octets(request.proof)?;
 
-    let presentation_message = match request.presentation_message {
-        Some(m) => Some(PresentationMessage::map_to_scalar(
-            m.as_ref(),
-            MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
-        )?),
-        _ => None,
-    };
-
     let mut data = [0u8; 2 * scalar_size()];
     let mut hasher = sha3::Shake256::default();
 
@@ -138,7 +120,7 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
         request.header.as_ref(),
         &generators,
         &messages,
-        presentation_message,
+        request.presentation_message.as_ref(),
         proof.c,
         &mut hasher,
     )?;

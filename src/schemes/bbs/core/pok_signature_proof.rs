@@ -4,7 +4,7 @@ use super::{
     constants::{g1_affine_compressed_size, scalar_size},
     generator::Generators,
     public_key::PublicKey,
-    types::{Challenge, Message, PresentationMessage},
+    types::{Challenge, Message},
     utils::{compute_domain, octets_to_point_g1, point_to_octets_g1},
 };
 use crate::{
@@ -247,7 +247,7 @@ impl PokSignatureProof {
         header: Option<T>,
         generators: &Generators,
         rvl_msgs: &[(usize, Message)],
-        ph: Option<PresentationMessage>,
+        ph: Option<T>,
         challenge: Challenge,
         hasher: &mut impl Update,
     ) -> Result<(), Error>
@@ -352,7 +352,7 @@ impl PokSignatureProof {
         hasher.update(point_to_octets_g1(&C1));
         hasher.update(point_to_octets_g1(&C2));
         if let Some(ph) = ph {
-            hasher.update(ph.to_bytes());
+            hasher.update(ph.as_ref());
         }
         Ok(())
     }
