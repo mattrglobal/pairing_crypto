@@ -1,7 +1,9 @@
 #![allow(non_snake_case)]
 
 use super::{
+    constants::OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
     generator::Generators,
+    hash_utils::hash_to_scalar,
     pok_signature_proof::PokSignatureProof,
     proof_committed_builder::ProofCommittedBuilder,
     public_key::PublicKey,
@@ -10,10 +12,10 @@ use super::{
     utils::{compute_B, compute_domain, point_to_octets_g1},
 };
 use crate::{
+    common::serialization::i2osp_with_data,
     curves::bls12_381::{G1Affine, G1Projective, Scalar},
     error::Error,
 };
-use digest::Update;
 use ff::Field;
 use rand_core::{CryptoRng, RngCore};
 
@@ -182,28 +184,51 @@ impl PokSignature {
         })
     }
 
-    /// Convert the committed values to bytes for the fiat-shamir challenge
-    pub fn add_proof_contribution<T>(
+    /// Convert the committed values to bytes for the fiat-shamir challenge.
+    pub fn compute_challenge<T>(
         &mut self,
         PK: &PublicKey,
         ph: Option<T>,
-        hasher: &mut impl Update,
-    ) where
+    ) -> Result<Challenge, Error>
+    where
         T: AsRef<[u8]>,
     {
         self.proof1.add_challenge_contribution();
         self.proof2.add_challenge_contribution();
 
         // c = hash_to_scalar((PK || Abar || A' || D || C1 || C2 || ph), 1)
-        hasher.update(PK.point_to_octets());
-        hasher.update(point_to_octets_g1(&self.A_bar));
-        hasher.update(point_to_octets_g1(&self.A_prime));
-        hasher.update(point_to_octets_g1(&self.D));
-        hasher.update(point_to_octets_g1(&self.proof1.cache.commitment));
-        hasher.update(point_to_octets_g1(&self.proof2.cache.commitment));
+        let mut data_to_hash = vec![];
+        data_to_hash.extend(i2osp_with_data(
+            PK.point_to_octets().as_ref(),
+            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        )?);
+        data_to_hash.extend(i2osp_with_data(
+            point_to_octets_g1(&self.A_bar).as_ref(),
+            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        )?);
+        data_to_hash.extend(i2osp_with_data(
+            point_to_octets_g1(&self.A_prime).as_ref(),
+            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        )?);
+        data_to_hash.extend(i2osp_with_data(
+            point_to_octets_g1(&self.D).as_ref(),
+            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        )?);
+        data_to_hash.extend(i2osp_with_data(
+            point_to_octets_g1(&self.proof1.cache.commitment).as_ref(),
+            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        )?);
+        data_to_hash.extend(i2osp_with_data(
+            point_to_octets_g1(&self.proof2.cache.commitment).as_ref(),
+            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        )?);
         if let Some(ph) = ph {
-            hasher.update(ph.as_ref());
+            data_to_hash.extend(i2osp_with_data(
+                ph.as_ref(),
+                OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+            )?);
         }
+        Ok(Challenge(hash_to_scalar(data_to_hash, 1)?[0]))
     }
 
     /// Generate the Schnorr challenges for the selective disclosure proofs as

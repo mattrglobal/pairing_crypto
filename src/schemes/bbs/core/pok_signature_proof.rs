@@ -1,18 +1,23 @@
 #![allow(non_snake_case)]
 
 use super::{
-    constants::{g1_affine_compressed_size, scalar_size},
+    constants::{
+        g1_affine_compressed_size,
+        scalar_size,
+        OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+    },
     generator::Generators,
+    hash_utils::hash_to_scalar,
     public_key::PublicKey,
     types::{Challenge, Message},
     utils::{compute_domain, octets_to_point_g1, point_to_octets_g1},
 };
 use crate::{
+    common::serialization::i2osp_with_data,
     curves::bls12_381::{Bls12, G1Projective, G2Affine, G2Prepared, Scalar},
     error::Error,
 };
 use core::convert::TryFrom;
-use digest::Update;
 use ff::Field;
 use group::{prime::PrimeCurveAffine, Curve, Group};
 use hashbrown::HashSet;
@@ -240,8 +245,7 @@ impl PokSignatureProof {
 
     /// Convert the committed values to bytes for the fiat-shamir challenge as
     /// defined in `ProofVerify` API in BBS Signature spec <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.7>
-    #[allow(clippy::too_many_arguments)]
-    pub fn add_challenge_contribution<T>(
+    pub fn compute_challenge<T>(
         &self,
         PK: &PublicKey,
         header: Option<T>,
@@ -249,8 +253,7 @@ impl PokSignatureProof {
         rvl_msgs: &[(usize, Message)],
         ph: Option<T>,
         challenge: Challenge,
-        hasher: &mut impl Update,
-    ) -> Result<(), Error>
+    ) -> Result<Challenge, Error>
     where
         T: AsRef<[u8]>,
     {
@@ -345,16 +348,38 @@ impl PokSignatureProof {
             G1Projective::multi_exp(C2_points.as_ref(), C2_scalars.as_ref());
 
         // cv = hash_to_scalar((PK || Abar || A' || D || C1 || C2 || ph), 1)
-        hasher.update(PK.point_to_octets());
-        hasher.update(point_to_octets_g1(&self.A_bar));
-        hasher.update(point_to_octets_g1(&self.A_prime));
-        hasher.update(point_to_octets_g1(&self.D));
-        hasher.update(point_to_octets_g1(&C1));
-        hasher.update(point_to_octets_g1(&C2));
+        let mut data_to_hash = vec![];
+        data_to_hash.extend(i2osp_with_data(
+            PK.point_to_octets().as_ref(),
+            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        )?);
+        data_to_hash.extend(i2osp_with_data(
+            point_to_octets_g1(&self.A_bar).as_ref(),
+            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        )?);
+        data_to_hash.extend(i2osp_with_data(
+            point_to_octets_g1(&self.A_prime).as_ref(),
+            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        )?);
+        data_to_hash.extend(i2osp_with_data(
+            point_to_octets_g1(&self.D).as_ref(),
+            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        )?);
+        data_to_hash.extend(i2osp_with_data(
+            point_to_octets_g1(&C1).as_ref(),
+            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        )?);
+        data_to_hash.extend(i2osp_with_data(
+            point_to_octets_g1(&C2).as_ref(),
+            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        )?);
         if let Some(ph) = ph {
-            hasher.update(ph.as_ref());
+            data_to_hash.extend(i2osp_with_data(
+                ph.as_ref(),
+                OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+            )?);
         }
-        Ok(())
+        Ok(Challenge(hash_to_scalar(data_to_hash, 1)?[0]))
     }
 
     /// Validate the proof, as defined in `ProofVerify` API in BBS Signature spec <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.7>,

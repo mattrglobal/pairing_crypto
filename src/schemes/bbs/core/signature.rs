@@ -1,7 +1,12 @@
 #![allow(non_snake_case)]
 use super::{
-    constants::{g1_affine_compressed_size, scalar_size, XOF_NO_OF_BYTES},
+    constants::{
+        g1_affine_compressed_size,
+        scalar_size,
+        OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+    },
     generator::Generators,
+    hash_utils::hash_to_scalar,
     public_key::PublicKey,
     secret_key::SecretKey,
     types::Message,
@@ -13,7 +18,7 @@ use super::{
     },
 };
 use crate::{
-    common::util::vec_to_byte_array,
+    common::{serialization::i2osp_with_data, util::vec_to_byte_array},
     curves::bls12_381::{
         Bls12,
         G1Projective,
@@ -24,7 +29,6 @@ use crate::{
     error::Error,
 };
 use core::{convert::TryFrom, fmt};
-use digest::{ExtendableOutput, Update, XofReader};
 use ff::Field;
 use group::{Curve, Group};
 use pairing::{MillerLoopResult, MultiMillerLoop};
@@ -36,7 +40,6 @@ use serde::{
     Serialize,
     Serializer,
 };
-use sha3::Shake256;
 use subtle::{Choice, ConditionallySelectable};
 
 /// A BBS+ signature
@@ -168,38 +171,23 @@ impl Signature {
         let domain = compute_domain(PK, header, messages.len(), generators)?;
 
         // (e, s) = hash_to_scalar((SK  || domain || msg_1 || ... || msg_L), 2)
-        let mut hasher = Shake256::default();
-        hasher.update(SK.to_bytes());
-        hasher.update(domain.to_bytes_be());
+        let mut data_to_hash = vec![];
+        data_to_hash.extend(i2osp_with_data(
+            SK.to_bytes().as_ref(),
+            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        )?);
+        data_to_hash.extend(i2osp_with_data(
+            domain.to_bytes_be().as_ref(),
+            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        )?);
         for m in messages {
-            hasher.update(m.to_bytes())
+            data_to_hash.extend(i2osp_with_data(
+                m.to_bytes().as_ref(),
+                OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+            )?);
         }
-        let mut reader = hasher.finalize_xof();
-        let mut res = [0u8; XOF_NO_OF_BYTES];
-        reader.read(&mut res);
-
-        // Should yield non-zero values for `e` and `s`, very small likelihood
-        // of it being zero
-        let e = Scalar::from_bytes_wide(&res);
-        let e = if e.is_some().unwrap_u8() == 1u8 {
-            e.unwrap()
-        } else {
-            return Err(Error::CryptoSigning {
-                cause: "failed to generate `a` component of signature"
-                    .to_string(),
-            });
-        };
-
-        reader.read(&mut res);
-        let s = Scalar::from_bytes_wide(&res);
-        let s = if s.is_some().unwrap_u8() == 1u8 {
-            s.unwrap()
-        } else {
-            return Err(Error::CryptoSigning {
-                cause: "failed to generate `s` component of signature"
-                    .to_string(),
-            });
-        };
+        let scalars = hash_to_scalar(data_to_hash, 2)?;
+        let (e, s) = (scalars[0], scalars[1]);
 
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
         let B = compute_B(&s, &domain, messages, generators)?;

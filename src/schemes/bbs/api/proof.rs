@@ -7,11 +7,8 @@ use super::{
     },
 };
 use crate::{
-    bbs::core::constants::XOF_NO_OF_BYTES,
     error::Error,
     schemes::bbs::ciphersuites::bls12_381::{
-        scalar_size,
-        Challenge,
         Generators,
         Message,
         PokSignature,
@@ -22,12 +19,10 @@ use crate::{
         GLOBAL_BLIND_VALUE_GENERATOR_SEED,
         GLOBAL_MESSAGE_GENERATOR_SEED,
         GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        MAP_MESSAGE_TO_SCALAR_DST,
     },
 };
-use digest::{ExtendableOutput, XofReader};
 
-/// Derives a signature proof of knowledge
+/// Derives a signature proof of knowledge.
 pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     // Parse public key from request
     let pk = PublicKey::from_vec(request.public_key)?;
@@ -68,7 +63,7 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
             Err(e) => return Err(e),
         };
 
-    let pok = PokSignature::init(
+    let mut pok = PokSignature::init(
         &pk,
         &signature,
         request.header.as_ref(),
@@ -76,14 +71,8 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
         &messages,
     )?;
 
-    let mut data = [0u8; XOF_NO_OF_BYTES];
-    let hasher = sha3::Shake256::default();
-    let mut reader = hasher.finalize_xof();
-    reader.read(&mut data[..]);
-    let challenge = Challenge::map_to_scalar(
-        data.as_ref(),
-        MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
-    )?;
+    let challenge =
+        pok.compute_challenge(&pk, request.presentation_message.as_ref())?;
 
     match pok.generate_proof(challenge) {
         Ok(proof) => Ok(proof.to_octets()),
@@ -91,7 +80,7 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     }
 }
 
-/// Verifies a signature proof of knowledge
+/// Verifies a signature proof of knowledge.
 pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
     // Parse public key from request
     let public_key = PublicKey::from_vec(request.public_key)?;
@@ -112,24 +101,13 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
 
     let proof = PokSignatureProof::from_octets(request.proof)?;
 
-    let mut data = [0u8; 2 * scalar_size()];
-    let mut hasher = sha3::Shake256::default();
-
-    proof.add_challenge_contribution(
+    let cv = proof.compute_challenge(
         &public_key,
         request.header.as_ref(),
         &generators,
         &messages,
         request.presentation_message.as_ref(),
         proof.c,
-        &mut hasher,
-    )?;
-
-    let mut reader = hasher.finalize_xof();
-    reader.read(&mut data[..]);
-    let cv = Challenge::map_to_scalar(
-        data.as_ref(),
-        MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
     )?;
 
     Ok(proof.verify_signature_proof(public_key)? && proof.c == cv)
