@@ -1,11 +1,16 @@
 use super::constants::{
+    HASH_TO_CURVE_G1_DST,
     MAX_DST_SIZE,
     MAX_MESSAGE_SIZE,
     MAX_VALUE_GENERATION_RETRY_COUNT,
     XOF_NO_OF_BYTES,
 };
-use crate::{curves::bls12_381::Scalar, error::Error};
+use crate::{
+    curves::bls12_381::{G1Projective, Scalar},
+    error::Error,
+};
 use ff::Field;
+use group::Group;
 use sha3::{
     digest::{ExtendableOutput, Update, XofReader},
     Shake256,
@@ -59,13 +64,13 @@ where
     hasher.update(msg_octets);
     let mut xof_reader = hasher.finalize_xof();
 
-    // Note: If Scalar conversion from hashed data is failing continuously or
-    // continuously Zero Scalar is returned from underlying implementation,
-    // this loop will iterate infinetly.
     while i < n {
         let mut data_to_hash = [0u8; XOF_NO_OF_BYTES];
         let mut retry_count = 0;
         loop {
+            if retry_count == MAX_VALUE_GENERATION_RETRY_COUNT {
+                return Err(Error::CryptoMaxRetryReached);
+            }
             xof_reader.read(&mut data_to_hash);
             let s = Scalar::from_bytes_wide(&data_to_hash);
             if s.is_some().unwrap_u8() == 1u8 {
@@ -75,15 +80,56 @@ where
                     continue;
                 }
                 scalars.push(s);
+                break;
             } else {
                 retry_count += 1;
                 continue;
-            }
-            if retry_count == MAX_VALUE_GENERATION_RETRY_COUNT {
-                return Err(Error::CryptoMaxRetryReached);
             }
         }
         i += 1;
     }
     Ok(scalars)
+}
+
+/// A convenient wrapper over underlying `hash_to_curve_g1` implementation(from
+/// pairing lib) to use during `Generators` value generation.
+pub(crate) fn hash_to_curve_g1<T>(
+    seed: T,
+    n: usize,
+) -> Result<Vec<G1Projective>, Error>
+where
+    T: AsRef<[u8]>,
+{
+    let mut i = 0;
+    let mut points = Vec::with_capacity(n);
+
+    let mut hasher = Shake256::default();
+    hasher.update(seed);
+    let mut xof_reader = hasher.finalize_xof();
+
+    while i < n {
+        let mut data_to_hash = [0u8; XOF_NO_OF_BYTES];
+        let mut retry_count = 0;
+        loop {
+            if retry_count == MAX_VALUE_GENERATION_RETRY_COUNT {
+                return Err(Error::CryptoMaxRetryReached);
+            }
+            xof_reader.read(&mut data_to_hash);
+            let p = G1Projective::hash_to_curve(
+                &data_to_hash,
+                HASH_TO_CURVE_G1_DST,
+                &[],
+            );
+            // Spec doesn't define P1
+            let P1 = G1Projective::generator();
+            if (p.is_identity().unwrap_u8() == 1) || p == P1 {
+                retry_count += 1;
+                continue;
+            }
+            points.push(p);
+            break;
+        }
+        i += 1;
+    }
+    Ok(points)
 }
