@@ -9,6 +9,7 @@ use super::{
     types::Message,
 };
 use crate::{
+    common::serialization::{i2osp, i2osp_with_data},
     curves::bls12_381::{G1Affine, G1Projective, Scalar},
     error::Error,
 };
@@ -68,7 +69,7 @@ where
 
     hasher.update(PK.point_to_octets());
 
-    hasher.update(L.to_be_bytes());
+    hasher.update(i2osp(L as u64, 8)?);
 
     hasher.update(point_to_octets_g1(&generators.H_s()));
     hasher.update(point_to_octets_g1(&generators.H_d()));
@@ -78,7 +79,8 @@ where
     // As of now we support only BLS12/381 ciphersuite, it's OK to use this
     // constant here. This should be passed as ciphersuite specific const as
     // generic parameter when initializing a curve specific ciphersuite.
-    hasher.update(BBS_CIPHERSUITE_ID);
+    hasher.update(i2osp_with_data(BBS_CIPHERSUITE_ID, 8)?);
+
     if let Some(header) = header {
         hasher.update(header);
     }
