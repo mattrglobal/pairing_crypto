@@ -20,10 +20,10 @@ use crate::{
         ProofMessage,
         PublicKey,
         Signature,
-        APP_MESSAGE_DST,
         GLOBAL_BLIND_VALUE_GENERATOR_SEED,
         GLOBAL_MESSAGE_GENERATOR_SEED,
         GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+        MAP_MESSAGE_TO_SCALAR_DST,
     },
 };
 use digest::{ExtendableOutput, XofReader};
@@ -70,9 +70,9 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
         };
 
     let presentation_message = match request.presentation_message {
-        Some(m) => Some(PresentationMessage::hash(
+        Some(m) => Some(PresentationMessage::map_to_scalar(
             m.as_ref(),
-            APP_MESSAGE_DST.as_ref(),
+            MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
         )?),
         _ => None,
     };
@@ -90,7 +90,10 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     pok.add_proof_contribution(&pk, presentation_message, &mut hasher);
     let mut reader = hasher.finalize_xof();
     reader.read(&mut data[..]);
-    let challenge = Challenge::hash(data.as_ref(), APP_MESSAGE_DST.as_ref())?;
+    let challenge = Challenge::map_to_scalar(
+        data.as_ref(),
+        MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
+    )?;
 
     match pok.generate_proof(challenge) {
         Ok(proof) => Ok(proof.to_octets()),
@@ -120,9 +123,9 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
     let proof = PokSignatureProof::from_octets(request.proof)?;
 
     let presentation_message = match request.presentation_message {
-        Some(m) => Some(PresentationMessage::hash(
+        Some(m) => Some(PresentationMessage::map_to_scalar(
             m.as_ref(),
-            APP_MESSAGE_DST.as_ref(),
+            MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
         )?),
         _ => None,
     };
@@ -142,7 +145,10 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
 
     let mut reader = hasher.finalize_xof();
     reader.read(&mut data[..]);
-    let cv = Challenge::hash(data.as_ref(), APP_MESSAGE_DST.as_ref())?;
+    let cv = Challenge::map_to_scalar(
+        data.as_ref(),
+        MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
+    )?;
 
     Ok(proof.verify_signature_proof(public_key)? && proof.c == cv)
 }

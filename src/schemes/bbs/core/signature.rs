@@ -448,10 +448,16 @@ mod tests {
     #[test]
     fn nominal_signature_e2e() {
         let msgs = [
-            Message::hash("message-1".as_ref(), TEST_MESSAGE_DST.as_ref())
-                .unwrap(),
-            Message::hash("message-2".as_ref(), TEST_MESSAGE_DST.as_ref())
-                .unwrap(),
+            Message::map_to_scalar(
+                "message-1".as_ref(),
+                TEST_MESSAGE_DST.as_ref(),
+            )
+            .unwrap(),
+            Message::map_to_scalar(
+                "message-2".as_ref(),
+                TEST_MESSAGE_DST.as_ref(),
+            )
+            .unwrap(),
         ];
         let sk =
             SecretKey::new(TEST_KEY_GEN_SEED.as_ref(), TEST_KEY_INFO.as_ref())

@@ -13,10 +13,10 @@ use pairing_crypto::bbs::ciphersuites::bls12_381::{
     PublicKey,
     SecretKey,
     Signature,
-    APP_MESSAGE_DST,
     GLOBAL_BLIND_VALUE_GENERATOR_SEED,
     GLOBAL_MESSAGE_GENERATOR_SEED,
     GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+    MAP_MESSAGE_TO_SCALAR_DST,
 };
 
 mod common;
@@ -61,7 +61,12 @@ const HEADER: &[u8; 16] = b"some_app_context";
 fn signing() {
     let test_atts = TEST_CLAIMS
         .iter()
-        .map(|b| Message::hash(b.as_ref(), APP_MESSAGE_DST.as_ref()))
+        .map(|b| {
+            Message::map_to_scalar(
+                b.as_ref(),
+                MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
+            )
+        })
         .collect::<Result<Vec<Message>, _>>()
         .expect("claims to `Message` conversion failed");
 
@@ -105,7 +110,12 @@ fn proofs() {
     let mut rng = MockRng::from_seed([1u8; 16]);
     let test_atts = TEST_CLAIMS
         .iter()
-        .map(|b| Message::hash(b.as_ref(), APP_MESSAGE_DST.as_ref()))
+        .map(|b| {
+            Message::map_to_scalar(
+                b.as_ref(),
+                MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
+            )
+        })
         .collect::<Result<Vec<Message>, _>>()
         .expect("claims to `Message` conversion failed");
 
@@ -119,9 +129,9 @@ fn proofs() {
                 ["8621f0b0c85c30a420d2f169a5726713d545cf25adbb22aab8f4f351c66a6264ebf9314944f4385480db6e226e4cd4aeb06f2ed803100e75f62c991aed80409c7f7c58cced2871d2354fcbe305ce53a747f11697c036687400193fe768f10190994cf48a30f06883927958340bc467668f9ea37a64d2af02c73cee620894ca2970f2bd9a289310222f15765d98f07a2d6824d9c9c59d7b331faab7f9c2c7b37b9478744eda3ce7ce21d455ead483c43d64bbff5b341a373fe7c591b025b2e47081dd8cca8870f0029d541ce2c7eb96eb3371a1046eb54df2eaa4da9e244622c47c837a9d2e5b229fc015f1113c93d38a46cd002f3033720e2fc0ab2ccf4497285b6e98a2596540973607534cf5cfa3bc497526421d94b898ae419eccfea721fb372df713f626e3c7b594f52021fdb8e0394462b1dbd93fad28cb074646b0558271ba0a5754d0d777dca9207598d48db70509cdc646a8c1f62a44f598dbc8741b603d75acf1a5b9d71defc441e85b0e2250ad6ceeddb636d555bf31d7bf848b50321ad93b6165a193058b86050e77ccbd0e866bc96069fb29ad6f0c7aa06e0f2483a66355fb8a67c484d1944fe25b28aa406a916e3467a791767578b6fc70467d1a3daa9756f0786061a52dd01cdb342940df757966560975280fd68b8f84f4765253182b91dcb0f8a2826ce3f547b98a", "8628f70a4c7959db09c68fb0ebef887d16f8d34f14cd688e4491d0f39ca14b227db20cb75a14e99360af0b2c95f2ce8ca74ab4c1a3629ea7abd9f24665861ac740dbb72ac83e7789e3e786a0d959d41198ef668b0376223d3aa5e9c21e2a81b5b578be7b6f6023509395cccfc48ca2f735dd6f123d8a41ef8e7188d0b741772d4d95f92b327605270963457a5af314d526bf5af625771ae020b24a5f97be5e73a5faa9fac637a3e037ebe987027a484826793836c2b76a2cf03d5a7aa964b4715e2e0eb40513cb53d7b3956398e94a4f4dcd239687314a32205d447f4d24fce36cca4598d3a6195624c9447fe3df3e353e38f3e4a87508f6d992bf4962ad02238daec45eb8f2f249cef7f6b4b45de4aa22e5c491bebddd6d8016de10e5690c7380378eeeb1113641d7060a1fdae92ace1bfbe013e457d8eca01f6fbaa966f744b92116a066c35f47f6d6554c6027b46839222d4fe06360ac4a8b397b34060db1503706a6e3afb4e09e8787e3595810c01620e09a757b43f6521ca2429db8614d2e9339cbd3390c7ad82540dc560ad82808c35df1e9d91aaaf4a65e44ea133e540acf138ac12b14ecd64f024545a2968b3e6d9231c5f1025caffb63863e81399c6d57d333e81a8744c07099e5a01f15a5", "8ffb6a458e8760267a448986266adc96c9d65ce21eda1615b44a128197f06ab052ca5be7467edf8ffdd73fa807685bac881516d6998d3e1db39dd896e46e4eb886de2a1d52eb7f2dc8136207633b7cf8f672e8fb091da6c80572044889a6c350944e232804d894fd024c385de6e1ae667ab40e0d1052fc8e758c8acac7698fc5d849fcadd168b40e72ebbe314207eef60e22bdb52f48953ed2f61e2ca1c84e23dac58af8f19ceb98f335bf7df77682d95ebc7d2b16953d518395f9293dd8ad3806b38dab9a80c52a29087b0e262044bd1c792d7184f848493528ac28297411e8f50932082b1e6e05d9afd78ff3e2cd5e08820f3a130613cf6f675354ca4acda30aacd7b86ee3a49999bf14740dfdebf212a509d746f74f9a2ac43eb0b9ca71db91317c097b13517a83e59982d32447a454bc8bab4178425fb2ab61e21f02e34de4d89ee3fcfbad974cb1efae27b85bd53d6f0c8b040dff8ad8bcc1e19fd1127271516d9f6b862d9b5da573d886a19440162f10f8cb6e2731c8034a27ea3ad4a25ea4cce8716eb27aeb82695b16fb266b3ec26be8de107340d293dae51bb22b6d8f6a5a91fcdedc17674f948e880caeb8", "a46c981eb9fda747f8823868f9cd28579ed2d67a2ae4fdecbcb55073e5c8cca385c060a0651eae225fce64a8c146e9a3b3f6398074895907b32ab9c524f039006d9ce45e3e3eed968bd69edf0a55a1b812624aa376298cbc99ac595fc1e0ea41ac08a23466cb3c2228b45dd15094d3b228bdcf9d6b80dd6f4f843c61fe099f5a135064541c6686e1ef92ff9bb7f3141c1716601e04bb70c716119c17040c4f9b753893b3ff0f4b9bd5036638caf9b3c3022cf3b5e59f077539e3877b3401010b14392f12dc40549c75b1eea7f89788580a493f7c29daebce2b2a62a68e2ba41d7700266f23499fec7997fe028e97d0684f8489033d84834299f47e06accf4d52bc3ab8f7fd758ad7b136f01d581358853208b4d70eee2a4608440c6381c1f62ce6a31ad809ba3ce7a0cddeae00e6519856dc7e7848e7fae5f190fc81f896d03b4ccb8f6f7fa11b645f3e6c9c290b8a263c6cb2fd8c9ba88c7513f36987cbc8c929100df7351341bcc4bb598624277e3163949f8bf452bf030ad9008df790d8128634655adda40e2e106fa407b3f349ee", "b5f289d305d3ea9e3750db58e9465ebc7499197f908c9bf42fb640e8a035f508deb5163ed4776f6c763851ac18fe60eeb31fd4d70006ecef64095c41758173c5b97540e2069c06de1976a03a950ced1a809ae0a36db543b3d4eb5e36742d7e3babc11a6a28cc1fc5892417b9ec2cafc311610546bf6ac78eeab432b34b871467a43df3400e3f2232e1a57b4016779c7111642573df7c0f66025fd3c22349ffb38d459f207d29f15ebafb2b1882d724f64ff71ac36fc262b51cb8ea35ed34d98639ef9e77d959a66d062a34c554edc614132c2e21b20f0a87b3bd2ebfe77387b1ebf4015b62235841210aac363aaf38a95cf328346e0cb66fcca81b5b47975e45d4a9172bcf6b187be5c1ee30a18e51a7669361fd28559d4adec8e82b1f3bf83b9503d311f210d8297569023528a0f45f0e458e76a398808cd6864315e4410ff8410e633eb905a1b55bb114c0e3f3b09044e1e368395c2ed4a4e9c4d28e1eb2537b514bef52b0ba4b9b89045fd47fcf86", "84bdf18701e9d80aa88d6011240a0d4840ca8fe814054538e0b205237909969066be97c7da2021f9db552a6b31379ea8a4ef9220cbfeaa7ab8d4c67a06b685e4bd8cda84fa15bccabb243833e07b15dac590a4c40e19ad79d018872b04574f32817ec2d3309733c0f3f46fdbf6611b47c502c46cae083724d98cd045ebc26c11b00225e32e6902fceb5f2e2e91442ac95c9928ac5d0208fdfaf97b7d29824e85f4f34d77fb556ebb40bd58ce50e298a24a925ae1e385faff6c9188f133d4785285920a71d12bcd335db52e3797ba04000ee78d77e19424206711b9b66ecdc3d5d3fa4e5833826ee6f9d09049acc4286761e394b08fecc86e3477e02d507c05f858ffbb0f4c16b944705d48910da49a3d64e25bb0321217cceba6d31ebb476a50e896aa7c6959945f4a21b6b799139b0942a2e618e565c5bd9ff00bf1cd022ccf1c32e8523de3e976d4e84992631ca159"],
             ];
     // No presentation message
-    let presentation_message = PresentationMessage::hash(
+    let presentation_message = PresentationMessage::map_to_scalar(
         PRESENTATION_MESSAGE.as_ref(),
-        APP_MESSAGE_DST.as_ref(),
+        MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
     )
     .expect("presentation message conversion failed");
 
@@ -181,9 +191,11 @@ fn proofs() {
             let mut reader = hasher.finalize_xof();
             let mut data = [0u8; 64];
             reader.read(&mut data[..]);
-            let challenge =
-                Challenge::hash(data.as_ref(), APP_MESSAGE_DST.as_ref())
-                    .expect("challenge conversion failed");
+            let challenge = Challenge::map_to_scalar(
+                data.as_ref(),
+                MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
+            )
+            .expect("challenge conversion failed");
             let proof = pok
                 .generate_proof(challenge)
                 .expect("PoK proof generation failed");

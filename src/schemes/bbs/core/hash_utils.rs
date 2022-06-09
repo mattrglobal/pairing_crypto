@@ -1,8 +1,10 @@
 use super::constants::{
+    DST_LENGTH_ENCODING_LENGTH,
     HASH_TO_CURVE_G1_DST,
     MAX_DST_SIZE,
     MAX_MESSAGE_SIZE,
     MAX_VALUE_GENERATION_RETRY_COUNT,
+    OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
     XOF_NO_OF_BYTES,
 };
 use crate::{
@@ -25,11 +27,6 @@ pub(crate) fn map_message_to_scalar_as_hash<T>(
 where
     T: AsRef<[u8]>,
 {
-    // Number of bytes specified to encode length of a message octet string
-    const MESSAGE_LENGTH_ENCODING_LENGTH: usize = 8;
-    // Number of bytes specified to encode length of a dst octet string
-    const DST_LENGTH_ENCODING_LENGTH: usize = 1;
-
     let msg = msg.as_ref();
     let dst = dst.as_ref();
     // If len(dst) > 2^8 - 1 or len(msg) > 2^64 - 1, abort
@@ -41,16 +38,18 @@ where
     }
 
     // msg_prime = I2OSP(len(msg), 8) || msg
-    let msg_prime = i2osp_with_data(msg, MESSAGE_LENGTH_ENCODING_LENGTH)?;
+    let msg_prime =
+        i2osp_with_data(msg, OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH)?;
 
     // dst_prime = I2OSP(len(dst), 1) || dst
-    let dst_prime = i2osp_with_data(dst, 1)?;
+    let dst_prime = i2osp_with_data(dst, DST_LENGTH_ENCODING_LENGTH)?;
 
     // hash_to_scalar(msg_prime || dst_prime, 1)
     Ok(hash_to_scalar([msg_prime, dst_prime].concat(), 1)?[0])
 }
 
 /// Hash arbitrary data to `n` number of scalars as specified in [3.3.10. Hash to scalar](https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-hash-to-scalar).
+// TODO make const time
 pub(crate) fn hash_to_scalar<T>(
     msg_octets: T,
     n: usize,
@@ -98,6 +97,7 @@ where
 
 /// A convenient wrapper over underlying `hash_to_curve_g1` implementation(from
 /// pairing lib) to use during `Generators` value generation.
+// TODO make const time
 pub(crate) fn hash_to_curve_g1<T>(
     seed: T,
     n: usize,
@@ -130,8 +130,8 @@ where
                 &[],
             );
             // Spec doesn't define P1
-            let P1 = G1Projective::generator();
-            if (p.is_identity().unwrap_u8() == 1) || p == P1 {
+            let p1 = G1Projective::generator();
+            if (p.is_identity().unwrap_u8() == 1) || p == p1 {
                 retry_count += 1;
                 continue;
             }
