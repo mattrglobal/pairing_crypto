@@ -1,6 +1,9 @@
 use crate::curves::bls12_381::{G1Affine, G2Affine, Scalar};
 use ff::PrimeField;
 
+/// Maximum retry count to generate a single Scalar or G1 point value.
+pub const MAX_VALUE_GENERATION_RETRY_COUNT: usize = 5;
+
 /// BLS12-381 Ciphersuite ID.
 pub const BBS_CIPHERSUITE_ID: &[u8; 37] =
     b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_";

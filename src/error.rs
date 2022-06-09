@@ -11,6 +11,13 @@ pub enum Error {
     /// A generic failure during underlying cryptographic operation.
     CryptoOps { cause: String },
 
+    /// Maximum defined retry reached for a crypto operation.
+    /// For example, during a `HashToCurve` or `HashToScalar` operation, where
+    /// we loop infinetly to produce a number of valid `Point` or `Scalar`,
+    /// this error is returned if maximum retry is hit during production of
+    /// single value.
+    CryptoMaxRetryReached,
+
     /// IKM data size is not valid.
     CryptoInvalidIkmLength,
 
@@ -92,6 +99,9 @@ impl core::fmt::Debug for Error {
                     "unexpected failure in cryptographic operation: cause {}",
                     cause
                 )
+            }
+            Error::CryptoMaxRetryReached => {
+                write!(f, "max allowed retry is reached.")
             }
             Error::CryptoInvalidIkmLength => {
                 write!(f, "IKM size is too short.")

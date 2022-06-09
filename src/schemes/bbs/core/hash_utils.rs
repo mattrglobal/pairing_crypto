@@ -1,6 +1,10 @@
-use super::constants::{MAX_DST_SIZE, MAX_MESSAGE_SIZE, XOF_NO_OF_BYTES};
+use super::constants::{
+    MAX_DST_SIZE,
+    MAX_MESSAGE_SIZE,
+    MAX_VALUE_GENERATION_RETRY_COUNT,
+    XOF_NO_OF_BYTES,
+};
 use crate::{curves::bls12_381::Scalar, error::Error};
-use digest::consts::{U1, U8};
 use ff::Field;
 use sha3::{
     digest::{ExtendableOutput, Update, XofReader},
@@ -15,6 +19,11 @@ pub(crate) fn map_message_to_scalar_as_hash<T>(
 where
     T: AsRef<[u8]>,
 {
+    // Number of bytes specified to encode length of a message octet string
+    const MESSAGE_LENGTH_ENCODING_LENGTH: usize = 8;
+    // Number of bytes specified to encode length of a dst octet string
+    const DST_LENGTH_ENCODING_LENGTH: usize = 1;
+
     let msg = msg.as_ref();
     let dst = dst.as_ref();
     // If len(dst) > 2^8 - 1 or len(msg) > 2^64 - 1, abort
@@ -26,20 +35,20 @@ where
     }
 
     // msg_prime = I2OSP(len(msg), 8) || msg
-    let msg_len = i2osp::<U8>(msg.len())?;
-    let msg_prime = [&msg_len, msg].concat();
+    let msg_prime = i2osp_with_data(msg, MESSAGE_LENGTH_ENCODING_LENGTH)?;
 
     // dst_prime = I2OSP(len(dst), 1) || dst
-    let dst_len = i2osp::<U1>(dst.len())?;
-    let dst_prime = [&dst_len, dst].concat();
+    let dst_prime = i2osp_with_data(dst, 1)?;
 
     // hash_to_scalar(msg_prime || dst_prime, 1)
-    let data_to_hash = [msg_prime, dst_prime].concat();
-    Ok(hash_to_scalar(data_to_hash, 1)[0])
+    Ok(hash_to_scalar([msg_prime, dst_prime].concat(), 1)?[0])
 }
 
 /// Hash arbitrary data to `n` number of scalars as specified in [3.3.10. Hash to scalar](https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-hash-to-scalar).
-pub(crate) fn hash_to_scalar<T>(msg_octets: T, n: usize) -> Vec<Scalar>
+pub(crate) fn hash_to_scalar<T>(
+    msg_octets: T,
+    n: usize,
+) -> Result<Vec<Scalar>, Error>
 where
     T: AsRef<[u8]>,
 {
@@ -55,19 +64,26 @@ where
     // this loop will iterate infinetly.
     while i < n {
         let mut data_to_hash = [0u8; XOF_NO_OF_BYTES];
-        xof_reader.read(&mut data_to_hash);
-        // todo change byte_wide implementation to be
-        let s = Scalar::from_bytes_wide(&data_to_hash);
-        if s.is_some().unwrap_u8() == 1u8 {
-            let s = s.unwrap();
-            if s.is_zero().unwrap_u8() == 1u8 {
+        let mut retry_count = 0;
+        loop {
+            xof_reader.read(&mut data_to_hash);
+            let s = Scalar::from_bytes_wide(&data_to_hash);
+            if s.is_some().unwrap_u8() == 1u8 {
+                let s = s.unwrap();
+                if s.is_zero().unwrap_u8() == 1u8 {
+                    retry_count += 1;
+                    continue;
+                }
+                scalars.push(s);
+            } else {
+                retry_count += 1;
                 continue;
             }
-            scalars.push(s);
-            i += 1;
-        } else {
-            continue;
+            if retry_count == MAX_VALUE_GENERATION_RETRY_COUNT {
+                return Err(Error::CryptoMaxRetryReached);
+            }
         }
+        i += 1;
     }
-    scalars
+    Ok(scalars)
 }
