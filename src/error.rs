@@ -78,7 +78,7 @@ pub enum Error {
     /// Proof verification failed.
     CryptoProoferification,
 
-    /// Error during serialization deserialization in Serde.
+    /// Error during serialization deserialization.
     Serde,
 }
 

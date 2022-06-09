@@ -37,7 +37,7 @@ pub fn sign(request: BbsSignRequest) -> Result<[u8; 112], Error> {
 
     // Produce the signature and return
     Signature::new(&sk, &pk, request.header.as_ref(), &generators, &messages)
-        .map(|sig| sig.signature_to_octets())
+        .map(|sig| sig.to_octets())
 }
 
 /// Verifies a signature

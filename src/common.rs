@@ -1,2 +1,5 @@
 // Common utilities functions.
-pub mod util;
+pub(crate) mod util;
+
+// Common serialization utils.
+pub(crate) mod serialization;

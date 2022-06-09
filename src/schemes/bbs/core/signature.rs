@@ -53,7 +53,7 @@ impl Serialize for Signature {
     where
         S: Serializer,
     {
-        let bytes = self.signature_to_octets();
+        let bytes = self.to_octets();
         let mut seq = s.serialize_tuple(bytes.len())?;
         for b in &bytes {
             seq.serialize_element(b)?;
@@ -87,7 +87,7 @@ impl<'de> Deserialize<'de> for Signature {
                         .next_element()?
                         .ok_or_else(|| DError::invalid_length(i, &self))?;
                 }
-                Signature::octets_to_signature(&arr).map_err(|_| {
+                Signature::from_octets(&arr).map_err(|_| {
                     DError::invalid_value(
                         serde::de::Unexpected::Bytes(&arr),
                         &self,
@@ -287,7 +287,7 @@ impl Signature {
     }
 
     /// Get the octets representation of `Signature` as defined in BBS spec <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-signaturetooctets>.
-    pub fn signature_to_octets(&self) -> [u8; Self::SIZE_BYTES] {
+    pub fn to_octets(&self) -> [u8; Self::SIZE_BYTES] {
         let mut offset = 0;
         let mut end = Self::G1_COMPRESSED_SIZE;
         let mut bytes = [0u8; Self::SIZE_BYTES];
@@ -311,7 +311,7 @@ impl Signature {
     /// Convert a vector of bytes of big-endian representation of the public key
     pub fn from_vec(bytes: Vec<u8>) -> Result<Self, Error> {
         match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
-            Ok(result) => Self::octets_to_signature(&result),
+            Ok(result) => Self::from_octets(&result),
             Err(e) => Err(e),
         }
     }
@@ -326,7 +326,7 @@ impl Signature {
     /// For BLS12-381 based implementation, G1_COMPRESSED_SIZE is 48 byes, and
     /// SCALAR_SIZE is 32 bytes, then bytes sequence will be treated as
     /// [48, 32, 32] to represent (A, e, s).    
-    pub fn octets_to_signature<T: AsRef<[u8]>>(data: T) -> Result<Self, Error> {
+    pub fn from_octets<T: AsRef<[u8]>>(data: T) -> Result<Self, Error> {
         let data = data.as_ref();
         if data.len() < Self::SIZE_BYTES {
             return Err(Error::CryptoMalformedProof {
@@ -401,7 +401,7 @@ fn serialization_test() {
     sig.e = Scalar::one();
     sig.s = Scalar::one() + Scalar::one();
 
-    let sig_clone = Signature::octets_to_signature(&sig.signature_to_octets());
+    let sig_clone = Signature::from_octets(&sig.to_octets());
     assert_eq!(sig_clone.is_ok(), true);
     let sig2 = sig_clone.unwrap();
     assert_eq!(sig, sig2);

@@ -63,7 +63,7 @@ impl PokSignatureProof {
     /// SCALAR_SIZE is 32 bytes, then
     /// proof = (A', Abar, D, c, e^, r2^, r3^, s^, (m^_1, ..., m^_U))
     /// bytes sequence will be [48, 48, 48, 32, 32, 32, 32, 32, 32*U ].
-    pub fn to_bytes(&self) -> Vec<u8> {
+    pub fn to_octets(&self) -> Vec<u8> {
         // self.proofs2.len() contains 2 fixed scalars r3^, s^, and U variable
         // scalars.
         let size = Self::COMMITMENT_G1_BYTES * 3
@@ -97,7 +97,7 @@ impl PokSignatureProof {
     /// SCALAR_SIZE is 32 bytes, then bytes sequence will be treated as
     /// [48, 48, 48, 32, 32, 32, 32, 32, 32*U ] to represent   
     /// proof = (A', Abar, D, c, e^, r2^, r3^, s^, (m^_1, ..., m^_U)).
-    pub fn from_bytes<B: AsRef<[u8]>>(bytes: B) -> Result<Self, Error> {
+    pub fn from_octets<B: AsRef<[u8]>>(bytes: B) -> Result<Self, Error> {
         let size = Self::COMMITMENT_G1_BYTES * 3 + Self::FIELD_BYTES * 5;
         let buffer = bytes.as_ref();
         if buffer.len() < size {
@@ -134,6 +134,11 @@ impl PokSignatureProof {
             Self::COMMITMENT_G1_BYTES
         ))?;
         offset = end;
+        if A_prime.is_identity().unwrap_u8() == 1 {
+            return Err(Error::CryptoPointIsIdentity);
+        }
+
+        // Get A_bar
         end += Self::COMMITMENT_G1_BYTES;
         let A_bar = octets_to_point_g1(slicer!(
             buffer,
@@ -142,6 +147,11 @@ impl PokSignatureProof {
             Self::COMMITMENT_G1_BYTES
         ))?;
         offset = end;
+        if A_bar.is_identity().unwrap_u8() == 1 {
+            return Err(Error::CryptoPointIsIdentity);
+        }
+
+        // Get D
         end += Self::COMMITMENT_G1_BYTES;
         let D = octets_to_point_g1(slicer!(
             buffer,
@@ -149,6 +159,9 @@ impl PokSignatureProof {
             end,
             Self::COMMITMENT_G1_BYTES
         ))?;
+        if D.is_identity().unwrap_u8() == 1 {
+            return Err(Error::CryptoPointIsIdentity);
+        }
 
         // Get c
         offset = end;
@@ -383,8 +396,8 @@ fn serialization_test() {
         hidden_message_count: 0,
     };
 
-    let bytes = p.to_bytes();
-    let p2_opt = PokSignatureProof::from_bytes(&bytes);
+    let bytes = p.to_octets();
+    let p2_opt = PokSignatureProof::from_octets(&bytes);
     assert!(p2_opt.is_ok());
     let p2 = p2_opt.unwrap();
     assert_eq!(p.A_bar, p2.A_bar);

@@ -93,7 +93,7 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     let challenge = Challenge::hash(data.as_ref(), APP_MESSAGE_DST.as_ref())?;
 
     match pok.generate_proof(challenge) {
-        Ok(proof) => Ok(proof.to_bytes()),
+        Ok(proof) => Ok(proof.to_octets()),
         Err(e) => Err(e),
     }
 }
@@ -117,7 +117,7 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
         request.total_message_count,
     );
 
-    let proof = PokSignatureProof::from_bytes(request.proof)?;
+    let proof = PokSignatureProof::from_octets(request.proof)?;
 
     let presentation_message = match request.presentation_message {
         Some(m) => Some(PresentationMessage::hash(
