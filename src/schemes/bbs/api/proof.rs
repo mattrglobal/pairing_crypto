@@ -50,7 +50,7 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
         GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
         GLOBAL_MESSAGE_GENERATOR_SEED,
         digested_messages.len(),
-    );
+    )?;
     // Parse signature from request
     let signature = Signature::from_vec(request.signature)?;
 
@@ -115,7 +115,7 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
         GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
         GLOBAL_MESSAGE_GENERATOR_SEED,
         request.total_message_count,
-    );
+    )?;
 
     let proof = PokSignatureProof::from_octets(request.proof)?;
 

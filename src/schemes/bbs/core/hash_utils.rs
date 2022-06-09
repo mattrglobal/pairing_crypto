@@ -6,6 +6,7 @@ use super::constants::{
     XOF_NO_OF_BYTES,
 };
 use crate::{
+    common::serialization::i2osp_with_data,
     curves::bls12_381::{G1Projective, Scalar},
     error::Error,
 };
@@ -57,6 +58,10 @@ pub(crate) fn hash_to_scalar<T>(
 where
     T: AsRef<[u8]>,
 {
+    // Return early if no Scalar need to be produced
+    if n == 0 {
+        return Ok(vec![]);
+    }
     let mut i = 0;
     let mut scalars = Vec::with_capacity(n);
 
@@ -100,6 +105,10 @@ pub(crate) fn hash_to_curve_g1<T>(
 where
     T: AsRef<[u8]>,
 {
+    // Return early if no Point need to be produced
+    if n == 0 {
+        return Ok(vec![]);
+    }
     let mut i = 0;
     let mut points = Vec::with_capacity(n);
 

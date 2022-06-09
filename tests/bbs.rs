@@ -75,7 +75,8 @@ fn signing() {
             GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
             GLOBAL_MESSAGE_GENERATOR_SEED,
             test_atts.len(),
-        );
+        )
+        .expect("generators creation failed");
         let signature =
             Signature::new(&sk, &pk, Some(&HEADER), &gens, &test_atts)
                 .expect("signing failed");
@@ -134,7 +135,8 @@ fn proofs() {
             GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
             GLOBAL_MESSAGE_GENERATOR_SEED,
             test_atts.len(),
-        );
+        )
+        .expect("generators creation failed");
         let signature = Signature::from_octets(
             &<[u8; Signature::SIZE_BYTES]>::try_from(
                 hex::decode(EXPECTED_SIGS[i]).expect("hex decoding failed"),

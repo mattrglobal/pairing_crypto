@@ -431,12 +431,14 @@ mod tests {
         let pk = PublicKey::default();
         let sk = SecretKey::default();
         let msgs = [Message::default(), Message::default()];
-        let generators = Generators::new(&[], &[], &[], 1);
+        let generators = Generators::new(&[], &[], &[], 1)
+            .expect("generators creation failed");
         assert!(
             Signature::new(&sk, &pk, Some(&[]), &generators, &msgs).is_err()
         );
         assert!(sig.verify(&pk, Some(&[]), &generators, &msgs).is_err());
-        let generators = Generators::new(&[], &[], &[], 3);
+        let generators = Generators::new(&[], &[], &[], 3)
+            .expect("generators creation failed");
         assert!(sig.verify(&pk, Some(&[]), &generators, &msgs).is_err());
         assert!(
             Signature::new(&sk, &pk, Some(&[]), &generators, &msgs).is_err()
@@ -455,7 +457,8 @@ mod tests {
             SecretKey::new(TEST_KEY_GEN_SEED.as_ref(), TEST_KEY_INFO.as_ref())
                 .expect("secret key generation failed");
         let pk = PublicKey::from(&sk);
-        let generators = Generators::new(&[], &[], &[], 2);
+        let generators = Generators::new(&[], &[], &[], 2)
+            .expect("generators creation failed");
 
         let signature = Signature::new(
             &sk,
