@@ -62,25 +62,14 @@ where
     // domain = hash_to_scalar((PK || L || generators || Ciphersuite_ID ||
     // header), 1)
     let mut data_to_hash = vec![];
-    data_to_hash.extend(i2osp_with_data(
-        PK.point_to_octets().as_ref(),
-        OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
-    )?);
+    data_to_hash.extend(PK.point_to_octets().as_ref());
     data_to_hash
         .extend(i2osp(L as u64, OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH)?);
-    data_to_hash.extend(i2osp_with_data(
-        point_to_octets_g1(&generators.H_s()).as_ref(),
-        OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
-    )?);
-    data_to_hash.extend(i2osp_with_data(
-        point_to_octets_g1(&generators.H_d()).as_ref(),
-        OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
-    )?);
+    data_to_hash.extend(point_to_octets_g1(&generators.H_s()).as_ref());
+    data_to_hash.extend(point_to_octets_g1(&generators.H_d()).as_ref());
+
     for generator in generators.message_blinding_points_iter() {
-        data_to_hash.extend(i2osp_with_data(
-            point_to_octets_g1(generator).as_ref(),
-            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
-        )?);
+        data_to_hash.extend(point_to_octets_g1(generator).as_ref());
     }
     // As of now we support only BLS12/381 ciphersuite, it's OK to use this
     // constant here. This should be passed as ciphersuite specific const as
