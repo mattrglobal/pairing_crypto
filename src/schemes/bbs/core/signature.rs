@@ -1,10 +1,6 @@
 #![allow(non_snake_case)]
 use super::{
-    constants::{
-        g1_affine_compressed_size,
-        scalar_size,
-        OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
-    },
+    constants::{g1_affine_compressed_size, scalar_size},
     generator::Generators,
     hash_utils::hash_to_scalar,
     public_key::PublicKey,
@@ -18,7 +14,7 @@ use super::{
     },
 };
 use crate::{
-    common::{serialization::i2osp_with_data, util::vec_to_byte_array},
+    common::util::vec_to_byte_array,
     curves::bls12_381::{
         Bls12,
         G1Projective,
@@ -172,19 +168,10 @@ impl Signature {
 
         // (e, s) = hash_to_scalar((SK  || domain || msg_1 || ... || msg_L), 2)
         let mut data_to_hash = vec![];
-        data_to_hash.extend(i2osp_with_data(
-            SK.to_bytes().as_ref(),
-            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
-        )?);
-        data_to_hash.extend(i2osp_with_data(
-            domain.to_bytes_be().as_ref(),
-            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
-        )?);
+        data_to_hash.extend(SK.to_bytes().as_ref());
+        data_to_hash.extend(domain.to_bytes_be().as_ref());
         for m in messages {
-            data_to_hash.extend(i2osp_with_data(
-                m.to_bytes().as_ref(),
-                OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
-            )?);
+            data_to_hash.extend(m.to_bytes().as_ref());
         }
         let scalars = hash_to_scalar(data_to_hash, 2)?;
         let (e, s) = (scalars[0], scalars[1]);

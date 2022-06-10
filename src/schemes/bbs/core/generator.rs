@@ -1,4 +1,4 @@
-use super::hash_utils::hash_to_curve_g1;
+use super::hash_utils::create_generators;
 use crate::{curves::bls12_381::G1Projective, error::Error};
 
 /// The generators that are used to sign a vector of commitments for a BBS
@@ -23,9 +23,9 @@ impl Generators {
         no_of_message_generators: usize,
     ) -> Result<Self, Error> {
         Ok(Self {
-            H_s: hash_to_curve_g1(blind_value_generator_seed, 1)?[0],
-            H_d: hash_to_curve_g1(sig_domain_generator_seed, 1)?[0],
-            message_generators: hash_to_curve_g1(
+            H_s: create_generators(blind_value_generator_seed, 1)?[0],
+            H_d: create_generators(sig_domain_generator_seed, 1)?[0],
+            message_generators: create_generators(
                 message_generator_seed,
                 no_of_message_generators,
             )?,

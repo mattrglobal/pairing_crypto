@@ -98,7 +98,7 @@ where
 /// A convenient wrapper over underlying `hash_to_curve_g1` implementation(from
 /// pairing lib) to use during `Generators` value generation.
 // TODO make const time
-pub(crate) fn hash_to_curve_g1<T>(
+pub(crate) fn create_generators<T>(
     seed: T,
     n: usize,
 ) -> Result<Vec<G1Projective>, Error>
@@ -109,6 +109,8 @@ where
     if n == 0 {
         return Ok(vec![]);
     }
+    // Spec doesn't define P1
+    let p1 = G1Projective::generator();
     let mut i = 0;
     let mut points = Vec::with_capacity(n);
 
@@ -129,8 +131,7 @@ where
                 HASH_TO_CURVE_G1_DST,
                 &[],
             );
-            // Spec doesn't define P1
-            let p1 = G1Projective::generator();
+
             if (p.is_identity().unwrap_u8() == 1) || p == p1 {
                 retry_count += 1;
                 continue;

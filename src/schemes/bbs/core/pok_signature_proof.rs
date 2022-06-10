@@ -349,30 +349,12 @@ impl PokSignatureProof {
 
         // cv = hash_to_scalar((PK || Abar || A' || D || C1 || C2 || ph), 1)
         let mut data_to_hash = vec![];
-        data_to_hash.extend(i2osp_with_data(
-            PK.point_to_octets().as_ref(),
-            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
-        )?);
-        data_to_hash.extend(i2osp_with_data(
-            point_to_octets_g1(&self.A_bar).as_ref(),
-            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
-        )?);
-        data_to_hash.extend(i2osp_with_data(
-            point_to_octets_g1(&self.A_prime).as_ref(),
-            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
-        )?);
-        data_to_hash.extend(i2osp_with_data(
-            point_to_octets_g1(&self.D).as_ref(),
-            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
-        )?);
-        data_to_hash.extend(i2osp_with_data(
-            point_to_octets_g1(&C1).as_ref(),
-            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
-        )?);
-        data_to_hash.extend(i2osp_with_data(
-            point_to_octets_g1(&C2).as_ref(),
-            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
-        )?);
+        data_to_hash.extend(PK.point_to_octets().as_ref());
+        data_to_hash.extend(point_to_octets_g1(&self.A_bar).as_ref());
+        data_to_hash.extend(point_to_octets_g1(&self.A_prime).as_ref());
+        data_to_hash.extend(point_to_octets_g1(&self.D).as_ref());
+        data_to_hash.extend(point_to_octets_g1(&C1));
+        data_to_hash.extend(point_to_octets_g1(&C2));
         if let Some(ph) = ph {
             data_to_hash.extend(i2osp_with_data(
                 ph.as_ref(),
