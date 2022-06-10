@@ -76,7 +76,7 @@ where
                 return Err(Error::CryptoMaxRetryReached);
             }
             xof_reader.read(&mut data_to_hash);
-            let s = Scalar::from_bytes_wide(&data_to_hash);
+            let s = Scalar::from_bytes_be_wide(&data_to_hash);
             if s.is_some().unwrap_u8() == 1u8 {
                 let s = s.unwrap();
                 if s.is_zero().unwrap_u8() == 1u8 {
