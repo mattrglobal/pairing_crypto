@@ -12,7 +12,6 @@ use crate::{
     curves::bls12_381::{G1Projective, Scalar},
     error::Error,
 };
-use ff::Field;
 use group::Group;
 use sha3::{
     digest::{ExtendableOutput, Update, XofReader},
@@ -76,13 +75,11 @@ where
                 return Err(Error::CryptoMaxRetryReached);
             }
             xof_reader.read(&mut data_to_hash);
+            // In success case, `Scalar::from_bytes_be_wide` return a non-zero
+            // Scalar value satisfying 0<s<r
             let s = Scalar::from_bytes_be_wide(&data_to_hash);
             if s.is_some().unwrap_u8() == 1u8 {
                 let s = s.unwrap();
-                if s.is_zero().unwrap_u8() == 1u8 {
-                    retry_count += 1;
-                    continue;
-                }
                 scalars.push(s);
                 break;
             } else {
@@ -132,7 +129,10 @@ where
                 &[],
             );
 
-            if (p.is_identity().unwrap_u8() == 1) || p == p1 {
+            if (p.is_identity().unwrap_u8() == 1)
+                || p == p1
+                || points.iter().any(|e| e == &p)
+            {
                 retry_count += 1;
                 continue;
             }
