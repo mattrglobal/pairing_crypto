@@ -1,4 +1,7 @@
-use super::{constants::g2_affine_compressed_size, secret_key::SecretKey};
+use super::{
+    constants::{OCTET_POINT_G2_LENGTH},
+    secret_key::SecretKey,
+};
 use crate::{
     common::util::vec_to_byte_array,
     curves::bls12_381::{sk_to_pk_in_g2, G2Affine, G2Projective},
@@ -39,7 +42,7 @@ impl<'a> From<&'a PublicKey> for [u8; PublicKey::SIZE_BYTES] {
 
 impl PublicKey {
     /// Number of bytes needed to represent the public key in compressed form
-    pub const SIZE_BYTES: usize = g2_affine_compressed_size();
+    pub const SIZE_BYTES: usize = OCTET_POINT_G2_LENGTH;
 
     /// Check if this PublicKey is valid
     pub fn is_valid(&self) -> Choice {

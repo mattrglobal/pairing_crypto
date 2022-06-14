@@ -1,4 +1,4 @@
-use super::constants::{g1_affine_compressed_size, scalar_size};
+use super::constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH};
 use crate::{
     bbs::core::hash_utils::map_message_to_scalar_as_hash,
     curves::bls12_381::{G1Affine, G1Projective, Scalar},
@@ -24,7 +24,7 @@ macro_rules! scalar_wrapper {
 
         impl $name {
             /// The number of bytes needed to represent this type.
-            pub const SIZE_BYTES: usize = scalar_size();
+            pub const SIZE_BYTES: usize = OCTET_SCALAR_LENGTH;
 
             /// Generate a random value for this type.
             pub fn random<R: rand_core::RngCore>(rng: &mut R) -> Self {
@@ -132,7 +132,7 @@ impl<'de> Deserialize<'de> for Commitment {
 
 impl Commitment {
     /// Number of bytes needed to represent the commitment
-    pub const SIZE_BYTES: usize = g1_affine_compressed_size();
+    pub const SIZE_BYTES: usize = OCTET_POINT_G1_LENGTH;
 
     /// Get the byte sequence that represents this signature
     pub fn to_bytes(&self) -> [u8; Self::SIZE_BYTES] {

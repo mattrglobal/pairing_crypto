@@ -1,6 +1,5 @@
 pub use crate::schemes::bbs::core::{
     constants::{
-        g1_affine_compressed_size,
         g2_affine_compressed_size,
         scalar_size,
         BBS_SECRET_KEY_SALT,
@@ -8,6 +7,7 @@ pub use crate::schemes::bbs::core::{
         GLOBAL_MESSAGE_GENERATOR_SEED,
         GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
         MAP_MESSAGE_TO_SCALAR_DST,
+        OCTET_POINT_G1_LENGTH,
     },
     generator::*,
     pok_signature::*,

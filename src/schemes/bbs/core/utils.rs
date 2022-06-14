@@ -1,8 +1,8 @@
 use super::{
     constants::{
-        g1_affine_compressed_size,
         BBS_CIPHERSUITE_ID,
         OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        OCTET_POINT_G1_LENGTH,
     },
     generator::Generators,
     hash_utils::hash_to_scalar,
@@ -21,14 +21,14 @@ use group::{Curve, Group};
 /// and big-endian octets form.
 pub(crate) fn point_to_octets_g1(
     p: &G1Projective,
-) -> [u8; g1_affine_compressed_size()] {
+) -> [u8; OCTET_POINT_G1_LENGTH] {
     p.to_affine().to_compressed()
 }
 
 /// Convert from octets in affine, compressed and big-endian form to
 /// `G1Projective` type.
 pub(crate) fn octets_to_point_g1(
-    octets: &[u8; g1_affine_compressed_size()],
+    octets: &[u8; OCTET_POINT_G1_LENGTH],
 ) -> Result<G1Projective, Error> {
     let result = G1Affine::from_compressed(octets).map(G1Projective::from);
     if result.is_some().unwrap_u8() == 1u8 {

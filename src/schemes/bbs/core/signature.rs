@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 use super::{
-    constants::{g1_affine_compressed_size, scalar_size},
+    constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
     generator::Generators,
     hash_utils::hash_to_scalar,
     public_key::PublicKey,
@@ -122,10 +122,10 @@ impl ConditionallySelectable for Signature {
 impl Signature {
     /// The number of bytes in a `Signature`.
     pub const SIZE_BYTES: usize =
-        g1_affine_compressed_size() + 2 * scalar_size();
+        OCTET_POINT_G1_LENGTH + 2 * OCTET_SCALAR_LENGTH;
 
-    const G1_COMPRESSED_SIZE: usize = g1_affine_compressed_size();
-    const SCALAR_SIZE: usize = scalar_size();
+    const G1_COMPRESSED_SIZE: usize = OCTET_POINT_G1_LENGTH;
+    const SCALAR_SIZE: usize = OCTET_SCALAR_LENGTH;
 
     /// Generate a new `Signature` where all messages are known to the signer.
     /// This method follows `Sign` API as defined in BBS Signature spec
