@@ -2,16 +2,22 @@
 
 use super::{
     constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
-    types::Challenge,
+    types::{Challenge, FiatShamirProof},
     utils::{octets_to_point_g1, point_to_octets_g1},
 };
 use crate::{curves::bls12_381::G1Projective, error::Error};
 use core::convert::TryFrom;
 use group::Group;
-use subtle::{Choice, CtOption};
 
 // Convert slice to a fixed array
 macro_rules! slicer {
+    ($d:expr, $b:expr, $e:expr, $s:expr) => {
+        &<[u8; $s]>::try_from(&$d[$b..$e]).unwrap()
+    };
+}
+
+// Convert slice to a fixed array
+macro_rules! extract_value {
     ($d:expr, $b:expr, $e:expr, $s:expr) => {
         &<[u8; $s]>::try_from(&$d[$b..$e]).unwrap()
     };
@@ -22,7 +28,7 @@ macro_rules! slicer {
 /// The `ProofGen` procedure is specified here <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofgen>
 /// proof = (A', Abar, D, c, e^, r2^, r3^, s^, (m^_1, ..., m^_U)), where `U` is
 /// number of unrevealed messages.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Proof {
     /// A'
     pub(crate) A_prime: G1Projective,
@@ -32,10 +38,16 @@ pub struct Proof {
     pub(crate) D: G1Projective,
     /// c
     pub(crate) c: Challenge,
-    /// e^, r2^
-    pub(crate) C1_scalars: [Challenge; 2],
-    /// r3^, s^, (m^_1, ..., m^_U)
-    pub(crate) C2_scalars: Vec<Challenge>,
+    /// e^
+    pub(crate) e_hat: FiatShamirProof,
+    /// r2^
+    pub(crate) r2_hat: FiatShamirProof,
+    /// r3^
+    pub(crate) r3_hat: FiatShamirProof,
+    /// s^
+    pub(crate) s_hat: FiatShamirProof,
+    /// (m^_1, ..., m^_U)
+    pub(crate) m_hat_list: Vec<FiatShamirProof>,
 }
 
 impl Proof {
@@ -52,10 +64,8 @@ impl Proof {
     /// proof = (A', Abar, D, c, e^, r2^, r3^, s^, (m^_1, ..., m^_U)), and
     /// bytes sequence will be [48, 48, 48, 32, 32, 32, 32, 32, 32*U ].
     pub fn to_octets(&self) -> Vec<u8> {
-        // self.C2_scalars.len() contains 2 fixed scalars r3^, s^, and U
-        // variable scalars.
         let size = OCTET_POINT_G1_LENGTH * 3
-            + OCTET_SCALAR_LENGTH * (1 + 2 + self.C2_scalars.len());
+            + OCTET_SCALAR_LENGTH * (5 + self.m_hat_list.len());
 
         let mut buffer = Vec::with_capacity(size);
 
@@ -64,11 +74,12 @@ impl Proof {
         buffer.extend_from_slice(&point_to_octets_g1(&self.A_bar));
         buffer.extend_from_slice(&point_to_octets_g1(&self.D));
         buffer.extend_from_slice(&self.c.to_bytes());
-        for i in 0..self.C1_scalars.len() {
-            buffer.extend_from_slice(&self.C1_scalars[i].to_bytes());
-        }
-        for i in 0..self.C2_scalars.len() {
-            buffer.extend_from_slice(&self.C2_scalars[i].to_bytes());
+        buffer.extend_from_slice(&self.e_hat.to_bytes());
+        buffer.extend_from_slice(&self.r2_hat.to_bytes());
+        buffer.extend_from_slice(&self.r3_hat.to_bytes());
+        buffer.extend_from_slice(&self.s_hat.to_bytes());
+        for i in 0..self.m_hat_list.len() {
+            buffer.extend_from_slice(&self.m_hat_list[i].to_bytes());
         }
         buffer
     }
@@ -96,18 +107,18 @@ impl Proof {
                 ),
             });
         }
-        if (buffer.len() - OCTET_POINT_G1_LENGTH) % OCTET_SCALAR_LENGTH != 0 {
+        if (buffer.len() - PROOF_LEN_FLOOR) % OCTET_SCALAR_LENGTH != 0 {
             return Err(Error::CryptoMalformedProof {
                 cause: format!(
-                    "variable length data {} is not multiple of `Scalar` size \
-                     {} bytes",
+                    "variable length proof data {} is not multiple of \
+                     `Scalar` size {} bytes",
                     buffer.len() - OCTET_POINT_G1_LENGTH,
                     OCTET_SCALAR_LENGTH
                 ),
             });
         }
 
-        let hidden_message_count =
+        let unrevealed_message_count =
             (buffer.len() - PROOF_LEN_FLOOR) / OCTET_SCALAR_LENGTH;
 
         let mut offset = 0usize;
@@ -166,34 +177,71 @@ impl Proof {
         }
         offset = end;
 
-        // Get e^, r2^
+        // Get e^
         end = offset + OCTET_SCALAR_LENGTH;
-        let mut C1_scalars = [
-            CtOption::new(Challenge::default(), Choice::from(0u8)),
-            CtOption::new(Challenge::default(), Choice::from(0u8)),
-        ];
-        for proof in &mut C1_scalars {
-            *proof = Challenge::from_bytes(slicer!(
-                buffer,
-                offset,
-                end,
-                OCTET_SCALAR_LENGTH
-            ));
-            offset = end;
-            end = offset + OCTET_SCALAR_LENGTH;
-        }
-        if C1_scalars[0].is_none().unwrap_u8() == 1
-            || C1_scalars[1].is_none().unwrap_u8() == 1
-        {
+        let e_hat = FiatShamirProof::from_bytes(slicer!(
+            buffer,
+            offset,
+            end,
+            OCTET_SCALAR_LENGTH
+        ));
+        if e_hat.is_none().unwrap_u8() == 1 {
             return Err(Error::CryptoMalformedProof {
-                cause: "failure while deserializing `e^` or `r2^`".to_owned(),
+                cause: "failure while deserializing `c`".to_owned(),
             });
         }
+        offset = end;
 
-        let mut C2_scalars =
-            Vec::<Challenge>::with_capacity(2 + hidden_message_count);
-        for _ in 0..(2 + hidden_message_count) {
-            let c = Challenge::from_bytes(slicer!(
+        // Get r2^
+        end = offset + OCTET_SCALAR_LENGTH;
+        let r2_hat = FiatShamirProof::from_bytes(slicer!(
+            buffer,
+            offset,
+            end,
+            OCTET_SCALAR_LENGTH
+        ));
+        if r2_hat.is_none().unwrap_u8() == 1 {
+            return Err(Error::CryptoMalformedProof {
+                cause: "failure while deserializing `c`".to_owned(),
+            });
+        }
+        offset = end;
+
+        // Get r3^
+        end = offset + OCTET_SCALAR_LENGTH;
+        let r3_hat = FiatShamirProof::from_bytes(slicer!(
+            buffer,
+            offset,
+            end,
+            OCTET_SCALAR_LENGTH
+        ));
+        if r2_hat.is_none().unwrap_u8() == 1 {
+            return Err(Error::CryptoMalformedProof {
+                cause: "failure while deserializing `c`".to_owned(),
+            });
+        }
+        offset = end;
+
+        // Get s^
+        end = offset + OCTET_SCALAR_LENGTH;
+        let s_hat = FiatShamirProof::from_bytes(slicer!(
+            buffer,
+            offset,
+            end,
+            OCTET_SCALAR_LENGTH
+        ));
+        if s_hat.is_none().unwrap_u8() == 1 {
+            return Err(Error::CryptoMalformedProof {
+                cause: "failure while deserializing `c`".to_owned(),
+            });
+        }
+        offset = end;
+
+        // Get  (m^_j1, ..., m^_jU)
+        let mut m_hat_list =
+            Vec::<FiatShamirProof>::with_capacity(unrevealed_message_count);
+        for _ in 0..unrevealed_message_count {
+            let m_hat = FiatShamirProof::from_bytes(slicer!(
                 buffer,
                 offset,
                 end,
@@ -201,14 +249,14 @@ impl Proof {
             ));
             offset = end;
             end = offset + OCTET_SCALAR_LENGTH;
-            if c.is_none().unwrap_u8() == 1 {
+            if m_hat.is_none().unwrap_u8() == 1 {
                 return Err(Error::CryptoMalformedProof {
                     cause: "failure while deserializing `proof2` components"
                         .to_owned(),
                 });
             }
 
-            C2_scalars.push(c.unwrap());
+            m_hat_list.push(m_hat.unwrap());
         }
 
         // It's safe to `unwrap()` here as we have already handled the `None`
@@ -218,22 +266,18 @@ impl Proof {
             A_bar,
             D,
             c: c.unwrap(),
-            C1_scalars: [C1_scalars[0].unwrap(), C1_scalars[1].unwrap()],
-            C2_scalars,
+            e_hat: e_hat.unwrap(),
+            r2_hat: r2_hat.unwrap(),
+            r3_hat: r3_hat.unwrap(),
+            s_hat: s_hat.unwrap(),
+            m_hat_list,
         })
     }
 }
 
 #[test]
 fn serialization_test() {
-    let p = Proof {
-        A_bar: G1Projective::generator(),
-        A_prime: G1Projective::generator(),
-        D: G1Projective::generator(),
-        c: Challenge::default(),
-        C1_scalars: [Challenge::default(), Challenge::default()],
-        C2_scalars: vec![Challenge::default(), Challenge::default()],
-    };
+    let p = Proof::default();
 
     let bytes = p.to_octets();
     let p2_opt = Proof::from_octets(&bytes);

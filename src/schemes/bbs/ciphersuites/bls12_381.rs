@@ -1,7 +1,5 @@
 pub use crate::schemes::bbs::core::{
     constants::{
-        g2_affine_compressed_size,
-        scalar_size,
         BBS_SECRET_KEY_SALT,
         GLOBAL_BLIND_VALUE_GENERATOR_SEED,
         GLOBAL_MESSAGE_GENERATOR_SEED,
