@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 use super::{
     constants::{
         BBS_CIPHERSUITE_ID,
@@ -7,7 +9,7 @@ use super::{
     generator::Generators,
     hash_utils::hash_to_scalar,
     public_key::PublicKey,
-    types::Message,
+    types::{Challenge, Message},
 };
 use crate::{
     common::serialization::{i2osp, i2osp_with_data},
@@ -41,7 +43,6 @@ pub(crate) fn octets_to_point_g1(
 /// Computes `domain` value.
 /// domain =
 ///    hash_to_scalar((PK || L || generators || Ciphersuite_ID || header), 1)
-#[allow(non_snake_case)]
 pub(crate) fn compute_domain<T>(
     PK: &PublicKey,
     header: Option<T>,
@@ -90,7 +91,6 @@ where
 
 /// Computes `B` value.
 /// B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
-#[allow(non_snake_case)]
 pub(crate) fn compute_B(
     s: &Scalar,
     domain: &Scalar,
@@ -120,4 +120,34 @@ pub(crate) fn compute_B(
         .collect();
 
     Ok(G1Projective::multi_exp(&points, &scalars))
+}
+
+/// Compute Fiat Shamir heuristic challenge.
+/// c = hash_to_scalar((PK || Abar || A' || D || C1 || C2 || ph), 1)
+pub(crate) fn compute_challenge<T>(
+    PK: &PublicKey,
+    A_bar: &G1Projective,
+    A_prime: &G1Projective,
+    D: &G1Projective,
+    C1: &G1Projective,
+    C2: &G1Projective,
+    ph: Option<T>,
+) -> Result<Challenge, Error>
+where
+    T: AsRef<[u8]>,
+{
+    let mut data_to_hash = vec![];
+    data_to_hash.extend(PK.point_to_octets().as_ref());
+    data_to_hash.extend(point_to_octets_g1(&A_bar).as_ref());
+    data_to_hash.extend(point_to_octets_g1(&A_prime).as_ref());
+    data_to_hash.extend(point_to_octets_g1(&D).as_ref());
+    data_to_hash.extend(point_to_octets_g1(&C1));
+    data_to_hash.extend(point_to_octets_g1(&C2));
+    if let Some(ph) = ph {
+        data_to_hash.extend(i2osp_with_data(
+            ph.as_ref(),
+            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        )?);
+    }
+    Ok(Challenge(hash_to_scalar(data_to_hash, 1)?[0]))
 }
