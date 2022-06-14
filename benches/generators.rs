@@ -33,7 +33,7 @@ fn generators_benchmark(c: &mut Criterion) {
 
 criterion_group!(
     name = benches;
-    config = Criterion::default().measurement_time(Duration::from_secs(5));
+    config = Criterion::default().measurement_time(Duration::from_secs(30));
     targets = generators_benchmark
 );
 criterion_main!(benches);
