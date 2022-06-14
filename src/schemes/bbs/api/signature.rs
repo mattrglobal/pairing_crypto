@@ -33,7 +33,7 @@ pub fn sign(request: BbsSignRequest) -> Result<[u8; 112], Error> {
         GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
         GLOBAL_MESSAGE_GENERATOR_SEED,
         messages.len(),
-    );
+    )?;
 
     // Produce the signature and return
     Signature::new(&sk, &pk, request.header.as_ref(), &generators, &messages)
@@ -54,7 +54,7 @@ pub fn verify(request: BbsVerifyRequest) -> Result<bool, Error> {
         GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
         GLOBAL_MESSAGE_GENERATOR_SEED,
         messages.len(),
-    );
+    )?;
 
     // Parse signature from request
     let signature = Signature::from_vec(request.signature)?;

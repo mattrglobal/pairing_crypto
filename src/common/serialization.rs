@@ -8,7 +8,6 @@ pub(crate) fn i2osp(
     integer: u64,
     octet_length: usize,
 ) -> Result<Vec<u8>, Error> {
-    println!("{} - {}", integer, octet_length);
     // As per spec, maximum bytes to encode lengths is 8
     if octet_length == 0 || octet_length > 8 {
         return Err(Error::Serde);
