@@ -1,3 +1,4 @@
+use super::constants::OCTET_SCALAR_LENGTH;
 use crate::{
     common::util::vec_to_byte_array,
     curves::bls12_381::{generate_sk, Scalar},
@@ -7,8 +8,6 @@ use ff::Field;
 use rand::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
 use zeroize::DefaultIsZeroes;
-
-use super::constants::scalar_size;
 
 /// The secret key is field element 0 < `x` < `r`
 /// where `r` is the curve order. See Section 4.3 in
@@ -38,7 +37,7 @@ impl<'a> From<&'a SecretKey> for [u8; SecretKey::SIZE_BYTES] {
 
 impl SecretKey {
     /// Number of bytes needed to represent the secret key
-    pub const SIZE_BYTES: usize = scalar_size();
+    pub const SIZE_BYTES: usize = OCTET_SCALAR_LENGTH;
 
     /// Computes a secret key from an IKM, as defined by
     /// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.3

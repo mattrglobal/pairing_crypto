@@ -2,9 +2,9 @@
 
 use super::{
     constants::{
-        g1_affine_compressed_size,
-        scalar_size,
         OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        OCTET_POINT_G1_LENGTH,
+        OCTET_SCALAR_LENGTH,
     },
     generator::Generators,
     hash_utils::hash_to_scalar,
@@ -51,8 +51,8 @@ pub struct PokSignatureProof {
 }
 
 impl PokSignatureProof {
-    const FIELD_BYTES: usize = scalar_size();
-    const COMMITMENT_G1_BYTES: usize = g1_affine_compressed_size();
+    const FIELD_BYTES: usize = OCTET_SCALAR_LENGTH;
+    const COMMITMENT_G1_BYTES: usize = OCTET_POINT_G1_LENGTH;
 
     // Number of fixed secret points in proof2 or commitment2 vector are `r3`
     // and `s'`.

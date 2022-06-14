@@ -1,6 +1,3 @@
-use crate::curves::bls12_381::{G1Affine, G2Affine, Scalar};
-use ff::PrimeField;
-
 /// Maximum retry count to generate a single Scalar or G1 point value.
 pub const MAX_VALUE_GENERATION_RETRY_COUNT: usize = 5;
 
@@ -57,16 +54,10 @@ pub const OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH: usize = 8;
 pub const DST_LENGTH_ENCODING_LENGTH: usize = 1;
 
 /// Number of bytes to store a scalar.
-pub const fn scalar_size() -> usize {
-    (Scalar::NUM_BITS as usize + 8 - 1) / 8
-}
+pub const OCTET_SCALAR_LENGTH: usize = 32;
 
 /// Number of bytes to store an element of G1 in affine and compressed form.
-pub const fn g1_affine_compressed_size() -> usize {
-    G1Affine::compressed_size()
-}
+pub const OCTET_POINT_G1_LENGTH: usize = 48;
 
 /// Number of bytes to store an element of G2 in affine and compressed form.
-pub const fn g2_affine_compressed_size() -> usize {
-    G2Affine::compressed_size()
-}
+pub const OCTET_POINT_G2_LENGTH: usize = 96;
