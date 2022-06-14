@@ -11,6 +11,13 @@ pub enum Error {
     /// A generic failure during underlying cryptographic operation.
     CryptoOps { cause: String },
 
+    /// Maximum defined retry reached for a crypto operation.
+    /// For example, during a `HashToCurve` or `HashToScalar` operation, where
+    /// we loop infinetly to produce a number of valid `Point` or `Scalar`,
+    /// this error is returned if maximum retry is hit during production of
+    /// single value.
+    CryptoMaxRetryReached,
+
     /// IKM data size is not valid.
     CryptoInvalidIkmLength,
 
@@ -25,6 +32,14 @@ pub enum Error {
 
     /// Scalar is invalid.
     CryptoBadScalar,
+
+    /// Maximum valid message size in octets is (2^64 -1) as per BBS signature
+    /// specification.
+    CryptoMessageIsTooLarge,
+
+    /// Maximum valid domain separation tag size in octets is (2^8 -1) as per
+    /// BBS signature specification.
+    CryptoDstIsTooLarge,
 
     /// Hast-to-field operation failed.
     CryptoHashToFieldConversion,
@@ -85,6 +100,9 @@ impl core::fmt::Debug for Error {
                     cause
                 )
             }
+            Error::CryptoMaxRetryReached => {
+                write!(f, "max allowed retry is reached.")
+            }
             Error::CryptoInvalidIkmLength => {
                 write!(f, "IKM size is too short.")
             }
@@ -98,6 +116,12 @@ impl core::fmt::Debug for Error {
                 write!(f, "point is not in underlying group.")
             }
             Error::CryptoBadScalar => write!(f, "scalar is invalid."),
+            Error::CryptoMessageIsTooLarge => {
+                write!(f, "max valid size is (2^64 - 1) bytes.")
+            }
+            Error::CryptoDstIsTooLarge => {
+                write!(f, "max valid size is (2^8 - 1) bytes.")
+            }
             Error::CryptoHashToFieldConversion => {
                 write!(f, "hash to field conversion failed.")
             }

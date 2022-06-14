@@ -7,28 +7,22 @@ use super::{
     },
 };
 use crate::{
-    bbs::core::constants::XOF_NO_OF_BYTES,
     error::Error,
     schemes::bbs::ciphersuites::bls12_381::{
-        scalar_size,
-        Challenge,
         Generators,
         Message,
         PokSignature,
         PokSignatureProof,
-        PresentationMessage,
         ProofMessage,
         PublicKey,
         Signature,
-        APP_MESSAGE_DST,
         GLOBAL_BLIND_VALUE_GENERATOR_SEED,
         GLOBAL_MESSAGE_GENERATOR_SEED,
         GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
     },
 };
-use digest::{ExtendableOutput, XofReader};
 
-/// Derives a signature proof of knowledge
+/// Derives a signature proof of knowledge.
 pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     // Parse public key from request
     let pk = PublicKey::from_vec(request.public_key)?;
@@ -50,7 +44,7 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
         GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
         GLOBAL_MESSAGE_GENERATOR_SEED,
         digested_messages.len(),
-    );
+    )?;
     // Parse signature from request
     let signature = Signature::from_vec(request.signature)?;
 
@@ -69,14 +63,6 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
             Err(e) => return Err(e),
         };
 
-    let presentation_message = match request.presentation_message {
-        Some(m) => Some(PresentationMessage::hash(
-            m.as_ref(),
-            APP_MESSAGE_DST.as_ref(),
-        )?),
-        _ => None,
-    };
-
     let mut pok = PokSignature::init(
         &pk,
         &signature,
@@ -85,12 +71,8 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
         &messages,
     )?;
 
-    let mut data = [0u8; XOF_NO_OF_BYTES];
-    let mut hasher = sha3::Shake256::default();
-    pok.add_proof_contribution(&pk, presentation_message, &mut hasher);
-    let mut reader = hasher.finalize_xof();
-    reader.read(&mut data[..]);
-    let challenge = Challenge::hash(data.as_ref(), APP_MESSAGE_DST.as_ref())?;
+    let challenge =
+        pok.compute_challenge(&pk, request.presentation_message.as_ref())?;
 
     match pok.generate_proof(challenge) {
         Ok(proof) => Ok(proof.to_octets()),
@@ -98,7 +80,7 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     }
 }
 
-/// Verifies a signature proof of knowledge
+/// Verifies a signature proof of knowledge.
 pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
     // Parse public key from request
     let public_key = PublicKey::from_vec(request.public_key)?;
@@ -115,34 +97,18 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
         GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
         GLOBAL_MESSAGE_GENERATOR_SEED,
         request.total_message_count,
-    );
+    )?;
 
     let proof = PokSignatureProof::from_octets(request.proof)?;
 
-    let presentation_message = match request.presentation_message {
-        Some(m) => Some(PresentationMessage::hash(
-            m.as_ref(),
-            APP_MESSAGE_DST.as_ref(),
-        )?),
-        _ => None,
-    };
-
-    let mut data = [0u8; 2 * scalar_size()];
-    let mut hasher = sha3::Shake256::default();
-
-    proof.add_challenge_contribution(
+    let cv = proof.compute_challenge(
         &public_key,
         request.header.as_ref(),
         &generators,
         &messages,
-        presentation_message,
+        request.presentation_message.as_ref(),
         proof.c,
-        &mut hasher,
     )?;
-
-    let mut reader = hasher.finalize_xof();
-    reader.read(&mut data[..]);
-    let cv = Challenge::hash(data.as_ref(), APP_MESSAGE_DST.as_ref())?;
 
     Ok(proof.verify_signature_proof(public_key)? && proof.c == cv)
 }

@@ -1,7 +1,8 @@
 #![allow(non_snake_case)]
 use super::{
-    constants::{g1_affine_compressed_size, scalar_size, XOF_NO_OF_BYTES},
+    constants::{g1_affine_compressed_size, scalar_size},
     generator::Generators,
+    hash_utils::hash_to_scalar,
     public_key::PublicKey,
     secret_key::SecretKey,
     types::Message,
@@ -24,7 +25,6 @@ use crate::{
     error::Error,
 };
 use core::{convert::TryFrom, fmt};
-use digest::{ExtendableOutput, Update, XofReader};
 use ff::Field;
 use group::{Curve, Group};
 use pairing::{MillerLoopResult, MultiMillerLoop};
@@ -36,7 +36,6 @@ use serde::{
     Serialize,
     Serializer,
 };
-use sha3::Shake256;
 use subtle::{Choice, ConditionallySelectable};
 
 /// A BBS+ signature
@@ -165,42 +164,17 @@ impl Signature {
 
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
-        // TODO include Ciphersuite_ID
         let domain = compute_domain(PK, header, messages.len(), generators)?;
 
         // (e, s) = hash_to_scalar((SK  || domain || msg_1 || ... || msg_L), 2)
-        let mut hasher = Shake256::default();
-        hasher.update(SK.to_bytes());
-        hasher.update(domain.to_bytes_be());
+        let mut data_to_hash = vec![];
+        data_to_hash.extend(SK.to_bytes().as_ref());
+        data_to_hash.extend(domain.to_bytes_be().as_ref());
         for m in messages {
-            hasher.update(m.to_bytes())
+            data_to_hash.extend(m.to_bytes().as_ref());
         }
-        let mut reader = hasher.finalize_xof();
-        let mut res = [0u8; XOF_NO_OF_BYTES];
-        reader.read(&mut res);
-
-        // Should yield non-zero values for `e` and `s`, very small likelihood
-        // of it being zero
-        let e = Scalar::from_bytes_wide(&res);
-        let e = if e.is_some().unwrap_u8() == 1u8 {
-            e.unwrap()
-        } else {
-            return Err(Error::CryptoSigning {
-                cause: "failed to generate `a` component of signature"
-                    .to_string(),
-            });
-        };
-
-        reader.read(&mut res);
-        let s = Scalar::from_bytes_wide(&res);
-        let s = if s.is_some().unwrap_u8() == 1u8 {
-            s.unwrap()
-        } else {
-            return Err(Error::CryptoSigning {
-                cause: "failed to generate `s` component of signature"
-                    .to_string(),
-            });
-        };
+        let scalars = hash_to_scalar(data_to_hash, 2)?;
+        let (e, s) = (scalars[0], scalars[1]);
 
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
         let B = compute_B(&s, &domain, messages, generators)?;
@@ -432,12 +406,14 @@ mod tests {
         let pk = PublicKey::default();
         let sk = SecretKey::default();
         let msgs = [Message::default(), Message::default()];
-        let generators = Generators::new(&[], &[], &[], 1);
+        let generators = Generators::new(&[], &[], &[], 1)
+            .expect("generators creation failed");
         assert!(
             Signature::new(&sk, &pk, Some(&[]), &generators, &msgs).is_err()
         );
         assert!(sig.verify(&pk, Some(&[]), &generators, &msgs).is_err());
-        let generators = Generators::new(&[], &[], &[], 3);
+        let generators = Generators::new(&[], &[], &[], 3)
+            .expect("generators creation failed");
         assert!(sig.verify(&pk, Some(&[]), &generators, &msgs).is_err());
         assert!(
             Signature::new(&sk, &pk, Some(&[]), &generators, &msgs).is_err()
@@ -447,16 +423,23 @@ mod tests {
     #[test]
     fn nominal_signature_e2e() {
         let msgs = [
-            Message::hash("message-1".as_ref(), TEST_MESSAGE_DST.as_ref())
-                .unwrap(),
-            Message::hash("message-2".as_ref(), TEST_MESSAGE_DST.as_ref())
-                .unwrap(),
+            Message::map_to_scalar(
+                "message-1".as_ref(),
+                TEST_MESSAGE_DST.as_ref(),
+            )
+            .unwrap(),
+            Message::map_to_scalar(
+                "message-2".as_ref(),
+                TEST_MESSAGE_DST.as_ref(),
+            )
+            .unwrap(),
         ];
         let sk =
             SecretKey::new(TEST_KEY_GEN_SEED.as_ref(), TEST_KEY_INFO.as_ref())
                 .expect("secret key generation failed");
         let pk = PublicKey::from(&sk);
-        let generators = Generators::new(&[], &[], &[], 2);
+        let generators = Generators::new(&[], &[], &[], 2)
+            .expect("generators creation failed");
 
         let signature = Signature::new(
             &sk,

@@ -20,7 +20,7 @@ use crate::{
         HiddenMessage,
         Message,
         ProofMessage,
-        APP_MESSAGE_DST,
+        MAP_MESSAGE_TO_SCALAR_DST,
     },
 };
 
@@ -32,7 +32,12 @@ pub fn digest_messages(
     if let Some(messages) = messages {
         return messages
             .iter()
-            .map(|msg| Message::hash(msg.as_ref(), APP_MESSAGE_DST.as_ref()))
+            .map(|msg| {
+                Message::map_to_scalar(
+                    msg.as_ref(),
+                    MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
+                )
+            })
             .collect();
     }
     Ok(vec![])
@@ -46,9 +51,9 @@ pub fn digest_proof_messages(
         return messages
             .iter()
             .map(|element| {
-                match Message::hash(
+                match Message::map_to_scalar(
                     element.value.clone().as_ref(),
-                    APP_MESSAGE_DST.as_ref(),
+                    MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
                 ) {
                     Ok(digested_message) => {
                         if element.reveal {
@@ -97,7 +102,10 @@ pub fn digest_revealed_proof_messages(
     messages
         .iter()
         .map(|(i, m)| {
-            match Message::hash(m.as_ref(), APP_MESSAGE_DST.as_ref()) {
+            match Message::map_to_scalar(
+                m.as_ref(),
+                MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
+            ) {
                 Ok(m) => Ok((*i, m)),
                 Err(e) => Err(e),
             }

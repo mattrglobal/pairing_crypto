@@ -1,13 +1,16 @@
 use crate::curves::bls12_381::{G1Affine, G2Affine, Scalar};
 use ff::PrimeField;
 
+/// Maximum retry count to generate a single Scalar or G1 point value.
+pub const MAX_VALUE_GENERATION_RETRY_COUNT: usize = 5;
+
 /// BLS12-381 Ciphersuite ID.
 pub const BBS_CIPHERSUITE_ID: &[u8; 37] =
     b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_";
 
-/// DST for messages.
-/// TODO define properly for different type of messages
-pub const APP_MESSAGE_DST: &[u8; 19] = b"BBS_SIG_MESSAGE_DST";
+/// Domain separation tag to be used in [MapMessageToScalarAsHash](https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-mapmessagetoscalarashash).
+pub const MAP_MESSAGE_TO_SCALAR_DST: &[u8; 54] =
+    b"BBS-MESSAGE-HASH-BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_";
 
 /// Secret key salt used for deriving keys in the BBS signature scheme
 pub const BBS_SECRET_KEY_SALT: &[u8] = b"BBS-SIG-KEYGEN-SALT-";
@@ -38,6 +41,20 @@ pub const HASH_TO_CURVE_G1_DST: &[u8] = b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO";
 /// Number of bytes to draw from the xof when performing operations such as
 /// creating generators or computing the e and s components of the signature.
 pub const XOF_NO_OF_BYTES: usize = 64usize;
+
+/// Maximum allowed DST size in bytes as per BBS Signature specification.
+/// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-encoding-of-elements-to-be->
+pub const MAX_DST_SIZE: u8 = u8::MAX - 1;
+
+/// Maximum allowed message size in bytes as per BBS Signature specification.
+/// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-encoding-of-elements-to-be->
+pub const MAX_MESSAGE_SIZE: u64 = u64::MAX - 1;
+
+/// Number of bytes specified to encode length of a message octet string.
+pub const OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH: usize = 8;
+
+/// Number of bytes specified to encode length of a dst octet string.
+pub const DST_LENGTH_ENCODING_LENGTH: usize = 1;
 
 /// Number of bytes to store a scalar.
 pub const fn scalar_size() -> usize {

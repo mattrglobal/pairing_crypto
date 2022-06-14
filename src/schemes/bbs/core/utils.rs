@@ -2,9 +2,10 @@ use super::{
     constants::{
         g1_affine_compressed_size,
         BBS_CIPHERSUITE_ID,
-        XOF_NO_OF_BYTES,
+        OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
     },
     generator::Generators,
+    hash_utils::hash_to_scalar,
     public_key::PublicKey,
     types::Message,
 };
@@ -13,10 +14,8 @@ use crate::{
     curves::bls12_381::{G1Affine, G1Projective, Scalar},
     error::Error,
 };
-use digest::{ExtendableOutput, Update, XofReader};
 use ff::Field;
 use group::{Curve, Group};
-use sha3::Shake256;
 
 /// Get the representation of a point G1(in Projective form) to compressed
 /// and big-endian octets form.
@@ -60,42 +59,33 @@ where
         });
     }
 
-    let mut res = [0u8; XOF_NO_OF_BYTES];
-
-    let mut hasher = Shake256::default();
-
     // domain = hash_to_scalar((PK || L || generators || Ciphersuite_ID ||
     // header), 1)
+    let mut data_to_hash = vec![];
+    data_to_hash.extend(PK.point_to_octets().as_ref());
+    data_to_hash
+        .extend(i2osp(L as u64, OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH)?);
+    data_to_hash.extend(point_to_octets_g1(&generators.H_s()).as_ref());
+    data_to_hash.extend(point_to_octets_g1(&generators.H_d()).as_ref());
 
-    hasher.update(PK.point_to_octets());
-
-    hasher.update(i2osp(L as u64, 8)?);
-
-    hasher.update(point_to_octets_g1(&generators.H_s()));
-    hasher.update(point_to_octets_g1(&generators.H_d()));
     for generator in generators.message_blinding_points_iter() {
-        hasher.update(point_to_octets_g1(generator));
+        data_to_hash.extend(point_to_octets_g1(generator).as_ref());
     }
     // As of now we support only BLS12/381 ciphersuite, it's OK to use this
     // constant here. This should be passed as ciphersuite specific const as
     // generic parameter when initializing a curve specific ciphersuite.
-    hasher.update(i2osp_with_data(BBS_CIPHERSUITE_ID, 8)?);
-
+    data_to_hash.extend(i2osp_with_data(
+        BBS_CIPHERSUITE_ID,
+        OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+    )?);
     if let Some(header) = header {
-        hasher.update(header);
+        data_to_hash.extend(i2osp_with_data(
+            header.as_ref(),
+            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        )?);
     }
 
-    let mut reader = hasher.finalize_xof();
-    loop {
-        reader.read(&mut res);
-
-        let domain = Scalar::from_bytes_wide(&res);
-        if domain.is_none().unwrap_u8() == 1u8 {
-            continue;
-        } else {
-            return Ok(domain.unwrap());
-        }
-    }
+    Ok(hash_to_scalar(data_to_hash, 1)?[0])
 }
 
 /// Computes `B` value.

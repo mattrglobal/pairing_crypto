@@ -1,5 +1,6 @@
 use super::constants::{g1_affine_compressed_size, scalar_size};
 use crate::{
+    bbs::core::hash_utils::map_message_to_scalar_as_hash,
     curves::bls12_381::{G1Affine, G1Projective, Scalar},
     error::Error,
 };
@@ -42,16 +43,11 @@ macro_rules! scalar_wrapper {
             }
 
             /// Hash arbitrary data to this struct
-            pub fn hash<T>(msg: T, dst: T) -> Result<Self, Error>
+            pub fn map_to_scalar<T>(msg: T, dst: T) -> Result<Self, Error>
             where
             T: AsRef<[u8]>,
             {
-                let s = Scalar::hash_to(msg, dst).map($name);
-                if s.is_some().unwrap_u8() == 1u8 {
-                    Ok(s.unwrap())
-                } else {
-                    Err(Error::CryptoHashToFieldConversion)
-                }
+                Ok(Self(map_message_to_scalar_as_hash(msg, dst)?))
             }
 
         }
@@ -71,11 +67,6 @@ scalar_wrapper!(
 scalar_wrapper!(
     /// A nonce that is used for zero-knowledge proofs
     Nonce
-);
-
-scalar_wrapper!(
-    /// A presentation message that is used for zero-knowledge proofs
-    PresentationMessage
 );
 
 scalar_wrapper!(
