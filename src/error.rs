@@ -16,67 +16,40 @@ pub enum Error {
     /// we loop infinetly to produce a number of valid `Point` or `Scalar`,
     /// this error is returned if maximum retry is hit during production of
     /// single value.
-    CryptoMaxRetryReached,
-
-    /// IKM data size is not valid.
-    CryptoInvalidIkmLength,
+    MaxRetryReached,
 
     /// Type encoding is malformed.
-    CryptoBadEncoding,
-
-    /// Point is not on underlying curve.
-    CryptoPointNotOnCurve,
-
-    /// Point is not in underlying group.
-    CryptoPointNotOnGroup,
-
-    /// Scalar is invalid.
-    CryptoBadScalar,
+    BadEncoding,
 
     /// Maximum valid message size in octets is (2^64 -1) as per BBS signature
     /// specification.
-    CryptoMessageIsTooLarge,
+    MessageIsTooLarge,
 
     /// Maximum valid domain separation tag size in octets is (2^8 -1) as per
     /// BBS signature specification.
-    CryptoDstIsTooLarge,
-
-    /// Hast-to-field operation failed.
-    CryptoHashToFieldConversion,
-
-    /// A failure occured during Schnorr challenge computation.
-    CryptoSchnorrChallengeComputation { cause: String },
+    DstIsTooLarge,
 
     /// Secret key is not valid.
-    CryptoInvalidSecretKey,
+    InvalidSecretKey,
 
     /// Public key is not valid.
-    CryptoInvalidPublicKey,
-
-    /// Message signing failed.
-    CryptoSigning { cause: String },
+    InvalidPublicKey,
 
     /// Signature is malformed.
-    CryptoMalformedSignature { cause: String },
+    MalformedSignature { cause: String },
 
     /// Proof is malformed.
-    CryptoMalformedProof { cause: String },
+    MalformedProof { cause: String },
 
     /// Not enough message generators.
-    CryptoMessageGeneratorsLengthMismatch { generators: usize, messages: usize },
+    MessageGeneratorsLengthMismatch { generators: usize, messages: usize },
 
     /// The given point(from `G1` or `G2`) is an `Identity` element of
     /// respective subgroup.
-    CryptoPointIsIdentity,
+    PointIsIdentity,
 
-    /// The given `Scalar` is `Zero`.
-    CryptoScalarIsZero,
-
-    /// Signature verification failed.
-    CryptoSignatureVerification,
-
-    /// Proof verification failed.
-    CryptoProoferification,
+    /// Unexpected zero value.
+    UnexpectedZeroValue,
 
     /// Error during serialization deserialization.
     Serde,
@@ -100,55 +73,31 @@ impl core::fmt::Debug for Error {
                     cause
                 )
             }
-            Error::CryptoMaxRetryReached => {
+            Error::MaxRetryReached => {
                 write!(f, "max allowed retry is reached.")
             }
-            Error::CryptoInvalidIkmLength => {
-                write!(f, "IKM size is too short.")
-            }
-            Error::CryptoBadEncoding => {
+            Error::BadEncoding => {
                 write!(f, "bad encoding encountered.")
             }
-            Error::CryptoPointNotOnCurve => {
-                write!(f, "point is not on underlying curve.")
-            }
-            Error::CryptoPointNotOnGroup => {
-                write!(f, "point is not in underlying group.")
-            }
-            Error::CryptoBadScalar => write!(f, "scalar is invalid."),
-            Error::CryptoMessageIsTooLarge => {
+            Error::MessageIsTooLarge => {
                 write!(f, "max valid size is (2^64 - 1) bytes.")
             }
-            Error::CryptoDstIsTooLarge => {
+            Error::DstIsTooLarge => {
                 write!(f, "max valid size is (2^8 - 1) bytes.")
             }
-            Error::CryptoHashToFieldConversion => {
-                write!(f, "hash to field conversion failed.")
-            }
-
-            Error::CryptoSchnorrChallengeComputation { ref cause } => {
-                write!(
-                    f,
-                    "schnorr challenge computation failed: cause: {}",
-                    cause
-                )
-            }
-            Error::CryptoInvalidSecretKey => {
+            Error::InvalidSecretKey => {
                 write!(f, "secret key is not valid.")
             }
-            Error::CryptoInvalidPublicKey => {
+            Error::InvalidPublicKey => {
                 write!(f, "public key is invalid.")
             }
-            Error::CryptoSigning { ref cause } => {
-                write!(f, "signing failed: cause: {}", cause)
-            }
-            Error::CryptoMalformedSignature { ref cause } => {
+            Error::MalformedSignature { ref cause } => {
                 write!(f, "signature is malformed: cause: {}", cause)
             }
-            Error::CryptoMalformedProof { ref cause } => {
+            Error::MalformedProof { ref cause } => {
                 write!(f, "proof is malformed: cause: {}", cause)
             }
-            Error::CryptoMessageGeneratorsLengthMismatch {
+            Error::MessageGeneratorsLengthMismatch {
                 generators,
                 messages,
             } => {
@@ -158,17 +107,11 @@ impl core::fmt::Debug for Error {
                     generators, messages
                 )
             }
-            Error::CryptoPointIsIdentity => {
+            Error::PointIsIdentity => {
                 write!(f, "unexpected `Identity` element.")
             }
-            Error::CryptoScalarIsZero => {
+            Error::UnexpectedZeroValue => {
                 write!(f, "unexpected `Zero` element.")
-            }
-            Error::CryptoProoferification => {
-                write!(f, "proof verification failed.")
-            }
-            Error::CryptoSignatureVerification => {
-                write!(f, "signature verification failed.")
             }
             Error::Serde => write!(f, "error during ser-de operation."),
         }
