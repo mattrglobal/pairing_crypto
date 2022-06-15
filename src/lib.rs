@@ -28,5 +28,9 @@ mod curves;
 /// Supported schemes from pairing crypto
 mod schemes;
 
-/// Supported constructs for the BLS12-381 curve
+/// Supported constructs for the BLS12-381 curve.
 pub use schemes::*;
+
+// Unit test cases
+#[cfg(test)]
+mod tests;
