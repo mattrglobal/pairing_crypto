@@ -6,9 +6,8 @@ pub(crate) use crate::schemes::bbs::core::{
         MAP_MESSAGE_TO_SCALAR_DST,
     },
     generator::*,
+    key_pair::{PublicKey, SecretKey},
     proof::*,
-    public_key::PublicKey,
-    secret_key::SecretKey,
     signature::*,
     types::{Message, ProofMessage},
 };

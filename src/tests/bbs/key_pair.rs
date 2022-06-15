@@ -1,4 +1,6 @@
-use crate::bbs::core::secret_key::SecretKey;
+use rand_core::OsRng;
+
+use crate::bbs::core::key_pair::{KeyPair, SecretKey};
 
 #[test]
 fn secret_key_gen_from_seed() {
@@ -14,4 +16,10 @@ fn secret_key_gen_from_seed() {
         98, 53,
     ];
     assert_eq!(sk.unwrap().to_bytes(), expected);
+}
+
+#[test]
+fn key_pair_new_random() {
+    let _ = KeyPair::random(&mut OsRng::default())
+        .expect("random key pair generation failed");
 }

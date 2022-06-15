@@ -3,8 +3,7 @@ use super::{
     constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
     generator::Generators,
     hash_utils::hash_to_scalar,
-    public_key::PublicKey,
-    secret_key::SecretKey,
+    key_pair::{PublicKey, SecretKey},
     types::Message,
     utils::{
         compute_B,
