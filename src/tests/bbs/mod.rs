@@ -7,7 +7,10 @@ use crate::bbs::core::{
     generator::Generators,
 };
 
+mod generators;
+mod key_pair;
 mod proof;
+mod signature;
 
 const KEY_GEN_SEED: &[u8; 32] = b"not_A_random_seed_at_Allllllllll";
 
