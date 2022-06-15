@@ -19,7 +19,7 @@ use crate::{
         },
         core::proof::Proof,
     },
-    tests::common::mock::MockRng,
+    tests::mock_rng::MockRng,
 };
 use core::convert::TryFrom;
 
