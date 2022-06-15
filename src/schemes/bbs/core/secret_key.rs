@@ -77,7 +77,7 @@ impl SecretKey {
     }
 
     /// Convert the secret key to a big-endian representation
-    pub fn to_bytes(&self) -> [u8; Self::SIZE_BYTES] {
+    pub fn to_bytes(self) -> [u8; Self::SIZE_BYTES] {
         self.0.to_bytes_be()
     }
 
