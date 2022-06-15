@@ -472,6 +472,7 @@ impl Proof {
             });
         }
         offset = end;
+        end = offset + OCTET_SCALAR_LENGTH;
         let c = c.unwrap();
 
         // Get e^, r2^, r3^, s^
@@ -507,7 +508,6 @@ fn extract_point_value(
     end: &mut usize,
     buffer: &[u8],
 ) -> Result<G1Projective, Error> {
-    *end += OCTET_POINT_G1_LENGTH;
     let value = octets_to_point_g1(slicer!(
         buffer,
         *offset,
@@ -518,6 +518,7 @@ fn extract_point_value(
         return Err(Error::CryptoPointIsIdentity);
     }
     *offset = *end;
+    *end += OCTET_POINT_G1_LENGTH;
     Ok(value)
 }
 
@@ -527,7 +528,6 @@ fn extract_proof_value(
     end: &mut usize,
     buffer: &[u8],
 ) -> Result<FiatShamirProof, Error> {
-    *end = *offset + OCTET_SCALAR_LENGTH;
     let value = FiatShamirProof::from_bytes(slicer!(
         buffer,
         *offset,
@@ -540,5 +540,6 @@ fn extract_proof_value(
         });
     }
     *offset = *end;
+    *end = *offset + OCTET_SCALAR_LENGTH;
     Ok(value.unwrap())
 }
