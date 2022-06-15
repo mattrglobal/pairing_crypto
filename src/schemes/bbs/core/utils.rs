@@ -8,7 +8,7 @@ use super::{
     },
     generator::Generators,
     hash_utils::hash_to_scalar,
-    public_key::PublicKey,
+    key_pair::PublicKey,
     types::{Challenge, Message},
 };
 use crate::{

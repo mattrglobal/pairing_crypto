@@ -3,7 +3,7 @@
 use super::{
     constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
     generator::Generators,
-    public_key::PublicKey,
+    key_pair::PublicKey,
     signature::Signature,
     types::{Challenge, FiatShamirProof, Message, ProofMessage},
     utils::{
