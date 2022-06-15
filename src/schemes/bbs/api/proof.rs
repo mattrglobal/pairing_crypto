@@ -21,8 +21,8 @@ use crate::{
     },
 };
 
-/// Derives a signature proof of knowledge.
-pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
+/// Generate a signature proof of knowledge.
+pub fn proof_gen(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     // Parse public key from request
     let pk = PublicKey::from_vec(request.public_key)?;
 
@@ -74,8 +74,8 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
     Ok(proof.to_octets())
 }
 
-/// Verifies a signature proof of knowledge.
-pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
+/// Verify a signature proof of knowledge.
+pub fn proof_verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
     // Parse public key from request
     let public_key = PublicKey::from_vec(request.public_key)?;
 
