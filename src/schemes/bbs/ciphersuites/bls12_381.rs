@@ -6,14 +6,21 @@ pub(crate) use crate::schemes::bbs::core::{
         MAP_MESSAGE_TO_SCALAR_DST,
     },
     generator::*,
-    key_pair::{PublicKey, SecretKey},
     proof::*,
     signature::*,
     types::{Message, ProofMessage},
 };
 
+pub use crate::schemes::bbs::core::key_pair::{KeyPair, PublicKey, SecretKey};
+
 pub use crate::schemes::bbs::api::{
-    dtos::*,
-    proof::{derive as derive_proof, verify as verify_proof},
+    dtos::{
+        BbsDeriveProofRequest,
+        BbsDeriveProofRevealMessageRequest,
+        BbsSignRequest,
+        BbsVerifyProofRequest,
+        BbsVerifyRequest,
+    },
+    proof::{proof_gen, proof_verify},
     signature::{sign, verify},
 };
