@@ -138,11 +138,11 @@ where
 {
     let mut data_to_hash = vec![];
     data_to_hash.extend(PK.point_to_octets().as_ref());
-    data_to_hash.extend(point_to_octets_g1(&A_bar).as_ref());
-    data_to_hash.extend(point_to_octets_g1(&A_prime).as_ref());
-    data_to_hash.extend(point_to_octets_g1(&D).as_ref());
-    data_to_hash.extend(point_to_octets_g1(&C1));
-    data_to_hash.extend(point_to_octets_g1(&C2));
+    data_to_hash.extend(point_to_octets_g1(A_bar).as_ref());
+    data_to_hash.extend(point_to_octets_g1(A_prime).as_ref());
+    data_to_hash.extend(point_to_octets_g1(D).as_ref());
+    data_to_hash.extend(point_to_octets_g1(C1));
+    data_to_hash.extend(point_to_octets_g1(C2));
     if let Some(ph) = ph {
         data_to_hash.extend(i2osp_with_data(
             ph.as_ref(),
