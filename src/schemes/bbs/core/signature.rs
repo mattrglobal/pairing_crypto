@@ -41,7 +41,7 @@ use subtle::{Choice, ConditionallySelectable};
 /// A BBS+ signature
 #[allow(non_snake_case)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct Signature {
+pub(crate) struct Signature {
     pub(crate) A: G1Projective,
     pub(crate) e: Scalar,
     pub(crate) s: Scalar,
@@ -262,7 +262,7 @@ impl Signature {
     }
 
     /// Get the octets representation of `Signature` as defined in BBS spec <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-signaturetooctets>.
-    pub fn to_octets(&self) -> [u8; Self::SIZE_BYTES] {
+    pub fn to_octets(self) -> [u8; Self::SIZE_BYTES] {
         let mut offset = 0;
         let mut end = Self::G1_COMPRESSED_SIZE;
         let mut bytes = [0u8; Self::SIZE_BYTES];
@@ -369,35 +369,44 @@ impl Signature {
     }
 }
 
-#[test]
-fn serialization_test() {
-    let mut sig = Signature::default();
-    sig.A = G1Projective::generator();
-    sig.e = Scalar::one();
-    sig.s = Scalar::one() + Scalar::one();
-
-    let sig_clone = Signature::from_octets(&sig.to_octets());
-    assert_eq!(sig_clone.is_ok(), true);
-    let sig2 = sig_clone.unwrap();
-    assert_eq!(sig, sig2);
-    sig.A = G1Projective::identity();
-    sig.conditional_assign(&sig2, Choice::from(1u8));
-    assert_eq!(sig, sig2);
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::bbs::core::{
-        generator::Generators,
-        public_key::PublicKey,
-        secret_key::SecretKey,
-        types::Message,
+    use blstrs::G1Projective;
+    use ff::Field;
+    use group::Group;
+    use rand_core::OsRng;
+    use subtle::{Choice, ConditionallySelectable};
+
+    use crate::{
+        bbs::core::{
+            generator::Generators,
+            public_key::PublicKey,
+            secret_key::SecretKey,
+            types::Message,
+        },
+        curves::bls12_381::Scalar,
     };
 
     const TEST_KEY_GEN_SEED: &[u8; 32] = b"not_A_random_seed_at_Allllllllll";
     const TEST_KEY_INFO: &[u8; 14] = b"signing-key-01";
     const TEST_MESSAGE_DST: &[u8; 9] = b"app:dst-1";
     const TEST_HEADER: &[u8; 11] = b"header_info";
+
+    #[test]
+    fn serialization() {
+        let mut sig = Signature::default();
+        sig.A = G1Projective::generator();
+        sig.e = Scalar::one();
+        sig.s = Scalar::one() + Scalar::one();
+
+        let sig_clone = Signature::from_octets(&sig.to_octets());
+        assert_eq!(sig_clone.is_ok(), true);
+        let sig2 = sig_clone.unwrap();
+        assert_eq!(sig, sig2);
+        sig.A = G1Projective::identity();
+        sig.conditional_assign(&sig2, Choice::from(1u8));
+        assert_eq!(sig, sig2);
+    }
 
     use super::Signature;
     #[test]
@@ -423,16 +432,12 @@ mod tests {
     #[test]
     fn nominal_signature_e2e() {
         let msgs = [
-            Message::map_to_scalar(
+            Message::from_arbitrary_data(
                 "message-1".as_ref(),
                 TEST_MESSAGE_DST.as_ref(),
             )
             .unwrap(),
-            Message::map_to_scalar(
-                "message-2".as_ref(),
-                TEST_MESSAGE_DST.as_ref(),
-            )
-            .unwrap(),
+            Message::random(&mut OsRng::default()),
         ];
         let sk =
             SecretKey::new(TEST_KEY_GEN_SEED.as_ref(), TEST_KEY_INFO.as_ref())
