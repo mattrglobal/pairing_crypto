@@ -9,9 +9,6 @@ pub const BBS_CIPHERSUITE_ID: &[u8; 37] =
 pub const MAP_MESSAGE_TO_SCALAR_DST: &[u8; 54] =
     b"BBS-MESSAGE-HASH-BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_";
 
-/// Secret key salt used for deriving keys in the BBS signature scheme
-pub const BBS_SECRET_KEY_SALT: &[u8] = b"BBS-SIG-KEYGEN-SALT-";
-
 /// A seed value with global scope for `message_generator_seed` as defined in
 /// BBS signature Spec which is used by the CreateGenerators operation to
 /// compute the required set of message generators.
