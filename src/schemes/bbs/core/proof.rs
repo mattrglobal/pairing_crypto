@@ -100,7 +100,7 @@ impl Proof {
     {
         // Error out if length of messages and generators are not equal
         if messages.len() != generators.message_blinding_points_length() {
-            return Err(Error::CryptoMessageGeneratorsLengthMismatch {
+            return Err(Error::MessageGeneratorsLengthMismatch {
                 generators: generators.message_blinding_points_length(),
                 messages: messages.len(),
             });
@@ -254,7 +254,7 @@ impl Proof {
         // if KeyValidate(PK) is INVALID, return INVALID
         // `PK` should not be an identity and should belong to subgroup G2
         if PK.is_valid().unwrap_u8() == 0 {
-            return Err(Error::CryptoInvalidPublicKey);
+            return Err(Error::InvalidPublicKey);
         }
 
         // Following steps from `ProofVerify` API in spec are implicit in this
@@ -356,7 +356,7 @@ impl Proof {
         // This check is already done during `Proof` deserialization
         // if A' == 1, return INVALID
         if self.A_prime.is_identity().unwrap_u8() == 1 {
-            return Err(Error::CryptoPointIsIdentity);
+            return Err(Error::PointIsIdentity);
         }
 
         // Check the signature proof
@@ -425,7 +425,7 @@ impl Proof {
             OCTET_POINT_G1_LENGTH * 3 + OCTET_SCALAR_LENGTH * 5;
         let buffer = bytes.as_ref();
         if buffer.len() < PROOF_LEN_FLOOR {
-            return Err(Error::CryptoMalformedProof {
+            return Err(Error::MalformedProof {
                 cause: format!(
                     "not enough data, input buffer size: {} bytes",
                     buffer.len()
@@ -433,7 +433,7 @@ impl Proof {
             });
         }
         if (buffer.len() - PROOF_LEN_FLOOR) % OCTET_SCALAR_LENGTH != 0 {
-            return Err(Error::CryptoMalformedProof {
+            return Err(Error::MalformedProof {
                 cause: format!(
                     "variable length proof data {} is not multiple of \
                      `Scalar` size {} bytes",
@@ -467,7 +467,7 @@ impl Proof {
             OCTET_SCALAR_LENGTH
         ));
         if c.is_none().unwrap_u8() == 1 {
-            return Err(Error::CryptoMalformedProof {
+            return Err(Error::MalformedProof {
                 cause: "failure while deserializing `c`".to_owned(),
             });
         }
@@ -515,7 +515,7 @@ fn extract_point_value(
         OCTET_POINT_G1_LENGTH
     ))?;
     if value.is_identity().unwrap_u8() == 1 {
-        return Err(Error::CryptoPointIsIdentity);
+        return Err(Error::PointIsIdentity);
     }
     *offset = *end;
     *end += OCTET_POINT_G1_LENGTH;
@@ -535,7 +535,7 @@ fn extract_proof_value(
         OCTET_SCALAR_LENGTH
     ));
     if value.is_none().unwrap_u8() == 1 {
-        return Err(Error::CryptoMalformedProof {
+        return Err(Error::MalformedProof {
             cause: "failure while deserializing a value".to_owned(),
         });
     }

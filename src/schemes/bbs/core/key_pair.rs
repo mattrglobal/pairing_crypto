@@ -97,7 +97,7 @@ impl SecretKey {
         if result.is_some().unwrap_u8() == 1u8 {
             Ok(result.unwrap())
         } else {
-            Err(Error::CryptoBadEncoding)
+            Err(Error::BadEncoding)
         }
     }
 }
@@ -167,7 +167,7 @@ impl PublicKey {
         if result.is_some().unwrap_u8() == 1u8 {
             Ok(result.unwrap())
         } else {
-            Err(Error::CryptoBadEncoding)
+            Err(Error::BadEncoding)
         }
     }
 }

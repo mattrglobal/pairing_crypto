@@ -152,13 +152,13 @@ impl Signature {
         }
         // Error out if length of messages and generators are not equal
         if messages.len() != generators.message_blinding_points_length() {
-            return Err(Error::CryptoMessageGeneratorsLengthMismatch {
+            return Err(Error::MessageGeneratorsLengthMismatch {
                 generators: generators.message_blinding_points_length(),
                 messages: messages.len(),
             });
         }
         if SK.0.is_zero().unwrap_u8() == 1 {
-            return Err(Error::CryptoInvalidSecretKey);
+            return Err(Error::InvalidSecretKey);
         }
 
         // domain
@@ -181,10 +181,10 @@ impl Signature {
         let exp = if exp.is_some().unwrap_u8() == 1u8 {
             exp.unwrap()
         } else {
-            return Err(Error::CryptoSigning {
+            return Err(Error::CryptoOps {
                 cause: "failed to generate `exp` for `a` component of \
                         signature"
-                    .to_string(),
+                    .to_owned(),
             });
         };
 
@@ -218,7 +218,7 @@ impl Signature {
         }
         // Error out if length of messages and generators are not equal
         if messages.len() != generators.message_blinding_points_length() {
-            return Err(Error::CryptoMessageGeneratorsLengthMismatch {
+            return Err(Error::MessageGeneratorsLengthMismatch {
                 generators: generators.message_blinding_points_length(),
                 messages: messages.len(),
             });
@@ -227,7 +227,7 @@ impl Signature {
         // Validate the public key; it should not be an identity and should
         // belong to subgroup G2.
         if PK.is_valid().unwrap_u8() == 0 {
-            return Err(Error::CryptoInvalidPublicKey);
+            return Err(Error::InvalidPublicKey);
         }
 
         let W = PK.0;
@@ -303,7 +303,7 @@ impl Signature {
     pub fn from_octets<T: AsRef<[u8]>>(data: T) -> Result<Self, Error> {
         let data = data.as_ref();
         if data.len() < Self::SIZE_BYTES {
-            return Err(Error::CryptoMalformedProof {
+            return Err(Error::MalformedSignature {
                 cause: format!(
                     "not enough data, input buffer size: {} bytes, expected \
                      data size: {}",
@@ -324,7 +324,7 @@ impl Signature {
 
         // if A == Identity_G1, return INVALID
         if A.is_identity().unwrap_u8() == 1 {
-            return Err(Error::CryptoPointIsIdentity);
+            return Err(Error::PointIsIdentity);
         }
         offset = end;
 
@@ -335,14 +335,14 @@ impl Signature {
             &data[offset..end],
         )?);
         if e.is_none().unwrap_u8() == 1u8 {
-            return Err(Error::CryptoMalformedSignature {
+            return Err(Error::MalformedSignature {
                 cause: "failed to deserialize `e` component of signature"
                     .to_owned(),
             });
         };
         let e = e.unwrap();
         if e.is_zero().unwrap_u8() == 1 {
-            return Err(Error::CryptoScalarIsZero);
+            return Err(Error::UnexpectedZeroValue);
         }
         offset = end;
 
@@ -354,14 +354,14 @@ impl Signature {
             &data[offset..end],
         )?);
         if s.is_none().unwrap_u8() == 1u8 {
-            return Err(Error::CryptoMalformedSignature {
+            return Err(Error::MalformedSignature {
                 cause: "failed to deserialize `s` component of signature"
                     .to_owned(),
             });
         };
         let s = s.unwrap();
         if s.is_zero().unwrap_u8() == 1 {
-            return Err(Error::CryptoScalarIsZero);
+            return Err(Error::UnexpectedZeroValue);
         }
 
         Ok(Signature { A, e, s })

@@ -36,7 +36,7 @@ pub(crate) fn octets_to_point_g1(
     if result.is_some().unwrap_u8() == 1u8 {
         Ok(result.unwrap())
     } else {
-        Err(Error::CryptoBadEncoding)
+        Err(Error::BadEncoding)
     }
 }
 
@@ -54,7 +54,7 @@ where
 {
     // Error out if length of messages and generators are not equal
     if L != generators.message_blinding_points_length() {
-        return Err(Error::CryptoMessageGeneratorsLengthMismatch {
+        return Err(Error::MessageGeneratorsLengthMismatch {
             generators: generators.message_blinding_points_length(),
             messages: L,
         });
@@ -100,7 +100,7 @@ pub(crate) fn compute_B(
     // Input params check
     // Error out if length of generators and messages are not equal
     if messages.len() != generators.message_blinding_points_length() {
-        return Err(Error::CryptoMessageGeneratorsLengthMismatch {
+        return Err(Error::MessageGeneratorsLengthMismatch {
             generators: generators.message_blinding_points_length(),
             messages: messages.len(),
         });
