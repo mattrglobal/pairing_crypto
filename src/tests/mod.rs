@@ -1,2 +1,3 @@
 mod bbs;
-pub(crate) mod common;
+mod common;
+pub(crate) mod mock_rng;
