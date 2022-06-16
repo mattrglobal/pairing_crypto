@@ -61,7 +61,7 @@ pub(crate) struct Proof {
 }
 
 impl Proof {
-    /// Generate the zero-knowledge proof-of-knowledge of a signature, while
+    /// Generates the zero-knowledge proof-of-knowledge of a signature, while
     /// optionally selectively disclosing from the original set of signed messages as defined in `ProofGen` API in BBS Signature specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofgen>.
     pub fn new<T>(
         PK: &PublicKey,
@@ -84,8 +84,8 @@ impl Proof {
             OsRng::default(),
         )
     }
-    /// Generate the zero-knowledge proof-of-knowledge of a signature, while
-    /// optionally selectively disclosing from the original set of signed messages as defined in `ProofGen` API in BBS Signature specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofgen>.
+    /// Generates the zero-knowledge proof-of-knowledge of a signature, while
+    /// optionally selectively disclosing from the original set of signed messages as defined in `ProofGen` API in BBS Signature specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofgen> using an externally supplied random number generator.
     pub fn new_with_rng<T>(
         PK: &PublicKey,
         signature: &Signature,
@@ -106,7 +106,7 @@ impl Proof {
             });
         }
 
-        // Following steps from `ProofGen` API in spec are implicit in this
+        // The following steps from the `ProofGen` operation defined in https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofgen are implicit in this
         // implementation
         // signature_result = octets_to_signature(signature)
         // (i1, i2,..., iR) = RevealedIndexes
@@ -148,7 +148,7 @@ impl Proof {
         let A_prime = signature.A * r1;
 
         // Abar = A' * (-e) + B * r1
-        let A_bar = G1Projective::multi_exp(&[-A_prime, B], &[signature.e, r1]);
+        let A_bar = G1Projective::multi_exp(&[A_prime, B], &[-signature.e, r1]);
 
         // D = B * r1 + H_s * r2
         let D = G1Projective::multi_exp(&[B, generators.H_s()], &[r1, r2]);
@@ -257,7 +257,7 @@ impl Proof {
             return Err(Error::InvalidPublicKey);
         }
 
-        // Following steps from `ProofVerify` API in spec are implicit in this
+        //The following steps from the `ProofVerify` operation defined in https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofverify are implicit in this
         // implementation
         // (i1, i2, ..., iR) = RevealedIndexes
         // (j1, j2, ..., jU) = [L]\RevealedIndexes
@@ -347,7 +347,7 @@ impl Proof {
             ph,
         )?;
 
-        // Check the slective disclosure proof
+        // Check the selective disclosure proof
         // if c != cv, return INVALID
         if self.c != cv {
             return Ok(false);
