@@ -1,5 +1,5 @@
 use ffi_support::{ByteBuffer, ErrorCode, ExternError};
-use pairing_crypto::bls12_381::*;
+use pairing_crypto::Error;
 use std::{ptr, slice};
 
 /// Wrapper to convert a string to ExternError and PairingCryptoError
@@ -19,7 +19,7 @@ impl From<PairingCryptoFfiError> for ExternError {
 
 impl From<Error> for PairingCryptoFfiError {
     fn from(e: Error) -> Self {
-        Self(e.message().to_string())
+        Self(e.to_string())
     }
 }
 
@@ -29,9 +29,10 @@ impl From<String> for PairingCryptoFfiError {
     }
 }
 
-/// Used for receiving a ByteBuffer from C that was allocated by either C or Rust.
-/// If Rust allocated, then the outgoing struct is `ffi_support::ByteBuffer`
-/// Caller is responsible for calling free where applicable.
+/// Used for receiving a ByteBuffer from C that was allocated by either C or
+/// Rust. If Rust allocated, then the outgoing struct is
+/// `ffi_support::ByteBuffer` Caller is responsible for calling free where
+/// applicable.
 ///
 /// C will not notice a difference and can use the same struct
 #[repr(C)]
@@ -68,11 +69,13 @@ impl ByteArray {
         } else if self.length == 0 {
             Some(Vec::new())
         } else {
-            Some(unsafe { slice::from_raw_parts(self.data, self.length).to_vec() })
+            Some(unsafe {
+                slice::from_raw_parts(self.data, self.length).to_vec()
+            })
         }
     }
 
-    ///Convert to outgoing struct ByteBuffer
+    /// Convert to outgoing struct ByteBuffer
     pub fn into_byte_buffer(self) -> ByteBuffer {
         ByteBuffer::from_vec(self.to_vec())
     }
@@ -116,13 +119,16 @@ define_bytebuffer_destructor!(pairing_crypto_byte_buffer_free);
 // TODO would be nice to drop the option here?
 
 pub struct BbsSignRequestDto {
-    pub messages: Vec<Vec<u8>>,
     pub secret_key: Vec<u8>,
+    pub public_key: Vec<u8>,
+    pub header: Vec<u8>,
+    pub messages: Vec<Vec<u8>>,
 }
 
 pub struct BbsVerifyRequestDto {
-    pub messages: Vec<Vec<u8>>,
     pub public_key: Vec<u8>,
+    pub header: Vec<u8>,
+    pub messages: Vec<Vec<u8>>,
     pub signature: Vec<u8>,
 }
 
@@ -133,6 +139,7 @@ pub struct BbsDeriveProofRevealMessageRequestDto {
 
 pub struct BbsDeriveProofRequestDto {
     pub public_key: Vec<u8>,
+    pub header: Vec<u8>,
     pub messages: Vec<BbsDeriveProofRevealMessageRequestDto>,
     pub signature: Vec<u8>,
     pub presentation_message: Vec<u8>,
@@ -140,8 +147,10 @@ pub struct BbsDeriveProofRequestDto {
 
 pub struct BbsVerifyProofRequestDto {
     pub public_key: Vec<u8>,
+    pub header: Vec<u8>,
     pub proof: Vec<u8>,
     pub presentation_message: Vec<u8>,
+    // TODO remove this
     pub total_message_count: usize,
     pub messages: Vec<(usize, Vec<u8>)>,
 }

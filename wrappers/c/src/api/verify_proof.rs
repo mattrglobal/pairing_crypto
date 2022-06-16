@@ -1,6 +1,9 @@
 use crate::dtos::{BbsVerifyProofRequestDto, ByteArray, PairingCryptoFfiError};
 use ffi_support::{ConcurrentHandleMap, ErrorCode, ExternError};
-use pairing_crypto::bls12_381::bbs::*;
+use pairing_crypto::bbs::ciphersuites::bls12_381::{
+    proof_verify,
+    BbsVerifyProofRequest,
+};
 
 lazy_static! {
     pub static ref BBS_VERIFY_PROOF_CONTEXT: ConcurrentHandleMap<BbsVerifyProofRequestDto> =
@@ -8,13 +11,18 @@ lazy_static! {
 }
 
 #[no_mangle]
-pub extern "C" fn bls12381_bbs_verify_proof_context_init(err: &mut ExternError) -> u64 {
-    BBS_VERIFY_PROOF_CONTEXT.insert_with_output(err, || BbsVerifyProofRequestDto {
-        public_key: Vec::new(),
-        messages: Vec::new(),
-        proof: Vec::new(),
-        presentation_message: Vec::new(),
-        total_message_count: 0,
+pub extern "C" fn bls12381_bbs_verify_proof_context_init(
+    err: &mut ExternError,
+) -> u64 {
+    BBS_VERIFY_PROOF_CONTEXT.insert_with_output(err, || {
+        BbsVerifyProofRequestDto {
+            public_key: Vec::new(),
+            header: Vec::new(),
+            proof: Vec::new(),
+            presentation_message: Vec::new(),
+            messages: Vec::new(),
+            total_message_count: 0,
+        }
     })
 }
 
@@ -22,6 +30,12 @@ set_byte_array_impl!(
     bls12381_bbs_verify_proof_context_set_public_key,
     BBS_VERIFY_PROOF_CONTEXT,
     public_key
+);
+
+set_byte_array_impl!(
+    bls12381_bbs_verify_proof_context_set_header,
+    BBS_VERIFY_PROOF_CONTEXT,
+    header
 );
 
 set_byte_array_impl!(
@@ -57,7 +71,10 @@ pub extern "C" fn bls12381_bbs_verify_proof_context_add_message(
 ) -> i32 {
     let message = message.to_vec();
     if message.is_empty() {
-        *err = ExternError::new_error(ErrorCode::new(1), "Message cannot be empty");
+        *err = ExternError::new_error(
+            ErrorCode::new(1),
+            "Message cannot be empty",
+        );
         return 1;
     }
     BBS_VERIFY_PROOF_CONTEXT.call_with_output_mut(err, handle, |ctx| {
@@ -76,34 +93,40 @@ pub extern "C" fn bls12381_bbs_verify_proof_context_finish(
         handle,
         move |ctx| -> Result<i32, PairingCryptoFfiError> {
             if ctx.public_key.is_empty() {
-                return Err(PairingCryptoFfiError::new("public_key must be set"));
-            }
-            if ctx.messages.is_empty() {
-                return Err(PairingCryptoFfiError::new("messages cannot be empty"));
+                return Err(PairingCryptoFfiError::new(
+                    "public_key must be set",
+                ));
             }
             if ctx.proof.is_empty() {
                 return Err(PairingCryptoFfiError::new("proof must be set"));
             }
-            if ctx.presentation_message.is_empty() {
-                return Err(PairingCryptoFfiError::new(
-                    "presentation_message must be set",
-                ));
-            }
-            if ctx.total_message_count == 0 {
-                return Err(PairingCryptoFfiError::new(
-                    "total_message_count must be set and greater than 0",
-                ));
-            }
 
-            match verify_proof(BbsVerifyProofRequest {
+            let header = if ctx.header.is_empty() {
+                None
+            } else {
+                Some(ctx.header.clone())
+            };
+
+            let presentation_message = if ctx.presentation_message.is_empty() {
+                None
+            } else {
+                Some(ctx.presentation_message.clone())
+            };
+
+            let messages = if ctx.messages.is_empty() {
+                None
+            } else {
+                Some(ctx.messages.clone())
+            };
+
+            match proof_verify(BbsVerifyProofRequest {
                 public_key: ctx.public_key.clone(),
-                messages: ctx.messages.clone(),
+                header,
                 proof: ctx.proof.clone(),
-                presentation_message: ctx.presentation_message.clone(),
+                presentation_message,
+                messages,
                 total_message_count: ctx.total_message_count,
-            })
-            .unwrap()
-            {
+            })? {
                 true => Ok(0),
                 false => Ok(1),
             }
@@ -111,4 +134,7 @@ pub extern "C" fn bls12381_bbs_verify_proof_context_finish(
     )
 }
 
-define_handle_map_deleter!(BBS_VERIFY_PROOF_CONTEXT, bls12381_bbs_verify_proof_free);
+define_handle_map_deleter!(
+    BBS_VERIFY_PROOF_CONTEXT,
+    bls12381_bbs_verify_proof_free
+);
