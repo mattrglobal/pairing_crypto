@@ -26,7 +26,7 @@ Below is an outline of the repositories structure
 
 ```
 ├── src - Main source code folder
-│   ├ common - Common functionalities and utilities
+│   ├ common - Common functionality and utilities
 │   ├ curves - Defines the different pairing based elliptic curves supported by the library
 │   └ schemes - Defines the different cryptographic schemes (e.g. BBS signatures) supported by the library
 │   └ tests - Unit tests
