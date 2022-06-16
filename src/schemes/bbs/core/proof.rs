@@ -257,7 +257,7 @@ impl Proof {
             return Err(Error::InvalidPublicKey);
         }
 
-        //The following steps from the `ProofVerify` operation defined in https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofverify are implicit in this
+        // The following steps from the `ProofVerify` operation defined in https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofverify are implicit in this
         // implementation
         // (i1, i2, ..., iR) = RevealedIndexes
         // (j1, j2, ..., jU) = [L]\RevealedIndexes
@@ -317,8 +317,8 @@ impl Proof {
         C2_points.push(T);
         C2_scalars.push(self.c.0);
         // D * (-r3^)
-        C2_points.push(-self.D);
-        C2_scalars.push(self.r3_hat.0);
+        C2_points.push(self.D);
+        C2_scalars.push(-self.r3_hat.0);
         // H_s * s^
         C2_points.push(generators.H_s());
         C2_scalars.push(self.s_hat.0);
