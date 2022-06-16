@@ -28,6 +28,7 @@ mod curves;
 /// Supported schemes from pairing crypto
 mod schemes;
 
+pub use error::Error;
 /// Supported constructs for the BLS12-381 curve.
 pub use schemes::*;
 
