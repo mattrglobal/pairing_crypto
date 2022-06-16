@@ -45,7 +45,7 @@ impl<'a> From<&'a SecretKey> for [u8; SecretKey::SIZE_BYTES] {
 }
 
 impl SecretKey {
-    /// Number of bytes needed to represent the secret key
+    /// Number of bytes needed to represent the secret key.
     pub const SIZE_BYTES: usize = OCTET_SCALAR_LENGTH;
 
     /// Computes a secret key from an IKM, as defined by
@@ -77,7 +77,8 @@ impl SecretKey {
         None
     }
 
-    /// Convert a vector of bytes of big-endian representation of the secret key
+    /// Convert a vector of bytes of big-endian representation of the secret
+    /// key.
     pub fn from_vec(bytes: Vec<u8>) -> Result<Self, Error> {
         match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
             Ok(result) => Self::from_bytes(&result),
@@ -85,12 +86,12 @@ impl SecretKey {
         }
     }
 
-    /// Convert the secret key to a big-endian representation
+    /// Convert the secret key to a big-endian representation.
     pub fn to_bytes(self) -> [u8; Self::SIZE_BYTES] {
         self.0.to_bytes_be()
     }
 
-    /// Convert a big-endian representation of the secret key
+    /// Convert a big-endian representation of the secret key.
     pub fn from_bytes(bytes: &[u8; Self::SIZE_BYTES]) -> Result<Self, Error> {
         let result = Scalar::from_bytes_be(bytes).map(SecretKey);
 
@@ -148,7 +149,8 @@ impl PublicKey {
         self.0.to_affine().to_compressed()
     }
 
-    /// Convert a vector of bytes of big-endian representation of the public key
+    /// Convert a vector of bytes of big-endian representation of the public
+    /// key.
     pub fn from_vec(bytes: Vec<u8>) -> Result<Self, Error> {
         match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
             Ok(result) => Self::octets_to_point(&result),

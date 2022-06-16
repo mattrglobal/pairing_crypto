@@ -3,13 +3,22 @@
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub enum Error {
     /// Invalid arguments are provided in an API call.
-    BadParams { cause: String },
+    BadParams {
+        /// Detailed cause.
+        cause: String,
+    },
 
     /// A conversion between compatible data types failed.
-    Conversion { cause: String },
+    Conversion {
+        /// Detailed cause.
+        cause: String,
+    },
 
     /// A generic failure during underlying cryptographic operation.
-    CryptoOps { cause: String },
+    CryptoOps {
+        /// Detailed cause.
+        cause: String,
+    },
 
     /// Maximum defined retry reached for a crypto operation.
     /// For example, during a `HashToCurve` or `HashToScalar` operation, where
@@ -36,13 +45,24 @@ pub enum Error {
     InvalidPublicKey,
 
     /// Signature is malformed.
-    MalformedSignature { cause: String },
+    MalformedSignature {
+        /// Detailed cause.
+        cause: String,
+    },
 
     /// Proof is malformed.
-    MalformedProof { cause: String },
+    MalformedProof {
+        /// Detailed cause.
+        cause: String,
+    },
 
     /// Not enough message generators.
-    MessageGeneratorsLengthMismatch { generators: usize, messages: usize },
+    MessageGeneratorsLengthMismatch {
+        /// Number of message generators.
+        generators: usize,
+        /// Number of messages.
+        messages: usize,
+    },
 
     /// The given point(from `G1` or `G2`) is an `Identity` element of
     /// respective subgroup.
