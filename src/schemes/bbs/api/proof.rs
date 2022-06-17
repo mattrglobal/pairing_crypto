@@ -1,5 +1,5 @@
 use super::{
-    dtos::{BbsDeriveProofRequest, BbsVerifyProofRequest},
+    dtos::{BbsProofGenRequest, BbsProofVerifyRequest},
     utils::{
         digest_messages,
         digest_proof_messages,
@@ -22,7 +22,7 @@ use crate::{
 };
 
 /// Generate a signature proof of knowledge.
-pub fn proof_gen(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
+pub fn proof_gen(request: BbsProofGenRequest) -> Result<Vec<u8>, Error> {
     // Parse public key from request
     let pk = PublicKey::from_vec(request.public_key)?;
 
@@ -75,7 +75,7 @@ pub fn proof_gen(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
 }
 
 /// Verify a signature proof of knowledge.
-pub fn proof_verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
+pub fn proof_verify(request: BbsProofVerifyRequest) -> Result<bool, Error> {
     // Parse public key from request
     let public_key = PublicKey::from_vec(request.public_key)?;
 
