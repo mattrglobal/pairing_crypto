@@ -13,7 +13,7 @@
 // limitations under the License.
 // ------------------------------------------------------------------------------
 
-use super::dtos::BbsDeriveProofRevealMessageRequest;
+use super::dtos::BbsProofGenRevealMessageRequest;
 use crate::{
     error::Error,
     schemes::bbs::ciphersuites::bls12_381::{
@@ -44,7 +44,7 @@ pub(super) fn digest_messages(
 
 /// Digests a set of supplied proof messages
 pub(super) fn digest_proof_messages(
-    messages: Option<&Vec<BbsDeriveProofRevealMessageRequest>>,
+    messages: Option<&Vec<BbsProofGenRevealMessageRequest>>,
 ) -> Result<Vec<ProofMessage>, Error> {
     if let Some(messages) = messages {
         return messages

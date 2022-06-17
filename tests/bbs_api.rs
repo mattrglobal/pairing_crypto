@@ -3,10 +3,10 @@ use pairing_crypto::bbs::ciphersuites::bls12_381::{
     proof_verify,
     sign,
     verify,
-    BbsDeriveProofRequest,
-    BbsDeriveProofRevealMessageRequest,
+    BbsProofGenRequest,
+    BbsProofGenRevealMessageRequest,
+    BbsProofVerifyRequest,
     BbsSignRequest,
-    BbsVerifyProofRequest,
     BbsVerifyRequest,
     KeyPair,
 };
@@ -126,18 +126,17 @@ fn proof_gen_verify_e2e_nominal() {
         );
 
         // Start with all hidden messages
-        let mut proof_messages: Vec<BbsDeriveProofRevealMessageRequest> =
-            messages
-                .iter()
-                .map(|value| BbsDeriveProofRevealMessageRequest {
-                    reveal: false,
-                    value: value.clone(),
-                })
-                .collect();
+        let mut proof_messages: Vec<BbsProofGenRevealMessageRequest> = messages
+            .iter()
+            .map(|value| BbsProofGenRevealMessageRequest {
+                reveal: false,
+                value: value.clone(),
+            })
+            .collect();
 
         // Reveal 1 message at a time
         for j in 0..proof_messages.len() {
-            let proof = &proof_gen(BbsDeriveProofRequest {
+            let proof = &proof_gen(BbsProofGenRequest {
                 public_key: public_key.clone(),
                 header: Some(TEST_HEADER.to_vec()),
                 messages: Some(proof_messages.clone()),
@@ -152,7 +151,7 @@ fn proof_gen_verify_e2e_nominal() {
             }
 
             assert_eq!(
-                proof_verify(BbsVerifyProofRequest {
+                proof_verify(BbsProofVerifyRequest {
                     public_key: public_key.clone(),
                     header: Some(TEST_HEADER.to_vec()),
                     presentation_message: Some(

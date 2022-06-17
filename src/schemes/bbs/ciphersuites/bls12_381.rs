@@ -15,10 +15,10 @@ pub use crate::schemes::bbs::core::key_pair::{KeyPair, PublicKey, SecretKey};
 
 pub use crate::schemes::bbs::api::{
     dtos::{
-        BbsDeriveProofRequest,
-        BbsDeriveProofRevealMessageRequest,
+        BbsProofGenRequest,
+        BbsProofGenRevealMessageRequest,
+        BbsProofVerifyRequest,
         BbsSignRequest,
-        BbsVerifyProofRequest,
         BbsVerifyRequest,
     },
     proof::{proof_gen, proof_verify},
