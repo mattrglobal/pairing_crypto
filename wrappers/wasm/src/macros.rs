@@ -1,19 +1,17 @@
-/*
- * Copyright 2020
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * ------------------------------------------------------------------------------
- */
+// Copyright 2020
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// ------------------------------------------------------------------------------
 macro_rules! wasm_impl {
     (
     $(#[$meta:meta])+
@@ -78,7 +76,7 @@ macro_rules! wasm_impl {
 
 macro_rules! try_from_impl {
     ($name:ident) => {
-        impl std::convert::TryFrom<JsValue> for $name {
+        impl core::convert::TryFrom<JsValue> for $name {
             type Error = serde_wasm_bindgen::Error;
 
             fn try_from(value: JsValue) -> Result<Self, Self::Error> {
