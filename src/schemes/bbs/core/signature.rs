@@ -1,10 +1,9 @@
 #![allow(non_snake_case)]
 use super::{
-    constants::{g1_affine_compressed_size, scalar_size},
+    constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
     generator::Generators,
     hash_utils::hash_to_scalar,
-    public_key::PublicKey,
-    secret_key::SecretKey,
+    key_pair::{PublicKey, SecretKey},
     types::Message,
     utils::{
         compute_B,
@@ -41,7 +40,7 @@ use subtle::{Choice, ConditionallySelectable};
 /// A BBS+ signature
 #[allow(non_snake_case)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct Signature {
+pub(crate) struct Signature {
     pub(crate) A: G1Projective,
     pub(crate) e: Scalar,
     pub(crate) s: Scalar,
@@ -122,10 +121,10 @@ impl ConditionallySelectable for Signature {
 impl Signature {
     /// The number of bytes in a `Signature`.
     pub const SIZE_BYTES: usize =
-        g1_affine_compressed_size() + 2 * scalar_size();
+        OCTET_POINT_G1_LENGTH + 2 * OCTET_SCALAR_LENGTH;
 
-    const G1_COMPRESSED_SIZE: usize = g1_affine_compressed_size();
-    const SCALAR_SIZE: usize = scalar_size();
+    const G1_COMPRESSED_SIZE: usize = OCTET_POINT_G1_LENGTH;
+    const SCALAR_SIZE: usize = OCTET_SCALAR_LENGTH;
 
     /// Generate a new `Signature` where all messages are known to the signer.
     /// This method follows `Sign` API as defined in BBS Signature spec
@@ -153,13 +152,13 @@ impl Signature {
         }
         // Error out if length of messages and generators are not equal
         if messages.len() != generators.message_blinding_points_length() {
-            return Err(Error::CryptoMessageGeneratorsLengthMismatch {
+            return Err(Error::MessageGeneratorsLengthMismatch {
                 generators: generators.message_blinding_points_length(),
                 messages: messages.len(),
             });
         }
         if SK.0.is_zero().unwrap_u8() == 1 {
-            return Err(Error::CryptoInvalidSecretKey);
+            return Err(Error::InvalidSecretKey);
         }
 
         // domain
@@ -182,10 +181,10 @@ impl Signature {
         let exp = if exp.is_some().unwrap_u8() == 1u8 {
             exp.unwrap()
         } else {
-            return Err(Error::CryptoSigning {
+            return Err(Error::CryptoOps {
                 cause: "failed to generate `exp` for `a` component of \
                         signature"
-                    .to_string(),
+                    .to_owned(),
             });
         };
 
@@ -219,7 +218,7 @@ impl Signature {
         }
         // Error out if length of messages and generators are not equal
         if messages.len() != generators.message_blinding_points_length() {
-            return Err(Error::CryptoMessageGeneratorsLengthMismatch {
+            return Err(Error::MessageGeneratorsLengthMismatch {
                 generators: generators.message_blinding_points_length(),
                 messages: messages.len(),
             });
@@ -228,7 +227,7 @@ impl Signature {
         // Validate the public key; it should not be an identity and should
         // belong to subgroup G2.
         if PK.is_valid().unwrap_u8() == 0 {
-            return Err(Error::CryptoInvalidPublicKey);
+            return Err(Error::InvalidPublicKey);
         }
 
         let W = PK.0;
@@ -262,7 +261,7 @@ impl Signature {
     }
 
     /// Get the octets representation of `Signature` as defined in BBS spec <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-signaturetooctets>.
-    pub fn to_octets(&self) -> [u8; Self::SIZE_BYTES] {
+    pub fn to_octets(self) -> [u8; Self::SIZE_BYTES] {
         let mut offset = 0;
         let mut end = Self::G1_COMPRESSED_SIZE;
         let mut bytes = [0u8; Self::SIZE_BYTES];
@@ -304,7 +303,7 @@ impl Signature {
     pub fn from_octets<T: AsRef<[u8]>>(data: T) -> Result<Self, Error> {
         let data = data.as_ref();
         if data.len() < Self::SIZE_BYTES {
-            return Err(Error::CryptoMalformedProof {
+            return Err(Error::MalformedSignature {
                 cause: format!(
                     "not enough data, input buffer size: {} bytes, expected \
                      data size: {}",
@@ -325,7 +324,7 @@ impl Signature {
 
         // if A == Identity_G1, return INVALID
         if A.is_identity().unwrap_u8() == 1 {
-            return Err(Error::CryptoPointIsIdentity);
+            return Err(Error::PointIsIdentity);
         }
         offset = end;
 
@@ -336,14 +335,14 @@ impl Signature {
             &data[offset..end],
         )?);
         if e.is_none().unwrap_u8() == 1u8 {
-            return Err(Error::CryptoMalformedSignature {
+            return Err(Error::MalformedSignature {
                 cause: "failed to deserialize `e` component of signature"
                     .to_owned(),
             });
         };
         let e = e.unwrap();
         if e.is_zero().unwrap_u8() == 1 {
-            return Err(Error::CryptoScalarIsZero);
+            return Err(Error::UnexpectedZeroValue);
         }
         offset = end;
 
@@ -355,106 +354,16 @@ impl Signature {
             &data[offset..end],
         )?);
         if s.is_none().unwrap_u8() == 1u8 {
-            return Err(Error::CryptoMalformedSignature {
+            return Err(Error::MalformedSignature {
                 cause: "failed to deserialize `s` component of signature"
                     .to_owned(),
             });
         };
         let s = s.unwrap();
         if s.is_zero().unwrap_u8() == 1 {
-            return Err(Error::CryptoScalarIsZero);
+            return Err(Error::UnexpectedZeroValue);
         }
 
         Ok(Signature { A, e, s })
-    }
-}
-
-#[test]
-fn serialization_test() {
-    let mut sig = Signature::default();
-    sig.A = G1Projective::generator();
-    sig.e = Scalar::one();
-    sig.s = Scalar::one() + Scalar::one();
-
-    let sig_clone = Signature::from_octets(&sig.to_octets());
-    assert_eq!(sig_clone.is_ok(), true);
-    let sig2 = sig_clone.unwrap();
-    assert_eq!(sig, sig2);
-    sig.A = G1Projective::identity();
-    sig.conditional_assign(&sig2, Choice::from(1u8));
-    assert_eq!(sig, sig2);
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::bbs::core::{
-        generator::Generators,
-        public_key::PublicKey,
-        secret_key::SecretKey,
-        types::Message,
-    };
-
-    const TEST_KEY_GEN_SEED: &[u8; 32] = b"not_A_random_seed_at_Allllllllll";
-    const TEST_KEY_INFO: &[u8; 14] = b"signing-key-01";
-    const TEST_MESSAGE_DST: &[u8; 9] = b"app:dst-1";
-    const TEST_HEADER: &[u8; 11] = b"header_info";
-
-    use super::Signature;
-    #[test]
-    fn invalid_signature() {
-        let sig = Signature::default();
-        let pk = PublicKey::default();
-        let sk = SecretKey::default();
-        let msgs = [Message::default(), Message::default()];
-        let generators = Generators::new(&[], &[], &[], 1)
-            .expect("generators creation failed");
-        assert!(
-            Signature::new(&sk, &pk, Some(&[]), &generators, &msgs).is_err()
-        );
-        assert!(sig.verify(&pk, Some(&[]), &generators, &msgs).is_err());
-        let generators = Generators::new(&[], &[], &[], 3)
-            .expect("generators creation failed");
-        assert!(sig.verify(&pk, Some(&[]), &generators, &msgs).is_err());
-        assert!(
-            Signature::new(&sk, &pk, Some(&[]), &generators, &msgs).is_err()
-        );
-    }
-
-    #[test]
-    fn nominal_signature_e2e() {
-        let msgs = [
-            Message::map_to_scalar(
-                "message-1".as_ref(),
-                TEST_MESSAGE_DST.as_ref(),
-            )
-            .unwrap(),
-            Message::map_to_scalar(
-                "message-2".as_ref(),
-                TEST_MESSAGE_DST.as_ref(),
-            )
-            .unwrap(),
-        ];
-        let sk =
-            SecretKey::new(TEST_KEY_GEN_SEED.as_ref(), TEST_KEY_INFO.as_ref())
-                .expect("secret key generation failed");
-        let pk = PublicKey::from(&sk);
-        let generators = Generators::new(&[], &[], &[], 2)
-            .expect("generators creation failed");
-
-        let signature = Signature::new(
-            &sk,
-            &pk,
-            Some(TEST_HEADER.as_ref()),
-            &generators,
-            &msgs,
-        )
-        .unwrap();
-
-        assert_eq!(
-            signature
-                .verify(&pk, Some(TEST_HEADER.as_ref()), &generators, &msgs)
-                .unwrap(),
-            true
-        );
     }
 }

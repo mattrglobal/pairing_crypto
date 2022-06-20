@@ -30,10 +30,10 @@ where
     let dst = dst.as_ref();
     // If len(dst) > 2^8 - 1 or len(msg) > 2^64 - 1, abort
     if msg.len() as u64 > MAX_MESSAGE_SIZE {
-        return Err(Error::CryptoMessageIsTooLarge);
+        return Err(Error::MessageIsTooLarge);
     }
     if dst.len() > MAX_DST_SIZE as usize {
-        return Err(Error::CryptoDstIsTooLarge);
+        return Err(Error::DstIsTooLarge);
     }
 
     // msg_prime = I2OSP(len(msg), 8) || msg
@@ -72,7 +72,7 @@ where
         let mut retry_count = 0;
         loop {
             if retry_count == MAX_VALUE_GENERATION_RETRY_COUNT {
-                return Err(Error::CryptoMaxRetryReached);
+                return Err(Error::MaxRetryReached);
             }
             xof_reader.read(&mut data_to_hash);
             // In success case, `Scalar::from_bytes_be_wide` return a non-zero
@@ -120,7 +120,7 @@ where
         let mut retry_count = 0;
         loop {
             if retry_count == MAX_VALUE_GENERATION_RETRY_COUNT {
-                return Err(Error::CryptoMaxRetryReached);
+                return Err(Error::MaxRetryReached);
             }
             xof_reader.read(&mut data_to_hash);
             let p = G1Projective::hash_to_curve(

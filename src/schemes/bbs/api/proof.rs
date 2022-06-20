@@ -1,5 +1,5 @@
 use super::{
-    dtos::{BbsDeriveProofRequest, BbsVerifyProofRequest},
+    dtos::{BbsProofGenRequest, BbsProofVerifyRequest},
     utils::{
         digest_messages,
         digest_proof_messages,
@@ -11,8 +11,7 @@ use crate::{
     schemes::bbs::ciphersuites::bls12_381::{
         Generators,
         Message,
-        PokSignature,
-        PokSignatureProof,
+        Proof,
         ProofMessage,
         PublicKey,
         Signature,
@@ -22,8 +21,8 @@ use crate::{
     },
 };
 
-/// Derives a signature proof of knowledge.
-pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
+/// Generate a signature proof of knowledge.
+pub fn proof_gen(request: BbsProofGenRequest) -> Result<Vec<u8>, Error> {
     // Parse public key from request
     let pk = PublicKey::from_vec(request.public_key)?;
 
@@ -63,25 +62,20 @@ pub fn derive(request: BbsDeriveProofRequest) -> Result<Vec<u8>, Error> {
             Err(e) => return Err(e),
         };
 
-    let mut pok = PokSignature::init(
+    let proof = Proof::new(
         &pk,
         &signature,
         request.header.as_ref(),
+        request.presentation_message.as_ref(),
         &generators,
         &messages,
     )?;
 
-    let challenge =
-        pok.compute_challenge(&pk, request.presentation_message.as_ref())?;
-
-    match pok.generate_proof(challenge) {
-        Ok(proof) => Ok(proof.to_octets()),
-        Err(e) => Err(e),
-    }
+    Ok(proof.to_octets())
 }
 
-/// Verifies a signature proof of knowledge.
-pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
+/// Verify a signature proof of knowledge.
+pub fn proof_verify(request: BbsProofVerifyRequest) -> Result<bool, Error> {
     // Parse public key from request
     let public_key = PublicKey::from_vec(request.public_key)?;
 
@@ -99,16 +93,13 @@ pub fn verify(request: BbsVerifyProofRequest) -> Result<bool, Error> {
         request.total_message_count,
     )?;
 
-    let proof = PokSignatureProof::from_octets(request.proof)?;
+    let proof = Proof::from_octets(request.proof)?;
 
-    let cv = proof.compute_challenge(
+    proof.verify(
         &public_key,
         request.header.as_ref(),
+        request.presentation_message.as_ref(),
         &generators,
         &messages,
-        request.presentation_message.as_ref(),
-        proof.c,
-    )?;
-
-    Ok(proof.verify_signature_proof(public_key)? && proof.c == cv)
+    )
 }
