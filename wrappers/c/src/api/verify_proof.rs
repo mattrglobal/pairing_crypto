@@ -2,7 +2,7 @@ use crate::dtos::{BbsVerifyProofRequestDto, ByteArray, PairingCryptoFfiError};
 use ffi_support::{ConcurrentHandleMap, ErrorCode, ExternError};
 use pairing_crypto::bbs::ciphersuites::bls12_381::{
     proof_verify,
-    BbsVerifyProofRequest,
+    BbsProofVerifyRequest,
 };
 
 lazy_static! {
@@ -119,7 +119,7 @@ pub extern "C" fn bls12381_bbs_verify_proof_context_finish(
                 Some(ctx.messages.clone())
             };
 
-            match proof_verify(BbsVerifyProofRequest {
+            match proof_verify(BbsProofVerifyRequest {
                 public_key: ctx.public_key.clone(),
                 header,
                 proof: ctx.proof.clone(),

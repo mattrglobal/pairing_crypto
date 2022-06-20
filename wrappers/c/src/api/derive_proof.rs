@@ -7,8 +7,8 @@ use crate::dtos::{
 use ffi_support::{ByteBuffer, ConcurrentHandleMap, ErrorCode, ExternError};
 use pairing_crypto::bbs::ciphersuites::bls12_381::{
     proof_gen,
-    BbsDeriveProofRequest,
-    BbsDeriveProofRevealMessageRequest,
+    BbsProofGenRequest,
+    BbsProofGenRevealMessageRequest,
 };
 
 lazy_static! {
@@ -112,7 +112,7 @@ pub extern "C" fn bls12381_bbs_derive_proof_context_finish(
                 Some(
                     ctx.messages
                         .iter()
-                        .map(|item| BbsDeriveProofRevealMessageRequest {
+                        .map(|item| BbsProofGenRevealMessageRequest {
                             reveal: item.reveal,
                             value: item.value.clone(),
                         })
@@ -126,7 +126,7 @@ pub extern "C" fn bls12381_bbs_derive_proof_context_finish(
                 Some(ctx.presentation_message.clone())
             };
 
-            let proof = proof_gen(BbsDeriveProofRequest {
+            let proof = proof_gen(BbsProofGenRequest {
                 public_key: ctx.public_key.clone(),
                 header,
                 messages,
