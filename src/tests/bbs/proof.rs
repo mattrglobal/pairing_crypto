@@ -1,114 +1,44 @@
-use core::convert::TryFrom;
-use pairing_crypto::bbs::ciphersuites::bls12_381::{
-    verify_proof,
-    BbsVerifyProofRequest,
-    Generators,
-    HiddenMessage,
-    Message,
-    PokSignature,
-    ProofMessage,
-    PublicKey,
-    SecretKey,
-    Signature,
-    GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-    GLOBAL_MESSAGE_GENERATOR_SEED,
-    GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-    MAP_MESSAGE_TO_SCALAR_DST,
+use super::{
+    create_generator_helper,
+    EXPECTED_SIGS,
+    KEY_GEN_SEED,
+    TEST_CLAIMS,
+    TEST_HEADER,
+    TEST_KEY_INFOS,
+    TEST_PRESENTATION_HEADER,
 };
-
-mod common;
-
-use common::mock::MockRng;
-
-const KEY_GEN_SEED: &[u8; 32] = b"not_A_random_seed_at_Allllllllll";
-
-const TEST_KEY_INFOS: [&[u8]; 7] = [
-    b"",
-    b"abc",
-    b"abcdefgh",
-    b"abcdefghijklmnopqrstuvwxyz",
-    b"qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
-    b"12345678901234567890123456789012345678901234567890",
-    b"1qaz2wsx3edc4rfv5tgb6yhn7ujm8ik,9ol.0p;/",
-];
-const TEST_CLAIMS: [&[u8]; 6] = [
-    b"first_name",
-    b"surname",
-    b"date_of_birth",
-    b"father",
-    b"mother",
-    b"credential_id",
-];
-
-const PRESENTATION_MESSAGE: &[u8; 20] = b"e8gxekZpmeZTU0VDL9MV";
-
-const EXPECTED_SIGS: [&str; 7] = [
-    "aeac37f08d62876ae01c0d3b244d9f457b74f928271aa84ebf730982b0d7f9e622aba85f4aec54f90714ffea69839b2c7011777eb4e89ca0cbbe7d25cc025d40bdcc15efbccd02ab25561589fc0d01c01fbd3fc8247b1a0105f5caa5fdb7c95ca2fa0ab08eeb09af048f9462a1ec5d8d",
-    "84e7ecd45f36e6eaad8863b79c290843271dbfbfc64f95288772b8999e7054248dacd2e50ec558659a66a9fbebdebfeb383f2f6f6eb960cb2ec7dc43991ed7d00c1aef095687000246f874cec690a3114787dfa98316d0bf13697d6a6d212b5d9d67bf6f390d1c24ee9daaefddeeadd5",
-    "8ea7aa0b96923c6bdee49cb507ca5feafa98145103dfb1f6fc67e9fd300d4ac49b635063482631ccc936ba0b549497fa17860d41f01e7393306691d61e895d5090d71a0e223c04de9d4f0c8054d1d8d90f24abcc2bf1fb5ba92af73ecae6fb2daa7087fda4c391e67fdbdcd46bb8ecb8",
-    "a8ea0f9fda19b21c0e71f70d01e5d6305f2df015fb97f1045d31ddea345cfcdd6f0ebd49a6a2ba5a76be257e68bffa4b5c862e5d2252fc88c0942f9f44823be3580f96104d942d1ca691ea02f42943c836e0f2a5c133e6444aa7469604dd7f134d2d91bf21545c4baee107898246e9c1",
-    "b25147bb7e6eb43dca2066ba3d910a222c0f7f9f18b3720b21216b323a5f76bd52bd0957e03dcccc7d688809d5e7cf56345973b8a25054de9d27c8479d94b036c8716a41df4afb8c8828e4e98b1cd4f434a1dd6407ee6c821bc8dc2bec46884d58177f31abb4f0d3d281ce6daa086946",
-    "b731a37212e78df0bfccfc8cad90c8e2716c670078676bb99d8863e5d7c24ede6dd6fd91b4120ab572148309c7639814627cbfe1d73960d5833bd04234d32f95ea40aeae5747e521a740058c50436ecf2bfff6fbc5206be7b0a08930ab432935882a7056fea3a52f8a3d99cdedf6edbb",
-    "a93dda896920660b9803cc880741e5c4f35609d18483e380016d3487d1bca9aefd782ba5853860f6f694957ee4dfd4a400a2ec0604a40089cae1f82d04277a8a2f32f8441b3c8e8d0958b29de38643c0547fa636902790b358c58d28c4db94a2cccbba074fd58123b3dbf488337dd707",
-];
-
-const HEADER: &[u8; 16] = b"some_app_context";
+use crate::{
+    bbs::{
+        ciphersuites::bls12_381::{
+            Message,
+            ProofMessage,
+            PublicKey,
+            SecretKey,
+            Signature,
+            MAP_MESSAGE_TO_SCALAR_DST,
+        },
+        core::proof::Proof,
+    },
+    tests::mock_rng::MockRng,
+};
+use core::convert::TryFrom;
 
 #[test]
-fn signing() {
-    let test_atts = TEST_CLAIMS
-        .iter()
-        .map(|b| {
-            Message::map_to_scalar(
-                b.as_ref(),
-                MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
-            )
-        })
-        .collect::<Result<Vec<Message>, _>>()
-        .expect("claims to `Message` conversion failed");
-
-    for i in 0..TEST_KEY_INFOS.len() {
-        let sk =
-            SecretKey::new(KEY_GEN_SEED.as_ref(), TEST_KEY_INFOS[i].as_ref())
-                .expect("secret key generation failed");
-        let pk = PublicKey::from(&sk);
-        let gens = Generators::new(
-            GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-            GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-            GLOBAL_MESSAGE_GENERATOR_SEED,
-            test_atts.len(),
-        )
-        .expect("generators creation failed");
-        let signature =
-            Signature::new(&sk, &pk, Some(&HEADER), &gens, &test_atts)
-                .expect("signing failed");
-        // println!("{:?},", hex::encode(signature.to_octets()));
-
-        assert_eq!(
-            signature
-                .verify(&pk, Some(&HEADER), &gens, &test_atts)
-                .unwrap(),
-            true
-        );
-        let expected_signature = Signature::from_octets(
-            &<[u8; Signature::SIZE_BYTES]>::try_from(
-                hex::decode(EXPECTED_SIGS[i]).expect("hex decoding failed"),
-            )
-            .expect("data conversion failed"),
-        )
-        .expect("signature deserialization failed");
-        assert_eq!(signature, expected_signature);
-    }
+fn default_value_deserialization() {
+    let p = Proof::default();
+    let bytes = p.to_octets();
+    let _ = Proof::from_octets(&bytes)
+        .expect_err("default value deserialization should fail");
 }
 
 #[test]
-fn proofs() {
+fn gen_verify_e2e_nominal() {
     use rand::SeedableRng;
     let mut rng = MockRng::from_seed([1u8; 16]);
     let test_atts = TEST_CLAIMS
         .iter()
         .map(|b| {
-            Message::map_to_scalar(
+            Message::from_arbitrary_data(
                 b.as_ref(),
                 MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
             )
@@ -126,18 +56,18 @@ fn proofs() {
             ["b5b9f65256c36ad76d19d5d452a826d4af75b2d9350ba316b6ddf913eb7d06743b1098c3ce8009d3d88d30b91f51f13a9435ef08498c4380cd9cb41b904060f62a3f17ba64d105b3d7558267c9fccabfcbdc859bae9aad074a02b9730592be448a409bf438872c5a43ca986dffaf4e1710faa9dfb799c9c29c7b3aec5865ea560872c23b9e8925dab1c9a788a9b25b456c27fd67d9d4cbc7676693b8e775de8279c5e094c29bf2c98723719e0f1d88f65364d29604988fe0c6e442ec537cdcef0210049d5e81eba035dd02b319e2a00f441cffc4af0132cc9ef6c38a20bc5cf1b94527fa9f491f1282c725ca06bf0f602a0d8b5dcbb30dc69fd58bc6e55958b1cfef3b08c93ef6d0c4c5698d8022fb442203e06d436df4feb11d844f65d983eb7233f3d31ecdd9f08f05291c4fdba4a02a96b453ff8ff0d4ac0a780350dbf43b34f7b586c5eda9d7cafae92d7640f39e292ef2b5f9a5cded1a511fbb6c17b182b8f00ef5983052182e68d7e944ab8399694db2aef79eb080adddb1e8deea81e8ba53636e7042bf8b872e5e3bc9c105f51a9cad6243eba36e43dc6cac65c19c5ca5c1e619d2f90b63c861c96b919c83b519dbbc6f4e2aa33933f7b553331c0b76aa86985a7c27b0ff900d2079ef2ad1fb25cdd5eb46b4d6150fb28ec06bee553e3535f53a25e550105ad59266070618d5", "b098a27358cebd65b1b93d1ee246b4b0d3520544e490fd9e7c8739d6ae02a99ad3a8ba84f64f45dfa1e62e0883403bc1b433475c2b8d90acf560ae8a7159e470667a7aa76cfdda97e1913e668c4e1122790dc8fa38691851aac825df4a528322918fba2dc2d4b12426798975721b4fbd75b8f6e5664dac6c2cfb739e2c1eed4e299629dfdaff2e535141444b1fe7bf700381fcf255c7df56c175c09c3686ce56c77b6b1f7dbe3bf6f2120246bd4f0f741a75c25f264a67bae0ddec731819d6dc89cf6043ac9e9d4fa6c3c9da3a54719361b5bb720bccfb0d1b6c98f71332b1f45aa8dc075a36cbc512227989adb5e7c9608309f7aa4515cf71a188b7fc2af27d147658acae6fa6a25722c240b760e95620ec43753f6025d5312ac425e1f2ad5f2493a57be3a45f42d8e6bdb995265881041e2c17fb8d78cc4586aae60d12a498ff0445a6f542e92c16f8ee8a3afea2013b942f7973316dbf8d9b2009ae2f25204bfcabe44f8f63f1c92ea2e829bac57a5ae6113be6642c3851fba75672bd8cbe681207a15dcbbdcc374bf175ae719e435f5cce3264a2a38e602dd3ebb7c65438195c9bc2169e48ab33dfb28a80465d091c38ee6fef3ecdb4118bae01dcf0fa823e9afa5f393f653e5d7f433adb1f4d3c", "90048a815aed7cd81efb4dd7e68b634d74ef6423dc5335443b10d875fe55a298f2abcac3e9f4195ebabdb423b4222e9db2cb1a66861dfb51d58229f7e400aea922e9e6378216db948dcf30931e8177d671b551edeeee40cfe800a726f83a1c63b9a9d3367f0882a1317a29d50af9b132a980aa409807ea60a1bde4abbd01f2b1e093a4e164ba65cc47f4e4554732697768ffa6f700a798b79207c4753742d7d66c62fa6d9b4685f5b4b1264c6240c7cd178ff9f9bed251ad3bafa069d39575044e7bcf505481339a7218ef80b6117ecc64f5913b515df993ac0f25888211707d249fcf653f8216e5dee38b5df1f100da06c3ac395620791bd120cad1e23734ba6d1c3242fc1b01e8ff092de4b8181acf3e6b7005082c262a92a180de610d35fba913675fc6c192b506e85c7770716e54040203b3a7431ab3a268251059cab6c83fb0cae49c361caf4ba9ca09b167c8a248dbf187e12e9c63e473355a2e1a48783b4deee33160e918277f1710ffee8d6d3be5a27818f9f69657f325b94c090718a5a851a8f470e5e04b4c34fbf5bc862d15d0e7cdff722d6b5715d427f18841730f2ebb4b8a0cae5eacf35acec9544c19", "8e74ab0cec0b8cd08dbcfb8324153354253fe113d939abe900fc2be2efbb439c9c5ff2935e33833ca9d00f4a0b2742948ab7f7c898fc805d79dec0ae1c12090b7f1e54918dd440a88d099ab6289661d838bc285aa501b194dbe3305915d2d7258e52f7269ad58b81d93425b906639e055b8229d463abcdd835a8efe97a89611741da102cdf2a3fe0a8785bc93e82fe2114f2eb3a5d9a04fb21efa35b465b85c8edcd6d53f9f5620ad5b5a9812ae8eacd431c9427dfc1c84c63a87be299f53b2b83648504561ec99487ecf31b31064c321edd42e83a71af8436cdb50a195b71a33e749ad3ff3cc857f325cf28d5ca44dc08a621b08386100ff25b775eb4c6d46fd34da3cf6fc82fa5700a804e1e185ff74f9d330d5f7e86d770ed72d11a9f0eb095fd9d52c75b9b9a1ba1cfa37e20549d1325d44d7eaf3aac177f85b3c6f3d5c0b46bcd44e5678cf3672b9a7951792bb1285032241d4f90c2c79999a31132e7b62e62173ab328ceb14dca5951434eed85651ea719a9a23f4e2d3a3c2460ca9c2d87a10c14397ec90f8e138d0c160b2b8d", "855567a1e9541d5ed2a80ac348899b28e4d9c41d277646e6082cfc6107ea2b3d68533e2bae076aeb7d70293d7689a544884ce184284734d873dac63628710d46e5b5b8e989403a08d32db9bbac161fd7cc2f48b7aa35588507eda2c6667d70b38b90abaaa5d1972afc224d33c2b33098e5e894d37de6fd218ddb77acfa2880e8227bf0c6496c3402a7e0ee2a653295f6439962c53b31025797f38ad3320616d7c740cf091afc35ba6b1fe2ccc9194c6f06db7c04844eea73aaabef03a11446fb757b7a96eabc5ecd137d04e73205ec001a3c1d65bf252128134436e9d0274c0ff8ddcc25403619a3cda8a43d10b75de210bac980f0be2b3d3b84e745fdc294839707190f7925c37c47fc932c0e38f8dc4c5caeab4267278efd07e2223a7f92e57a912429605f78678aef907d0fb0c511351786501c7bae115310a2fadacf37b91edb7451e0a0b644a6cfb3a5fdaec7a00610ea167946f1db40c9fe9769605ed92edbf4c7bbdb2f37fe288615eefe8e9c", "8fcf3cd95bac204b12b58a92e0e3f246c74e95adef7ce02d4de56cac02eedd66742fe5c1e742d47cefb703c8f7abe4c9a4a7a5996e90a6b435e4fe3ccfbad462fe7a33a09af334fb21b6e5d2561ca2448a098a1e98f98f6edfb9e53e8bbda4a292da054f2d5dbbc73e77a0051b8c204a35daf92fa2649305a421d905485f331c8035daa9351b95f211493c0cec8915c766c34d475928d2b0c64d8f1486259d9f331a756fe18776c670022413ecd1b6a367f96c656893a9f92792a37b664878f6ccf7a8c360ce21c9ebeafbf2ca8045361ddccc8b70780ec076af82dbfb06121d1b3348d4d8d5a39e6faeda4d012ad53c19ef606b341e56fda6825f4edd57b1ac8ac611a1cab272f8e9a073efcb432de52257ce73a9fd1bbb8f917153c370e1176f39918c5fae4cfcc4ba4c31e587f62c359fc3ef1ddb277371240dfe52777f94c77c3da905f5286dff266b7770d42439"],
         ];
 
+    let gens = create_generator_helper(test_atts.len());
+
     for i in 0..TEST_KEY_INFOS.len() {
         let pk = PublicKey::from(
             &SecretKey::new(KEY_GEN_SEED.as_ref(), TEST_KEY_INFOS[i].as_ref())
                 .expect("secret key generation failed"),
         );
-        let gens = Generators::new(
-            GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-            GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-            GLOBAL_MESSAGE_GENERATOR_SEED,
-            test_atts.len(),
-        )
-        .expect("generators creation failed");
+
+        // start with all hidden messages
+        let mut proof_msgs: Vec<ProofMessage> =
+            test_atts.iter().map(|a| ProofMessage::Hidden(*a)).collect();
+
         let signature = Signature::from_octets(
             &<[u8; Signature::SIZE_BYTES]>::try_from(
                 hex::decode(EXPECTED_SIGS[i]).expect("hex decoding failed"),
@@ -147,39 +77,25 @@ fn proofs() {
         .expect("signature deserialization failed");
         assert_eq!(
             signature
-                .verify(&pk, Some(&HEADER), &gens, &test_atts)
+                .verify(&pk, Some(&TEST_HEADER), &gens, &test_atts)
                 .unwrap(),
             true
         );
-        // start with all hidden messages
-        let mut proof_msgs: Vec<ProofMessage> = test_atts
-            .iter()
-            .map(|a| {
-                ProofMessage::Hidden(HiddenMessage::ProofSpecificBlinding(*a))
-            })
-            .collect();
 
         let mut proof_values: Vec<String> = Vec::new();
 
         // Reveal 1 message at a time
         for j in 0..proof_msgs.len() {
-            let mut pok = PokSignature::init_with_rng(
+            let proof = Proof::new_with_rng(
                 &pk,
                 &signature,
-                Some(&HEADER),
+                Some(TEST_HEADER.as_ref()),
+                Some(TEST_PRESENTATION_HEADER.as_ref()),
                 &gens,
                 proof_msgs.as_slice(),
                 &mut rng,
             )
-            .expect("Signature PoK init failed");
-
-            let challenge = pok
-                .compute_challenge(&pk, Some(PRESENTATION_MESSAGE))
-                .expect("Signature PoK challenge computation failed");
-
-            let proof = pok
-                .generate_proof(challenge)
-                .expect("PoK proof generation failed");
+            .expect("proof generation failed");
 
             let expected_proof = hex::decode(expected_proofs[i][j]).expect(
                 "expected
@@ -189,19 +105,19 @@ fn proofs() {
             proof_values.push(hex::encode(proof.to_octets()));
             let mut revealed_msgs = Vec::new();
             for k in 0..j {
-                revealed_msgs.push((k as usize, TEST_CLAIMS[k].to_vec()));
+                revealed_msgs.push((k as usize, proof_msgs[k].get_message()));
             }
 
             assert_eq!(
-                verify_proof(BbsVerifyProofRequest {
-                    public_key: pk.point_to_octets().to_vec(),
-                    header: Some(HEADER.to_vec()),
-                    presentation_message: Some(PRESENTATION_MESSAGE.to_vec()),
-                    proof: proof.to_octets().to_vec(),
-                    total_message_count: test_atts.len(),
-                    messages: Some(revealed_msgs.as_slice().to_vec()),
-                })
-                .expect("proof verification failed"),
+                proof
+                    .verify(
+                        &pk,
+                        Some(TEST_HEADER.as_ref()),
+                        Some(TEST_PRESENTATION_HEADER.as_ref()),
+                        &gens,
+                        &revealed_msgs
+                    )
+                    .expect("proof verification failed"),
                 true
             );
             proof_msgs[j] = ProofMessage::Revealed(test_atts[j]);
