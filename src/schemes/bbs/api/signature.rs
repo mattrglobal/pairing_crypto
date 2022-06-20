@@ -16,7 +16,7 @@ use crate::{
     },
 };
 
-/// Creates a signature
+/// Creates a signature.
 pub fn sign(request: BbsSignRequest) -> Result<[u8; 112], Error> {
     // Parse the secret key
     let sk = SecretKey::from_vec(request.secret_key)?;
@@ -40,7 +40,7 @@ pub fn sign(request: BbsSignRequest) -> Result<[u8; 112], Error> {
         .map(|sig| sig.to_octets())
 }
 
-/// Verifies a signature
+/// Verifies a signature.
 pub fn verify(request: BbsVerifyRequest) -> Result<bool, Error> {
     // Parse public key from request
     let pk = PublicKey::from_vec(request.public_key)?;
