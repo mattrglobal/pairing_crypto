@@ -163,25 +163,22 @@ impl Proof {
         );
 
         //  C2 = D * (-r3~) + H_s * s~ + H_j1 * m~_j1 + ... + H_jU * m~_jU
-        let mut C2_points = Vec::new();
-        let mut C2_scalars = Vec::new();
-        // For D * (-r3~)
-        C2_points.push(-D);
-        C2_scalars.push(r3_tilde);
-        // For H_s * s~
-        C2_points.push(generators.H_s());
-        C2_scalars.push(s_tilde);
+        let mut H_points = Vec::new();
+        let mut m_tilde_scalars = Vec::new();
         let mut hidden_messages = Vec::new();
         for (i, generator) in
             generators.message_blinding_points_iter().enumerate()
         {
             if let ProofMessage::Hidden(m) = messages[i] {
-                C2_points.push(*generator);
-                C2_scalars.push(Scalar::random(&mut rng));
+                H_points.push(*generator);
+                m_tilde_scalars.push(Scalar::random(&mut rng));
                 hidden_messages.push(m.0);
             }
         }
-        let C2 = G1Projective::multi_exp(&C2_points, &C2_scalars);
+        let C2 = G1Projective::multi_exp(
+            &[[D, generators.H_s()].to_vec(), H_points].concat(),
+            &[[-r3_tilde, s_tilde].to_vec(), m_tilde_scalars.clone()].concat(),
+        );
 
         // c = hash_to_scalar((PK || Abar || A' || D || C1 || C2 || ph), 1)
         let c = compute_challenge(PK, &A_bar, &A_prime, &D, &C1, &C2, ph)?;
@@ -199,9 +196,8 @@ impl Proof {
         let s_hat = FiatShamirProof(s_tilde + c.0 * s_prime);
 
         // for j in (j1, j2,..., jU): m^_j = m~_j + c * msg_j
-        let m_hat_list = C2_scalars
+        let m_hat_list = m_tilde_scalars
             .iter()
-            .skip(2)
             .zip(hidden_messages.iter())
             .map(|(m_tilde, msg)| {
                 let m_hat = *m_tilde + c.0 * (*msg);
