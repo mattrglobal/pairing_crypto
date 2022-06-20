@@ -1,13 +1,15 @@
+#![allow(non_snake_case)]
+
 use super::{
     constants::{
-        g1_affine_compressed_size,
         BBS_CIPHERSUITE_ID,
         OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        OCTET_POINT_G1_LENGTH,
     },
     generator::Generators,
     hash_utils::hash_to_scalar,
-    public_key::PublicKey,
-    types::Message,
+    key_pair::PublicKey,
+    types::{Challenge, Message},
 };
 use crate::{
     common::serialization::{i2osp, i2osp_with_data},
@@ -21,27 +23,26 @@ use group::{Curve, Group};
 /// and big-endian octets form.
 pub(crate) fn point_to_octets_g1(
     p: &G1Projective,
-) -> [u8; g1_affine_compressed_size()] {
+) -> [u8; OCTET_POINT_G1_LENGTH] {
     p.to_affine().to_compressed()
 }
 
 /// Convert from octets in affine, compressed and big-endian form to
 /// `G1Projective` type.
 pub(crate) fn octets_to_point_g1(
-    octets: &[u8; g1_affine_compressed_size()],
+    octets: &[u8; OCTET_POINT_G1_LENGTH],
 ) -> Result<G1Projective, Error> {
     let result = G1Affine::from_compressed(octets).map(G1Projective::from);
     if result.is_some().unwrap_u8() == 1u8 {
         Ok(result.unwrap())
     } else {
-        Err(Error::CryptoBadEncoding)
+        Err(Error::BadEncoding)
     }
 }
 
 /// Computes `domain` value.
 /// domain =
 ///    hash_to_scalar((PK || L || generators || Ciphersuite_ID || header), 1)
-#[allow(non_snake_case)]
 pub(crate) fn compute_domain<T>(
     PK: &PublicKey,
     header: Option<T>,
@@ -53,7 +54,7 @@ where
 {
     // Error out if length of messages and generators are not equal
     if L != generators.message_blinding_points_length() {
-        return Err(Error::CryptoMessageGeneratorsLengthMismatch {
+        return Err(Error::MessageGeneratorsLengthMismatch {
             generators: generators.message_blinding_points_length(),
             messages: L,
         });
@@ -90,7 +91,6 @@ where
 
 /// Computes `B` value.
 /// B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
-#[allow(non_snake_case)]
 pub(crate) fn compute_B(
     s: &Scalar,
     domain: &Scalar,
@@ -100,7 +100,7 @@ pub(crate) fn compute_B(
     // Input params check
     // Error out if length of generators and messages are not equal
     if messages.len() != generators.message_blinding_points_length() {
-        return Err(Error::CryptoMessageGeneratorsLengthMismatch {
+        return Err(Error::MessageGeneratorsLengthMismatch {
             generators: generators.message_blinding_points_length(),
             messages: messages.len(),
         });
@@ -120,4 +120,34 @@ pub(crate) fn compute_B(
         .collect();
 
     Ok(G1Projective::multi_exp(&points, &scalars))
+}
+
+/// Compute Fiat Shamir heuristic challenge.
+/// c = hash_to_scalar((PK || Abar || A' || D || C1 || C2 || ph), 1)
+pub(crate) fn compute_challenge<T>(
+    PK: &PublicKey,
+    A_bar: &G1Projective,
+    A_prime: &G1Projective,
+    D: &G1Projective,
+    C1: &G1Projective,
+    C2: &G1Projective,
+    ph: Option<T>,
+) -> Result<Challenge, Error>
+where
+    T: AsRef<[u8]>,
+{
+    let mut data_to_hash = vec![];
+    data_to_hash.extend(PK.point_to_octets().as_ref());
+    data_to_hash.extend(point_to_octets_g1(A_bar).as_ref());
+    data_to_hash.extend(point_to_octets_g1(A_prime).as_ref());
+    data_to_hash.extend(point_to_octets_g1(D).as_ref());
+    data_to_hash.extend(point_to_octets_g1(C1));
+    data_to_hash.extend(point_to_octets_g1(C2));
+    if let Some(ph) = ph {
+        data_to_hash.extend(i2osp_with_data(
+            ph.as_ref(),
+            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        )?);
+    }
+    Ok(Challenge(hash_to_scalar(data_to_hash, 1)?[0]))
 }

@@ -13,11 +13,10 @@
 // limitations under the License.
 // ------------------------------------------------------------------------------
 
-use super::dtos::BbsDeriveProofRevealMessageRequest;
+use super::dtos::BbsProofGenRevealMessageRequest;
 use crate::{
     error::Error,
     schemes::bbs::ciphersuites::bls12_381::{
-        HiddenMessage,
         Message,
         ProofMessage,
         MAP_MESSAGE_TO_SCALAR_DST,
@@ -26,14 +25,14 @@ use crate::{
 
 /// Digests the set of input messages and returns in the form of an internal
 /// structure
-pub fn digest_messages(
+pub(super) fn digest_messages(
     messages: Option<&Vec<Vec<u8>>>,
 ) -> Result<Vec<Message>, Error> {
     if let Some(messages) = messages {
         return messages
             .iter()
             .map(|msg| {
-                Message::map_to_scalar(
+                Message::from_arbitrary_data(
                     msg.as_ref(),
                     MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
                 )
@@ -44,14 +43,14 @@ pub fn digest_messages(
 }
 
 /// Digests a set of supplied proof messages
-pub fn digest_proof_messages(
-    messages: Option<&Vec<BbsDeriveProofRevealMessageRequest>>,
+pub(super) fn digest_proof_messages(
+    messages: Option<&Vec<BbsProofGenRevealMessageRequest>>,
 ) -> Result<Vec<ProofMessage>, Error> {
     if let Some(messages) = messages {
         return messages
             .iter()
             .map(|element| {
-                match Message::map_to_scalar(
+                match Message::from_arbitrary_data(
                     element.value.clone().as_ref(),
                     MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
                 ) {
@@ -59,11 +58,7 @@ pub fn digest_proof_messages(
                         if element.reveal {
                             Ok(ProofMessage::Revealed(digested_message))
                         } else {
-                            Ok(ProofMessage::Hidden(
-                                HiddenMessage::ProofSpecificBlinding(
-                                    digested_message,
-                                ),
-                            ))
+                            Ok(ProofMessage::Hidden(digested_message))
                         }
                     }
                     Err(e) => Err(e),
@@ -74,7 +69,7 @@ pub fn digest_proof_messages(
     Ok(vec![])
 }
 
-pub fn digest_revealed_proof_messages(
+pub(super) fn digest_revealed_proof_messages(
     messages: Option<&Vec<(usize, Vec<u8>)>>,
     total_message_count: usize,
 ) -> Result<Vec<(usize, Message)>, Error> {
@@ -102,7 +97,7 @@ pub fn digest_revealed_proof_messages(
     messages
         .iter()
         .map(|(i, m)| {
-            match Message::map_to_scalar(
+            match Message::from_arbitrary_data(
                 m.as_ref(),
                 MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
             ) {

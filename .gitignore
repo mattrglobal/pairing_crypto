@@ -22,3 +22,6 @@ Cargo.lock
 
 #/target
 #Cargo.lock
+
+# VS code settings
+.vscode

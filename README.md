@@ -26,19 +26,11 @@ Below is an outline of the repositories structure
 
 ```
 ├── src - Main source code folder
-│   ├ lib.rs - Controls the exposed public API
+│   ├ common - Common functionality and utilities
 │   ├ curves - Defines the different pairing based elliptic curves supported by the library
-│   │   ├── bls_12381.rs
-│   │   └── bls_12381
-│   └ schemes - Defines the different cryptographic schemes (e.g signatures) supported by the library
-│       ├── bbs.rs
-│       └── bbs
-
-├── tests - Integration Tests
+│   └ schemes - Defines the different cryptographic schemes (e.g. BBS signatures) supported by the library
+│   └ tests - Unit tests
+├── tests - Integration tests (public APIs of a scheme)
 ├── wrappers - Bindings to other languages
 ├── benches - Benchmarks
-├── Cargo.toml
-├── Cargo.lock
-├── README.md
-└── docs/CONTRIBUTING.md
 ```
