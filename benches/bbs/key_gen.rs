@@ -45,8 +45,8 @@ fn sk_to_pk_benchmark(c: &mut Criterion) {
 }
 
 criterion_group!(
-    name = benches;
+    name = bbs_key_gen;
     config = Criterion::default().measurement_time(Duration::from_secs(5));
     targets = secret_key_gen_from_seed_benchmark, secret_key_gen_from_random_benchmark, sk_to_pk_benchmark
 );
-criterion_main!(benches);
+criterion_main!(bbs_key_gen);

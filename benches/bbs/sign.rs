@@ -72,8 +72,8 @@ fn sign_benchmark(c: &mut Criterion) {
 }
 
 criterion_group!(
-    name = benches;
+    name = bbs_sign_benches;
     config = Criterion::default().measurement_time(Duration::from_secs(20));
     targets = sign_benchmark
 );
-criterion_main!(benches);
+criterion_main!(bbs_sign_benches);

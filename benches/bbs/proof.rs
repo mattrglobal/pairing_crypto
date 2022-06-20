@@ -229,8 +229,8 @@ fn proof_50_percent_revealed_benchmark(c: &mut Criterion) {
 }
 
 criterion_group!(
-    name = benches;
+    name = bbs_proof_benches;
     config = Criterion::default().measurement_time(Duration::from_secs(100));
     targets =  proof_all_hidden_benchmark, proof_50_percent_revealed_benchmark
 );
-criterion_main!(benches);
+criterion_main!(bbs_proof_benches);

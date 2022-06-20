@@ -27,19 +27,22 @@ subtle = "2.4"
 zeroize = { version  ="1.3", features = ["zeroize_derive"] }
 
 [dev-dependencies]
+pprof = { version = "0.9.0", features = ["criterion", "flamegraph"] }
 criterion = { version = "0.3.5", features = ["html_reports"] }
 hex = "0.4"
 rand_xorshift = "0.3"
 
 [[bench]]
-name = "key_gen"
+name = "bbs_key_gen"
+path = "benches/bbs/key_gen.rs"
 harness = false
 
 [[bench]]
-name = "sign"
+name = "bbs_sign"
+path = "benches/bbs/sign.rs"
 harness = false
 
 [[bench]]
-name = "proof"
+name = "bbs_proof"
+path = "benches/bbs/proof.rs"
 harness = false
-
