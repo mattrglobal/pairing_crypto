@@ -476,15 +476,15 @@ impl Proof {
         let c = c.unwrap();
 
         // Get e^, r2^, r3^, s^
-        let e_hat = extract_proof_value(&mut offset, &mut end, buffer)?;
-        let r2_hat = extract_proof_value(&mut offset, &mut end, buffer)?;
-        let r3_hat = extract_proof_value(&mut offset, &mut end, buffer)?;
-        let s_hat = extract_proof_value(&mut offset, &mut end, buffer)?;
+        let e_hat = extract_scalar_value(&mut offset, &mut end, buffer)?;
+        let r2_hat = extract_scalar_value(&mut offset, &mut end, buffer)?;
+        let r3_hat = extract_scalar_value(&mut offset, &mut end, buffer)?;
+        let s_hat = extract_scalar_value(&mut offset, &mut end, buffer)?;
         // Get  (m^_j1, ..., m^_jU)
         let mut m_hat_list =
             Vec::<FiatShamirProof>::with_capacity(unrevealed_message_count);
         for _ in 0..unrevealed_message_count {
-            let m_hat = extract_proof_value(&mut offset, &mut end, buffer)?;
+            let m_hat = extract_scalar_value(&mut offset, &mut end, buffer)?;
             m_hat_list.push(m_hat);
         }
 
@@ -523,7 +523,7 @@ fn extract_point_value(
 }
 
 // Extract a `FiatShamirProof` value from the buffer
-fn extract_proof_value(
+fn extract_scalar_value(
     offset: &mut usize,
     end: &mut usize,
     buffer: &[u8],
