@@ -1,67 +1,70 @@
-use std::time::Duration;
-
 use pairing_crypto::bbs::ciphersuites::bls12_381::{
-    Generators,
-    Message,
-    PublicKey,
-    SecretKey,
-    Signature,
-    GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-    GLOBAL_MESSAGE_GENERATOR_SEED,
-    GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+    sign,
+    verify,
+    BbsSignRequest,
+    BbsVerifyRequest,
+    KeyPair,
 };
+use rand::{rngs::OsRng, Rng};
+use std::time::Duration;
 
 #[macro_use]
 extern crate criterion;
 
-use criterion::Criterion;
-use rand::rngs::OsRng;
+use criterion::{black_box, Criterion};
 
-const HEADER: &[u8; 16] = b"some_app_context";
+const TEST_HEADER: &[u8; 16] = b"some_app_context";
 
 fn sign_benchmark(c: &mut Criterion) {
-    let sk =
-        SecretKey::random(&mut OsRng).expect("secret key generation failed");
-    let pk = PublicKey::from(&sk);
+    let (secret_key, public_key) = KeyPair::random(&mut OsRng)
+        .map(|key_pair| {
+            (
+                key_pair.secret_key.to_bytes().to_vec(),
+                key_pair.public_key.point_to_octets().to_vec(),
+            )
+        })
+        .expect("key generation failed");
 
     for num_messages in vec![1, 10, 100, 1000] {
-        let gens = Generators::new(
-            GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-            GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-            GLOBAL_MESSAGE_GENERATOR_SEED,
-            num_messages,
-        )
-        .expect("generators creation failed");
-
-        let messages: Vec<Message> = (0..num_messages)
-            .map(|_| Message::random(&mut OsRng))
+        // generating random 32 bytes messages
+        let messages: Vec<Vec<u8>> = (0..num_messages)
+            .map(|_| rand::thread_rng().gen::<[u8; 32]>().to_vec())
             .collect();
 
         c.bench_function(
             &format!("sign - total messages {}", num_messages),
             |b| {
                 b.iter(|| {
-                    let _ = Signature::new(
-                        &sk,
-                        &pk,
-                        Some(&HEADER),
-                        &gens,
-                        &messages,
-                    )
+                    sign(BbsSignRequest {
+                        secret_key: black_box(secret_key.clone()),
+                        public_key: black_box(public_key.clone()),
+                        header: black_box(Some(TEST_HEADER.as_ref().to_vec())),
+                        messages: black_box(Some(messages.to_vec())),
+                    })
                     .unwrap();
                 });
             },
         );
 
-        let signature =
-            Signature::new(&sk, &pk, Some(&HEADER), &gens, &messages).unwrap();
+        let signature = sign(BbsSignRequest {
+            secret_key: secret_key.clone(),
+            public_key: public_key.clone(),
+            header: Some(TEST_HEADER.as_ref().to_vec()),
+            messages: Some(messages.to_vec()),
+        })
+        .expect("signature generation failed");
+
         c.bench_function(
             &format!("sign_verify - total messages {}", num_messages),
             |b| {
                 b.iter(|| {
-                    let _ = signature
-                        .verify(&pk, Some(&HEADER), &gens, &messages)
-                        .unwrap();
+                    assert!(verify(BbsVerifyRequest {
+                        public_key: black_box(public_key.clone()),
+                        header: black_box(Some(TEST_HEADER.as_ref().to_vec())),
+                        messages: black_box(Some(messages.to_vec())),
+                        signature: black_box(signature.to_vec()),
+                    })
+                    .unwrap());
                 });
             },
         );

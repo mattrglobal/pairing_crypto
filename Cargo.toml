@@ -36,10 +36,6 @@ name = "key_gen"
 harness = false
 
 [[bench]]
-name = "generators"
-harness = false
-
-[[bench]]
 name = "sign"
 harness = false
 

@@ -5,7 +5,7 @@ use pairing_crypto::bbs::ciphersuites::bls12_381::{PublicKey, SecretKey};
 #[macro_use]
 extern crate criterion;
 
-use criterion::Criterion;
+use criterion::{black_box, Criterion};
 use rand::rngs::OsRng;
 
 fn secret_key_gen_from_seed_benchmark(c: &mut Criterion) {
@@ -16,9 +16,11 @@ fn secret_key_gen_from_seed_benchmark(c: &mut Criterion) {
 
     c.bench_function(&format!("secret key_gen from seed"), |b| {
         b.iter(|| {
-            let _ =
-                SecretKey::new(KEY_GEN_SEED.as_ref(), TEST_KEY_INFOS.as_ref())
-                    .expect("secret key generation failed");
+            SecretKey::new(
+                black_box(KEY_GEN_SEED.as_ref()),
+                black_box(TEST_KEY_INFOS.as_ref()),
+            )
+            .unwrap();
         });
     });
 }
@@ -26,8 +28,7 @@ fn secret_key_gen_from_seed_benchmark(c: &mut Criterion) {
 fn secret_key_gen_from_random_benchmark(c: &mut Criterion) {
     c.bench_function(&format!("secret key_gen from random"), |b| {
         b.iter(|| {
-            let _ = SecretKey::random(&mut OsRng)
-                .expect("secret key generation failed");
+            SecretKey::random(black_box(&mut OsRng)).unwrap();
         });
     });
 }
@@ -38,7 +39,7 @@ fn sk_to_pk_benchmark(c: &mut Criterion) {
 
     c.bench_function(&format!("sk_to_pk from random"), |b| {
         b.iter(|| {
-            let _ = PublicKey::from(&sk);
+            let _ = PublicKey::from(black_box(&sk));
         });
     });
 }

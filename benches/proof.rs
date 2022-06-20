@@ -1,60 +1,70 @@
 use std::time::Duration;
 
-use pairing_crypto::bbs::ciphersuites::bls12_381::{
-    verify_proof,
-    BbsVerifyProofRequest,
-    Generators,
-    HiddenMessage,
-    Message,
-    PokSignature,
-    ProofMessage,
-    PublicKey,
-    SecretKey,
-    Signature,
-    GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-    GLOBAL_MESSAGE_GENERATOR_SEED,
-    GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+use pairing_crypto::bbs::{
+    ciphersuites::bls12_381::{
+        proof_gen,
+        proof_verify,
+        sign,
+        verify,
+        BbsProofGenRequest,
+        BbsProofGenRevealMessageRequest,
+        BbsProofVerifyRequest,
+        BbsSignRequest,
+        BbsVerifyRequest,
+    },
+    core::key_pair::KeyPair,
 };
 
 #[macro_use]
 extern crate criterion;
 
-use criterion::Criterion;
-use rand::rngs::OsRng;
+use criterion::{black_box, Criterion};
+use rand::{rngs::OsRng, Rng};
 
-const HEADER: &[u8; 16] = b"some_app_context";
-const PRESENTATION_MESSAGE: &[u8; 25] = b"test-presentation-message";
+const TEST_HEADER: &[u8; 16] = b"some_app_context";
+const TEST_PRESENTATION_MESSAGE: &[u8; 25] = b"test-presentation-message";
 
 fn proof_all_hidden_benchmark(c: &mut Criterion) {
-    let sk =
-        SecretKey::random(&mut OsRng).expect("secret key generation failed");
-    let pk = PublicKey::from(&sk);
+    let (secret_key, public_key) = KeyPair::random(&mut OsRng)
+        .map(|key_pair| {
+            (
+                key_pair.secret_key.to_bytes().to_vec(),
+                key_pair.public_key.point_to_octets().to_vec(),
+            )
+        })
+        .expect("key generation failed");
 
-    for num_messages in vec![1, 10] {
-        let gens = Generators::new(
-            GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-            GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-            GLOBAL_MESSAGE_GENERATOR_SEED,
-            num_messages,
-        )
-        .expect("generators creation failed");
-
-        let messages: Vec<Message> = (0..num_messages)
-            .map(|_| Message::random(&mut OsRng))
+    for num_messages in vec![1, 10, 100, 1000] {
+        // generating random 32 bytes messages
+        let messages: Vec<Vec<u8>> = (0..num_messages)
+            .map(|_| rand::thread_rng().gen::<[u8; 32]>().to_vec())
             .collect();
 
-        let signature =
-            Signature::new(&sk, &pk, Some(&HEADER), &gens, &messages).unwrap();
+        let signature = sign(BbsSignRequest {
+            secret_key: secret_key.clone(),
+            public_key: public_key.clone(),
+            header: Some(TEST_HEADER.as_ref().to_vec()),
+            messages: Some(messages.to_vec()),
+        })
+        .expect("signature generation failed");
 
-        assert!(signature
-            .verify(&pk, Some(&HEADER), &gens, &messages)
-            .unwrap());
+        assert_eq!(
+            verify(BbsVerifyRequest {
+                public_key: public_key.clone(),
+                header: Some(TEST_HEADER.as_ref().to_vec()),
+                messages: Some(messages.to_vec()),
+                signature: signature.to_vec(),
+            })
+            .expect("error during signature verification"),
+            true
+        );
 
         // All hidden
-        let proof_msgs: Vec<ProofMessage> = messages
+        let proof_messages: Vec<BbsProofGenRevealMessageRequest> = messages
             .iter()
-            .map(|a| {
-                ProofMessage::Hidden(HiddenMessage::ProofSpecificBlinding(*a))
+            .map(|value| BbsProofGenRevealMessageRequest {
+                reveal: false,
+                value: value.clone(),
             })
             .collect();
 
@@ -62,38 +72,28 @@ fn proof_all_hidden_benchmark(c: &mut Criterion) {
             &format!("proof_gen all hidden - total messages {}", num_messages),
             |b| {
                 b.iter(|| {
-                    let mut pok = PokSignature::init(
-                        &pk,
-                        &signature,
-                        Some(&HEADER),
-                        &gens,
-                        proof_msgs.as_slice(),
-                    )
+                    proof_gen(BbsProofGenRequest {
+                        public_key: black_box(public_key.clone()),
+                        header: black_box(Some(TEST_HEADER.to_vec())),
+                        messages: black_box(Some(proof_messages.clone())),
+                        signature: black_box(signature.to_vec()),
+                        presentation_message: black_box(Some(
+                            TEST_PRESENTATION_MESSAGE.to_vec(),
+                        )),
+                    })
                     .unwrap();
-
-                    let challenge = pok
-                        .compute_challenge(&pk, Some(PRESENTATION_MESSAGE))
-                        .unwrap();
-
-                    let _ = pok.generate_proof(challenge).unwrap();
                 });
             },
         );
 
-        let mut pok = PokSignature::init(
-            &pk,
-            &signature,
-            Some(&HEADER),
-            &gens,
-            proof_msgs.as_slice(),
-        )
-        .unwrap();
-
-        let challenge = pok
-            .compute_challenge(&pk, Some(PRESENTATION_MESSAGE))
-            .unwrap();
-
-        let proof = pok.generate_proof(challenge).unwrap();
+        let proof = proof_gen(BbsProofGenRequest {
+            public_key: public_key.clone(),
+            header: Some(TEST_HEADER.to_vec()),
+            messages: Some(proof_messages.clone()),
+            signature: signature.to_vec(),
+            presentation_message: Some(TEST_PRESENTATION_MESSAGE.to_vec()),
+        })
+        .expect("proof generation failed");
 
         c.bench_function(
             &format!(
@@ -102,15 +102,15 @@ fn proof_all_hidden_benchmark(c: &mut Criterion) {
             ),
             |b| {
                 b.iter(|| {
-                    assert!(verify_proof(BbsVerifyProofRequest {
-                        public_key: pk.point_to_octets().to_vec(),
-                        header: Some(HEADER.to_vec()),
-                        presentation_message: Some(
-                            PRESENTATION_MESSAGE.to_vec()
-                        ),
-                        proof: proof.to_octets().to_vec(),
-                        total_message_count: num_messages,
-                        messages: Some(vec![]),
+                    assert!(proof_verify(BbsProofVerifyRequest {
+                        public_key: black_box(public_key.clone()),
+                        header: black_box(Some(TEST_HEADER.to_vec())),
+                        presentation_message: black_box(Some(
+                            TEST_PRESENTATION_MESSAGE.to_vec()
+                        )),
+                        proof: black_box(proof.clone()),
+                        total_message_count: black_box(num_messages),
+                        messages: black_box(Some(vec![])),
                     })
                     .unwrap());
                 });
@@ -120,108 +120,108 @@ fn proof_all_hidden_benchmark(c: &mut Criterion) {
 }
 
 fn proof_50_percent_revealed_benchmark(c: &mut Criterion) {
-    let sk =
-        SecretKey::random(&mut OsRng).expect("secret key generation failed");
-    let pk = PublicKey::from(&sk);
+    let (secret_key, public_key) = KeyPair::random(&mut OsRng)
+        .map(|key_pair| {
+            (
+                key_pair.secret_key.to_bytes().to_vec(),
+                key_pair.public_key.point_to_octets().to_vec(),
+            )
+        })
+        .expect("key generation failed");
 
     for num_messages in vec![1, 10, 100, 1000] {
         let num_revealed_messages = num_messages / 2;
-        let gens = Generators::new(
-            GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-            GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-            GLOBAL_MESSAGE_GENERATOR_SEED,
-            num_messages,
-        )
-        .expect("generators creation failed");
-
-        let messages: Vec<Message> = (0..num_messages)
-            .map(|_| Message::random(&mut OsRng))
+        // generating random 32 bytes messages
+        let messages: Vec<Vec<u8>> = (0..num_messages)
+            .map(|_| rand::thread_rng().gen::<[u8; 32]>().to_vec())
             .collect();
 
-        let signature =
-            Signature::new(&sk, &pk, Some(&HEADER), &gens, &messages).unwrap();
+        let signature = sign(BbsSignRequest {
+            secret_key: secret_key.clone(),
+            public_key: public_key.clone(),
+            header: Some(TEST_HEADER.as_ref().to_vec()),
+            messages: Some(messages.to_vec()),
+        })
+        .expect("signature generation failed");
 
-        assert!(signature
-            .verify(&pk, Some(&HEADER), &gens, &messages)
-            .unwrap());
+        assert_eq!(
+            verify(BbsVerifyRequest {
+                public_key: public_key.clone(),
+                header: Some(TEST_HEADER.as_ref().to_vec()),
+                messages: Some(messages.to_vec()),
+                signature: signature.to_vec(),
+            })
+            .expect("error during signature verification"),
+            true
+        );
 
-        // All hidden
-        let mut proof_msgs: Vec<ProofMessage> = messages
+        let mut proof_messages: Vec<BbsProofGenRevealMessageRequest> = messages
             .iter()
-            .map(|a| {
-                ProofMessage::Hidden(HiddenMessage::ProofSpecificBlinding(*a))
+            .map(|value| BbsProofGenRevealMessageRequest {
+                reveal: false,
+                value: value.clone(),
             })
             .collect();
 
-        let mut revealed_msgs = Vec::with_capacity(num_revealed_messages);
-        // 50% hidden
-        for k in 0..num_revealed_messages {
-            proof_msgs[k] = ProofMessage::Revealed(messages[k]);
-            revealed_msgs.push((k as usize, messages[k]));
+        // Hide first 50% messages
+        for i in 0..num_revealed_messages {
+            proof_messages[i].reveal = true;
         }
+        // 50% revealed
+        let revealed_messages = messages[0..num_revealed_messages]
+            .iter()
+            .enumerate()
+            .map(|(k, m)| (k as usize, m.clone()))
+            .collect::<Vec<(usize, Vec<u8>)>>();
 
         c.bench_function(
             &format!(
-                "proof_gen 50 percent hidden - total messages {}",
+                "proof_gen 50 percent revealed messages - total messages {}",
                 num_messages
             ),
             |b| {
                 b.iter(|| {
-                    let mut pok = PokSignature::init(
-                        &pk,
-                        &signature,
-                        Some(&HEADER),
-                        &gens,
-                        proof_msgs.as_slice(),
-                    )
+                    proof_gen(BbsProofGenRequest {
+                        public_key: black_box(public_key.clone()),
+                        header: black_box(Some(TEST_HEADER.to_vec())),
+                        messages: black_box(Some(proof_messages.clone())),
+                        signature: black_box(signature.to_vec()),
+                        presentation_message: black_box(Some(
+                            TEST_PRESENTATION_MESSAGE.to_vec(),
+                        )),
+                    })
                     .unwrap();
-
-                    let challenge = pok
-                        .compute_challenge(&pk, Some(PRESENTATION_MESSAGE))
-                        .unwrap();
-
-                    let _ = pok.generate_proof(challenge).unwrap();
                 });
             },
         );
 
-        let mut pok = PokSignature::init(
-            &pk,
-            &signature,
-            Some(&HEADER),
-            &gens,
-            proof_msgs.as_slice(),
-        )
-        .unwrap();
-
-        let challenge = pok
-            .compute_challenge(&pk, Some(PRESENTATION_MESSAGE))
-            .unwrap();
-
-        let proof = pok.generate_proof(challenge).unwrap();
+        let proof = proof_gen(BbsProofGenRequest {
+            public_key: public_key.clone(),
+            header: Some(TEST_HEADER.to_vec()),
+            messages: Some(proof_messages.clone()),
+            signature: signature.to_vec(),
+            presentation_message: Some(TEST_PRESENTATION_MESSAGE.to_vec()),
+        })
+        .expect("proof generation failed");
 
         c.bench_function(
             &format!(
-                "proof_verify 50 percent hidden - total messages {}",
+                "proof_verify 50 percent revealed messages - total messages {}",
                 num_messages
             ),
             |b| {
                 b.iter(|| {
-                    let cv = proof
-                        .compute_challenge(
-                            &pk,
-                            Some(HEADER.as_ref()),
-                            &gens,
-                            &revealed_msgs,
-                            Some(PRESENTATION_MESSAGE.as_ref()),
-                            challenge,
-                        )
-                        .unwrap();
-
-                    assert!(
-                        proof.verify_signature_proof(pk).unwrap()
-                            && challenge == cv
-                    );
+                    assert!(proof_verify(BbsProofVerifyRequest {
+                        public_key: black_box(public_key.clone()),
+                        header: black_box(Some(TEST_HEADER.to_vec())),
+                        presentation_message: black_box(Some(
+                            TEST_PRESENTATION_MESSAGE.to_vec()
+                        )),
+                        proof: black_box(proof.clone()),
+                        total_message_count: black_box(num_messages),
+                        messages: black_box(Some(revealed_messages.clone())),
+                    })
+                    .unwrap());
                 });
             },
         );
@@ -231,6 +231,6 @@ fn proof_50_percent_revealed_benchmark(c: &mut Criterion) {
 criterion_group!(
     name = benches;
     config = Criterion::default().measurement_time(Duration::from_secs(100));
-    targets = proof_all_hidden_benchmark, proof_50_percent_revealed_benchmark
+    targets =  proof_all_hidden_benchmark, proof_50_percent_revealed_benchmark
 );
 criterion_main!(benches);
