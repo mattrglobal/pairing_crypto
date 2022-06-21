@@ -99,7 +99,7 @@ const runBbsBenchmark = async (
 
 (async () => {
   report(
-    "BLS 12-381 Key Generation",
+    "BBS Key Generation",
     await benchmarkPromise(() => bls12381.bbs.generateKeyPair(randomBytes(32), randomBytes(32)))
   );
 
