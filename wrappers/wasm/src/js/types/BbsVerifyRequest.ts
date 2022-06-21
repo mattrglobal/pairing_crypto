@@ -12,7 +12,7 @@
  */
 
 /**
- * A request verify a BBS signature for a set of messages
+ * A request to verify a BBS signature for a set of messages
  */
 export interface BbsVerifyRequest {
   /**
@@ -20,11 +20,15 @@ export interface BbsVerifyRequest {
    */
   readonly publicKey: Uint8Array;
   /**
+   * Header message that was included in the signature
+   */
+  readonly header?: Uint8Array;
+  /**
    * Raw signature value
    */
   readonly signature: Uint8Array;
   /**
    * Messages that were signed to produce the signature
    */
-  readonly messages: readonly Uint8Array[];
+  readonly messages?: readonly Uint8Array[];
 }

@@ -23,7 +23,7 @@ interface BbsDeriveProofMessageRequest {
 }
 
 /**
- * A request verify a BBS signature for a set of messages
+ * A request to derive a BBS signature proof of knowledge for a signature and a set of messages
  */
 export interface BbsDeriveProofRequest {
   /**
@@ -31,9 +31,13 @@ export interface BbsDeriveProofRequest {
    */
   readonly publicKey: Uint8Array;
   /**
+   * Header message to include in the derived proof
+   */
+  readonly header?: Uint8Array;
+  /**
    * Presentation message to include in the derived proof
    */
-  readonly presentationMessage: Uint8Array;
+  readonly presentationMessage?: Uint8Array;
   /**
    * Raw signature value
    */
@@ -41,5 +45,5 @@ export interface BbsDeriveProofRequest {
   /**
    * Messages that were signed to produce the signature
    */
-  readonly messages: readonly BbsDeriveProofMessageRequest[];
+  readonly messages?: readonly BbsDeriveProofMessageRequest[];
 }

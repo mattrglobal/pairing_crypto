@@ -21,9 +21,7 @@ const BBS_SIGNATURE_LENGTH = 112;
 
 const DEFAULT_BLS12381_PRIVATE_KEY_LENGTH = 32;
 
-const DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH = 48;
-
-const DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH = 96;
+const DEFAULT_BLS12381_PUBLIC_KEY_LENGTH = 96;
 
 // Casts a rejected promise to an error rather than a
 // simple string result
@@ -55,25 +53,14 @@ const initialize = async () => {
     }
 }
 
-const bls12381_generate_g1_key = async (seed) => {
+const bls12381_generate_key_pair = async (ikm, keyInfo) => {
     await initialize();
     var result = await throwErrorOnRejectedPromise(
-        wasm.bls12381_generate_g1_key(seed ? seed : undefined)
+        wasm.bls12381_generate_key_pair(ikm, keyInfo)
     );
     return {
         secretKey: new Uint8Array(result.secretKey),
         publicKey: new Uint8Array(result.publicKey),
-    };
-};
-
-const bls12381_generate_g2_key = async (seed) => {
-    await initialize();
-    var result = await throwErrorOnRejectedPromise(
-        wasm.bls12381_generate_g2_key(seed ? seed : undefined)
-    );
-    return {
-      secretKey: new Uint8Array(result.secretKey),
-      publicKey: new Uint8Array(result.publicKey),
     };
 };
 
@@ -98,7 +85,7 @@ const bls12381_bbs_verify_proof = async (request) => {
 }
 
 const convertToRevealMessageArray = (messages, revealedIndicies) => {
-    let revealMessages= [];
+    let revealMessages = [];
     let i = 0;
     messages.forEach((element) => {
         if (revealedIndicies.includes(i)) {
@@ -107,20 +94,20 @@ const convertToRevealMessageArray = (messages, revealedIndicies) => {
             revealMessages.push({ value: element, reveal: false });
         }
         i++;
-        })
+    })
     return revealMessages;
 }
 
 const convertRevealMessageArrayToRevealMap = (messages) => {
     return messages.reduce(
         (map, item, index) => {
-          if (item.reveal) {
-            map = {
-              ...map,
-              [index]: item.value,
-            };
-          }
-          return map;
+            if (item.reveal) {
+                map = {
+                    ...map,
+                    [index]: item.value,
+                };
+            }
+            return map;
         },
         {}
     );
@@ -128,16 +115,13 @@ const convertRevealMessageArrayToRevealMap = (messages) => {
 
 module.exports.bls12381 = {
     PRIVATE_KEY_LENGTH: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
-    G1_PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH,
-    G2_PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH,
+    PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_PUBLIC_KEY_LENGTH,
 
-    generateG1KeyPair: bls12381_generate_g1_key,
-    generateG2KeyPair: bls12381_generate_g2_key,
     bbs: {
         SIGNATURE_LENGTH: BBS_SIGNATURE_LENGTH,
-        SIGNER_PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH,
+        SIGNER_PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_PUBLIC_KEY_LENGTH,
 
-        generateSignerKeyPair: bls12381_generate_g2_key,
+        generateSignerKeyPair: bls12381_generate_key_pair,
         sign: bls12381_bbs_sign,
         verify: bls12381_bbs_verify,
         deriveProof: bls12381_bbs_derive_proof,

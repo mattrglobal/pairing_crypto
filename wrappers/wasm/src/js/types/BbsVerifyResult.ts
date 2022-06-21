@@ -12,7 +12,7 @@
  */
 
 /**
- * The result returned from a verify operation
+ * The result returned from a signature or proof verify operation
  */
 export interface BbsVerifyResult {
   /**
@@ -20,7 +20,7 @@ export interface BbsVerifyResult {
    */
   readonly verified: boolean;
   /**
-   * Messages to sign
+   * Indicates whether an error has occured during verification
    */
   readonly error?: string;
 }

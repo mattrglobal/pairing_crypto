@@ -24,11 +24,9 @@ export * from "./types";
 
 export namespace bls12381 {
   const PRIVATE_KEY_LENGTH = 32;
-  const G1_PUBLIC_KEY_LENGTH = 48;
-  const G2_PUBLIC_KEY_LENGTH = 96;
+  const PUBLIC_KEY_LENGTH = 96;
 
-  function generateG1KeyPair(seed?: Uint8Array): Promise<Required<KeyPair>>;
-  function generateG2KeyPair(seed?: Uint8Array): Promise<Required<KeyPair>>;
+  function generateKeyPair(seed?: Uint8Array): Promise<Required<KeyPair>>;
 
   namespace bbs {
     const SIGNATURE_LENGTH = 112;
