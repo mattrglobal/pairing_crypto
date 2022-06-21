@@ -48,12 +48,15 @@ pub fn proof_gen(request: BbsProofGenRequest) -> Result<Vec<u8>, Error> {
     let signature = Signature::from_vec(request.signature)?;
 
     // Verify the signature to check the messages supplied are valid
-    signature.verify(
+    if signature.verify(
         &pk,
         request.header.as_ref(),
         &generators,
         &digested_messages,
-    )?;
+    )? == false
+    {
+        return Err(Error::SignatureVerification);
+    }
 
     // Digest the supplied messages
     let messages: Vec<ProofMessage> =
@@ -62,6 +65,7 @@ pub fn proof_gen(request: BbsProofGenRequest) -> Result<Vec<u8>, Error> {
             Err(e) => return Err(e),
         };
 
+    // Generate the proof
     let proof = Proof::new(
         &pk,
         &signature,

@@ -50,6 +50,9 @@ pub enum Error {
         cause: String,
     },
 
+    /// Signature verification failed.
+    SignatureVerification,
+
     /// Proof is malformed.
     MalformedProof {
         /// Detailed cause.
@@ -113,6 +116,9 @@ impl core::fmt::Debug for Error {
             }
             Error::MalformedSignature { ref cause } => {
                 write!(f, "signature is malformed: cause: {}", cause)
+            }
+            Error::SignatureVerification => {
+                write!(f, "signature verification failed.")
             }
             Error::MalformedProof { ref cause } => {
                 write!(f, "proof is malformed: cause: {}", cause)
