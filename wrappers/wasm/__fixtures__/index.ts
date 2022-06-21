@@ -23,6 +23,7 @@ const resolveFixtures = (subDirectory: string) =>
 export interface ProofFixtureData {
   readonly caseName: string;
   readonly proof: string;
+  readonly header: string;
   readonly presentationMessage: string;
   readonly totalMessageCount: number;
   result: { valid: false; reason: string } | { valid: true };
@@ -33,6 +34,7 @@ export interface ProofFixtureData {
 export interface SignatureFixtureData {
   readonly caseName: string;
   readonly signature: string;
+  readonly header: string;
   readonly messages: string[];
   result: { valid: false; reason: string } | { valid: true };
   readonly signerKeyPair: {

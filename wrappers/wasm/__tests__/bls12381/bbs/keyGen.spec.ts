@@ -12,6 +12,7 @@
  */
 
 import { bls12381 } from "../../../lib";
+import { base64Encode } from "../../utilities";
 
 describe("bls12381", () => {
   describe("keyGen", () => {
@@ -33,11 +34,11 @@ describe("bls12381", () => {
           )
         ),
         secretKey: new Uint8Array(
-          Buffer.from("VWpsTWREVnFjVEIzZVd0S1MzcFJjWFJUWVhoQ05USTRTbHBYU21aVk9IRnpkRFZPYUVKNUsyWldXVDA9", "base64")
+          Buffer.from("SxLi4R28gWdxA6LHCZTc8hIYEjMcEqvMQOWF/po5Uz4=", "base64")
         ),
         publicKey: new Uint8Array(
           Buffer.from(
-            "ZEd4ME9IWXZWRzlITTBrd1ZuRkZOVTV5WVRoNE0yOUlhUzlaY0VZeVdIcHlhRTFZUVVoSmEyNWtabUZ3SzNkaU1rTjFRbWx5V1VKdFFVMU1VbUpxTmtaYWQxWllPRTlGUjNCeVZVSkdORE5HYUhsbVJGcHdVRTVvZFZSNk9YaHVNREpZZW5ab2J6VnFiR0Z4Um5veE5sWmxRV0pUYnpOVFUxVTFMM1ZSTW00PQ==",
+            "lom+pndcCeNHp1J2C+mF4NTg/epCZ0/DYVKzk8Doypvcmg9mAXhMAya1m9gwG297GGNNClwtDamiZbIva7v+a9v2ztMm17M2b2v6Vg/whD5BJ72YhkQruQL0Cn59V6Ny",
             "base64"
           )
         ),

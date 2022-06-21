@@ -94,7 +94,7 @@ describe("bls12381", () => {
           ],
         };
         await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
-          "Error: Failed to parse secret key"
+          "Error: data conversion failed: cause: source vector size 10, expected destination byte array size 32"
         );
       });
 
@@ -112,18 +112,18 @@ describe("bls12381", () => {
           ],
         };
         await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
-          "Error: Failed to parse secret key"
+          "Error: data conversion failed: cause: source vector size 64, expected destination byte array size 32"
         );
       });
 
-      it("should throw error when messages empty", async () => {
+      it("should throw error when messages are empty and header is absent", async () => {
         const request: BbsSignRequest = {
           secretKey: keyPair.secretKey,
           publicKey: keyPair.publicKey,
           messages: [],
         };
         await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
-          "Messages to sign empty, expected > 1"
+          "Error: bad arguments: cause: nothing to sign"
         );
       });
 
@@ -138,7 +138,7 @@ describe("bls12381", () => {
           ],
         };
         await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
-          "Error: invalid secret key"
+          "Error: secret key is not valid."
         );
       });
     });
