@@ -114,14 +114,12 @@ const convertRevealMessageArrayToRevealMap = (messages) => {
 }
 
 module.exports.bls12381 = {
-    PRIVATE_KEY_LENGTH: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
-    PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_PUBLIC_KEY_LENGTH,
-
     bbs: {
+        PRIVATE_KEY_LENGTH: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
+        PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_PUBLIC_KEY_LENGTH,
         SIGNATURE_LENGTH: BBS_SIGNATURE_LENGTH,
-        SIGNER_PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_PUBLIC_KEY_LENGTH,
 
-        generateSignerKeyPair: bls12381_generate_key_pair,
+        generateKeyPair: bls12381_generate_key_pair,
         sign: bls12381_bbs_sign,
         verify: bls12381_bbs_verify,
         deriveProof: bls12381_bbs_derive_proof,

@@ -23,15 +23,12 @@ import {
 export * from "./types";
 
 export namespace bls12381 {
-  const PRIVATE_KEY_LENGTH = 32;
-  const PUBLIC_KEY_LENGTH = 96;
-
-  function generateKeyPair(seed?: Uint8Array): Promise<Required<KeyPair>>;
-
   namespace bbs {
+    const PRIVATE_KEY_LENGTH = 32;
+    const PUBLIC_KEY_LENGTH = 96;
     const SIGNATURE_LENGTH = 112;
-    const SIGNER_PUBLIC_KEY_LENGTH = 96;
 
+    function generateKeyPair(ikm: Uint8Array, keyInfo: Uint8Array): Promise<Required<KeyPair>>;
     function sign(request: BbsSignRequest): Promise<Uint8Array>;
     function verify(request: BbsVerifyRequest): Promise<BbsVerifyResult>;
     function deriveProof(request: BbsDeriveProofRequest): Promise<Uint8Array>;

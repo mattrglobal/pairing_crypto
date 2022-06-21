@@ -4,7 +4,7 @@ use crate::bbs::core::key_pair::{KeyPair, SecretKey};
 
 #[test]
 fn secret_key_gen_from_seed() {
-    pub const MIN_IKM_LENGTH_BYTES: usize = 32;
+    const MIN_IKM_LENGTH_BYTES: usize = 32;
 
     let seed = [0u8; MIN_IKM_LENGTH_BYTES];
     let key_info = [];
@@ -16,6 +16,23 @@ fn secret_key_gen_from_seed() {
         98, 53,
     ];
     assert_eq!(sk.unwrap().to_bytes(), expected);
+}
+
+#[test]
+fn key_gen_from_ikm() {
+    let ikm = b"this-IS-just-an-Test-IKM-to-generate-$e(r@t#-key";
+    let key_info = b"this-IS-some-key-metadata-to-be-used-in-test-key-gen";
+
+    let KeyPair {
+        secret_key,
+        public_key,
+    } = KeyPair::new(ikm.as_ref(), key_info.as_ref())
+        .expect("key pair generation failed");
+
+    println!("ikm: {:?}", hex::encode(&ikm));
+    println!("key_info: {:?}", hex::encode(&key_info));
+    println!("sk: {:?}", hex::encode(secret_key.to_bytes()));
+    println!("pk: {:?}", hex::encode(&public_key.point_to_octets()));
 }
 
 #[test]

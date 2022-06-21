@@ -29,7 +29,7 @@ const runBbsBenchmark = async (
   messageSizeInBytes: number,
   numberRevealed: number
 ): Promise<void> => {
-  const keyPair = await bls12381.generateG2KeyPair();
+  const keyPair = await bls12381.generateKeyPair();
 
   const messageSignRequest = await generateBbsSignRequest(
     keyPair,
@@ -92,13 +92,8 @@ const runBbsBenchmark = async (
 
 (async () => {
   report(
-    "BLS 12-381 Key Generation G2",
-    await benchmarkPromise(() => bls12381.generateG2KeyPair())
-  );
-
-  report(
-    "BLS 12-381 Key Generation G1",
-    await benchmarkPromise(() => bls12381.generateG1KeyPair())
+    "BLS 12-381 Key Generation",
+    await benchmarkPromise(() => bls12381.generateKeyPair())
   );
 
   // ------------------------------ 1, 100 byte message ------------------------------
