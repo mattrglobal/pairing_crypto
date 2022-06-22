@@ -180,8 +180,8 @@ impl Proof {
             &[[-r3_tilde, s_tilde].to_vec(), m_tilde_scalars.clone()].concat(),
         );
 
-        // c = hash_to_scalar((PK || Abar || A' || D || C1 || C2 || ph), 1)
-        let c = compute_challenge(PK, &A_bar, &A_prime, &D, &C1, &C2, ph)?;
+        // c = hash_to_scalar((PK || A' || Abar || D || C1 || C2 || ph), 1)
+        let c = compute_challenge(PK, &A_prime, &A_bar, &D, &C1, &C2, ph)?;
 
         // e^ = e~ + c * e
         let e_hat = FiatShamirProof(e_tilde + c.0 * signature.e);
@@ -332,11 +332,11 @@ impl Proof {
         }
         let C2 = G1Projective::multi_exp(&C2_points, &C2_scalars);
 
-        // cv = hash_to_scalar((PK || Abar || A' || D || C1 || C2 || ph), 1)
+        // cv = hash_to_scalar((PK || A' || Abar || D || C1 || C2 || ph), 1)
         let cv = compute_challenge(
             PK,
-            &self.A_bar,
             &self.A_prime,
+            &self.A_bar,
             &self.D,
             &C1,
             &C2,

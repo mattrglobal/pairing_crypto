@@ -123,11 +123,11 @@ pub(crate) fn compute_B(
 }
 
 /// Compute Fiat Shamir heuristic challenge.
-/// c = hash_to_scalar((PK || Abar || A' || D || C1 || C2 || ph), 1)
+/// c = hash_to_scalar((PK || A' || Abar || D || C1 || C2 || ph), 1)
 pub(crate) fn compute_challenge<T>(
     PK: &PublicKey,
-    A_bar: &G1Projective,
     A_prime: &G1Projective,
+    A_bar: &G1Projective,
     D: &G1Projective,
     C1: &G1Projective,
     C2: &G1Projective,
@@ -138,8 +138,8 @@ where
 {
     let mut data_to_hash = vec![];
     data_to_hash.extend(PK.point_to_octets().as_ref());
-    data_to_hash.extend(point_to_octets_g1(A_bar).as_ref());
     data_to_hash.extend(point_to_octets_g1(A_prime).as_ref());
+    data_to_hash.extend(point_to_octets_g1(A_bar).as_ref());
     data_to_hash.extend(point_to_octets_g1(D).as_ref());
     data_to_hash.extend(point_to_octets_g1(C1));
     data_to_hash.extend(point_to_octets_g1(C2));
