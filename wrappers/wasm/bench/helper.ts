@@ -34,17 +34,7 @@ export const generateBbsSignRequest = (
 ): BbsSignRequest => {
   return {
     secretKey: keyPair.secretKey,
-    messages: generateMessages(numberOfMessages, messageSizeInBytes),
-  };
-};
-
-export const generateBlsSignRequest = (
-  keyPair: KeyPair,
-  numberOfMessages: number,
-  messageSizeInBytes: number
-): BbsSignRequest => {
-  return {
-    secretKey: keyPair.secretKey,
+    publicKey: keyPair.publicKey,
     messages: generateMessages(numberOfMessages, messageSizeInBytes),
   };
 };

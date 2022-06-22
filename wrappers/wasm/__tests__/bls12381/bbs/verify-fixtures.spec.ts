@@ -27,6 +27,9 @@ signatureFixtures.forEach((item: SignatureFixture) => {
                   publicKey: new Uint8Array(
                     Buffer.from(item.value.signerKeyPair.publicKey, "hex")
                   ),
+                  header: new Uint8Array(
+                    Buffer.from(item.value.header, "hex")
+                  ),
                   signature: new Uint8Array(
                     Buffer.from(item.value.signature, "hex")
                   ),
@@ -44,6 +47,9 @@ signatureFixtures.forEach((item: SignatureFixture) => {
                 await bls12381.bbs.verify({
                   publicKey: new Uint8Array(
                     Buffer.from(item.value.signerKeyPair.publicKey, "hex")
+                  ),
+                  header: new Uint8Array(
+                    Buffer.from(item.value.header, "hex")
                   ),
                   signature: new Uint8Array(
                     Buffer.from(item.value.signature, "hex")

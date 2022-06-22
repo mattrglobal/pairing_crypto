@@ -229,12 +229,10 @@ impl Signature {
         if PK.is_valid().unwrap_u8() == 0 {
             return Err(Error::InvalidPublicKey);
         }
-
         let W = PK.0;
 
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
-        // TODO include Ciphersuite_ID
         let domain = compute_domain(PK, header, messages.len(), generators)?;
 
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
@@ -257,7 +255,7 @@ impl Signature {
             .final_exponentiation()
             .is_identity()
             .unwrap_u8()
-            == 1)
+            == 1u8)
     }
 
     /// Get the octets representation of `Signature` as defined in BBS spec <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-signaturetooctets>.

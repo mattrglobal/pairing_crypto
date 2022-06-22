@@ -19,7 +19,7 @@ interface BbsVerifyProofMessageRequest {
 }
 
 /**
- * A request verify a BBS signature for a set of messages
+ * A request to verify a BBS signature proof of knowledge for a set of messages
  */
 export interface BbsVerifyProofRequest {
   /**
@@ -27,19 +27,23 @@ export interface BbsVerifyProofRequest {
    */
   readonly publicKey: Uint8Array;
   /**
-   * Presentation message to include in the derived proof
+   * Header message that was included in the proof
    */
-  readonly presentationMessage: Uint8Array;
+  readonly header?: Uint8Array;
+  /**
+   * Presentation message that was included in the proof
+   */
+  readonly presentationMessage?: Uint8Array;
   /**
    * The total number of messages that were originally signed by the underlying signature
    */
   readonly totalMessageCount: number;
   /**
-   * Raw signature value
+   * Raw proof value
    */
   readonly proof: Uint8Array;
   /**
    * Revealed messages
    */
-  readonly messages: BbsVerifyProofMessageRequest;
+  readonly messages?: BbsVerifyProofMessageRequest;
 }

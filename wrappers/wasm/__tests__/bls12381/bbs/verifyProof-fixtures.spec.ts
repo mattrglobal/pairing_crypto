@@ -18,7 +18,7 @@ import { ProofFixture, proofFixtures } from "../../../__fixtures__";
 proofFixtures.forEach((item: ProofFixture) => {
   describe("bls12381", () => {
     describe("bbs", () => {
-      describe("verify - test fixtures", () => {
+      describe("verifyProof - test fixtures", () => {
         if (item.value.result.valid) {
           it(`should verify case: ${item.value.caseName}`, async () => {
             expect(

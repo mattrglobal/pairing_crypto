@@ -11,21 +11,26 @@
  * limitations under the License.
  */
 
+import { randomBytes } from "@stablelib/random";
 import { BbsSignRequest, bls12381, KeyPair } from "../../../lib";
 import { stringToBytes } from "../../utilities";
 
 describe("bls12381", () => {
   describe("bbs", () => {
-    let blsKeyPair: KeyPair;
+    let keyPair: KeyPair;
 
     beforeAll(async () => {
-      blsKeyPair = await bls12381.generateG2KeyPair();
+      keyPair = await bls12381.bbs.generateKeyPair(
+        randomBytes(32),
+        randomBytes(32),
+      );
     });
 
     describe("sign", () => {
       it("should sign a single message", async () => {
         const request: BbsSignRequest = {
-          secretKey: blsKeyPair.secretKey,
+          secretKey: keyPair.secretKey,
+          publicKey: keyPair.publicKey,
           messages: [stringToBytes("ExampleMessage")],
         };
         const signature = await bls12381.bbs.sign(request);
@@ -35,7 +40,8 @@ describe("bls12381", () => {
 
       it("should sign multiple messages", async () => {
         const request: BbsSignRequest = {
-          secretKey: blsKeyPair.secretKey,
+          secretKey: keyPair.secretKey,
+          publicKey: keyPair.publicKey,
           messages: [
             stringToBytes("ExampleMessage"),
             stringToBytes("ExampleMessage2"),
@@ -50,6 +56,22 @@ describe("bls12381", () => {
       it("should throw error if secret key not present", async () => {
         const request: any = {
           secretKey: undefined,
+          publicKey: keyPair.publicKey,
+          messages: [
+            stringToBytes("ExampleMessage"),
+            stringToBytes("ExampleMessage2"),
+            stringToBytes("ExampleMessage3"),
+          ],
+        };
+        await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
+          "Request object missing required element"
+        );
+      });
+
+      it("should throw error if public key not present", async () => {
+        const request: any = {
+          secretKey: keyPair.secretKey,
+          publicKey: undefined,
           messages: [
             stringToBytes("ExampleMessage"),
             stringToBytes("ExampleMessage2"),
@@ -63,7 +85,8 @@ describe("bls12381", () => {
 
       it("should throw error if secret length is too small", async () => {
         const request: BbsSignRequest = {
-          secretKey: blsKeyPair.secretKey?.slice(0, 10) ?? undefined,
+          secretKey: keyPair.secretKey?.slice(0, 10) ?? undefined,
+          publicKey: keyPair.publicKey,
           messages: [
             stringToBytes("ExampleMessage"),
             stringToBytes("ExampleMessage2"),
@@ -71,16 +94,17 @@ describe("bls12381", () => {
           ],
         };
         await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
-          "Error: Failed to parse secret key"
+          "Error: data conversion failed: cause: source vector size 10, expected destination byte array size 32"
         );
       });
 
       it("should throw error if secret length is too large", async () => {
         const request: BbsSignRequest = {
           secretKey: new Uint8Array([
-            ...blsKeyPair.secretKey,
-            ...blsKeyPair.secretKey,
+            ...keyPair.secretKey,
+            ...keyPair.secretKey,
           ]),
+          publicKey: keyPair.publicKey,
           messages: [
             stringToBytes("ExampleMessage"),
             stringToBytes("ExampleMessage2"),
@@ -88,23 +112,25 @@ describe("bls12381", () => {
           ],
         };
         await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
-          "Error: Failed to parse secret key"
+          "Error: data conversion failed: cause: source vector size 64, expected destination byte array size 32"
         );
       });
 
-      it("should throw error when messages empty", async () => {
+      it("should throw error when messages are empty and header is absent", async () => {
         const request: BbsSignRequest = {
-          secretKey: blsKeyPair.secretKey,
+          secretKey: keyPair.secretKey,
+          publicKey: keyPair.publicKey,
           messages: [],
         };
         await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
-          "Messages to sign empty, expected > 1"
+          "Error: bad arguments: cause: nothing to sign"
         );
       });
 
       it("should throw when secret key invalid", async () => {
         const request: BbsSignRequest = {
           secretKey: new Uint8Array(32),
+          publicKey: keyPair.publicKey,
           messages: [
             stringToBytes("ExampleMessage"),
             stringToBytes("ExampleMessage2"),
@@ -112,7 +138,7 @@ describe("bls12381", () => {
           ],
         };
         await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
-          "Error: invalid secret key"
+          "Error: secret key is not valid."
         );
       });
     });

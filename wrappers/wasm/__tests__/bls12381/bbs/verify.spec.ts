@@ -11,21 +11,23 @@
  * limitations under the License.
  */
 
+import { randomBytes } from "@stablelib/random";
 import { BbsVerifyRequest, bls12381, KeyPair } from "../../../lib/index";
 import { base64Decode, stringToBytes } from "../../utilities";
 
 describe("bls12381", () => {
   describe("bbs", () => {
     describe("verify", () => {
-      let blsKeyPair: KeyPair;
+      let keyPair: KeyPair;
 
       beforeAll(async () => {
-        blsKeyPair = await bls12381.generateG2KeyPair();
+        keyPair = await bls12381.bbs.generateKeyPair(randomBytes(32),
+          randomBytes(32));
       });
 
       it("should throw error when signature wrong length", async () => {
         const request: BbsVerifyRequest = {
-          publicKey: blsKeyPair.publicKey,
+          publicKey: keyPair.publicKey,
           messages: [stringToBytes("ExampleMessage")],
           signature: base64Decode("jYidhsdqxvAyNXMV4/vNfGM/4AULfSyf"),
         };
@@ -36,7 +38,7 @@ describe("bls12381", () => {
       it("should not verify valid signature with wrong single message", async () => {
         const messages = [stringToBytes("BadMessage")];
         const verifyRequest: BbsVerifyRequest = {
-          publicKey: blsKeyPair.publicKey,
+          publicKey: keyPair.publicKey,
           messages,
           signature: base64Decode(
             "kTV8dar9xLWQZ5EzaWYqTRmgA6dw6wcrUw5c///crRD2QQPXX9Di+lgCPCXAA5D8Pytuh6bNSx6k4NZTR9KfSNdaejKl2zTU9poRfzZ2SIskdgSHTZ2y7jLm/UEGKsAs3tticBVj1Pm2GNhQI/OlXQ=="
@@ -52,7 +54,7 @@ describe("bls12381", () => {
           stringToBytes("BadMessage"),
         ];
         const verifyRequest: BbsVerifyRequest = {
-          publicKey: blsKeyPair.publicKey,
+          publicKey: keyPair.publicKey,
           messages,
           signature: base64Decode(
             "jYidhsdqxvAyNXMV4/vNfGM/4AULfSyfvQiwh+dDd4JtnT5xHnwpzMYdLdHzBYwXaGE1k6ln/pwtI4RwQZpl03SCv/mT/3AdK8PB2y43MGdMSeGTyZGfZf+rUrEDEs3lTfmPK54E+JBzd96gnrF2iQ=="
@@ -63,7 +65,7 @@ describe("bls12381", () => {
 
       it("should not verify when messages empty", async () => {
         const request: BbsVerifyRequest = {
-          publicKey: blsKeyPair.publicKey,
+          publicKey: keyPair.publicKey,
           messages: [],
           signature: base64Decode(
             "jYidhsdqxvAyNXMV4/vNfGM/4AULfSyfvQiwh+dDd4JtnT5xHnwpzMYdLdHzBYwXaGE1k6ln/pwtI4RwQZpl03SCv/mT/3AdK8PB2y43MGdMSeGTyZGfZf+rUrEDEs3lTfmPK54E+JBzd96gnrF2iQ=="

@@ -13,12 +13,15 @@ interface GenerateFixtureRequest {
   signerKeyPair?: KeyPair;
   verifyFixtures: boolean;
   messagesToReveal: number[];
-  signerKeySeed?: Uint8Array;
+  signerKeyIkm?: Uint8Array;
+  signerKeyInfo?: Uint8Array;
+  header?: Uint8Array;
   presentationMessage?: Uint8Array;
 }
 
 interface GenerateFixtureResponse {
   signerKeyPair: KeyPair;
+  header: Uint8Array;
   presentationMessage: Uint8Array;
   messagesToReveal: number[];
   totalMessageCount: number;
@@ -29,6 +32,13 @@ interface GenerateFixtureResponse {
 }
 
 const outputDirectory = "__fixtures__";
+
+const header = new Uint8Array(
+  Buffer.from(
+    "11223344556677889900aabbccddeeff",
+    "hex"
+  )
+);
 
 const presentationMessage = new Uint8Array(
   Buffer.from(
@@ -92,9 +102,16 @@ const messages = [
   ),
 ];
 
-const signerKeySeed = new Uint8Array(
+const signerKeyIkm = new Uint8Array(
   Buffer.from(
-    "0cf3cc44220fdb2f8ca701f8686ed7e9a32db440edc15a9b62222905d8c7bba3",
+    "746869732d49532d6a7573742d616e2d546573742d494b4d2d746f2d67656e65726174652d246528724074232d6b6579",
+    "hex"
+  )
+);
+
+const signerKeyInfo = new Uint8Array(
+  Buffer.from(
+    "746869732d49532d736f6d652d6b65792d6d657461646174612d746f2d62652d757365642d696e2d746573742d6b65792d67656e",
     "hex"
   )
 );
@@ -102,13 +119,13 @@ const signerKeySeed = new Uint8Array(
 const spareSignerKeyPair = {
   publicKey: new Uint8Array(
     Buffer.from(
-      "94d5fcad678c27602a345d332e9d64a077e8a13e9d7556ae4b223f9f4fc296a4ef14e2ccfc51f528478c7895befa0f5617495561f49f63d27712e940eb3c44c3c1f301a363b02da53289558b1a476630251becda0c658d9bdac4924506f62c8a",
+      "b65b7cbff4e81b723456a13936b6bcc77a078bf6291765f3ae13170072249dd7daa7ec1bd82b818ab60198030b45b8fa159c155fc3841a9ad4045e37161c9f0d9a4f361b93cfdc67d365f3be1a398e56aa173d7a55e01b4a8dd2494e7fb90da7",
       "hex"
     )
   ),
   secretKey: new Uint8Array(
     Buffer.from(
-      "24a038e171d441723ed5d441132af7b0f7aeced8e0c6d9402a95b6a6bbdfae64",
+      "24a038e171d441723ed5d441132af7b47d2ede63ab4c329092b342ab526b1079dbc2595897d4f2ab2de4d841cbe7d560f7aeced8e0c6d9402a95b6a6bbdfae64",
       "hex"
     )
   ),
@@ -117,22 +134,30 @@ const spareSignerKeyPair = {
 const generateFixture = async (
   request: GenerateFixtureRequest
 ): Promise<GenerateFixtureResponse> => {
-  let seed = request.signerKeySeed ?? randomBytes(32);
+  let ikm = request.signerKeyIkm ?? randomBytes(32);
+  let keyInfo = request.signerKeyInfo ?? randomBytes(32);
   let signerKeyPair =
-    request.signerKeyPair ?? (await bls12381.generateG2KeyPair(seed));
+    request.signerKeyPair ?? (await bls12381.bbs.generateKeyPair(ikm, keyInfo));
   const messages = request.numberOfMessages
     ? generateMessages(request.numberOfMessages, MESSAGE_SIZE_BYTES)
     : (request.messages as Uint8Array[]);
 
+  let header = request.header ?? randomBytes(32);
+
+
   const signature = await bls12381.bbs.sign({
-    messages,
     secretKey: signerKeyPair.secretKey,
+    publicKey: signerKeyPair.publicKey,
+    header,
+    messages
+
   });
 
   if (request.verifyFixtures) {
     if (
       !(await bls12381.bbs.verify({
         publicKey: signerKeyPair.publicKey,
+        header,
         messages,
         signature,
       }))
@@ -151,6 +176,7 @@ const generateFixture = async (
   const proof = await bls12381.bbs.deriveProof({
     messages: revealMessages,
     publicKey: signerKeyPair.publicKey,
+    header,
     presentationMessage,
     signature,
   });
@@ -162,6 +188,7 @@ const generateFixture = async (
   return {
     signature,
     signerKeyPair,
+    header,
     presentationMessage,
     totalMessageCount: messages.length,
     messagesToReveal: request.messagesToReveal,
@@ -173,7 +200,8 @@ const generateFixture = async (
 
 const generateSignatureTestVectors = async () => {
   let fixture = await generateFixture({
-    signerKeySeed,
+    signerKeyIkm,
+    signerKeyInfo,
     presentationMessage,
     messages: messages.slice(0, 1),
     verifyFixtures: true,
@@ -182,7 +210,8 @@ const generateSignatureTestVectors = async () => {
 
   // Key pair fixture
   await writeKeyPairTestVectorToFile(`${outputDirectory}/keyPair.json`, {
-    seed: signerKeySeed,
+    ikm: signerKeyIkm,
+    keyInfo: signerKeyInfo,
     keyPair: fixture.signerKeyPair,
   });
 
@@ -230,7 +259,9 @@ const generateSignatureTestVectors = async () => {
   );
 
   fixture = await generateFixture({
-    signerKeySeed,
+    signerKeyIkm,
+    signerKeyInfo,
+    header,
     presentationMessage,
     messages: messages.slice(0, 10),
     verifyFixtures: true,
@@ -249,7 +280,8 @@ const generateSignatureTestVectors = async () => {
   );
 
   fixture = await generateFixture({
-    signerKeySeed,
+    signerKeyIkm,
+    signerKeyInfo,
     presentationMessage,
     messages: messages.slice(0, 10),
     verifyFixtures: true,
@@ -403,7 +435,9 @@ const generateSignatureTestVectors = async () => {
   // TODO need to try the case where some revealed messages are dropped from the proof structure
 
   fixture = await generateFixture({
-    signerKeySeed,
+    signerKeyIkm,
+    signerKeyInfo,
+    header,
     presentationMessage,
     messages,
     verifyFixtures: true,
@@ -461,12 +495,14 @@ const bytesToString = (byteArray: Uint8Array) => {
 const writeKeyPairTestVectorToFile = async (
   fileName: string,
   fixture: {
-    seed: Uint8Array;
+    ikm: Uint8Array;
+    keyInfo: Uint8Array;
     keyPair: KeyPair;
   }
 ) => {
   const result = {
-    seed: bytesToString(fixture.seed),
+    ikm: bytesToString(fixture.ikm),
+    keyInfo: bytesToString(fixture.keyInfo),
     publicKey: bytesToString(fixture.keyPair.publicKey),
     secretKey: bytesToString(fixture.keyPair.secretKey),
   };
@@ -486,6 +522,7 @@ const writeSignatureTestVectorToFile = async (
     signature: Uint8Array;
     messages: Uint8Array[];
     signerKeyPair: KeyPair;
+    header: Uint8Array;
   }
 ) => {
   const result = {
@@ -497,6 +534,7 @@ const writeSignatureTestVectorToFile = async (
       publicKey: bytesToString(fixture.signerKeyPair.publicKey),
       secretKey: bytesToString(fixture.signerKeyPair.secretKey),
     },
+    header: bytesToString(fixture.header),
   };
 
   await fs.promises.writeFile(
@@ -512,6 +550,7 @@ const writeSignatureProofTestVectorFile = async (
     caseName: string;
     result: { valid: false; reason: string } | { valid: true };
     proof: Uint8Array;
+    header: Uint8Array;
     presentationMessage: Uint8Array;
     totalMessageCount: number;
     revealedMessages: { [key: number]: Uint8Array };
@@ -536,6 +575,7 @@ const writeSignatureProofTestVectorFile = async (
   const result = {
     caseName: fixture.caseName,
     proof: bytesToString(fixture.proof),
+    header: bytesToString(fixture.header),
     presentationMessage: bytesToString(fixture.presentationMessage),
     revealedMessages,
     totalMessageCount: fixture.totalMessageCount,

@@ -11,12 +11,13 @@
  * limitations under the License.
  */
 
-import { generateBbsSignRequest } from "./helper";
+import { generateBbsSignRequest, generateMessages } from "./helper";
 
 /* eslint-disable @typescript-eslint/camelcase */
 import { report, benchmarkPromise } from "@stablelib/benchmark";
 import {
   BbsDeriveProofRequest,
+  BbsSignRequest,
   BbsVerifyProofRequest,
   bls12381,
   utilities,
@@ -29,24 +30,28 @@ const runBbsBenchmark = async (
   messageSizeInBytes: number,
   numberRevealed: number
 ): Promise<void> => {
-  const keyPair = await bls12381.generateG2KeyPair();
+  const keyPair = await bls12381.bbs.generateKeyPair(randomBytes(32), randomBytes(32));
+  const messages = generateMessages(numberOfMessages, messageSizeInBytes);
+  const header = randomBytes(50);
 
-  const messageSignRequest = await generateBbsSignRequest(
-    keyPair,
-    numberOfMessages,
-    messageSizeInBytes
-  );
+  const messageSignRequest: BbsSignRequest = {
+    secretKey: keyPair.secretKey,
+    publicKey: keyPair.publicKey,
+    header,
+    messages,
+  };
 
   const messageSignature = await bls12381.bbs.sign(messageSignRequest);
 
   const messageVerifyRequest = {
     signature: messageSignature,
     publicKey: keyPair.publicKey,
-    messages: messageSignRequest.messages,
+    header,
+    messages,
   };
 
   const messagesToReveal = utilities.convertToRevealMessageArray(
-    Array.from(messageSignRequest.messages),
+    Array.from(messages),
     [...Array(numberRevealed).keys()]
   );
 
@@ -55,6 +60,7 @@ const runBbsBenchmark = async (
   const messageDeriveProof: BbsDeriveProofRequest = {
     signature: messageSignature,
     publicKey: keyPair.publicKey,
+    header,
     messages: messagesToReveal,
     presentationMessage,
   };
@@ -64,8 +70,9 @@ const runBbsBenchmark = async (
   const verifyProofRequest: BbsVerifyProofRequest = {
     proof,
     publicKey: keyPair.publicKey,
+    header,
     messages: utilities.convertRevealMessageArrayToRevealMap(messagesToReveal),
-    totalMessageCount: messageSignRequest.messages.length,
+    totalMessageCount: messages.length,
     presentationMessage,
   };
 
@@ -92,13 +99,8 @@ const runBbsBenchmark = async (
 
 (async () => {
   report(
-    "BLS 12-381 Key Generation G2",
-    await benchmarkPromise(() => bls12381.generateG2KeyPair())
-  );
-
-  report(
-    "BLS 12-381 Key Generation G1",
-    await benchmarkPromise(() => bls12381.generateG1KeyPair())
+    "BBS Key Generation",
+    await benchmarkPromise(() => bls12381.bbs.generateKeyPair(randomBytes(32), randomBytes(32)))
   );
 
   // ------------------------------ 1, 100 byte message ------------------------------

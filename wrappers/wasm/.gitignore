@@ -21,3 +21,6 @@ Cargo.lock
 
 # exclude build directory
 /lib
+
+# npm lock file
+package-lock.json

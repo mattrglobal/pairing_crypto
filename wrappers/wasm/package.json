@@ -36,7 +36,7 @@
         "@stablelib/benchmark": "1.0.0",
         "@stablelib/random": "1.0.1",
         "@types/jest": "27.4.0",
-        "@types/node": "^17.0.16",
+        "@types/node": "^17.0.45",
         "husky": "^4.3.8",
         "jest": "27.4.7",
         "prettier": "2.0.4",

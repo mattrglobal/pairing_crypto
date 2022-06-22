@@ -25,6 +25,9 @@ signatureFixtures.forEach((item: SignatureFixture) => {
               publicKey: new Uint8Array(
                 Buffer.from(item.value.signerKeyPair.publicKey, "hex")
               ),
+              header: new Uint8Array(
+                Buffer.from(item.value.header, "hex")
+              ),
               signature: new Uint8Array(
                 Buffer.from(item.value.signature, "hex")
               ),
@@ -45,6 +48,9 @@ signatureFixtures.forEach((item: SignatureFixture) => {
             const request: BbsDeriveProofRequest = {
               publicKey: new Uint8Array(
                 Buffer.from(item.value.signerKeyPair.publicKey, "hex")
+              ),
+              header: new Uint8Array(
+                Buffer.from(item.value.header, "hex")
               ),
               signature: new Uint8Array(
                 Buffer.from(item.value.signature, "hex")
@@ -69,6 +75,9 @@ signatureFixtures.forEach((item: SignatureFixture) => {
                 publicKey: new Uint8Array(
                   Buffer.from(item.value.signerKeyPair.publicKey, "hex")
                 ),
+                header: new Uint8Array(
+                  Buffer.from(item.value.header, "hex")
+                ),
                 signature: new Uint8Array(
                   Buffer.from(item.value.signature, "hex")
                 ),
@@ -91,6 +100,9 @@ signatureFixtures.forEach((item: SignatureFixture) => {
               publicKey: new Uint8Array(
                 Buffer.from(item.value.signerKeyPair.publicKey, "hex")
               ),
+              header: new Uint8Array(
+                Buffer.from(item.value.header, "hex")
+              ),
               signature: new Uint8Array(
                 Buffer.from(item.value.signature, "hex")
               ),
@@ -106,7 +118,7 @@ signatureFixtures.forEach((item: SignatureFixture) => {
             await expect(
               bls12381.bbs.deriveProof(request)
             ).rejects.toThrowError(
-              "Error: Invalid signature, unable to verify"
+              "Error: signature verification failed."
             );
           });
         }

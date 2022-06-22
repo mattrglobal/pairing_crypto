@@ -20,7 +20,15 @@ export interface BbsSignRequest {
    */
   readonly secretKey: Uint8Array;
   /**
+   * Public key of the signer
+   */
+  readonly publicKey: Uint8Array;
+  /**
+  * Header message to sign
+  */
+  readonly header?: Uint8Array;
+  /**
    * Messages to sign
    */
-  readonly messages: readonly Uint8Array[];
+  readonly messages?: readonly Uint8Array[];
 }
