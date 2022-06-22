@@ -135,7 +135,7 @@ impl<'a> From<&'a PublicKey> for [u8; PublicKey::SIZE_BYTES] {
 }
 
 impl PublicKey {
-    /// Number of bytes needed to represent the public key in compressed form
+    /// Number of bytes needed to represent the public key in compressed form.
     pub const SIZE_BYTES: usize = OCTET_POINT_G2_LENGTH;
 
     /// Check if this PublicKey is valid
