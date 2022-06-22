@@ -1,4 +1,8 @@
-use super::constants::{OCTET_POINT_G2_LENGTH, OCTET_SCALAR_LENGTH};
+use super::constants::{
+    MIN_KEY_GEN_IKM_LENGTH,
+    OCTET_POINT_G2_LENGTH,
+    OCTET_SCALAR_LENGTH,
+};
 use crate::{
     common::util::vec_to_byte_array,
     curves::bls12_381::{
@@ -63,15 +67,14 @@ impl SecretKey {
     }
 
     /// Compute a secret key from a CS-PRNG.
-    pub fn random<R>(rng: &mut R) -> Option<Self>
+    pub fn random<R, T>(rng: &mut R, key_info: T) -> Option<Self>
     where
         R: RngCore + CryptoRng,
+        T: AsRef<[u8]>,
     {
-        let mut ikm = [0u8; Self::SIZE_BYTES];
+        let mut ikm = [0u8; MIN_KEY_GEN_IKM_LENGTH];
 
         if rng.try_fill_bytes(&mut ikm).is_ok() {
-            let key_info = [];
-
             return Self::new(ikm.as_ref(), key_info.as_ref());
         }
         None
@@ -204,15 +207,14 @@ impl KeyPair {
     }
 
     /// Compute a secret key from a CS-PRNG.
-    pub fn random<R>(rng: &mut R) -> Option<Self>
+    pub fn random<R, T>(rng: &mut R, key_info: T) -> Option<Self>
     where
         R: RngCore + CryptoRng,
+        T: AsRef<[u8]>,
     {
-        let mut ikm = [0u8; SecretKey::SIZE_BYTES];
+        let mut ikm = [0u8; MIN_KEY_GEN_IKM_LENGTH];
 
         if rng.try_fill_bytes(&mut ikm).is_ok() {
-            let key_info = [];
-
             return Self::new(ikm.as_ref(), key_info.as_ref());
         }
         None

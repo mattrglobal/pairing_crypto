@@ -11,7 +11,10 @@ pub(crate) use crate::schemes::bbs::core::{
     types::{Message, ProofMessage},
 };
 
-pub use crate::schemes::bbs::core::key_pair::{KeyPair, PublicKey, SecretKey};
+pub use crate::schemes::bbs::core::{
+    constants::MIN_KEY_GEN_IKM_LENGTH,
+    key_pair::{KeyPair, PublicKey, SecretKey},
+};
 
 pub use crate::schemes::bbs::api::{
     dtos::{
