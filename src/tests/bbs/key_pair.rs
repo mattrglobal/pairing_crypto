@@ -102,6 +102,7 @@ fn key_gen_short_ikm() {
 }
 
 #[test]
+// Test error case check if `Rng` is erroneous.
 fn key_gen_from_erroneous_rng() {
     // An erroneous Rng
     #[derive(Default)]
@@ -143,98 +144,152 @@ fn key_gen_from_erroneous_rng() {
     assert!(key_pair.is_none(), "`KeyPair` should be a `None` value");
 }
 
-#[test]
-fn secret_key_serde() {
-    let expected_sk_u8_array = <[u8; SecretKey::SIZE_BYTES]>::try_from(
-        hex::decode(EXPECTED_TEST_SECRET_KEY).unwrap(),
-    )
-    .unwrap();
-    let expected_sk_vec = hex::decode(EXPECTED_TEST_SECRET_KEY).unwrap();
+macro_rules! key_serde {
+    ($key:ident, $key_type:ty, $expected_test_key:expr, $to_bytes_fn:ident, $from_bytes_fn:ident) => {
+        let expected_key_u8_array = <[u8; <$key_type>::SIZE_BYTES]>::try_from(
+            hex::decode($expected_test_key).unwrap(),
+        )
+        .unwrap();
+        let expected_key_vec = hex::decode($expected_test_key).unwrap();
+        assert_eq!(
+            expected_key_vec.len(),
+            <$key_type>::SIZE_BYTES,
+            "invalid test key data vector size"
+        );
 
-    let sk = SecretKey::new(TEST_IKM.as_ref(), TEST_KEY_INFO.as_ref())
-        .expect("secret key generation failed");
+        // For debug message
+        let key_type_string = stringify!($key_type);
 
-    // <[u8; SecretKey::SIZE_BYTES]>::from(SecretKey)
-    assert_eq!(
-        <[u8; SecretKey::SIZE_BYTES]>::from(sk),
-        expected_sk_u8_array,
-        "`<[u8; SecretKey::SIZE_BYTES]>::from(SecretKey)` conversion mismatch"
-    );
+        // <[u8; $key_type::SIZE_BYTES]>::from($key_type)
+        assert_eq!(
+            <[u8; <$key_type>::SIZE_BYTES]>::from($key),
+            expected_key_u8_array,
+            "`<[u8; {key_type_string}::SIZE_BYTES]>::from({key_type_string})` \
+             conversion mismatch"
+        );
 
-    // <[u8; SecretKey::SIZE_BYTES]>::from(&SecretKey)
-    assert_eq!(
-        <[u8; SecretKey::SIZE_BYTES]>::from(&sk),
-        expected_sk_u8_array,
-        "`<[u8; SecretKey::SIZE_BYTES]>::from(&SecretKey)` conversion mismatch"
-    );
+        // <[u8; $key_type::SIZE_BYTES]>::from(&$key_type)
+        assert_eq!(
+            <[u8; <$key_type>::SIZE_BYTES]>::from(&$key),
+            expected_key_u8_array,
+            "`<[u8; {key_type_string}::SIZE_BYTES]>::from(&\
+             {key_type_string})` conversion mismatch"
+        );
 
-    // SecretKey::to_bytes
-    assert_eq!(
-        sk.to_bytes(),
-        expected_sk_u8_array,
-        "`SecretKey::to_bytes` conversion mismatch"
-    );
+        // $key_type::$to_bytes_fn
+        assert_eq!(
+            $key.$to_bytes_fn(),
+            expected_key_u8_array,
+            "`{key_type_string}::$to_bytes_fn` conversion mismatch"
+        );
 
-    // SecretKey::from_bytes
-    let sk_from_bytes = SecretKey::from_bytes(&expected_sk_u8_array)
-        .expect("`SecretKey::from_bytes` deserialization failed");
-    assert_eq!(
-        sk_from_bytes, sk,
-        "`SecretKey::from_bytes` conversion mismatch"
-    );
+        // $key_type::$from_bytes_fn
+        let key_from_octets = <$key_type>::$from_bytes_fn(
+            &expected_key_u8_array,
+        )
+        .expect("`{key_type_string}::$from_bytes_fn` deserialization failed");
+        assert_eq!(
+            key_from_octets, $key,
+            "`{key_type_string}::$from_bytes_fn` conversion mismatch"
+        );
 
-    // SecretKey::from_vec
-    let sk_from_vec = SecretKey::from_vec(expected_sk_vec.clone())
-        .expect("`SecretKey::from_vec` deserialization failed");
-    assert_eq!(sk_from_vec, sk, "`SecretKey::from_vec` conversion mismatch");
+        // $key_type::from_vec
+        let key_from_vec = <$key_type>::from_vec(expected_key_vec)
+            .expect("`{key_type_string}::from_vec` deserialization failed");
+        assert_eq!(
+            key_from_vec, $key,
+            "`{key_type_string}::from_vec` conversion mismatch"
+        );
+    };
 }
 
 #[test]
-fn public_key_serde() {
-    let expected_pk_u8_array = <[u8; PublicKey::SIZE_BYTES]>::try_from(
-        hex::decode(EXPECTED_TEST_PUBLIC_KEY).unwrap(),
-    )
-    .unwrap();
-    let expected_pk_vec = hex::decode(EXPECTED_TEST_PUBLIC_KEY).unwrap();
-
+fn key_serde() {
     // Key pair gen from IKM
     let KeyPair {
-        secret_key: _,
+        secret_key: sk,
         public_key: pk,
     } = KeyPair::new(TEST_IKM.as_ref(), TEST_KEY_INFO.as_ref())
         .expect("key pair generation failed");
 
-    // <[u8; PublicKey::SIZE_BYTES]>::from(PublicKey)
-    assert_eq!(
-        <[u8; PublicKey::SIZE_BYTES]>::from(pk),
-        expected_pk_u8_array,
-        "`<[u8; PublicKey::SIZE_BYTES]>::from(PublicKey)` conversion mismatch"
+    key_serde!(
+        sk,
+        SecretKey,
+        EXPECTED_TEST_SECRET_KEY,
+        to_bytes,
+        from_bytes
     );
 
-    // <[u8; PublicKey::SIZE_BYTES]>::from(&PublicKey)
-    assert_eq!(
-        <[u8; PublicKey::SIZE_BYTES]>::from(&pk),
-        expected_pk_u8_array,
-        "`<[u8; PublicKey::SIZE_BYTES]>::from(&PublicKey)` conversion mismatch"
+    key_serde!(
+        pk,
+        PublicKey,
+        EXPECTED_TEST_PUBLIC_KEY,
+        point_to_octets,
+        octets_to_point
     );
+}
 
-    // PublicKey::point_to_octets
-    assert_eq!(
-        pk.point_to_octets(),
-        expected_pk_u8_array,
-        "`PublicKey::point_to_octets` conversion mismatch"
-    );
+macro_rules! key_from_vec_deserialization_invalid_vec_size {
+    ($key_type:ty) => {
+        // For debug message
+        let key_type_string = stringify!($key_type);
+        let key_size = <$key_type>::SIZE_BYTES;
 
-    // PublicKey::octets_to_point
-    let pk_from_octets = PublicKey::octets_to_point(&expected_pk_u8_array)
-        .expect("`PublicKey::octets_to_point` deserialization failed");
-    assert_eq!(
-        pk_from_octets, pk,
-        "`PublicKey::octets_to_point` conversion mismatch"
-    );
+        // $key_type::from_vec, empty vector
+        let result = <$key_type>::from_vec(vec![]);
+        let expected_error_string = format!(
+            "source vector size 0, expected destination byte array size \
+             {key_size}"
+        );
+        assert_eq!(
+            result,
+            Err(Error::Conversion {
+                cause: expected_error_string,
+            }),
+            "`{key_type_string}::from_vec` should fail for empty vector"
+        );
 
-    // PublicKey::from_vec
-    let pk_from_vec = PublicKey::from_vec(expected_pk_vec)
-        .expect("`PublicKey::from_vec` deserialization failed");
-    assert_eq!(pk_from_vec, pk, "`PublicKey::from_vec` conversion mismatch");
+        // $key_type::from_vec, vector size is greater by 1 than valid size
+        let result = <$key_type>::from_vec(vec![0; key_size + 1]);
+        let expected_error_string = format!(
+            "source vector size {}, expected destination byte array size \
+             {key_size}",
+            key_size + 1
+        );
+        assert_eq!(
+            result,
+            Err(Error::Conversion {
+                cause: expected_error_string,
+            }),
+            "`{key_type_string}::from_vec` should fail for greater vector data"
+        );
+    };
+}
+
+#[test]
+fn key_from_vec_deserialization_invalid_vec_size() {
+    key_from_vec_deserialization_invalid_vec_size!(SecretKey);
+    key_from_vec_deserialization_invalid_vec_size!(PublicKey);
+}
+
+#[test]
+// Test whether keys generated using `SecretKey` and `PublicKey` APIs are equal
+// to those generated using `KeyPair` APIs.
+fn key_pair_sk_pk_api_consistency() {
+    // Secret key gen from IKM
+    let sk = SecretKey::new(TEST_IKM.as_ref(), TEST_KEY_INFO.as_ref())
+        .expect("secret key gen from IKM failed");
+
+    // Generate public key from secret key
+    let pk = PublicKey::from(&sk);
+
+    // Key pair gen from IKM
+    let KeyPair {
+        secret_key: key_pair_sk,
+        public_key: key_pair_pk,
+    } = KeyPair::new(TEST_IKM.as_ref(), TEST_KEY_INFO.as_ref())
+        .expect("key pair generation failed");
+
+    assert_eq!(sk, key_pair_sk);
+    assert_eq!(pk, key_pair_pk);
 }
