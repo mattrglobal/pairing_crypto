@@ -5,8 +5,10 @@ use crate::{
     },
     Error,
 };
+use blstrs::G2Projective;
 use core::convert::TryFrom;
 use ff::Field;
+use group::{Curve, Group};
 use rand_core::OsRng;
 use zeroize::Zeroize;
 
@@ -331,4 +333,19 @@ fn key_zeroize() {
     assert_eq!(key_pair.secret_key.0.is_zero().unwrap_u8(), 0u8);
     key_pair.zeroize();
     assert_eq!(key_pair.secret_key.0.is_zero().unwrap_u8(), 1u8);
+}
+
+#[test]
+fn public_key_is_valid() {
+    // PublicKey::default() is G2::Identity
+    let pk = PublicKey::default();
+    assert_eq!(pk.0.is_identity().unwrap_u8(), 1u8);
+    assert_eq!(pk.is_valid().unwrap_u8(), 0u8);
+
+    // Construct a PublicKey using G2::Generator
+    let pk = PublicKey(G2Projective::generator());
+    assert_eq!(pk.0.is_identity().unwrap_u8(), 0u8);
+    assert_eq!(pk.0.to_affine().is_torsion_free().unwrap_u8(), 1u8);
+
+    assert_eq!(pk.is_valid().unwrap_u8(), 1u8);
 }
