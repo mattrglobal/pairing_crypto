@@ -13,17 +13,21 @@ extern crate criterion;
 
 use criterion::{black_box, Criterion};
 
+const TEST_KEY_INFOS: &[u8; 50] =
+    b"12345678901234567890123456789012345678901234567890";
+
 const TEST_HEADER: &[u8; 16] = b"some_app_context";
 
 fn sign_benchmark(c: &mut Criterion) {
-    let (secret_key, public_key) = KeyPair::random(&mut OsRng)
-        .map(|key_pair| {
-            (
-                key_pair.secret_key.to_bytes().to_vec(),
-                key_pair.public_key.point_to_octets().to_vec(),
-            )
-        })
-        .expect("key generation failed");
+    let (secret_key, public_key) =
+        KeyPair::random(&mut OsRng, TEST_KEY_INFOS.as_ref())
+            .map(|key_pair| {
+                (
+                    key_pair.secret_key.to_bytes().to_vec(),
+                    key_pair.public_key.point_to_octets().to_vec(),
+                )
+            })
+            .expect("key generation failed");
 
     for num_messages in vec![1, 10, 100, 1000] {
         // generating random 32 bytes messages
