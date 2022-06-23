@@ -1,9 +1,9 @@
 use super::{
     create_generator_helper,
     EXPECTED_SIGS,
-    KEY_GEN_SEED,
     TEST_CLAIMS,
     TEST_HEADER,
+    TEST_KEY_GEN_IKM,
     TEST_KEY_INFOS,
     TEST_PRESENTATION_HEADER,
 };
@@ -60,8 +60,11 @@ fn gen_verify_e2e_nominal() {
 
     for i in 0..TEST_KEY_INFOS.len() {
         let pk = PublicKey::from(
-            &SecretKey::new(KEY_GEN_SEED.as_ref(), TEST_KEY_INFOS[i].as_ref())
-                .expect("secret key generation failed"),
+            &SecretKey::new(
+                TEST_KEY_GEN_IKM.as_ref(),
+                TEST_KEY_INFOS[i].as_ref(),
+            )
+            .expect("secret key generation failed"),
         );
 
         // start with all hidden messages

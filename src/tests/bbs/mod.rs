@@ -12,7 +12,10 @@ mod key_pair;
 mod proof;
 mod signature;
 
-const KEY_GEN_SEED: &[u8; 32] = b"not_A_random_seed_at_Allllllllll";
+const TEST_KEY_GEN_IKM: &[u8; 32] = b"not_A_random_seed_at_Allllllllll";
+
+const TEST_KEY_INFO: &[u8; 52] =
+    b"this-IS-some-key-metadata-to-be-used-in-test-key-gen";
 
 const TEST_KEY_INFOS: [&[u8]; 7] = [
     b"",
