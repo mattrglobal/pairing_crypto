@@ -167,7 +167,7 @@ impl Signature {
 
         // (e, s) = hash_to_scalar((SK  || domain || msg_1 || ... || msg_L), 2)
         let mut data_to_hash = vec![];
-        data_to_hash.extend(SK.to_bytes().as_ref());
+        data_to_hash.extend(SK.clone().to_bytes().as_ref());
         data_to_hash.extend(domain.to_bytes_be().as_ref());
         for m in messages {
             data_to_hash.extend(m.to_bytes().as_ref());
@@ -177,7 +177,7 @@ impl Signature {
 
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
         let B = compute_B(&s, &domain, messages, generators)?;
-        let exp = (e + SK.0).invert();
+        let exp = (e + SK.as_scalar()).invert();
         let exp = if exp.is_some().unwrap_u8() == 1u8 {
             exp.unwrap()
         } else {
