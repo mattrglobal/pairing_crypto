@@ -182,7 +182,7 @@ impl Signature {
             exp.unwrap()
         } else {
             return Err(Error::CryptoOps {
-                cause: "failed to generate `exp` for `a` component of \
+                cause: "failed to generate `exp` for `A` component of \
                         signature"
                     .to_owned(),
             });
