@@ -16,7 +16,7 @@ use crate::{
             Signature,
             MAP_MESSAGE_TO_SCALAR_DST,
         },
-        core::generator::Generators,
+        core::{generator::Generators, key_pair::KeyPair},
     },
     curves::bls12_381::{G1Projective, Scalar},
     Error,
@@ -41,7 +41,48 @@ fn create_messages_helper() -> Vec<Message> {
 }
 
 #[test]
-fn sign_verify_e2e_nominal() {
+fn sign_verify_serde_nominal() {
+    let key_pair = KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
+        .expect("key pair generation failed");
+    let header = Some(&TEST_HEADER);
+    let messages = create_messages_helper();
+    let generators = create_generator_helper(messages.len());
+
+    let signature = Signature::new(
+        &key_pair.secret_key,
+        &key_pair.public_key,
+        header,
+        &generators,
+        &messages,
+    )
+    .expect("signing failed");
+
+    assert_eq!(
+        signature
+            .verify(&key_pair.public_key, header, &generators, &messages)
+            .expect("verification failed"),
+        true
+    );
+
+    let signature_octets = signature.to_octets();
+    let signature_from_deserialization =
+        Signature::from_octets(signature_octets)
+            .expect("signature deserialization failed");
+    assert_eq!(
+        signature, signature_from_deserialization,
+        "signature serde failed"
+    );
+
+    assert_eq!(
+        signature_from_deserialization
+            .verify(&key_pair.public_key, header, &generators, &messages)
+            .expect("signature verification failed after serde"),
+        true
+    );
+}
+
+#[test]
+fn sign_verify_different_key_infos() {
     let messages = create_messages_helper();
 
     for i in 0..TEST_KEY_INFOS.len() {
@@ -80,7 +121,38 @@ fn sign_verify_e2e_nominal() {
 }
 
 #[test]
-fn signature_new_valid_cases() {
+fn signature_equality() {
+    let key_pair = KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
+        .expect("key pair generation failed");
+    let header = Some(&TEST_HEADER);
+    let messages = create_messages_helper();
+    let generators = create_generator_helper(messages.len());
+
+    let signature1 = Signature::new(
+        &key_pair.secret_key,
+        &key_pair.public_key,
+        header,
+        &generators,
+        &messages,
+    )
+    .expect("signing failed");
+
+    let signature2 = Signature::new(
+        &key_pair.secret_key,
+        &key_pair.public_key,
+        header,
+        &create_generator_helper(0),
+        &vec![],
+    )
+    .expect("signing failed");
+
+    assert_ne!(signature1, signature2);
+    assert_eq!(signature1, signature1);
+    assert_eq!(signature2, signature2);
+}
+
+#[test]
+fn sign_verify_valid_cases() {
     let sk = SecretKey::random(&mut OsRng, TEST_KEY_INFO.as_ref())
         .expect("secret key generation failed");
     let pk = PublicKey::from(&sk);
@@ -139,6 +211,15 @@ fn signature_new_error_cases() {
     let header = Some(&TEST_HEADER);
     let messages = create_messages_helper();
     let generators = create_generator_helper(messages.len());
+    // Just to make sure sign-verify can be done with above valid values
+    let signature = Signature::new(&sk, &pk, header, &generators, &messages)
+        .expect("signing failed");
+    assert_eq!(
+        signature
+            .verify(&pk, header, &generators, &messages)
+            .expect("verification failed"),
+        true
+    );
 
     // [(SK, PK, header, generators, messages, result, failure-debug-message)]
     let test_data = [
@@ -220,6 +301,103 @@ fn signature_new_error_cases() {
             result,
             Err(error),
             "signing should fail - {}",
+            failure_debug_message
+        );
+    }
+}
+
+#[test]
+fn verify_error_cases() {
+    let sk = SecretKey::random(&mut OsRng, TEST_KEY_INFO.as_ref())
+        .expect("secret key generation failed");
+    let pk = PublicKey::from(&sk);
+    let header = Some(&TEST_HEADER);
+    let messages = create_messages_helper();
+    let generators = create_generator_helper(messages.len());
+    // Just to make sure sign-verify can be done with above valid values
+    let signature = Signature::new(&sk, &pk, header, &generators, &messages)
+        .expect("signing failed");
+    assert_eq!(
+        signature
+            .verify(&pk, header, &generators, &messages)
+            .expect("verification failed"),
+        true
+    );
+
+    // [(PK, header, generators, messages, result, failure-debug-message)]
+    let test_data = [
+        (
+            &pk,
+            None,
+            &generators,
+            &vec![],
+            Error::BadParams {
+                cause: "nothing to verify".to_owned(),
+            },
+            "no header and no messages",
+        ),
+        (
+            &pk,
+            header,
+            &create_generator_helper(0),
+            &messages,
+            Error::MessageGeneratorsLengthMismatch {
+                generators: 0,
+                messages: messages.len(),
+            },
+            "valid header, no generators but messages are provided",
+        ),
+        (
+            &pk,
+            header,
+            &generators,
+            &vec![],
+            Error::MessageGeneratorsLengthMismatch {
+                generators: generators.message_blinding_points_length(),
+                messages: 0,
+            },
+            "valid header, no messages but generators are provided",
+        ),
+        (
+            &pk,
+            header,
+            &generators,
+            &vec![Message::default(); 2],
+            Error::MessageGeneratorsLengthMismatch {
+                generators: generators.message_blinding_points_length(),
+                messages: 2,
+            },
+            "more generators than messages",
+        ),
+        (
+            &pk,
+            header,
+            &create_generator_helper(2),
+            &messages,
+            Error::MessageGeneratorsLengthMismatch {
+                generators: 2,
+                messages: messages.len(),
+            },
+            "more messages than generators",
+        ),
+        (
+            &PublicKey::default(),
+            header,
+            &generators,
+            &messages,
+            Error::InvalidPublicKey,
+            "public key is identity",
+        ),
+    ];
+
+    for (pk, header, generators, messages, error, failure_debug_message) in
+        test_data
+    {
+        let result = signature.verify(&pk, header, &generators, &messages);
+        assert_eq!(
+            result,
+            Err(error),
+            "verification should fail - {}",
             failure_debug_message
         );
     }
