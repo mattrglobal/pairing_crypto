@@ -16,7 +16,15 @@ use crate::{
             Signature,
             MAP_MESSAGE_TO_SCALAR_DST,
         },
-        core::{generator::Generators, key_pair::KeyPair},
+        core::{
+            constants::{
+                GLOBAL_BLIND_VALUE_GENERATOR_SEED,
+                GLOBAL_MESSAGE_GENERATOR_SEED,
+                GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+            },
+            generator::Generators,
+            key_pair::KeyPair,
+        },
     },
     curves::bls12_381::{G1Projective, Scalar},
     Error,
@@ -204,6 +212,8 @@ fn sign_verify_valid_cases() {
 }
 
 #[test]
+// Test `Signature::new(...)` implementations error returns by passing invalid
+// passing paramter values.
 fn signature_new_error_cases() {
     let sk = SecretKey::random(&mut OsRng, TEST_KEY_INFO.as_ref())
         .expect("secret key generation failed");
@@ -211,7 +221,7 @@ fn signature_new_error_cases() {
     let header = Some(&TEST_HEADER);
     let messages = create_messages_helper();
     let generators = create_generator_helper(messages.len());
-    // Just to make sure sign-verify can be done with above valid values
+    // Just to make sure sign-verify succeeds with above valid values
     let signature = Signature::new(&sk, &pk, header, &generators, &messages)
         .expect("signing failed");
     assert_eq!(
@@ -307,6 +317,391 @@ fn signature_new_error_cases() {
 }
 
 #[test]
+// Test `verify` with different paramter values different than those used to
+// produce the signature. All these test cases should return an `Ok(false)`, not
+// errors.
+fn verify_tampered_signature_parameters() {
+    let key_pair1 = KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
+        .expect("key pair generation failed");
+    let header1 = Some(TEST_HEADER.as_ref());
+    let messages1 = create_messages_helper();
+    let generators1 = Generators::new(
+        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
+        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+        GLOBAL_MESSAGE_GENERATOR_SEED,
+        messages1.len(),
+    )
+    .expect("generators creation failed");
+
+    // Just to make sure sign-verify succeeds with above valid values
+    let signature = Signature::new(
+        &key_pair1.secret_key,
+        &key_pair1.public_key,
+        header1,
+        &generators1,
+        &messages1,
+    )
+    .expect("signing failed");
+    assert_eq!(
+        signature
+            .verify(&key_pair1.public_key, header1, &generators1, &messages1)
+            .expect("verification failed"),
+        true
+    );
+
+    // Another set of variables to be used as tampered values
+    let key_pair2 = KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
+        .expect("key pair generation failed");
+    let header2 = Some(b"another-set-of-header".as_ref());
+    let generators2_different_blind_value_seed = Generators::new(
+        b"test-blind-value-seed-2".as_ref(),
+        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+        GLOBAL_MESSAGE_GENERATOR_SEED,
+        messages1.len(),
+    )
+    .expect("generators creation with different blind value seed failed");
+    let generators2_different_sig_domain_seed = Generators::new(
+        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
+        b"test-sig-domain-seed-2".as_ref(),
+        GLOBAL_MESSAGE_GENERATOR_SEED,
+        messages1.len(),
+    )
+    .expect("generators creation with different sig domain seed failed");
+    let generators2_different_message_gens_seed = Generators::new(
+        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
+        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+        b"test-message-generators-seed-2".as_ref(),
+        messages1.len(),
+    )
+    .expect(
+        "generators creation with different message generators seed failed",
+    );
+    let mut messages2_different_first_message = messages1.clone();
+    *messages2_different_first_message.first_mut().unwrap() =
+        Message::random(&mut OsRng);
+    let mut messages2_different_last_message = messages1.clone();
+    *messages2_different_last_message.last_mut().unwrap() =
+        Message::random(&mut OsRng);
+
+    // [(PK, header, generators, messages, failure-debug-message)]
+    let test_data = [
+        (
+            &key_pair2.public_key,
+            header1,
+            &generators1,
+            &messages1,
+            "different public key",
+        ),
+        (
+            &key_pair1.public_key,
+            None,
+            &generators1,
+            &messages1,
+            "no header",
+        ),
+        (
+            &key_pair1.public_key,
+            header2,
+            &generators1,
+            &messages1,
+            "different header",
+        ),
+        (
+            &key_pair1.public_key,
+            header1,
+            &generators2_different_blind_value_seed,
+            &messages1,
+            "different blind value seed generator",
+        ),
+        (
+            &key_pair1.public_key,
+            header1,
+            &generators2_different_sig_domain_seed,
+            &messages1,
+            "different sign domain seed generator",
+        ),
+        (
+            &key_pair1.public_key,
+            header1,
+            &generators2_different_message_gens_seed,
+            &messages1,
+            "different message generators seed generators",
+        ),
+        (
+            &key_pair1.public_key,
+            header1,
+            &generators1,
+            &messages2_different_first_message,
+            "different first message",
+        ),
+        (
+            &key_pair1.public_key,
+            header1,
+            &generators1,
+            &messages2_different_last_message,
+            "different last message",
+        ),
+        (
+            &key_pair1.public_key,
+            header1,
+            &generators1,
+            &vec![
+                Message::random(&mut OsRng);
+                generators1.message_blinding_points_length()
+            ],
+            "all messages are different",
+        ),
+    ];
+
+    for (pk, header, generators, messages, failure_debug_message) in test_data {
+        let result = signature
+            .verify(&pk, header, &generators, &messages)
+            .expect("verify should return a true/false value, not error");
+        assert_eq!(
+            result, false,
+            "verification should fail - {}",
+            failure_debug_message
+        );
+    }
+}
+
+#[test]
+// Test as above test case `verify_tampered_signature_parameters` but here
+// original signature is produced with `header` being `None`.
+fn verify_tampered_signature_parameters_no_header_signature() {
+    let key_pair1 = KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
+        .expect("key pair generation failed");
+    let header1 = None;
+    let messages1 = create_messages_helper();
+    let generators1 = Generators::new(
+        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
+        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+        GLOBAL_MESSAGE_GENERATOR_SEED,
+        messages1.len(),
+    )
+    .expect("generators creation failed");
+
+    // Just to make sure sign-verify succeeds with above valid values
+    let signature = Signature::new(
+        &key_pair1.secret_key,
+        &key_pair1.public_key,
+        header1,
+        &generators1,
+        &messages1,
+    )
+    .expect("signing failed");
+    assert_eq!(
+        signature
+            .verify(&key_pair1.public_key, header1, &generators1, &messages1)
+            .expect("verification failed"),
+        true
+    );
+
+    // Another set of variables to be used as tampered values
+    let key_pair2 = KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
+        .expect("key pair generation failed");
+    let header2 = Some(b"another-set-of-header".as_ref());
+    let generators2_different_blind_value_seed = Generators::new(
+        b"test-blind-value-seed-2".as_ref(),
+        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+        GLOBAL_MESSAGE_GENERATOR_SEED,
+        messages1.len(),
+    )
+    .expect("generators creation with different blind value seed failed");
+    let generators2_different_sig_domain_seed = Generators::new(
+        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
+        b"test-sig-domain-seed-2".as_ref(),
+        GLOBAL_MESSAGE_GENERATOR_SEED,
+        messages1.len(),
+    )
+    .expect("generators creation with different sig domain seed failed");
+    let generators2_different_message_gens_seed = Generators::new(
+        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
+        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+        b"test-message-generators-seed-2".as_ref(),
+        messages1.len(),
+    )
+    .expect(
+        "generators creation with different message generators seed failed",
+    );
+    let mut messages2_different_first_message = messages1.clone();
+    *messages2_different_first_message.first_mut().unwrap() =
+        Message::random(&mut OsRng);
+    let mut messages2_different_last_message = messages1.clone();
+    *messages2_different_last_message.last_mut().unwrap() =
+        Message::random(&mut OsRng);
+
+    // [(PK, header, generators, messages, failure-debug-message)]
+    let test_data = [
+        (
+            &key_pair2.public_key,
+            header1,
+            &generators1,
+            &messages1,
+            "different public key",
+        ),
+        (
+            &key_pair1.public_key,
+            header2,
+            &generators1,
+            &messages1,
+            "different header",
+        ),
+        (
+            &key_pair1.public_key,
+            header1,
+            &generators2_different_blind_value_seed,
+            &messages1,
+            "different blind value seed generator",
+        ),
+        (
+            &key_pair1.public_key,
+            header1,
+            &generators2_different_sig_domain_seed,
+            &messages1,
+            "different sign domain seed generator",
+        ),
+        (
+            &key_pair1.public_key,
+            header1,
+            &generators2_different_message_gens_seed,
+            &messages1,
+            "different message generators seed generators",
+        ),
+        (
+            &key_pair1.public_key,
+            header1,
+            &generators1,
+            &messages2_different_first_message,
+            "different first message",
+        ),
+        (
+            &key_pair1.public_key,
+            header1,
+            &generators1,
+            &messages2_different_last_message,
+            "different last message",
+        ),
+        (
+            &key_pair1.public_key,
+            header1,
+            &generators1,
+            &vec![
+                Message::random(&mut OsRng);
+                generators1.message_blinding_points_length()
+            ],
+            "all messages are different",
+        ),
+    ];
+
+    for (pk, header, generators, messages, failure_debug_message) in test_data {
+        let result = signature
+            .verify(&pk, header, &generators, &messages)
+            .expect("verify should return a true/false value, not error");
+        assert_eq!(
+            result, false,
+            "verification should fail - {}",
+            failure_debug_message
+        );
+    }
+}
+
+#[test]
+// Test as above test case `verify_tampered_signature_parameters` but here
+// original signature is produced with no messages.
+fn verify_tampered_signature_parameters_no_messages_signature() {
+    let key_pair1 = KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
+        .expect("key pair generation failed");
+    let header1 = Some(TEST_HEADER.as_ref());
+    let messages1 = vec![];
+    let generators1 = Generators::new(
+        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
+        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+        GLOBAL_MESSAGE_GENERATOR_SEED,
+        messages1.len(),
+    )
+    .expect("generators creation failed");
+
+    // Just to make sure sign-verify succeeds with above valid values
+    let signature = Signature::new(
+        &key_pair1.secret_key,
+        &key_pair1.public_key,
+        header1,
+        &generators1,
+        &messages1,
+    )
+    .expect("signing failed");
+    assert_eq!(
+        signature
+            .verify(&key_pair1.public_key, header1, &generators1, &messages1)
+            .expect("verification failed"),
+        true
+    );
+
+    // Another set of variables to be used as tampered values
+    let key_pair2 = KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
+        .expect("key pair generation failed");
+    let header2 = Some(b"another-set-of-header".as_ref());
+    let generators2_different_blind_value_seed = Generators::new(
+        b"test-blind-value-seed-2".as_ref(),
+        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+        GLOBAL_MESSAGE_GENERATOR_SEED,
+        messages1.len(),
+    )
+    .expect("generators creation with different blind value seed failed");
+    let generators2_different_sig_domain_seed = Generators::new(
+        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
+        b"test-sig-domain-seed-2".as_ref(),
+        GLOBAL_MESSAGE_GENERATOR_SEED,
+        messages1.len(),
+    )
+    .expect("generators creation with different sig domain seed failed");
+
+    // [(PK, header, generators, messages, failure-debug-message)]
+    let test_data = [
+        (
+            &key_pair2.public_key,
+            header1,
+            &generators1,
+            &messages1,
+            "different public key",
+        ),
+        (
+            &key_pair1.public_key,
+            header2,
+            &generators1,
+            &messages1,
+            "different header",
+        ),
+        (
+            &key_pair1.public_key,
+            header1,
+            &generators2_different_blind_value_seed,
+            &messages1,
+            "different blind value seed generator",
+        ),
+        (
+            &key_pair1.public_key,
+            header1,
+            &generators2_different_sig_domain_seed,
+            &messages1,
+            "different sign domain seed generator",
+        ),
+    ];
+
+    for (pk, header, generators, messages, failure_debug_message) in test_data {
+        let result = signature
+            .verify(&pk, header, &generators, &messages)
+            .expect("verify should return a true/false value, not error");
+        assert_eq!(
+            result, false,
+            "verification should fail - {}",
+            failure_debug_message
+        );
+    }
+}
+
+#[test]
 fn verify_error_cases() {
     let sk = SecretKey::random(&mut OsRng, TEST_KEY_INFO.as_ref())
         .expect("secret key generation failed");
@@ -314,7 +709,7 @@ fn verify_error_cases() {
     let header = Some(&TEST_HEADER);
     let messages = create_messages_helper();
     let generators = create_generator_helper(messages.len());
-    // Just to make sure sign-verify can be done with above valid values
+    // Just to make sure sign-verify succeeds with above valid values
     let signature = Signature::new(&sk, &pk, header, &generators, &messages)
         .expect("signing failed");
     assert_eq!(
