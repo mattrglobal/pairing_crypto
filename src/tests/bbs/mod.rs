@@ -49,7 +49,7 @@ const EXPECTED_SIGS: [&str; 7] = [
     "a93dda896920660b9803cc880741e5c4f35609d18483e380016d3487d1bca9aefd782ba5853860f6f694957ee4dfd4a400a2ec0604a40089cae1f82d04277a8a2f32f8441b3c8e8d0958b29de38643c0547fa636902790b358c58d28c4db94a2cccbba074fd58123b3dbf488337dd707",
 ];
 
-fn create_generator_helper(num_of_messages: usize) -> Generators {
+fn create_generators_helper(num_of_messages: usize) -> Generators {
     Generators::new(
         GLOBAL_BLIND_VALUE_GENERATOR_SEED,
         GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
