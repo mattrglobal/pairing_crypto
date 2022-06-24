@@ -1,5 +1,5 @@
 use super::{
-    create_generator_helper,
+    create_generators_helper,
     EXPECTED_SIGS,
     TEST_CLAIMS,
     TEST_HEADER,
@@ -31,7 +31,7 @@ use crate::{
 };
 use core::convert::TryFrom;
 use ff::Field;
-use group::Group;
+use group::{Curve, Group};
 use rand_core::OsRng;
 use subtle::{Choice, ConditionallySelectable};
 
@@ -54,7 +54,7 @@ fn sign_verify_serde_nominal() {
         .expect("key pair generation failed");
     let header = Some(&TEST_HEADER);
     let messages = create_messages_helper();
-    let generators = create_generator_helper(messages.len());
+    let generators = create_generators_helper(messages.len());
 
     let signature = Signature::new(
         &key_pair.secret_key,
@@ -100,7 +100,7 @@ fn sign_verify_different_key_infos() {
         )
         .expect("secret key generation failed");
         let pk = PublicKey::from(&sk);
-        let generators = create_generator_helper(messages.len());
+        let generators = create_generators_helper(messages.len());
         let signature = Signature::new(
             &sk,
             &pk,
@@ -134,7 +134,7 @@ fn signature_equality() {
         .expect("key pair generation failed");
     let header = Some(&TEST_HEADER);
     let messages = create_messages_helper();
-    let generators = create_generator_helper(messages.len());
+    let generators = create_generators_helper(messages.len());
 
     let signature1 = Signature::new(
         &key_pair.secret_key,
@@ -149,14 +149,33 @@ fn signature_equality() {
         &key_pair.secret_key,
         &key_pair.public_key,
         header,
-        &create_generator_helper(0),
+        &generators,
+        &messages,
+    )
+    .expect("signing failed");
+
+    assert_eq!(signature1, signature2);
+    assert_eq!(signature1, signature1);
+    assert_eq!(signature2, signature2);
+
+    let mut signature3 = Signature::default();
+    signature3.conditional_assign(&signature1, Choice::from(1u8));
+    assert_eq!(signature3, signature1);
+
+    let mut signature4 = Signature::default();
+    signature4.conditional_assign(&signature1, Choice::from(0u8));
+    assert_ne!(signature4, signature1);
+
+    let signature5 = Signature::new(
+        &key_pair.secret_key,
+        &key_pair.public_key,
+        header,
+        &create_generators_helper(0),
         &vec![],
     )
     .expect("signing failed");
 
-    assert_ne!(signature1, signature2);
-    assert_eq!(signature1, signature1);
-    assert_eq!(signature2, signature2);
+    assert_ne!(signature5, signature1);
 }
 
 #[test]
@@ -166,7 +185,7 @@ fn sign_verify_valid_cases() {
     let pk = PublicKey::from(&sk);
     let header = Some(&TEST_HEADER);
     let messages = create_messages_helper();
-    let generators = create_generator_helper(messages.len());
+    let generators = create_generators_helper(messages.len());
 
     // [(SK, PK, header, generators, messages, failure-debug-message)]
     let test_data = [
@@ -174,7 +193,7 @@ fn sign_verify_valid_cases() {
             &sk,
             &pk,
             header,
-            &create_generator_helper(0),
+            &create_generators_helper(0),
             &vec![],
             "valid header, no messages and no generators are provided",
         ),
@@ -220,7 +239,7 @@ fn signature_new_error_cases() {
     let pk = PublicKey::from(&sk);
     let header = Some(&TEST_HEADER);
     let messages = create_messages_helper();
-    let generators = create_generator_helper(messages.len());
+    let generators = create_generators_helper(messages.len());
     // Just to make sure sign-verify succeeds with above valid values
     let signature = Signature::new(&sk, &pk, header, &generators, &messages)
         .expect("signing failed");
@@ -248,7 +267,7 @@ fn signature_new_error_cases() {
             &SecretKey::default(),
             &pk,
             header,
-            &create_generator_helper(0),
+            &create_generators_helper(0),
             &messages,
             Error::MessageGeneratorsLengthMismatch {
                 generators: 0,
@@ -284,7 +303,7 @@ fn signature_new_error_cases() {
             &SecretKey::default(),
             &pk,
             header,
-            &create_generator_helper(2),
+            &create_generators_helper(2),
             &messages,
             Error::MessageGeneratorsLengthMismatch {
                 generators: 2,
@@ -314,6 +333,68 @@ fn signature_new_error_cases() {
             failure_debug_message
         );
     }
+}
+
+#[test]
+// Test if `verify` succeeds with tampered signature components.
+fn verify_tampered_signature() {
+    let key_pair = KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
+        .expect("key pair generation failed");
+    let header = Some(TEST_HEADER.as_ref());
+    let messages = create_messages_helper();
+    let generators = Generators::new(
+        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
+        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+        GLOBAL_MESSAGE_GENERATOR_SEED,
+        messages.len(),
+    )
+    .expect("generators creation failed");
+
+    // Just to make sure sign-verify succeeds with above valid values
+    let signature = Signature::new(
+        &key_pair.secret_key,
+        &key_pair.public_key,
+        header,
+        &generators,
+        &messages,
+    )
+    .expect("signing failed");
+    assert_eq!(
+        signature
+            .verify(&key_pair.public_key, header, &generators, &messages)
+            .expect("verification failed"),
+        true
+    );
+
+    let mut signature2 = signature;
+    signature2.A = G1Projective::random(&mut OsRng);
+    assert_eq!(
+        signature2
+            .verify(&key_pair.public_key, header, &generators, &messages)
+            .expect("verification should not fail with error"),
+        false,
+        "verification should fail with tampered `A` value"
+    );
+
+    signature2 = signature;
+    signature2.e = Scalar::random(&mut OsRng);
+    assert_eq!(
+        signature2
+            .verify(&key_pair.public_key, header, &generators, &messages)
+            .expect("verification should not fail with error"),
+        false,
+        "verification should fail with tampered `e` value"
+    );
+
+    signature2 = signature;
+    signature2.s = Scalar::random(&mut OsRng);
+    assert_eq!(
+        signature2
+            .verify(&key_pair.public_key, header, &generators, &messages)
+            .expect("verification should not fail with error"),
+        false,
+        "verification should fail with tampered `s` value"
+    );
 }
 
 #[test]
@@ -708,7 +789,7 @@ fn verify_error_cases() {
     let pk = PublicKey::from(&sk);
     let header = Some(&TEST_HEADER);
     let messages = create_messages_helper();
-    let generators = create_generator_helper(messages.len());
+    let generators = create_generators_helper(messages.len());
     // Just to make sure sign-verify succeeds with above valid values
     let signature = Signature::new(&sk, &pk, header, &generators, &messages)
         .expect("signing failed");
@@ -734,7 +815,7 @@ fn verify_error_cases() {
         (
             &pk,
             header,
-            &create_generator_helper(0),
+            &create_generators_helper(0),
             &messages,
             Error::MessageGeneratorsLengthMismatch {
                 generators: 0,
@@ -767,7 +848,7 @@ fn verify_error_cases() {
         (
             &pk,
             header,
-            &create_generator_helper(2),
+            &create_generators_helper(2),
             &messages,
             Error::MessageGeneratorsLengthMismatch {
                 generators: 2,
@@ -799,33 +880,59 @@ fn verify_error_cases() {
 }
 
 #[test]
-fn serialization() {
-    let mut sig = Signature::default();
-    sig.A = G1Projective::generator();
-    sig.e = Scalar::one();
-    sig.s = Scalar::one() + Scalar::one();
+fn to_octets() {
+    const EXPECTED_SIGNATURE_HEX: &str = "8a1f6d1bd2c17759b361f136a1e4f6bd7c5cf991c49edebe23b30c2f55471f5fe5a071407f81cfe08276fae55597dfeb30f2393a1d5be68f89c2863ad10a30d95f3ccf42e8933dca45536a0fee85f6cf4b362d541f370ef7ed502d88cf840cc577f04d46831e69b1b5d36d388b5b0c42";
+    let key_pair =
+        KeyPair::new(TEST_KEY_GEN_IKM.as_ref(), TEST_KEY_INFO.as_ref())
+            .expect("key pair generation failed");
+    let header = Some(&TEST_HEADER);
+    let messages = create_messages_helper();
+    let generators = create_generators_helper(messages.len());
 
-    let sig_clone = Signature::from_octets(&sig.to_octets());
-    assert_eq!(sig_clone.is_ok(), true);
-    let sig2 = sig_clone.unwrap();
-    assert_eq!(sig, sig2);
-    sig.A = G1Projective::identity();
-    sig.conditional_assign(&sig2, Choice::from(1u8));
-    assert_eq!(sig, sig2);
+    let mut signature = Signature::new(
+        &key_pair.secret_key,
+        &key_pair.public_key,
+        header,
+        &generators,
+        &messages,
+    )
+    .expect("signing failed");
+
+    let mut signature_octets = signature.to_octets();
+    let expected_signature_octets = <[u8; Signature::SIZE_BYTES]>::try_from(
+        hex::decode(EXPECTED_SIGNATURE_HEX).expect("hex decoding failed"),
+    )
+    .expect("signature hex decoding failed");
+    assert_eq!(signature_octets, expected_signature_octets);
+
+    let a = G1Projective::random(&mut OsRng);
+    let e = Scalar::random(&mut OsRng);
+    let s = Scalar::random(&mut OsRng);
+
+    signature = Signature { A: a, e, s };
+    signature_octets = signature.to_octets();
+    let expected_signature_octets = [
+        [
+            a.to_affine().to_compressed().as_ref(),
+            e.to_bytes_be().as_ref(),
+        ]
+        .concat(),
+        s.to_bytes_be().as_ref().to_vec(),
+    ]
+    .concat();
+    assert_eq!(signature_octets.to_vec(), expected_signature_octets);
 }
 
+// TODO from_octets
+
 #[test]
-fn invalid_signature() {
-    let sig = Signature::default();
-    let pk = PublicKey::default();
-    let sk = SecretKey::default();
-    let msgs = [Message::default(), Message::default()];
-    let generators =
-        Generators::new(&[], &[], &[], 1).expect("generators creation failed");
-    assert!(Signature::new(&sk, &pk, Some(&[]), &generators, &msgs).is_err());
-    assert!(sig.verify(&pk, Some(&[]), &generators, &msgs).is_err());
-    let generators =
-        Generators::new(&[], &[], &[], 3).expect("generators creation failed");
-    assert!(sig.verify(&pk, Some(&[]), &generators, &msgs).is_err());
-    assert!(Signature::new(&sk, &pk, Some(&[]), &generators, &msgs).is_err());
+fn to_from_octets() {
+    let mut signature = Signature::default();
+    signature.A = G1Projective::random(&mut OsRng);
+    signature.e = Scalar::random(&mut OsRng);
+    signature.s = Scalar::random(&mut OsRng);
+
+    let signature_from_octets = Signature::from_octets(&signature.to_octets())
+        .expect("roundtrip `Signature::from_octets(...)` should not fail");
+    assert_eq!(signature, signature_from_octets);
 }
