@@ -1,5 +1,15 @@
 use crate::error::Error;
 
+#[macro_export]
+/// Print an array of bytes as hex string.
+macro_rules! print_byte_array {
+    ($formatter:ident, $byte_array:expr) => {
+        for &b in $byte_array.iter() {
+            write!($formatter, "{:02x}", b)?;
+        }
+    };
+}
+
 pub fn vec_to_byte_array<const N: usize>(
     vec: Vec<u8>,
 ) -> Result<[u8; N], Error> {

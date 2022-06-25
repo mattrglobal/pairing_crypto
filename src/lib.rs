@@ -20,6 +20,7 @@
 mod error;
 
 /// Common types and utilities
+#[macro_use]
 mod common;
 
 /// Supported Curves
