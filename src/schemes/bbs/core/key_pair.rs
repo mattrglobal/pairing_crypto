@@ -13,6 +13,7 @@ use crate::{
         Scalar,
     },
     error::Error,
+    print_byte_array,
 };
 use ff::Field;
 use group::{Curve, Group};
@@ -121,6 +122,14 @@ pub struct PublicKey(pub(crate) G2Projective);
 impl Default for PublicKey {
     fn default() -> Self {
         Self(G2Projective::identity())
+    }
+}
+
+impl core::fmt::Display for PublicKey {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "PublicKey(")?;
+        print_byte_array!(f, self.point_to_octets());
+        write!(f, ")")
     }
 }
 

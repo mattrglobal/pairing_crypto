@@ -22,6 +22,7 @@ use crate::{
         Scalar,
     },
     error::Error,
+    print_byte_array,
 };
 use core::{convert::TryFrom, fmt};
 use ff::Field;
@@ -44,6 +45,14 @@ pub(crate) struct Signature {
     pub(crate) A: G1Projective,
     pub(crate) e: Scalar,
     pub(crate) s: Scalar,
+}
+
+impl core::fmt::Display for Signature {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "Signature(A: ")?;
+        print_byte_array!(f, point_to_octets_g1(&self.A));
+        write!(f, ", e: {}, s: {})", self.e, self.s)
+    }
 }
 
 impl Serialize for Signature {
