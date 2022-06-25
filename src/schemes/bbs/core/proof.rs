@@ -19,10 +19,11 @@ use crate::{
     error::Error,
     print_byte_array,
 };
-use core::convert::TryFrom;
+use core::{convert::TryFrom, fmt::Debug};
 use ff::Field;
 use group::{prime::PrimeCurveAffine, Curve, Group};
 use hashbrown::HashSet;
+use log::trace;
 use pairing::{MillerLoopResult as _, MultiMillerLoop};
 use rand::{CryptoRng, RngCore};
 use rand_core::OsRng;
@@ -93,7 +94,7 @@ impl Proof {
         messages: &[ProofMessage],
     ) -> Result<Self, Error>
     where
-        T: AsRef<[u8]>,
+        T: AsRef<[u8]> + Debug,
     {
         Self::new_with_rng(
             PK,
@@ -117,8 +118,16 @@ impl Proof {
         mut rng: impl RngCore + CryptoRng,
     ) -> Result<Self, Error>
     where
-        T: AsRef<[u8]>,
+        T: AsRef<[u8]> + Debug,
     {
+        trace!("proof_gen enter +++");
+        trace!("input parameter: {PK:?}");
+        trace!("input parameter: {signature:?}");
+        trace!("input parameter: header {header:?}");
+        trace!("input parameter: presentation-header {ph:?}");
+        trace!("input parameter: {generators:?}",);
+        trace!("input parameter: messages {messages:?}");
+
         // Error out if length of messages and generators are not equal
         if messages.len() != generators.message_blinding_points_length() {
             return Err(Error::MessageGeneratorsLengthMismatch {
@@ -139,6 +148,7 @@ impl Proof {
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
         let domain = compute_domain(PK, header, messages.len(), generators)?;
+        trace!("domain: {domain:?}");
 
         // (r1, r2, e~, r2~, r3~, s~) = hash_to_scalar(PRF(8*ceil(log2(r))), 6)
         let r1 = Scalar::random(&mut rng);
@@ -147,6 +157,10 @@ impl Proof {
         let r2_tilde = Scalar::random(&mut rng);
         let r3_tilde = Scalar::random(&mut rng);
         let s_tilde = Scalar::random(&mut rng);
+        trace!(
+            "randoms r1: {r1:?}, r2: {r2:?}, e~: {e_tilde:?}, r2~: \
+             {r2_tilde:?}, r3~: {r3_tilde:?}, s~: {s_tilde:?}"
+        );
 
         // (m~_j1, ..., m~_jU) =  hash_to_scalar(PRF(8*ceil(log2(r))), U)
         // these random scalars will be generated further below using
@@ -155,6 +169,7 @@ impl Proof {
         let msg: Vec<_> = messages.iter().map(|m| m.get_message()).collect();
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
         let B = compute_B(&signature.s, &domain, msg.as_ref(), generators)?;
+        trace!("B: {B:?}");
 
         // r3 = r1 ^ -1 mod r
         let r3 = r1.invert();
@@ -164,24 +179,30 @@ impl Proof {
             });
         };
         let r3 = r3.unwrap();
+        trace!("r3: {r3:?}");
 
         // A' = A * r1
         let A_prime = signature.A * r1;
+        trace!("A': {A_prime:?}");
 
         // Abar = A' * (-e) + B * r1
         let A_bar = G1Projective::multi_exp(&[A_prime, B], &[-signature.e, r1]);
+        trace!("A_bar': {A_bar:?}");
 
         // D = B * r1 + H_s * r2
         let D = G1Projective::multi_exp(&[B, generators.H_s()], &[r1, r2]);
+        trace!("D: {D:?}");
 
         // s' = s + r2 * r3
         let s_prime = signature.s + r2 * r3;
+        trace!("s': {s_prime:?}");
 
         // C1 = A' * e~ + H_s * r2~
         let C1 = G1Projective::multi_exp(
             &[A_prime, generators.H_s()],
             &[e_tilde, r2_tilde],
         );
+        trace!("C1: {C1:?}");
 
         //  C2 = D * (-r3~) + H_s * s~ + H_j1 * m~_j1 + ... + H_jU * m~_jU
         let mut H_points = Vec::new();
@@ -197,9 +218,12 @@ impl Proof {
             }
         }
         let C2 = G1Projective::multi_exp(
-            &[[D, generators.H_s()].to_vec(), H_points].concat(),
+            &[[D, generators.H_s()].to_vec(), H_points.clone()].concat(),
             &[[-r3_tilde, s_tilde].to_vec(), m_tilde_scalars.clone()].concat(),
         );
+        trace!("H_j1...H_jU: {H_points:?}");
+        trace!("m~_j1...m~_jU: {m_tilde_scalars:?}");
+        trace!("C2: {C2:?}");
 
         // c = hash_to_scalar((PK || A' || Abar || D || C1 || C2 || ph), 1)
         let c = compute_challenge(PK, &A_prime, &A_bar, &D, &C1, &C2, ph)?;
@@ -225,8 +249,7 @@ impl Proof {
                 FiatShamirProof(m_hat)
             })
             .collect::<Vec<FiatShamirProof>>();
-
-        Ok(Proof {
+        let proof = Proof {
             A_prime,
             A_bar,
             D,
@@ -236,7 +259,11 @@ impl Proof {
             r3_hat,
             s_hat,
             m_hat_list,
-        })
+        };
+
+        trace!("generated proof: {proof:?}");
+        trace!("proof_gen exit ---");
+        Ok(proof)
     }
 
     /// Verify the zero-knowledge proof-of-knowledge of a signature with
@@ -250,8 +277,16 @@ impl Proof {
         revealed_msgs: &[(usize, Message)],
     ) -> Result<bool, Error>
     where
-        T: AsRef<[u8]>,
+        T: AsRef<[u8]> + Debug,
     {
+        trace!("proof_verify enter +++");
+        trace!("input parameter: Self(proof) {self:?}");
+        trace!("input parameter: {PK:?}");
+        trace!("input parameter: header {header:?}");
+        trace!("input parameter: presentation-header {ph:?}");
+        trace!("input parameter: {generators:?}",);
+        trace!("input parameters: revealed-messages {revealed_msgs:?}");
+
         // Input parameter checks
         if self.m_hat_list.len() + revealed_msgs.len()
             != generators.message_blinding_points_length()
@@ -291,11 +326,13 @@ impl Proof {
             generators.message_blinding_points_length(),
             generators,
         )?;
+        trace!("domain: {domain:?}");
 
         // C1 = (Abar - D) * c + A' * e^ + H_s * r2^
         let C1_points = [self.A_bar - self.D, self.A_prime, generators.H_s()];
         let C1_scalars = [self.c.0, self.e_hat.0, self.r2_hat.0];
         let C1 = G1Projective::multi_exp(&C1_points, &C1_scalars);
+        trace!("C1: {C1:?}");
 
         // T = P1 + H_d * domain + H_i1 * msg_i1 + ... H_iR * msg_iR
         let T_len = 1 + 1 + revealed_msgs.len();
@@ -324,6 +361,7 @@ impl Proof {
         }
         // Calculate T
         let T = G1Projective::multi_exp(&T_points, &T_scalars);
+        trace!("T: {T:?}");
 
         // Compute C2 = T * c + D * (-r3^) + H_s * s^ +
         //           H_j1 * m^_j1 + ... + H_jU * m^_jU
@@ -352,6 +390,7 @@ impl Proof {
             j += 1;
         }
         let C2 = G1Projective::multi_exp(&C2_points, &C2_scalars);
+        trace!("C2: {C2:?}");
 
         // cv = hash_to_scalar((PK || A' || Abar || D || C1 || C2 || ph), 1)
         let cv = compute_challenge(
@@ -363,6 +402,7 @@ impl Proof {
             &C2,
             ph,
         )?;
+        trace!("cv: {cv:?}");
 
         // Check the selective disclosure proof
         // if c != cv, return INVALID
@@ -380,7 +420,7 @@ impl Proof {
         // if e(A', W) * e(Abar, -P2) != 1, return INVALID
         // else return VALID
         let P2 = G2Affine::generator();
-        Ok(Bls12::multi_miller_loop(&[
+        let result = Bls12::multi_miller_loop(&[
             (
                 &self.A_prime.to_affine(),
                 &G2Prepared::from(PK.0.to_affine()),
@@ -390,7 +430,10 @@ impl Proof {
         .final_exponentiation()
         .is_identity()
         .unwrap_u8()
-            == 1)
+            == 1;
+        trace!("result: {result}");
+        trace!("proof_verify exit ---");
+        Ok(result)
     }
 
     /// Store the proof as a sequence of bytes in big endian format.
