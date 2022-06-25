@@ -202,7 +202,7 @@ impl Proof {
             &[A_prime, generators.H_s()],
             &[e_tilde, r2_tilde],
         );
-        trace!("C1: {C1:?}");
+        trace!("C1: {:?}", C1.to_affine());
 
         //  C2 = D * (-r3~) + H_s * s~ + H_j1 * m~_j1 + ... + H_jU * m~_jU
         let mut H_points = Vec::new();
@@ -223,7 +223,7 @@ impl Proof {
         );
         trace!("H_j1...H_jU: {H_points:?}");
         trace!("m~_j1...m~_jU: {m_tilde_scalars:?}");
-        trace!("C2: {C2:?}");
+        trace!("C2: {:?}", C2.to_affine());
 
         // c = hash_to_scalar((PK || A' || Abar || D || C1 || C2 || ph), 1)
         let c = compute_challenge(PK, &A_prime, &A_bar, &D, &C1, &C2, ph)?;
@@ -332,7 +332,7 @@ impl Proof {
         let C1_points = [self.A_bar - self.D, self.A_prime, generators.H_s()];
         let C1_scalars = [self.c.0, self.e_hat.0, self.r2_hat.0];
         let C1 = G1Projective::multi_exp(&C1_points, &C1_scalars);
-        trace!("C1: {C1:?}");
+        trace!("C1: {:?}", C1.to_affine());
 
         // T = P1 + H_d * domain + H_i1 * msg_i1 + ... H_iR * msg_iR
         let T_len = 1 + 1 + revealed_msgs.len();
@@ -390,7 +390,7 @@ impl Proof {
             j += 1;
         }
         let C2 = G1Projective::multi_exp(&C2_points, &C2_scalars);
-        trace!("C2: {C2:?}");
+        trace!("C2: {:?}", C2.to_affine());
 
         // cv = hash_to_scalar((PK || A' || Abar || D || C1 || C2 || ph), 1)
         let cv = compute_challenge(
