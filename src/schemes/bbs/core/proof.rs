@@ -17,6 +17,7 @@ use super::{
 use crate::{
     curves::bls12_381::{Bls12, G1Projective, G2Affine, G2Prepared, Scalar},
     error::Error,
+    print_byte_array,
 };
 use core::convert::TryFrom;
 use ff::Field;
@@ -58,6 +59,26 @@ pub(crate) struct Proof {
     pub(crate) s_hat: FiatShamirProof,
     /// (m^_1, ..., m^_U)
     pub(crate) m_hat_list: Vec<FiatShamirProof>,
+}
+
+impl core::fmt::Display for Proof {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "Proof(A': ")?;
+        print_byte_array!(f, point_to_octets_g1(&self.A_prime));
+        write!(f, ", A_bar: ")?;
+        print_byte_array!(f, point_to_octets_g1(&self.A_bar));
+        write!(f, ", D: ")?;
+        print_byte_array!(f, point_to_octets_g1(&self.D));
+        write!(
+            f,
+            ", c: {}, e^: {}, r2^: {}, r3^: {}, s^: {}, [",
+            self.c.0, self.e_hat.0, self.r2_hat.0, self.r3_hat.0, self.s_hat.0,
+        )?;
+        for (i, m_hat) in self.m_hat_list.iter().enumerate() {
+            write!(f, "m^_{}: {}, ", i + 1, m_hat.0)?;
+        }
+        write!(f, "])")
+    }
 }
 
 impl Proof {
