@@ -123,8 +123,21 @@ impl Proof {
         trace!("proof_gen enter +++");
         trace!("input parameter: {PK:?}");
         trace!("input parameter: {signature:?}");
-        trace!("input parameter: header {header:?}");
-        trace!("input parameter: presentation-header {ph:?}");
+        match header {
+            Some(ref header) => {
+                trace!("input parameter header hex:{:?}", hex::encode(header))
+            }
+            None => trace!("input parameter header None"),
+        }
+        match ph {
+            Some(ref ph) => {
+                trace!(
+                    "input parameter: presentation-header hex:{:?}",
+                    hex::encode(ph)
+                )
+            }
+            None => trace!("input parameter presentation-header: None"),
+        }
         trace!("input parameter: {generators:?}",);
         trace!("input parameter: messages {messages:?}");
 
@@ -282,8 +295,21 @@ impl Proof {
         trace!("proof_verify enter +++");
         trace!("input parameter: Self(proof) {self:?}");
         trace!("input parameter: {PK:?}");
-        trace!("input parameter: header {header:?}");
-        trace!("input parameter: presentation-header {ph:?}");
+        match header {
+            Some(ref header) => {
+                trace!("input parameter header hex:{:?}", hex::encode(header))
+            }
+            None => trace!("input parameter header: None"),
+        }
+        match ph {
+            Some(ref ph) => {
+                trace!(
+                    "input parameter presentation-header hex:{:?}",
+                    hex::encode(ph)
+                )
+            }
+            None => trace!("input parameter presentation-header: None"),
+        }
         trace!("input parameter: {generators:?}",);
         trace!("input parameters: revealed-messages {revealed_msgs:?}");
 
