@@ -5,6 +5,7 @@ use crate::error::Error;
 macro_rules! print_byte_array {
     ($formatter:ident, $byte_array:expr) => {
         for &b in $byte_array.iter() {
+            write!($formatter, "0x")?;
             write!($formatter, "{:02x}", b)?;
         }
     };

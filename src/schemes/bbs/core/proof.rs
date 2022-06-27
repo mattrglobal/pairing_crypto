@@ -71,7 +71,7 @@ impl core::fmt::Display for Proof {
         print_byte_array!(f, point_to_octets_g1(&self.D));
         write!(
             f,
-            ", c: {}, e^: {}, r2^: {}, r3^: {}, s^: {}, [",
+            ", c: {}, e^: {}, r2^: {}, r3^: {}, s^: {}, m^_i: [",
             self.c.0, self.e_hat.0, self.r2_hat.0, self.r3_hat.0, self.s_hat.0,
         )?;
         for (i, m_hat) in self.m_hat_list.iter().enumerate() {
