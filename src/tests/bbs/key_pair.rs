@@ -137,6 +137,63 @@ fn key_gen_equality_with_same_ikm_and_key_info() {
 }
 
 #[test]
+fn key_gen_uniqueness() {
+    // Secret key gen from IKM
+    let sk1 = SecretKey::new(
+        b"some-test-ikm-bytes-1-aabbccddeeff".as_ref(),
+        TEST_KEY_INFO.as_ref(),
+    )
+    .expect("secret key gen from IKM failed");
+    // Generate public key from secret key
+    let pk1 = PublicKey::from(&sk1);
+    let sk2 = SecretKey::new(
+        b"another-test-ikm-bytes-2-1122334455".as_ref(),
+        TEST_KEY_INFO.as_ref(),
+    )
+    .expect("secret key gen from IKM failed");
+    // Generate public key from secret key
+    let pk2 = PublicKey::from(&sk2);
+    assert_ne!(sk1, sk2);
+    assert_ne!(pk1, pk2);
+
+    // Secret key gen from Rng
+    let sk1 = SecretKey::random(&mut OsRng::default(), TEST_KEY_INFO.as_ref())
+        .expect("secret key gen from IKM failed");
+    // Generate public key from secret key
+    let pk1 = PublicKey::from(&sk1);
+    let sk2 = SecretKey::random(&mut OsRng::default(), TEST_KEY_INFO.as_ref())
+        .expect("secret key gen from IKM failed");
+    // Generate public key from secret key
+    let pk2 = PublicKey::from(&sk2);
+    assert_ne!(sk1, sk2);
+    assert_ne!(pk1, pk2);
+
+    // Key pair gen from IKM
+    let key_pair1 = KeyPair::new(
+        b"some-test-ikm-bytes-1-aabbccddeeff".as_ref(),
+        TEST_KEY_INFO.as_ref(),
+    )
+    .expect("random key pair generation failed");
+    let key_pair2 = KeyPair::new(
+        b"some-test-ikm-bytes-2-1122334455".as_ref(),
+        TEST_KEY_INFO.as_ref(),
+    )
+    .expect("random key pair generation failed");
+    assert_ne!(key_pair1.secret_key, key_pair2.secret_key);
+    assert_ne!(key_pair1.public_key, key_pair2.public_key);
+
+    // Key pair gen from Rng
+    let key_pair1 =
+        KeyPair::random(&mut OsRng::default(), TEST_KEY_INFO.as_ref())
+            .expect("random key pair generation failed");
+    let key_pair2 =
+        KeyPair::random(&mut OsRng::default(), TEST_KEY_INFO.as_ref())
+            .expect("random key pair generation failed");
+    assert_ne!(key_pair1.secret_key, key_pair2.secret_key);
+    assert_ne!(key_pair1.public_key, key_pair2.public_key);
+}
+
+#[test]
 // Test whether keys generated using `SecretKey` and `PublicKey` APIs are equal
 // to those generated using `KeyPair` APIs.
 fn key_pair_sk_pk_api_consistency() {

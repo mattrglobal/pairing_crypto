@@ -36,6 +36,7 @@ const TEST_CLAIMS: [&[u8]; 6] = [
 ];
 
 const TEST_HEADER: &[u8; 16] = b"some_app_context";
+const ANOTHER_TEST_HEADER: &[u8; 23] = b"some_other_test_context";
 
 // Expected signature for TEST_KEY_GEN_IKM, TEST_KEY_INFO, TEST_HEADER and
 // TEST_CLAIMS

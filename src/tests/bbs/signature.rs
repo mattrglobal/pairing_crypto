@@ -1,5 +1,6 @@
 use super::{
     create_generators_helper,
+    ANOTHER_TEST_HEADER,
     EXPECTED_SIGNATURES,
     TEST_CLAIMS,
     TEST_HEADER,
@@ -37,6 +38,7 @@ use core::convert::TryFrom;
 use ff::Field;
 use group::{Curve, Group};
 use rand_core::OsRng;
+use std::vec;
 use subtle::{Choice, ConditionallySelectable};
 
 fn create_messages_helper() -> Vec<Message> {
@@ -192,6 +194,108 @@ fn signature_equality() {
     .expect("signing failed");
 
     assert_ne!(signature5, signature1);
+}
+
+#[test]
+fn signature_uniqueness() {
+    let key_pair1 = KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
+        .expect("key pair generation failed");
+    let key_pair2 = KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
+        .expect("key pair generation failed");
+    let header = Some(TEST_HEADER.as_ref());
+    let another_header = Some(ANOTHER_TEST_HEADER.as_ref());
+    let messages = create_messages_helper();
+    let generators = create_generators_helper(messages.len());
+
+    let test_data = [
+        (
+            (
+                &key_pair1.secret_key,
+                &key_pair1.public_key,
+                header,
+                &generators,
+                &messages,
+            ),
+            (
+                &key_pair2.secret_key,
+                &key_pair2.public_key,
+                header,
+                &generators,
+                &messages,
+            ),
+            "different key-pairs",
+        ),
+        (
+            (
+                &key_pair1.secret_key,
+                &key_pair1.public_key,
+                header,
+                &generators,
+                &messages,
+            ),
+            (
+                &key_pair1.secret_key,
+                &key_pair1.public_key,
+                another_header,
+                &generators,
+                &messages,
+            ),
+            "different headers",
+        ),
+        (
+            (
+                &key_pair1.secret_key,
+                &key_pair1.public_key,
+                header,
+                &create_generators_helper(0),
+                &vec![],
+            ),
+            (
+                &key_pair1.secret_key,
+                &key_pair1.public_key,
+                another_header,
+                &create_generators_helper(0),
+                &vec![],
+            ),
+            "different headers, empty messages",
+        ),
+        (
+            (
+                &key_pair1.secret_key,
+                &key_pair1.public_key,
+                header,
+                &generators,
+                &messages,
+            ),
+            (
+                &key_pair1.secret_key,
+                &key_pair1.public_key,
+                header,
+                &generators,
+                &vec![Message::random(&mut OsRng); 6],
+            ),
+            "different messages",
+        ),
+    ];
+
+    for (
+        (sk1, pk1, h1, gen1, msg1),
+        (sk2, pk2, h2, gen2, msg2),
+        failure_debug_message,
+    ) in test_data
+    {
+        let signature1 = Signature::new(sk1, pk1, h1, gen1, msg1)
+            .expect("signature1 creation failed");
+
+        let signature2 = Signature::new(sk2, pk2, h2, gen2, msg2)
+            .expect("signature2 creation failed");
+
+        assert_ne!(
+            signature1, signature2,
+            "both signatures should be unique - {}",
+            failure_debug_message
+        );
+    }
 }
 
 #[test]
