@@ -229,7 +229,7 @@ macro_rules! key_serde {
         );
 
         // $key_type::from_vec
-        let key_from_vec = <$key_type>::from_vec(expected_key_vec)
+        let key_from_vec = <$key_type>::from_vec(&expected_key_vec)
             .expect("`{key_type_string}::from_vec` deserialization failed");
         assert_eq!(
             key_from_vec, $key,
@@ -280,7 +280,7 @@ macro_rules! key_from_vec_deserialization_invalid_vec_size {
         let key_size = <$key_type>::SIZE_BYTES;
 
         // $key_type::from_vec, empty vector
-        let result = <$key_type>::from_vec(vec![]);
+        let result = <$key_type>::from_vec(&vec![]);
         let expected_error_string = format!(
             "source vector size 0, expected destination byte array size \
              {key_size}"
@@ -294,7 +294,7 @@ macro_rules! key_from_vec_deserialization_invalid_vec_size {
         );
 
         // $key_type::from_vec, vector size is greater by 1 than valid size
-        let result = <$key_type>::from_vec(vec![0; key_size + 1]);
+        let result = <$key_type>::from_vec(&vec![0; key_size + 1]);
         let expected_error_string = format!(
             "source vector size {}, expected destination byte array size \
              {key_size}",

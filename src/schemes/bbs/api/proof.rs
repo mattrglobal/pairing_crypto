@@ -24,7 +24,7 @@ use crate::{
 /// Generate a signature proof of knowledge.
 pub fn proof_gen(request: BbsProofGenRequest) -> Result<Vec<u8>, Error> {
     // Parse public key from request
-    let pk = PublicKey::from_vec(request.public_key)?;
+    let pk = PublicKey::from_vec(&request.public_key)?;
 
     let mut digested_messages = vec![];
     if request.messages.is_some() {
@@ -45,7 +45,7 @@ pub fn proof_gen(request: BbsProofGenRequest) -> Result<Vec<u8>, Error> {
         digested_messages.len(),
     )?;
     // Parse signature from request
-    let signature = Signature::from_vec(request.signature)?;
+    let signature = Signature::from_vec(&request.signature)?;
 
     // Verify the signature to check the messages supplied are valid
     if !(signature.verify(
@@ -80,7 +80,7 @@ pub fn proof_gen(request: BbsProofGenRequest) -> Result<Vec<u8>, Error> {
 /// Verify a signature proof of knowledge.
 pub fn proof_verify(request: BbsProofVerifyRequest) -> Result<bool, Error> {
     // Parse public key from request
-    let public_key = PublicKey::from_vec(request.public_key)?;
+    let public_key = PublicKey::from_vec(&request.public_key)?;
 
     // Digest the revealed proof messages
     let messages: Vec<(usize, Message)> = digest_revealed_proof_messages(

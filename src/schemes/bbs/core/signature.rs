@@ -289,8 +289,9 @@ impl Signature {
         bytes
     }
 
-    /// Convert a vector of bytes of big-endian representation of the public key
-    pub fn from_vec(bytes: Vec<u8>) -> Result<Self, Error> {
+    /// Convert from a vector of bytes of big-endian representation of the
+    /// `Signature`.
+    pub fn from_vec(bytes: &Vec<u8>) -> Result<Self, Error> {
         match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
             Ok(result) => Self::from_octets(&result),
             Err(e) => Err(e),
@@ -309,11 +310,11 @@ impl Signature {
     /// [48, 32, 32] to represent (A, e, s).    
     pub fn from_octets<T: AsRef<[u8]>>(data: T) -> Result<Self, Error> {
         let data = data.as_ref();
-        if data.len() < Self::SIZE_BYTES {
+        if data.len() != Self::SIZE_BYTES {
             return Err(Error::MalformedSignature {
                 cause: format!(
-                    "not enough data, input buffer size: {} bytes, expected \
-                     data size: {}",
+                    "invalid input buffer size: {} bytes, expected data size: \
+                     {} bytes",
                     data.len(),
                     Self::SIZE_BYTES
                 ),

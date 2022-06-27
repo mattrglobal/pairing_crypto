@@ -90,7 +90,7 @@ impl SecretKey {
 
     /// Convert a vector of bytes of big-endian representation of the secret
     /// key.
-    pub fn from_vec(bytes: Vec<u8>) -> Result<Self, Error> {
+    pub fn from_vec(bytes: &Vec<u8>) -> Result<Self, Error> {
         match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
             Ok(result) => Self::from_bytes(&result),
             Err(e) => Err(e),
@@ -168,7 +168,7 @@ impl PublicKey {
 
     /// Convert a vector of bytes of big-endian representation of the public
     /// key.
-    pub fn from_vec(bytes: Vec<u8>) -> Result<Self, Error> {
+    pub fn from_vec(bytes: &Vec<u8>) -> Result<Self, Error> {
         match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
             Ok(result) => Self::octets_to_point(&result),
             Err(e) => Err(e),
@@ -210,7 +210,6 @@ impl Zeroize for KeyPair {
 impl Drop for KeyPair {
     fn drop(&mut self) {
         self.zeroize();
-        drop(self.public_key);
     }
 }
 
