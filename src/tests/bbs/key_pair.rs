@@ -188,6 +188,39 @@ fn key_gen_from_erroneous_rng() {
     assert!(key_pair.is_none(), "`KeyPair` should be a `None` value");
 }
 
+#[test]
+fn secret_key_from_invalid_scalar_bytes() {
+    assert_eq!(
+        SecretKey::from_bytes(&[0x0; SecretKey::SIZE_BYTES]),
+        Err(Error::UnexpectedZeroValue),
+        "input data is all zeroes"
+    );
+
+    assert_eq!(
+        SecretKey::from_bytes(&[0xFF; SecretKey::SIZE_BYTES]),
+        Err(Error::BadParams {
+            cause: "can't built a valid scalar value from input data"
+                .to_owned()
+        }),
+        "input data value is greater than modulus"
+    );
+}
+
+#[test]
+fn public_key_from_invalid_bytes() {
+    assert_eq!(
+        PublicKey::octets_to_point(&[0x0; PublicKey::SIZE_BYTES]),
+        Err(Error::BadEncoding),
+        "input data is all zeroes"
+    );
+
+    assert_eq!(
+        PublicKey::octets_to_point(&[0xFF; PublicKey::SIZE_BYTES]),
+        Err(Error::BadEncoding),
+        "input data is all '0xFF'"
+    );
+}
+
 macro_rules! key_serde {
     ($key:ident, $key_type:ty, $expected_test_key:expr, $to_bytes_fn:ident, $from_bytes_fn:ident) => {
         let expected_key_u8_array = <[u8; <$key_type>::SIZE_BYTES]>::try_from(
@@ -209,14 +242,14 @@ macro_rules! key_serde {
             <[u8; <$key_type>::SIZE_BYTES]>::from(&$key),
             expected_key_u8_array,
             "`<[u8; {key_type_string}::SIZE_BYTES]>::from(&\
-             {key_type_string})` conversion mismatch"
+             {key_type_string})` conversion failed"
         );
 
         // $key_type::$to_bytes_fn
         assert_eq!(
             $key.$to_bytes_fn(),
             expected_key_u8_array,
-            "`{key_type_string}::$to_bytes_fn` conversion mismatch"
+            "`{key_type_string}::$to_bytes_fn` conversion failed"
         );
 
         // $key_type::$from_bytes_fn
@@ -226,7 +259,7 @@ macro_rules! key_serde {
         .expect("`{key_type_string}::$from_bytes_fn` deserialization failed");
         assert_eq!(
             key_from_octets, $key,
-            "`{key_type_string}::$from_bytes_fn` conversion mismatch"
+            "`{key_type_string}::$from_bytes_fn` conversion failed"
         );
 
         // $key_type::from_vec
@@ -234,7 +267,7 @@ macro_rules! key_serde {
             .expect("`{key_type_string}::from_vec` deserialization failed");
         assert_eq!(
             key_from_vec, $key,
-            "`{key_type_string}::from_vec` conversion mismatch"
+            "`{key_type_string}::from_vec` conversion failed"
         );
     };
 }

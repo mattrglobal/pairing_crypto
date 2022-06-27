@@ -65,6 +65,10 @@ impl SecretKey {
         T: AsRef<[u8]>,
     {
         if let Some(out) = generate_sk(ikm, key_info) {
+            // Extra assurance
+            if out.is_zero().unwrap_u8() == 1u8 {
+                return None;
+            }
             return Some(SecretKey(Box::new(out)));
         }
         None
@@ -104,13 +108,20 @@ impl SecretKey {
 
     /// Convert a big-endian representation of the secret key.
     pub fn from_bytes(bytes: &[u8; Self::SIZE_BYTES]) -> Result<Self, Error> {
-        let result =
-            Scalar::from_bytes_be(bytes).map(|s| SecretKey(Box::new(s)));
+        let s = Scalar::from_bytes_be(bytes);
 
-        if result.is_some().unwrap_u8() == 1u8 {
-            Ok(result.unwrap())
+        if s.is_some().unwrap_u8() == 1u8 {
+            let s = s.unwrap();
+            // Extra assurance
+            if s.is_zero().unwrap_u8() == 1u8 {
+                return Err(Error::UnexpectedZeroValue);
+            }
+            Ok(SecretKey(Box::new(s)))
         } else {
-            Err(Error::BadEncoding)
+            Err(Error::BadParams {
+                cause: "can't built a valid scalar value from input data"
+                    .to_owned(),
+            })
         }
     }
 }
