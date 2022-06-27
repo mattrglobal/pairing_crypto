@@ -112,7 +112,7 @@ impl SecretKey {
 
         if s.is_some().unwrap_u8() == 1u8 {
             let s = s.unwrap();
-            // Extra assurance
+            // Zero check as Scalar::from_bytes_be() can result in zero value
             if s.is_zero().unwrap_u8() == 1u8 {
                 return Err(Error::UnexpectedZeroValue);
             }
