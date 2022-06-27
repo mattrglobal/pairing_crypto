@@ -1,6 +1,6 @@
 use super::{
     create_generators_helper,
-    EXPECTED_SIGS,
+    EXPECTED_SIGNATURES,
     TEST_CLAIMS,
     TEST_HEADER,
     TEST_KEY_GEN_IKM,
@@ -21,12 +21,15 @@ use crate::{
                 GLOBAL_BLIND_VALUE_GENERATOR_SEED,
                 GLOBAL_MESSAGE_GENERATOR_SEED,
                 GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+                OCTET_POINT_G1_LENGTH,
+                OCTET_SCALAR_LENGTH,
             },
             generator::Generators,
             key_pair::KeyPair,
         },
     },
     curves::bls12_381::{G1Projective, Scalar},
+    tests::bbs::EXPECTED_SIGNATURE,
     Error,
 };
 use core::convert::TryFrom;
@@ -119,7 +122,8 @@ fn sign_verify_different_key_infos() {
         );
         let expected_signature = Signature::from_octets(
             &<[u8; Signature::SIZE_BYTES]>::try_from(
-                hex::decode(EXPECTED_SIGS[i]).expect("hex decoding failed"),
+                hex::decode(EXPECTED_SIGNATURES[i])
+                    .expect("hex decoding failed"),
             )
             .expect("data conversion failed"),
         )
@@ -1001,9 +1005,23 @@ fn verify_error_cases() {
     }
 }
 
+// Concat `A`, `e` and `s` component of `Signature` as `Vec`.
+macro_rules! concat_a_e_s {
+    ($a:expr, $e:expr, $s:expr) => {
+        [
+            [
+                $a.to_affine().to_compressed().as_ref(),
+                $e.to_bytes_be().as_ref(),
+            ]
+            .concat(),
+            $s.to_bytes_be().as_ref().to_vec(),
+        ]
+        .concat()
+    };
+}
+
 #[test]
 fn to_octets() {
-    const EXPECTED_SIGNATURE_HEX: &str = "8a1f6d1bd2c17759b361f136a1e4f6bd7c5cf991c49edebe23b30c2f55471f5fe5a071407f81cfe08276fae55597dfeb30f2393a1d5be68f89c2863ad10a30d95f3ccf42e8933dca45536a0fee85f6cf4b362d541f370ef7ed502d88cf840cc577f04d46831e69b1b5d36d388b5b0c42";
     let key_pair =
         KeyPair::new(TEST_KEY_GEN_IKM.as_ref(), TEST_KEY_INFO.as_ref())
             .expect("key pair generation failed");
@@ -1022,7 +1040,7 @@ fn to_octets() {
 
     let mut signature_octets = signature.to_octets();
     let expected_signature_octets = <[u8; Signature::SIZE_BYTES]>::try_from(
-        hex::decode(EXPECTED_SIGNATURE_HEX).expect("hex decoding failed"),
+        hex::decode(EXPECTED_SIGNATURE).expect("hex decoding failed"),
     )
     .expect("signature hex decoding failed");
     assert_eq!(signature_octets, expected_signature_octets);
@@ -1033,19 +1051,227 @@ fn to_octets() {
 
     signature = Signature { A: a, e, s };
     signature_octets = signature.to_octets();
-    let expected_signature_octets = [
-        [
-            a.to_affine().to_compressed().as_ref(),
-            e.to_bytes_be().as_ref(),
-        ]
-        .concat(),
-        s.to_bytes_be().as_ref().to_vec(),
-    ]
-    .concat();
-    assert_eq!(signature_octets.to_vec(), expected_signature_octets);
+    let expected_signature_octets = concat_a_e_s!(a, e, s);
+    assert_eq!(signature_octets, expected_signature_octets.as_ref());
 }
 
-// TODO from_octets
+#[test]
+fn from_vec() {
+    let mut signature = Signature::default();
+    signature.A = G1Projective::random(&mut OsRng);
+    signature.e = Scalar::random(&mut OsRng);
+    signature.s = Scalar::random(&mut OsRng);
+    let signature_octets = signature.to_octets();
+
+    let signature_from_vec = Signature::from_vec(&Vec::from(signature_octets))
+        .expect("`Signature::from_vec(...)` should not fail");
+    assert_eq!(signature, signature_from_vec);
+
+    assert_eq!(
+        Signature::from_vec(&vec![]),
+        Err(Error::Conversion {
+            cause: format!(
+                "source vector size {}, expected destination byte array size \
+                 {}",
+                0,
+                Signature::SIZE_BYTES
+            )
+        })
+    );
+
+    assert_eq!(
+        Signature::from_vec(&vec![0x0; Signature::SIZE_BYTES + 1]),
+        Err(Error::Conversion {
+            cause: format!(
+                "source vector size {}, expected destination byte array size \
+                 {}",
+                Signature::SIZE_BYTES + 1,
+                Signature::SIZE_BYTES
+            )
+        })
+    );
+
+    assert_eq!(
+        Signature::from_vec(&Vec::from(&signature_octets[1..])),
+        Err(Error::Conversion {
+            cause: format!(
+                "source vector size {}, expected destination byte array size \
+                 {}",
+                Signature::SIZE_BYTES - 1,
+                Signature::SIZE_BYTES
+            )
+        })
+    );
+}
+
+// Concat 3 input buffers.
+macro_rules! concat_3 {
+    ($a:expr, $e:expr, $s:expr) => {
+        [[$a.as_ref(), $e.as_ref()].concat(), $s.to_vec()].concat()
+    };
+}
+
+#[test]
+fn from_octets() {
+    let test_data = [
+        (
+            vec![],
+            Error::MalformedSignature {
+                cause: format!(
+                    "invalid input buffer size: {} bytes, expected data size: \
+                     {} bytes",
+                    0,
+                    Signature::SIZE_BYTES
+                ),
+            },
+            "empty input data",
+        ),
+        (
+            vec![0xA; Signature::SIZE_BYTES - 1],
+            Error::MalformedSignature {
+                cause: format!(
+                    "invalid input buffer size: {} bytes, expected data size: \
+                     {} bytes",
+                    Signature::SIZE_BYTES - 1,
+                    Signature::SIZE_BYTES
+                ),
+            },
+            "input data length is less than 1 from expected",
+        ),
+        (
+            vec![0xB; Signature::SIZE_BYTES + 1],
+            Error::MalformedSignature {
+                cause: format!(
+                    "invalid input buffer size: {} bytes, expected data size: \
+                     {} bytes",
+                    Signature::SIZE_BYTES + 1,
+                    Signature::SIZE_BYTES
+                ),
+            },
+            "input data length is greater than 1 from expected",
+        ),
+        (
+            vec![0x0; Signature::SIZE_BYTES],
+            Error::BadEncoding,
+            "input data is all zeroes",
+        ),
+        (
+            concat_3!(
+                &vec![0x0; OCTET_POINT_G1_LENGTH],
+                Scalar::random(&mut OsRng).to_bytes_be(),
+                Scalar::random(&mut OsRng).to_bytes_be()
+            ),
+            Error::BadEncoding,
+            "Raw buffer for `A` is all zeroes",
+        ),
+        (
+            concat_3!(
+                &vec![0xA; OCTET_POINT_G1_LENGTH],
+                Scalar::random(&mut OsRng).to_bytes_be(),
+                Scalar::random(&mut OsRng).to_bytes_be()
+            ),
+            Error::BadEncoding,
+            "Raw buffer for `A` is all 0xA",
+        ),
+        (
+            concat_3!(
+                &vec![0xF; OCTET_POINT_G1_LENGTH],
+                Scalar::random(&mut OsRng).to_bytes_be(),
+                Scalar::random(&mut OsRng).to_bytes_be()
+            ),
+            Error::BadEncoding,
+            "Raw buffer for `A` is all 0xF",
+        ),
+        (
+            concat_3!(
+                G1Projective::random(&mut OsRng).to_affine().to_compressed(),
+                &vec![0x0; OCTET_SCALAR_LENGTH],
+                Scalar::random(&mut OsRng).to_bytes_be()
+            ),
+            Error::UnexpectedZeroValue,
+            "Raw buffer for `e` is all zeroes",
+        ),
+        (
+            concat_3!(
+                G1Projective::random(&mut OsRng).to_affine().to_compressed(),
+                &vec![0xFF; OCTET_SCALAR_LENGTH],
+                Scalar::random(&mut OsRng).to_bytes_be()
+            ),
+            Error::MalformedSignature {
+                cause: "failed to deserialize `e` component of signature"
+                    .to_owned(),
+            },
+            "Raw buffer value for `e` is larger than modulus",
+        ),
+        (
+            concat_3!(
+                G1Projective::random(&mut OsRng).to_affine().to_compressed(),
+                Scalar::random(&mut OsRng).to_bytes_be(),
+                &vec![0x0; OCTET_SCALAR_LENGTH]
+            ),
+            Error::UnexpectedZeroValue,
+            "Raw buffer for `s` is all zeroes",
+        ),
+        (
+            concat_3!(
+                G1Projective::random(&mut OsRng).to_affine().to_compressed(),
+                Scalar::random(&mut OsRng).to_bytes_be(),
+                &vec![0xFF; OCTET_SCALAR_LENGTH]
+            ),
+            Error::MalformedSignature {
+                cause: "failed to deserialize `s` component of signature"
+                    .to_owned(),
+            },
+            "Raw buffer value for `s` is larger than modulus",
+        ),
+        (
+            concat_a_e_s!(
+                G1Projective::identity(),
+                Scalar::random(&mut OsRng),
+                Scalar::random(&mut OsRng)
+            ),
+            Error::PointIsIdentity,
+            "`A` is identity",
+        ),
+        (
+            concat_a_e_s!(
+                G1Projective::random(&mut OsRng),
+                Scalar::zero(),
+                Scalar::random(&mut OsRng)
+            ),
+            Error::UnexpectedZeroValue,
+            "`e` is zero",
+        ),
+        (
+            concat_a_e_s!(
+                G1Projective::random(&mut OsRng),
+                Scalar::zero(),
+                Scalar::random(&mut OsRng)
+            ),
+            Error::UnexpectedZeroValue,
+            "`e` is zero",
+        ),
+        (
+            concat_a_e_s!(
+                G1Projective::random(&mut OsRng),
+                Scalar::random(&mut OsRng),
+                Scalar::zero()
+            ),
+            Error::UnexpectedZeroValue,
+            "`s` is zero",
+        ),
+    ];
+
+    for (octets, error, failure_debug_message) in test_data {
+        let result = Signature::from_octets(octets);
+        assert_eq!(
+            result,
+            Err(error),
+            "`Signature::from_octets` should fail - {}",
+            failure_debug_message
+        );
+    }
+}
 
 #[test]
 fn to_from_octets() {
