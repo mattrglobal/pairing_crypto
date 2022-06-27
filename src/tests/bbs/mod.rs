@@ -64,3 +64,33 @@ fn create_generators_helper(num_of_messages: usize) -> Generators {
     )
     .expect("generators creation failed")
 }
+
+#[macro_export]
+macro_rules! from_vec_deserialization_invalid_vec_size {
+    ($type:ty) => {
+        // For debug message
+        let type_string = stringify!($type);
+        let type_size = <$type>::SIZE_BYTES;
+
+        let test_data = [
+            (vec![], "empty input data"),
+            (vec![0; type_size - 1], "input data size is lesser than 1"),
+            (vec![0; type_size + 1], "input data size is greater than 1"),
+        ];
+        for (v, debug_error_message) in test_data {
+            let result = <$type>::from_vec(&v);
+            let expected_error_string = format!(
+                "source vector size {}, expected destination byte array size \
+                 {type_size}",
+                v.len()
+            );
+            assert_eq!(
+                result,
+                Err(Error::Conversion {
+                    cause: expected_error_string,
+                }),
+                "`{type_string}::from_vec` should fail - {debug_error_message}"
+            );
+        }
+    };
+}

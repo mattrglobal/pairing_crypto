@@ -3,6 +3,7 @@ use crate::{
         constants::MIN_KEY_GEN_IKM_LENGTH,
         key_pair::{KeyPair, PublicKey, SecretKey},
     },
+    from_vec_deserialization_invalid_vec_size,
     Error,
 };
 use blstrs::G2Projective;
@@ -273,47 +274,10 @@ fn key_serde() {
     );
 }
 
-macro_rules! key_from_vec_deserialization_invalid_vec_size {
-    ($key_type:ty) => {
-        // For debug message
-        let key_type_string = stringify!($key_type);
-        let key_size = <$key_type>::SIZE_BYTES;
-
-        // $key_type::from_vec, empty vector
-        let result = <$key_type>::from_vec(&vec![]);
-        let expected_error_string = format!(
-            "source vector size 0, expected destination byte array size \
-             {key_size}"
-        );
-        assert_eq!(
-            result,
-            Err(Error::Conversion {
-                cause: expected_error_string,
-            }),
-            "`{key_type_string}::from_vec` should fail for empty vector"
-        );
-
-        // $key_type::from_vec, vector size is greater by 1 than valid size
-        let result = <$key_type>::from_vec(&vec![0; key_size + 1]);
-        let expected_error_string = format!(
-            "source vector size {}, expected destination byte array size \
-             {key_size}",
-            key_size + 1
-        );
-        assert_eq!(
-            result,
-            Err(Error::Conversion {
-                cause: expected_error_string,
-            }),
-            "`{key_type_string}::from_vec` should fail for greater vector data"
-        );
-    };
-}
-
 #[test]
-fn key_from_vec_deserialization_invalid_vec_size() {
-    key_from_vec_deserialization_invalid_vec_size!(SecretKey);
-    key_from_vec_deserialization_invalid_vec_size!(PublicKey);
+fn from_vec_deserialization_invalid_vec_size() {
+    from_vec_deserialization_invalid_vec_size!(SecretKey);
+    from_vec_deserialization_invalid_vec_size!(PublicKey);
 }
 
 #[test]

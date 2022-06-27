@@ -29,6 +29,7 @@ use crate::{
         },
     },
     curves::bls12_381::{G1Projective, Scalar},
+    from_vec_deserialization_invalid_vec_size,
     tests::bbs::EXPECTED_SIGNATURE,
     Error,
 };
@@ -1056,7 +1057,7 @@ fn to_octets() {
 }
 
 #[test]
-fn from_vec() {
+fn from_vec_deserialization() {
     let mut signature = Signature::default();
     signature.A = G1Projective::random(&mut OsRng);
     signature.e = Scalar::random(&mut OsRng);
@@ -1067,41 +1068,7 @@ fn from_vec() {
         .expect("`Signature::from_vec(...)` should not fail");
     assert_eq!(signature, signature_from_vec);
 
-    assert_eq!(
-        Signature::from_vec(&vec![]),
-        Err(Error::Conversion {
-            cause: format!(
-                "source vector size {}, expected destination byte array size \
-                 {}",
-                0,
-                Signature::SIZE_BYTES
-            )
-        })
-    );
-
-    assert_eq!(
-        Signature::from_vec(&vec![0x0; Signature::SIZE_BYTES + 1]),
-        Err(Error::Conversion {
-            cause: format!(
-                "source vector size {}, expected destination byte array size \
-                 {}",
-                Signature::SIZE_BYTES + 1,
-                Signature::SIZE_BYTES
-            )
-        })
-    );
-
-    assert_eq!(
-        Signature::from_vec(&Vec::from(&signature_octets[1..])),
-        Err(Error::Conversion {
-            cause: format!(
-                "source vector size {}, expected destination byte array size \
-                 {}",
-                Signature::SIZE_BYTES - 1,
-                Signature::SIZE_BYTES
-            )
-        })
-    );
+    from_vec_deserialization_invalid_vec_size!(Signature);
 }
 
 // Concat 3 input buffers.
