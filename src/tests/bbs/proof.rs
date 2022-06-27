@@ -1,6 +1,6 @@
 use super::{
     create_generators_helper,
-    EXPECTED_SIGS,
+    EXPECTED_SIGNATURES,
     TEST_CLAIMS,
     TEST_HEADER,
     TEST_KEY_GEN_IKM,
@@ -73,7 +73,8 @@ fn gen_verify_e2e_nominal() {
 
         let signature = Signature::from_octets(
             &<[u8; Signature::SIZE_BYTES]>::try_from(
-                hex::decode(EXPECTED_SIGS[i]).expect("hex decoding failed"),
+                hex::decode(EXPECTED_SIGNATURES[i])
+                    .expect("hex decoding failed"),
             )
             .expect("data conversion failed"),
         )
