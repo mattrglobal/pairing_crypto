@@ -138,51 +138,85 @@ fn key_gen_equality_with_same_ikm_and_key_info() {
 
 #[test]
 fn key_gen_uniqueness() {
-    // Secret key gen from IKM
-    let sk1 = SecretKey::new(
-        b"some-test-ikm-bytes-1-aabbccddeeff".as_ref(),
-        TEST_KEY_INFO.as_ref(),
-    )
-    .expect("secret key gen from IKM failed");
-    // Generate public key from secret key
-    let pk1 = PublicKey::from(&sk1);
-    let sk2 = SecretKey::new(
-        b"another-test-ikm-bytes-2-1122334455".as_ref(),
-        TEST_KEY_INFO.as_ref(),
-    )
-    .expect("secret key gen from IKM failed");
-    // Generate public key from secret key
-    let pk2 = PublicKey::from(&sk2);
-    assert_ne!(sk1, sk2);
-    assert_ne!(pk1, pk2);
+    let test_data = [
+        (
+            (
+                b"test-ikm-11112222333344445555666677778888".as_ref(),
+                b"test-key-info".as_ref(),
+            ),
+            (
+                b"test-ikm-aaaabbbbccccddddeeeeffffgggghhhh".as_ref(),
+                b"test-key-info".as_ref(),
+            ),
+            "different IKM, same key-info",
+        ),
+        (
+            (b"test-ikm-11112222333344445555666677778888".as_ref(), &[]),
+            (b"test-ikm-aaaabbbbccccddddeeeeffffgggghhhh".as_ref(), &[]),
+            "different IKM, empty key-info",
+        ),
+        (
+            (
+                b"test-ikm-11112222333344445555666677778888".as_ref(),
+                b"test-key-info-1".as_ref(),
+            ),
+            (
+                b"test-ikm-11112222333344445555666677778888".as_ref(),
+                b"test-key-info-2".as_ref(),
+            ),
+            "same IKM, different key-info",
+        ),
+    ];
+    for ((ikm1, key_info_1), (ikm2, key_info_2), failure_debug_message) in
+        test_data
+    {
+        // Using SecretKey API
+        let sk1 = SecretKey::new(ikm1, key_info_1)
+            .expect("first secret key gen from IKM failed");
+        let pk1 = PublicKey::from(&sk1);
+        let sk2 = SecretKey::new(ikm2, key_info_2)
+            .expect("second secret key gen from IKM failed");
+        let pk2 = PublicKey::from(&sk2);
+        assert_ne!(
+            sk1, sk2,
+            "generated secret-key should be different - {}",
+            failure_debug_message
+        );
+        assert_ne!(
+            pk1, pk2,
+            "generated public-key should be different - {}",
+            failure_debug_message
+        );
 
-    // Secret key gen from Rng
+        let key_pair1 = KeyPair::new(ikm1, key_info_1)
+            .expect("first key-pair gen from IKM failed");
+        let key_pair2 = KeyPair::new(ikm2, key_info_2)
+            .expect("second key-pair gen from IKM failed");
+        assert_ne!(
+            key_pair1.secret_key, key_pair2.secret_key,
+            "generated secret-key should be different - {}",
+            failure_debug_message
+        );
+        assert_ne!(
+            key_pair1.public_key, key_pair2.public_key,
+            "generated public-key should be different - {}",
+            failure_debug_message
+        );
+
+        // Using KeyPair API
+    }
+
+    // Different Rng
     let sk1 = SecretKey::random(&mut OsRng::default(), TEST_KEY_INFO.as_ref())
         .expect("secret key gen from IKM failed");
-    // Generate public key from secret key
     let pk1 = PublicKey::from(&sk1);
     let sk2 = SecretKey::random(&mut OsRng::default(), TEST_KEY_INFO.as_ref())
         .expect("secret key gen from IKM failed");
-    // Generate public key from secret key
     let pk2 = PublicKey::from(&sk2);
     assert_ne!(sk1, sk2);
     assert_ne!(pk1, pk2);
 
-    // Key pair gen from IKM
-    let key_pair1 = KeyPair::new(
-        b"some-test-ikm-bytes-1-aabbccddeeff".as_ref(),
-        TEST_KEY_INFO.as_ref(),
-    )
-    .expect("random key pair generation failed");
-    let key_pair2 = KeyPair::new(
-        b"some-test-ikm-bytes-2-1122334455".as_ref(),
-        TEST_KEY_INFO.as_ref(),
-    )
-    .expect("random key pair generation failed");
-    assert_ne!(key_pair1.secret_key, key_pair2.secret_key);
-    assert_ne!(key_pair1.public_key, key_pair2.public_key);
-
-    // Key pair gen from Rng
+    // KeyPair different Rng
     let key_pair1 =
         KeyPair::random(&mut OsRng::default(), TEST_KEY_INFO.as_ref())
             .expect("random key pair generation failed");
