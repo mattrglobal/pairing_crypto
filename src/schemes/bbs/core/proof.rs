@@ -39,7 +39,7 @@ macro_rules! slicer {
 /// The `ProofGen` procedure is specified here <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofgen>
 /// proof = (A', Abar, D, c, e^, r2^, r3^, s^, (m^_1, ..., m^_U)), where `U` is
 /// number of unrevealed messages.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub(crate) struct Proof {
     /// A'
     pub(crate) A_prime: G1Projective,
