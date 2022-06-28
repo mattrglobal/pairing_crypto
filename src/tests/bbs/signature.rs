@@ -2,7 +2,6 @@ use super::{
     create_generators_helper,
     ANOTHER_TEST_HEADER,
     EXPECTED_SIGNATURES,
-    TEST_CLAIMS,
     TEST_HEADER,
     TEST_KEY_GEN_IKM,
     TEST_KEY_INFO,
@@ -10,13 +9,7 @@ use super::{
 };
 use crate::{
     bbs::{
-        ciphersuites::bls12_381::{
-            Message,
-            PublicKey,
-            SecretKey,
-            Signature,
-            MAP_MESSAGE_TO_SCALAR_DST,
-        },
+        ciphersuites::bls12_381::{Message, PublicKey, SecretKey, Signature},
         core::{
             constants::{
                 GLOBAL_BLIND_VALUE_GENERATOR_SEED,
@@ -31,7 +24,7 @@ use crate::{
     },
     curves::bls12_381::{G1Projective, Scalar},
     from_vec_deserialization_invalid_vec_size,
-    tests::bbs::EXPECTED_SIGNATURE,
+    tests::bbs::{get_test_messages, EXPECTED_SIGNATURE},
     Error,
 };
 use core::convert::TryFrom;
@@ -40,19 +33,6 @@ use group::{Curve, Group};
 use rand_core::OsRng;
 use std::vec;
 use subtle::{Choice, ConditionallySelectable};
-
-fn create_messages_helper() -> Vec<Message> {
-    TEST_CLAIMS
-        .iter()
-        .map(|b| {
-            Message::from_arbitrary_data(
-                b.as_ref(),
-                MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
-            )
-        })
-        .collect::<Result<Vec<Message>, _>>()
-        .expect("claims to `Message` conversion failed")
-}
 
 #[test]
 fn debug_display() {
@@ -70,7 +50,7 @@ fn sign_verify_serde_nominal() {
     let key_pair = KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
         .expect("key pair generation failed");
     let header = Some(&TEST_HEADER);
-    let messages = create_messages_helper();
+    let messages = get_test_messages();
     let generators = create_generators_helper(messages.len());
 
     let signature = Signature::new(
@@ -108,7 +88,7 @@ fn sign_verify_serde_nominal() {
 
 #[test]
 fn sign_verify_different_key_infos() {
-    let messages = create_messages_helper();
+    let messages = get_test_messages();
 
     for i in 0..TEST_KEY_INFOS.len() {
         let sk = SecretKey::new(
@@ -151,7 +131,7 @@ fn signature_equality() {
     let key_pair = KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
         .expect("key pair generation failed");
     let header = Some(&TEST_HEADER);
-    let messages = create_messages_helper();
+    let messages = get_test_messages();
     let generators = create_generators_helper(messages.len());
 
     let signature1 = Signature::new(
@@ -204,7 +184,7 @@ fn signature_uniqueness() {
         .expect("key pair generation failed");
     let header = Some(TEST_HEADER.as_ref());
     let another_header = Some(ANOTHER_TEST_HEADER.as_ref());
-    let messages = create_messages_helper();
+    let messages = get_test_messages();
     let generators = create_generators_helper(messages.len());
 
     let test_data = [
@@ -304,7 +284,7 @@ fn sign_verify_valid_cases() {
         .expect("secret key generation failed");
     let pk = PublicKey::from(&sk);
     let header = Some(&TEST_HEADER);
-    let messages = create_messages_helper();
+    let messages = get_test_messages();
     let generators = create_generators_helper(messages.len());
 
     // [(SK, PK, header, generators, messages, failure-debug-message)]
@@ -358,7 +338,7 @@ fn signature_new_error_cases() {
         .expect("secret key generation failed");
     let pk = PublicKey::from(&sk);
     let header = Some(&TEST_HEADER);
-    let messages = create_messages_helper();
+    let messages = get_test_messages();
     let generators = create_generators_helper(messages.len());
     // Just to make sure sign-verify succeeds with above valid values
     let signature = Signature::new(&sk, &pk, header, &generators, &messages)
@@ -461,7 +441,7 @@ fn verify_tampered_signature() {
     let key_pair = KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
         .expect("key pair generation failed");
     let header = Some(TEST_HEADER.as_ref());
-    let messages = create_messages_helper();
+    let messages = get_test_messages();
     let generators = Generators::new(
         GLOBAL_BLIND_VALUE_GENERATOR_SEED,
         GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
@@ -783,7 +763,7 @@ fn verify_tampered_signature_parameters_single_message_signature() {
 // produce the signature. All these test cases should return an `Ok(false)`, not
 // errors. In this variant, multiple messages are used to produce signature.
 fn verify_tampered_signature_parameters_multi_message_signature() {
-    verify_tampered_signature_parameters_helper(create_messages_helper());
+    verify_tampered_signature_parameters_helper(get_test_messages());
 }
 
 #[test]
@@ -793,7 +773,7 @@ fn verify_tampered_signature_parameters_no_header_signature() {
     let key_pair = KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
         .expect("key pair generation failed");
     let header = None;
-    let messages = create_messages_helper();
+    let messages = get_test_messages();
     let generators = Generators::new(
         GLOBAL_BLIND_VALUE_GENERATOR_SEED,
         GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
@@ -1030,7 +1010,7 @@ fn verify_error_cases() {
         .expect("secret key generation failed");
     let pk = PublicKey::from(&sk);
     let header = Some(&TEST_HEADER);
-    let messages = create_messages_helper();
+    let messages = get_test_messages();
     let generators = create_generators_helper(messages.len());
     // Just to make sure sign-verify succeeds with above valid values
     let signature = Signature::new(&sk, &pk, header, &generators, &messages)
@@ -1142,7 +1122,7 @@ fn to_octets() {
         KeyPair::new(TEST_KEY_GEN_IKM.as_ref(), TEST_KEY_INFO.as_ref())
             .expect("key pair generation failed");
     let header = Some(&TEST_HEADER);
-    let messages = create_messages_helper();
+    let messages = get_test_messages();
     let generators = create_generators_helper(messages.len());
 
     let mut signature = Signature::new(

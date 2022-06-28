@@ -3,8 +3,10 @@ use crate::bbs::core::{
         GLOBAL_BLIND_VALUE_GENERATOR_SEED,
         GLOBAL_MESSAGE_GENERATOR_SEED,
         GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+        MAP_MESSAGE_TO_SCALAR_DST,
     },
     generator::Generators,
+    types::Message,
 };
 
 mod generators;
@@ -64,6 +66,19 @@ fn create_generators_helper(num_of_messages: usize) -> Generators {
         num_of_messages,
     )
     .expect("generators creation failed")
+}
+
+fn get_test_messages() -> Vec<Message> {
+    TEST_CLAIMS
+        .iter()
+        .map(|b| {
+            Message::from_arbitrary_data(
+                b.as_ref(),
+                MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
+            )
+        })
+        .collect::<Result<Vec<Message>, _>>()
+        .expect("claims to `Message` conversion failed")
 }
 
 #[macro_export]
