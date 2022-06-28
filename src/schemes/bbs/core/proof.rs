@@ -452,9 +452,9 @@ impl Proof {
         if (buffer.len() - PROOF_LEN_FLOOR) % OCTET_SCALAR_LENGTH != 0 {
             return Err(Error::MalformedProof {
                 cause: format!(
-                    "variable length proof data {} is not multiple of \
+                    "variable length proof data size {} is not multiple of \
                      `Scalar` size {} bytes",
-                    buffer.len() - OCTET_POINT_G1_LENGTH,
+                    buffer.len() - PROOF_LEN_FLOOR,
                     OCTET_SCALAR_LENGTH
                 ),
             });
@@ -483,7 +483,7 @@ impl Proof {
             end,
             OCTET_SCALAR_LENGTH
         ));
-        if c.is_none().unwrap_u8() == 1 {
+        if c.is_none().unwrap_u8() == 1u8 {
             return Err(Error::MalformedProof {
                 cause: "failure while deserializing `c`".to_owned(),
             });
@@ -491,6 +491,9 @@ impl Proof {
         offset = end;
         end = offset + OCTET_SCALAR_LENGTH;
         let c = c.unwrap();
+        if c.0.is_zero().unwrap_u8() == 1u8 {
+            return Err(Error::UnexpectedZeroValue);
+        }
 
         // Get e^, r2^, r3^, s^
         let e_hat = extract_scalar_value(&mut offset, &mut end, buffer)?;
@@ -551,12 +554,16 @@ fn extract_scalar_value(
         *end,
         OCTET_SCALAR_LENGTH
     ));
-    if value.is_none().unwrap_u8() == 1 {
+    if value.is_none().unwrap_u8() == 1u8 {
         return Err(Error::MalformedProof {
-            cause: "failure while deserializing a value".to_owned(),
+            cause: "failure while deserializing a `Scalar` value".to_owned(),
         });
+    }
+    let value = value.unwrap();
+    if value.0.is_zero().unwrap_u8() == 1u8 {
+        return Err(Error::UnexpectedZeroValue);
     }
     *offset = *end;
     *end = *offset + OCTET_SCALAR_LENGTH;
-    Ok(value.unwrap())
+    Ok(value)
 }
