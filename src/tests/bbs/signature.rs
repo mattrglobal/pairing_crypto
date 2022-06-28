@@ -1147,8 +1147,13 @@ fn to_octets() {
 
     signature = Signature { A: a, e, s };
     signature_octets = signature.to_octets();
-    let expected_signature_octets = concat_a_e_s!(a, e, s);
-    assert_eq!(signature_octets, expected_signature_octets.as_ref());
+    let expected_signature_octets = [
+        a.to_affine().to_compressed().as_ref(),
+        e.to_bytes_be().as_ref(),
+        s.to_bytes_be().as_ref(),
+    ]
+    .concat();
+    assert_eq!(signature_octets, expected_signature_octets.as_slice());
 }
 
 #[test]
@@ -1174,7 +1179,7 @@ macro_rules! concat_3 {
 }
 
 #[test]
-fn from_octets() {
+fn from_octets_error_cases() {
     let test_data = [
         (
             vec![],
