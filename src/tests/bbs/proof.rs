@@ -72,7 +72,7 @@ mod test_helper {
         (proof_messages, revealed_messages)
     }
 
-    pub(super) fn proof_gen_with_rng<T>(
+    pub(super) fn proof_gen<T>(
         pk: &PublicKey,
         signature: &Signature,
         header: Option<T>,
@@ -102,7 +102,7 @@ mod test_helper {
         (proof, revealed_messages)
     }
 
-    pub(super) fn proof_gen<T>(
+    pub(super) fn proof_gen_with_mock_rng<T>(
         pk: &PublicKey,
         signature: &Signature,
         header: Option<T>,
@@ -117,7 +117,7 @@ mod test_helper {
         use rand::SeedableRng;
         let mut rng = MockRng::from_seed([1u8; 16]);
 
-        proof_gen_with_rng(
+        proof_gen(
             pk,
             signature,
             header,
@@ -151,7 +151,78 @@ fn default_value_deserialization() {
 }
 
 #[test]
-fn gen_verify_e2e_nominal() {
+fn gen_verify_serde_nominal() {
+    const NUM_MESSAGES: usize = 5;
+    let messages = get_random_test_messages(NUM_MESSAGES);
+    let key_pair = get_random_test_key_pair();
+    let header = Some(TEST_HEADER.as_ref());
+    let ph = Some(TEST_PRESENTATION_HEADER_1.as_ref());
+    let generators = create_generators_helper(messages.len());
+    let first_and_last_indices_revealed =
+        &[0, NUM_MESSAGES - 1].iter().cloned().collect();
+
+    let signature = Signature::new(
+        &key_pair.secret_key,
+        &key_pair.public_key,
+        header,
+        &generators,
+        &messages,
+    )
+    .expect("signing failed");
+    assert_eq!(
+        signature
+            .verify(&key_pair.public_key, header, &generators, &messages)
+            .expect("verification failed"),
+        true
+    );
+
+    let (proof, revealed_messages) = test_helper::proof_gen(
+        &key_pair.public_key,
+        &signature,
+        header,
+        ph,
+        &generators,
+        &messages,
+        first_and_last_indices_revealed,
+        &mut OsRng,
+    );
+    assert_eq!(
+        proof
+            .verify(
+                &key_pair.public_key,
+                header,
+                ph,
+                &generators,
+                &revealed_messages
+            )
+            .expect("proof verification failed"),
+        true
+    );
+
+    let proof_octets = proof.to_octets();
+    let proof_deserialized = Proof::from_octets(&proof_octets)
+        .expect("roundtrip proof deserialization failed");
+    assert_eq!(
+        proof, proof_deserialized,
+        "proof from roundtrip deserialization doesn't match to original proof"
+    );
+
+    assert_eq!(
+        proof_deserialized
+            .verify(
+                &key_pair.public_key,
+                header,
+                ph,
+                &generators,
+                &revealed_messages
+            )
+            .expect("roundtrip deserialized proof verification failed"),
+        true
+    );
+}
+
+#[test]
+fn gen_verify_different_key_pairs() {
     use rand::SeedableRng;
     let mut rng = MockRng::from_seed([1u8; 16]);
 
@@ -480,7 +551,7 @@ fn proof_uniqueness() {
         failure_debug_message,
     ) in test_data
     {
-        let (proof1, _) = test_helper::proof_gen(
+        let (proof1, _) = test_helper::proof_gen_with_mock_rng(
             pk1,
             sig1,
             h1,
@@ -489,7 +560,7 @@ fn proof_uniqueness() {
             &msg1,
             revealed_indices1,
         );
-        let (proof2, _) = test_helper::proof_gen(
+        let (proof2, _) = test_helper::proof_gen_with_mock_rng(
             pk2,
             sig2,
             h2,
@@ -505,7 +576,7 @@ fn proof_uniqueness() {
             failure_debug_message
         );
 
-        let (proof1, _) = test_helper::proof_gen_with_rng(
+        let (proof1, _) = test_helper::proof_gen(
             pk1,
             sig1,
             h1,
@@ -515,7 +586,7 @@ fn proof_uniqueness() {
             revealed_indices1,
             &mut OsRng,
         );
-        let (proof2, _) = test_helper::proof_gen_with_rng(
+        let (proof2, _) = test_helper::proof_gen(
             pk2,
             sig2,
             h2,
