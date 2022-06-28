@@ -15,13 +15,17 @@ use crate::{
             Signature,
         },
         core::{
-            constants::GLOBAL_BLIND_VALUE_GENERATOR_SEED,
+            constants::{
+                GLOBAL_BLIND_VALUE_GENERATOR_SEED,
+                OCTET_POINT_G1_LENGTH,
+                OCTET_SCALAR_LENGTH,
+            },
             generator::Generators,
             proof::Proof,
-            types::FiatShamirProof,
+            types::{Challenge, FiatShamirProof},
         },
     },
-    curves::bls12_381::Scalar,
+    curves::bls12_381::{G1Projective, Scalar},
     tests::{
         bbs::{
             get_random_test_key_pair,
@@ -33,9 +37,11 @@ use crate::{
         },
         mock_rng::MockRng,
     },
+    Error,
 };
 use core::convert::TryFrom;
 use ff::Field;
+use group::{Curve, Group};
 use hashbrown::HashSet;
 use rand_core::OsRng;
 
@@ -603,4 +609,529 @@ fn proof_uniqueness() {
             failure_debug_message
         );
     }
+}
+
+#[test]
+fn to_octets() {
+    let a_prime = G1Projective::random(&mut OsRng);
+    let a_bar = G1Projective::random(&mut OsRng);
+    let d = G1Projective::random(&mut OsRng);
+    let c = Challenge(Scalar::random(&mut OsRng));
+    let e_hat = FiatShamirProof(Scalar::random(&mut OsRng));
+    let r2_hat = FiatShamirProof(Scalar::random(&mut OsRng));
+    let r3_hat = FiatShamirProof(Scalar::random(&mut OsRng));
+    let s_hat = FiatShamirProof(Scalar::random(&mut OsRng));
+    let m_hat_list = vec![FiatShamirProof(Scalar::random(&mut OsRng)); 2];
+
+    let proof = Proof {
+        A_prime: a_prime,
+        A_bar: a_bar,
+        D: d,
+        c,
+        e_hat,
+        r2_hat,
+        r3_hat,
+        s_hat,
+        m_hat_list: m_hat_list.clone(),
+    };
+    let proof_octets = proof.to_octets();
+
+    let expected_proof_octets = [
+        a_prime.to_affine().to_compressed().as_ref(),
+        a_bar.to_affine().to_compressed().as_ref(),
+        d.to_affine().to_compressed().as_ref(),
+        c.0.to_bytes_be().as_ref(),
+        e_hat.0.to_bytes_be().as_ref(),
+        r2_hat.0.to_bytes_be().as_ref(),
+        r3_hat.0.to_bytes_be().as_ref(),
+        s_hat.0.to_bytes_be().as_ref(),
+        m_hat_list[0].0.to_bytes_be().as_ref(),
+        m_hat_list[1].0.to_bytes_be().as_ref(),
+    ]
+    .concat();
+    assert_eq!(proof_octets, expected_proof_octets);
+}
+
+#[test]
+fn from_octets_error_cases() {
+    let a_prime = G1Projective::random(&mut OsRng).to_affine().to_compressed();
+    let a_bar = G1Projective::random(&mut OsRng).to_affine().to_compressed();
+    let d = G1Projective::random(&mut OsRng).to_affine().to_compressed();
+    let c = Scalar::random(&mut OsRng).to_bytes_be();
+    let e_hat = Scalar::random(&mut OsRng).to_bytes_be();
+    let r2_hat = Scalar::random(&mut OsRng).to_bytes_be();
+    let r3_hat = Scalar::random(&mut OsRng).to_bytes_be();
+    let s_hat = Scalar::random(&mut OsRng).to_bytes_be();
+    let m_hat_list = vec![Scalar::random(&mut OsRng).to_bytes_be(); 2];
+
+    let g1_identity = G1Projective::identity().to_affine().to_compressed();
+    //  let scalar_zero = Scalar::zero().to_bytes_be();
+    let scalar_greater_than_modulus = [0xFF; OCTET_SCALAR_LENGTH];
+
+    const PROOF_LEN_FLOOR: usize =
+        OCTET_POINT_G1_LENGTH * 3 + OCTET_SCALAR_LENGTH * 5;
+
+    let test_data = [
+        (
+            vec![],
+            Error::MalformedProof {
+                cause: format!(
+                    "not enough data, input buffer size: {} bytes",
+                    0,
+                ),
+            },
+            "empty input data",
+        ),
+        (
+            vec![0xA; PROOF_LEN_FLOOR - 1],
+            Error::MalformedProof {
+                cause: format!(
+                    "not enough data, input buffer size: {} bytes",
+                    PROOF_LEN_FLOOR - 1,
+                ),
+            },
+            "input data length is less than 1 from fixed base size",
+        ),
+        (
+            vec![0xA; PROOF_LEN_FLOOR + 1],
+            Error::MalformedProof {
+                cause: format!(
+                    "variable length proof data size {} is not multiple of \
+                     `Scalar` size {} bytes",
+                    1, OCTET_SCALAR_LENGTH
+                ),
+            },
+            "input data length is greater than 1 from fixed base size",
+        ),
+        (
+            vec![0xA; PROOF_LEN_FLOOR + OCTET_SCALAR_LENGTH - 1],
+            Error::MalformedProof {
+                cause: format!(
+                    "variable length proof data size {} is not multiple of \
+                     `Scalar` size {} bytes",
+                    OCTET_SCALAR_LENGTH - 1,
+                    OCTET_SCALAR_LENGTH
+                ),
+            },
+            "variable input data length is less than 1 from the multiple of \
+             `Scalar` size",
+        ),
+        (
+            vec![0xA; PROOF_LEN_FLOOR + OCTET_SCALAR_LENGTH + 1],
+            Error::MalformedProof {
+                cause: format!(
+                    "variable length proof data size {} is not multiple of \
+                     `Scalar` size {} bytes",
+                    OCTET_SCALAR_LENGTH + 1,
+                    OCTET_SCALAR_LENGTH
+                ),
+            },
+            "variable input data length is greater than 1 from the multiple \
+             of `Scalar` size",
+        ),
+        (
+            vec![0x0; PROOF_LEN_FLOOR],
+            Error::BadEncoding,
+            "input data is all zeroes",
+        ),
+        (
+            [
+                [0x0; OCTET_POINT_G1_LENGTH].as_ref(),
+                a_bar.as_ref(),
+                d.as_ref(),
+                c.as_ref(),
+                e_hat.as_ref(),
+                r2_hat.as_ref(),
+                r3_hat.as_ref(),
+                s_hat.as_ref(),
+                m_hat_list[0].as_ref(),
+                m_hat_list[1].as_ref(),
+            ]
+            .concat(),
+            Error::BadEncoding,
+            "raw buffer for `A'` is all zeroes",
+        ),
+        (
+            [
+                g1_identity.as_ref(),
+                a_bar.as_ref(),
+                d.as_ref(),
+                c.as_ref(),
+                e_hat.as_ref(),
+                r2_hat.as_ref(),
+                r3_hat.as_ref(),
+                s_hat.as_ref(),
+                m_hat_list[0].as_ref(),
+                m_hat_list[1].as_ref(),
+            ]
+            .concat(),
+            Error::PointIsIdentity,
+            "raw buffer for `A'` is identity",
+        ),
+        (
+            [
+                a_prime.as_ref(),
+                [0x0; OCTET_POINT_G1_LENGTH].as_ref(),
+                d.as_ref(),
+                c.as_ref(),
+                e_hat.as_ref(),
+                r2_hat.as_ref(),
+                r3_hat.as_ref(),
+                s_hat.as_ref(),
+                m_hat_list[0].as_ref(),
+                m_hat_list[1].as_ref(),
+            ]
+            .concat(),
+            Error::BadEncoding,
+            "raw buffer for `A_bar` is all zeroes",
+        ),
+        (
+            [
+                a_prime.as_ref(),
+                g1_identity.as_ref(),
+                d.as_ref(),
+                c.as_ref(),
+                e_hat.as_ref(),
+                r2_hat.as_ref(),
+                r3_hat.as_ref(),
+                s_hat.as_ref(),
+                m_hat_list[0].as_ref(),
+                m_hat_list[1].as_ref(),
+            ]
+            .concat(),
+            Error::PointIsIdentity,
+            "raw buffer for `A_bar` is identity",
+        ),
+        (
+            [
+                a_prime.as_ref(),
+                a_bar.as_ref(),
+                [0x0; OCTET_POINT_G1_LENGTH].as_ref(),
+                c.as_ref(),
+                e_hat.as_ref(),
+                r2_hat.as_ref(),
+                r3_hat.as_ref(),
+                s_hat.as_ref(),
+                m_hat_list[0].as_ref(),
+                m_hat_list[1].as_ref(),
+            ]
+            .concat(),
+            Error::BadEncoding,
+            "raw buffer for `D` is all zeroes",
+        ),
+        (
+            [
+                a_prime.as_ref(),
+                a_bar.as_ref(),
+                g1_identity.as_ref(),
+                c.as_ref(),
+                e_hat.as_ref(),
+                r2_hat.as_ref(),
+                r3_hat.as_ref(),
+                s_hat.as_ref(),
+                m_hat_list[0].as_ref(),
+                m_hat_list[1].as_ref(),
+            ]
+            .concat(),
+            Error::PointIsIdentity,
+            "raw buffer for `D` is identity",
+        ),
+        (
+            [
+                a_prime.as_ref(),
+                a_bar.as_ref(),
+                d.as_ref(),
+                &vec![0x0; OCTET_SCALAR_LENGTH],
+                e_hat.as_ref(),
+                r2_hat.as_ref(),
+                r3_hat.as_ref(),
+                s_hat.as_ref(),
+                m_hat_list[0].as_ref(),
+                m_hat_list[1].as_ref(),
+            ]
+            .concat(),
+            Error::UnexpectedZeroValue,
+            "raw buffer for `c` is all zeroes",
+        ),
+        (
+            [
+                a_prime.as_ref(),
+                a_bar.as_ref(),
+                d.as_ref(),
+                scalar_greater_than_modulus.as_ref(),
+                e_hat.as_ref(),
+                r2_hat.as_ref(),
+                r3_hat.as_ref(),
+                s_hat.as_ref(),
+                m_hat_list[0].as_ref(),
+                m_hat_list[1].as_ref(),
+            ]
+            .concat(),
+            Error::MalformedProof {
+                cause: "failure while deserializing `c`".to_owned(),
+            },
+            "raw buffer value for `c` is larger than modulus",
+        ),
+        (
+            [
+                a_prime.as_ref(),
+                a_bar.as_ref(),
+                d.as_ref(),
+                c.as_ref(),
+                &vec![0x0; OCTET_SCALAR_LENGTH],
+                r2_hat.as_ref(),
+                r3_hat.as_ref(),
+                s_hat.as_ref(),
+                m_hat_list[0].as_ref(),
+                m_hat_list[1].as_ref(),
+            ]
+            .concat(),
+            Error::UnexpectedZeroValue,
+            "raw buffer for `e^` is all zeroes",
+        ),
+        (
+            [
+                a_prime.as_ref(),
+                a_bar.as_ref(),
+                d.as_ref(),
+                c.as_ref(),
+                scalar_greater_than_modulus.as_ref(),
+                r2_hat.as_ref(),
+                r3_hat.as_ref(),
+                s_hat.as_ref(),
+                m_hat_list[0].as_ref(),
+                m_hat_list[1].as_ref(),
+            ]
+            .concat(),
+            Error::MalformedProof {
+                cause: "failure while deserializing a `Scalar` value"
+                    .to_owned(),
+            },
+            "raw buffer value for `e^` is larger than modulus",
+        ),
+        (
+            [
+                a_prime.as_ref(),
+                a_bar.as_ref(),
+                d.as_ref(),
+                c.as_ref(),
+                e_hat.as_ref(),
+                &vec![0x0; OCTET_SCALAR_LENGTH],
+                r3_hat.as_ref(),
+                s_hat.as_ref(),
+                m_hat_list[0].as_ref(),
+                m_hat_list[1].as_ref(),
+            ]
+            .concat(),
+            Error::UnexpectedZeroValue,
+            "raw buffer for `r2^` is all zeroes",
+        ),
+        (
+            [
+                a_prime.as_ref(),
+                a_bar.as_ref(),
+                d.as_ref(),
+                c.as_ref(),
+                e_hat.as_ref(),
+                scalar_greater_than_modulus.as_ref(),
+                r3_hat.as_ref(),
+                s_hat.as_ref(),
+                m_hat_list[0].as_ref(),
+                m_hat_list[1].as_ref(),
+            ]
+            .concat(),
+            Error::MalformedProof {
+                cause: "failure while deserializing a `Scalar` value"
+                    .to_owned(),
+            },
+            "raw buffer value for `r2^` is larger than modulus",
+        ),
+        (
+            [
+                a_prime.as_ref(),
+                a_bar.as_ref(),
+                d.as_ref(),
+                c.as_ref(),
+                e_hat.as_ref(),
+                r2_hat.as_ref(),
+                &vec![0x0; OCTET_SCALAR_LENGTH],
+                s_hat.as_ref(),
+                m_hat_list[0].as_ref(),
+                m_hat_list[1].as_ref(),
+            ]
+            .concat(),
+            Error::UnexpectedZeroValue,
+            "raw buffer for `r3^` is all zeroes",
+        ),
+        (
+            [
+                a_prime.as_ref(),
+                a_bar.as_ref(),
+                d.as_ref(),
+                c.as_ref(),
+                e_hat.as_ref(),
+                r2_hat.as_ref(),
+                scalar_greater_than_modulus.as_ref(),
+                s_hat.as_ref(),
+                m_hat_list[0].as_ref(),
+                m_hat_list[1].as_ref(),
+            ]
+            .concat(),
+            Error::MalformedProof {
+                cause: "failure while deserializing a `Scalar` value"
+                    .to_owned(),
+            },
+            "raw buffer value for `r3^` is larger than modulus",
+        ),
+        (
+            [
+                a_prime.as_ref(),
+                a_bar.as_ref(),
+                d.as_ref(),
+                c.as_ref(),
+                e_hat.as_ref(),
+                r2_hat.as_ref(),
+                r3_hat.as_ref(),
+                &vec![0x0; OCTET_SCALAR_LENGTH],
+                m_hat_list[0].as_ref(),
+                m_hat_list[1].as_ref(),
+            ]
+            .concat(),
+            Error::UnexpectedZeroValue,
+            "raw buffer for `s^` is all zeroes",
+        ),
+        (
+            [
+                a_prime.as_ref(),
+                a_bar.as_ref(),
+                d.as_ref(),
+                e_hat.as_ref(),
+                r2_hat.as_ref(),
+                r3_hat.as_ref(),
+                scalar_greater_than_modulus.as_ref(),
+                m_hat_list[0].as_ref(),
+                m_hat_list[1].as_ref(),
+            ]
+            .concat(),
+            Error::MalformedProof {
+                cause: "failure while deserializing a `Scalar` value"
+                    .to_owned(),
+            },
+            "raw buffer value for `s^` is larger than modulus",
+        ),
+        (
+            [
+                a_prime.as_ref(),
+                a_bar.as_ref(),
+                d.as_ref(),
+                c.as_ref(),
+                e_hat.as_ref(),
+                r2_hat.as_ref(),
+                r3_hat.as_ref(),
+                s_hat.as_ref(),
+                &vec![0x0; OCTET_SCALAR_LENGTH],
+                m_hat_list[1].as_ref(),
+            ]
+            .concat(),
+            Error::UnexpectedZeroValue,
+            "raw buffer for `m^_1` is all zeroes",
+        ),
+        (
+            [
+                a_prime.as_ref(),
+                a_bar.as_ref(),
+                d.as_ref(),
+                c.as_ref(),
+                e_hat.as_ref(),
+                r2_hat.as_ref(),
+                r3_hat.as_ref(),
+                s_hat.as_ref(),
+                scalar_greater_than_modulus.as_ref(),
+                m_hat_list[1].as_ref(),
+            ]
+            .concat(),
+            Error::MalformedProof {
+                cause: "failure while deserializing a `Scalar` value"
+                    .to_owned(),
+            },
+            "raw buffer value for `m^_1` is larger than modulus",
+        ),
+        (
+            [
+                a_prime.as_ref(),
+                a_bar.as_ref(),
+                d.as_ref(),
+                c.as_ref(),
+                e_hat.as_ref(),
+                r2_hat.as_ref(),
+                r3_hat.as_ref(),
+                s_hat.as_ref(),
+                m_hat_list[0].as_ref(),
+                &vec![0x0; OCTET_SCALAR_LENGTH],
+            ]
+            .concat(),
+            Error::UnexpectedZeroValue,
+            "raw buffer for `m^_2` is all zeroes",
+        ),
+        (
+            [
+                a_prime.as_ref(),
+                a_bar.as_ref(),
+                d.as_ref(),
+                c.as_ref(),
+                e_hat.as_ref(),
+                r2_hat.as_ref(),
+                r3_hat.as_ref(),
+                s_hat.as_ref(),
+                m_hat_list[0].as_ref(),
+                scalar_greater_than_modulus.as_ref(),
+            ]
+            .concat(),
+            Error::MalformedProof {
+                cause: "failure while deserializing a `Scalar` value"
+                    .to_owned(),
+            },
+            "raw buffer value for `m^_2` is larger than modulus",
+        ),
+    ];
+
+    for (octets, error, failure_debug_message) in test_data {
+        let result = Proof::from_octets(octets);
+        assert_eq!(
+            result,
+            Err(error),
+            "`Proof::from_octets` should fail - {}",
+            failure_debug_message
+        );
+    }
+}
+
+#[test]
+fn to_from_octets() {
+    let a_prime = G1Projective::random(&mut OsRng);
+    let a_bar = G1Projective::random(&mut OsRng);
+    let d = G1Projective::random(&mut OsRng);
+    let c = Challenge(Scalar::random(&mut OsRng));
+    let e_hat = FiatShamirProof(Scalar::random(&mut OsRng));
+    let r2_hat = FiatShamirProof(Scalar::random(&mut OsRng));
+    let r3_hat = FiatShamirProof(Scalar::random(&mut OsRng));
+    let s_hat = FiatShamirProof(Scalar::random(&mut OsRng));
+    let m_hat_list = vec![FiatShamirProof(Scalar::random(&mut OsRng)); 2];
+    let proof = Proof {
+        A_prime: a_prime,
+        A_bar: a_bar,
+        D: d,
+        c,
+        e_hat,
+        r2_hat,
+        r3_hat,
+        s_hat,
+        m_hat_list: m_hat_list.clone(),
+    };
+
+    let proof_octets = proof.to_octets();
+    let proof_deserialized = Proof::from_octets(&proof_octets).expect(
+        "roundtrip deserialization `Proof::from_octets(...)` should not fail",
+    );
+    assert_eq!(proof, proof_deserialized);
 }
