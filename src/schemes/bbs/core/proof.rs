@@ -22,7 +22,7 @@ use crate::{
 use core::convert::TryFrom;
 use ff::Field;
 use group::{prime::PrimeCurveAffine, Curve, Group};
-use hashbrown::HashSet;
+use hashbrown::HashMap;
 use pairing::{MillerLoopResult as _, MultiMillerLoop};
 use rand::{CryptoRng, RngCore};
 use rand_core::OsRng;
@@ -254,12 +254,13 @@ impl Proof {
         header: Option<T>,
         ph: Option<T>,
         generators: &Generators,
-        revealed_msgs: &[(usize, Message)],
+        revealed_messages: &HashMap<usize, Message>,
     ) -> Result<bool, Error>
     where
         T: AsRef<[u8]>,
     {
-        let total_no_of_messages = self.m_hat_list.len() + revealed_msgs.len();
+        let total_no_of_messages =
+            self.m_hat_list.len() + revealed_messages.len();
 
         // Input parameter checks
         // Error out if there is no `header` and not any `ProofMessage`
@@ -277,14 +278,22 @@ impl Proof {
                      #revealed_messages: {}]",
                     generators.message_blinding_points_length(),
                     self.m_hat_list.len(),
-                    revealed_msgs.len()
+                    revealed_messages.len()
                 ),
             });
         }
-
+        if revealed_messages.keys().any(|r| *r >= total_no_of_messages) {
+            return Err(Error::BadParams {
+                cause: format!(
+                    "revealed message index value is invalid, maximum allowed \
+                     value is {}",
+                    total_no_of_messages - 1
+                ),
+            });
+        }
         // if KeyValidate(PK) is INVALID, return INVALID
         // `PK` should not be an identity and should belong to subgroup G2
-        if PK.is_valid().unwrap_u8() == 0 {
+        if PK.is_valid().unwrap_u8() == 0u8 {
             return Err(Error::InvalidPublicKey);
         }
 
@@ -312,7 +321,7 @@ impl Proof {
         let C1 = G1Projective::multi_exp(&C1_points, &C1_scalars);
 
         // T = P1 + H_d * domain + H_i1 * msg_i1 + ... H_iR * msg_iR
-        let T_len = 1 + 1 + revealed_msgs.len();
+        let T_len = 1 + 1 + revealed_messages.len();
         let mut T_points = Vec::with_capacity(T_len);
         let mut T_scalars = Vec::with_capacity(T_len);
         let P1 = G1Projective::generator();
@@ -323,9 +332,7 @@ impl Proof {
         T_points.push(generators.H_d());
         T_scalars.push(domain);
         // H_i1 * msg_i1 + ... H_iR * msg_iR
-        let mut revealed = HashSet::new();
-        for (idx, msg) in revealed_msgs {
-            revealed.insert(*idx);
+        for (idx, msg) in revealed_messages {
             if let Some(g) = generators.get_message_blinding_point(*idx) {
                 T_points.push(g);
                 T_scalars.push(msg.0);
@@ -358,7 +365,7 @@ impl Proof {
         for (i, generator) in
             generators.message_blinding_points_iter().enumerate()
         {
-            if revealed.contains(&i) {
+            if revealed_messages.contains_key(&i) {
                 continue;
             }
             C2_points.push(*generator);

@@ -5,6 +5,7 @@ use super::{
         test_data_proof_gen_invalid_parameters,
         test_data_proof_gen_verify_valid_cases,
         test_data_proof_uniqueness,
+        test_data_proof_verify_invalid_parameters,
     },
     EXPECTED_SIGNATURES,
     TEST_HEADER,
@@ -41,17 +42,18 @@ use crate::{
 use core::convert::TryFrom;
 use ff::Field;
 use group::{Curve, Group};
-use hashbrown::HashSet;
+use hashbrown::{HashMap, HashSet};
 use rand_core::OsRng;
 
-mod test_helper {
+pub(crate) mod test_helper {
     use super::*;
+    use hashbrown::HashMap;
     use rand::{CryptoRng, RngCore};
 
     pub(super) fn to_proof_revealed_messages(
         messages: &Vec<Message>,
         revealed_indices: &HashSet<usize>,
-    ) -> (Vec<ProofMessage>, Vec<(usize, Message)>) {
+    ) -> (Vec<ProofMessage>, HashMap<usize, Message>) {
         if revealed_indices.len() > messages.len() {
             panic!("more revealed indices than messages");
         }
@@ -62,12 +64,12 @@ mod test_helper {
         }
 
         let mut proof_messages: Vec<ProofMessage> = Vec::new();
-        let mut revealed_messages: Vec<(usize, Message)> = Vec::new();
+        let mut revealed_messages: HashMap<usize, Message> = HashMap::new();
 
         for (i, &m) in messages.iter().enumerate() {
             if revealed_indices.contains(&i) {
                 proof_messages.push(ProofMessage::Revealed(m));
-                revealed_messages.push((i, m));
+                revealed_messages.insert(i, m);
             } else {
                 proof_messages.push(ProofMessage::Hidden(m));
             }
@@ -75,7 +77,7 @@ mod test_helper {
         (proof_messages, revealed_messages)
     }
 
-    pub(super) fn proof_gen<T>(
+    pub(crate) fn proof_gen<T>(
         pk: &PublicKey,
         signature: &Signature,
         header: Option<T>,
@@ -85,7 +87,7 @@ mod test_helper {
         revealed_indices: &HashSet<usize>,
         mut rng: impl RngCore + CryptoRng,
         failure_debug_message: &str,
-    ) -> (Proof, Vec<(usize, Message)>)
+    ) -> (Proof, HashMap<usize, Message>)
     where
         T: AsRef<[u8]> + Copy,
     {
@@ -244,7 +246,7 @@ fn gen_verify_different_key_pairs() {
         .expect("signature deserialization failed");
         assert_eq!(
             signature
-                .verify(&pk, Some(&TEST_HEADER), &generators, &messages)
+                .verify(&pk, header, &generators, &messages)
                 .unwrap(),
             true
         );
@@ -270,9 +272,9 @@ fn gen_verify_different_key_pairs() {
             );
             assert_eq!(proof.to_octets(), expected_proof);
             proof_values.push(hex::encode(proof.to_octets()));
-            let mut revealed_msgs = Vec::new();
+            let mut revealed_msgs = HashMap::new();
             for k in 0..j {
-                revealed_msgs.push((k as usize, proof_msgs[k].get_message()));
+                revealed_msgs.insert(k, proof_msgs[k].get_message());
             }
 
             assert_eq!(
@@ -502,30 +504,17 @@ fn proof_gen_invalid_parameters() {
 #[test]
 // Test `Proof::verify(...)` implementation's returned errors by passing
 // invalid paramter values.
-fn proof_verify_error_cases() {
+fn proof_verify_invalid_parameters() {
     for (
-        (pk, signature, header, ph, generators, messages, revealed_indices),
+        (proof, pk, header, ph, generators, revealed_messages),
         error,
         failure_debug_message,
-    ) in test_data_proof_gen_invalid_parameters()
+    ) in test_data_proof_verify_invalid_parameters()
     {
-        let (proof_messages, _) = test_helper::to_proof_revealed_messages(
-            &messages,
-            &revealed_indices,
-        );
-
-        let result = Proof::new(
-            &pk,
-            &signature,
-            header,
-            ph,
-            &generators,
-            proof_messages.as_slice(),
-        );
         assert_eq!(
-            result,
+            proof.verify(&pk, header, ph, &generators, &revealed_messages),
             Err(error),
-            "proof-generation should fail - {}",
+            "proof-verification should return error - {}",
             failure_debug_message
         );
     }

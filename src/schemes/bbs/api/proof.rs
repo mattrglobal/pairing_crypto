@@ -1,3 +1,5 @@
+use hashbrown::HashMap;
+
 use super::{
     dtos::{BbsProofGenRequest, BbsProofVerifyRequest},
     utils::{
@@ -83,7 +85,7 @@ pub fn proof_verify(request: BbsProofVerifyRequest) -> Result<bool, Error> {
     let public_key = PublicKey::from_vec(&request.public_key)?;
 
     // Digest the revealed proof messages
-    let messages: Vec<(usize, Message)> = digest_revealed_proof_messages(
+    let messages: HashMap<usize, Message> = digest_revealed_proof_messages(
         request.messages.as_ref(),
         request.total_message_count,
     )?;
