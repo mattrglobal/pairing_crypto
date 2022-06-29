@@ -17,6 +17,8 @@ use crate::{
 };
 
 /// Creates a signature.
+/// Security Warning: `secret_key` and `public_key` in `request` must be related
+/// key-pair generated using `KeyPair` APIs.
 pub fn sign(request: BbsSignRequest) -> Result<[u8; 112], Error> {
     // Parse the secret key
     let sk = SecretKey::from_vec(&request.secret_key)?;

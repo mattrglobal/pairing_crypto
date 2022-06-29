@@ -138,6 +138,8 @@ impl Signature {
     /// Generate a new `Signature` where all messages are known to the signer.
     /// This method follows `Sign` API as defined in BBS Signature spec
     /// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.4>
+    /// Security Warning: `SK` and `PK` paramters must be related key-pair
+    /// generated using `KeyPair` APIs.
     pub fn new<T, M>(
         SK: &SecretKey,
         PK: &PublicKey,
