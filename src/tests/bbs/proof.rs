@@ -2,6 +2,8 @@ use super::{
     create_generators_helper,
     test_data::proof::{
         test_data_from_octets_error_cases,
+        test_data_proof_gen_error_cases,
+        test_data_proof_gen_verify_valid_cases,
         test_data_proof_uniqueness,
     },
     EXPECTED_SIGNATURES,
@@ -42,10 +44,8 @@ use hashbrown::HashSet;
 use rand_core::OsRng;
 
 mod test_helper {
-
-    use rand::{CryptoRng, RngCore};
-
     use super::*;
+    use rand::{CryptoRng, RngCore};
 
     pub(super) fn to_proof_revealed_messages(
         messages: &Vec<Message>,
@@ -83,6 +83,7 @@ mod test_helper {
         messages: &Vec<Message>,
         revealed_indices: &HashSet<usize>,
         mut rng: impl RngCore + CryptoRng,
+        failure_debug_message: &str,
     ) -> (Proof, Vec<(usize, Message)>)
     where
         T: AsRef<[u8]> + Copy,
@@ -99,36 +100,11 @@ mod test_helper {
             proof_messages.as_slice(),
             &mut rng,
         )
-        .expect("proof generation failed");
+        .expect(&format!(
+            "proof generation failed - {failure_debug_message}"
+        ));
 
         (proof, revealed_messages)
-    }
-
-    pub(super) fn proof_gen_with_mock_rng<T>(
-        pk: &PublicKey,
-        signature: &Signature,
-        header: Option<T>,
-        ph: Option<T>,
-        generators: &Generators,
-        messages: &Vec<Message>,
-        revealed_indices: &HashSet<usize>,
-    ) -> (Proof, Vec<(usize, Message)>)
-    where
-        T: AsRef<[u8]> + Copy,
-    {
-        use rand::SeedableRng;
-        let mut rng = MockRng::from_seed([1u8; 16]);
-
-        proof_gen(
-            pk,
-            signature,
-            header,
-            ph,
-            generators,
-            messages,
-            revealed_indices,
-            &mut rng,
-        )
     }
 }
 
@@ -187,6 +163,7 @@ fn gen_verify_serde_nominal() {
         &messages,
         first_and_last_indices_revealed,
         &mut OsRng,
+        "proof gen failed",
     );
     assert_eq!(
         proof
@@ -318,31 +295,6 @@ fn proof_uniqueness() {
         failure_debug_message,
     ) in test_data_proof_uniqueness()
     {
-        let (proof1, _) = test_helper::proof_gen_with_mock_rng(
-            &pk1,
-            &sig1,
-            h1,
-            ph1,
-            &gen1,
-            &msg1,
-            &revealed_indices1,
-        );
-        let (proof2, _) = test_helper::proof_gen_with_mock_rng(
-            &pk2,
-            &sig2,
-            h2,
-            ph2,
-            &gen2,
-            &msg2,
-            &revealed_indices2,
-        );
-
-        assert_ne!(
-            proof1, proof2,
-            "proofs should not be equal - {}",
-            failure_debug_message
-        );
-
         let (proof1, _) = test_helper::proof_gen(
             &pk1,
             &sig1,
@@ -352,6 +304,7 @@ fn proof_uniqueness() {
             &msg1,
             &revealed_indices1,
             &mut OsRng,
+            failure_debug_message,
         );
         let (proof2, _) = test_helper::proof_gen(
             &pk2,
@@ -362,11 +315,154 @@ fn proof_uniqueness() {
             &msg2,
             &revealed_indices2,
             &mut OsRng,
+            failure_debug_message,
         );
 
         assert_ne!(
             proof1, proof2,
-            "(OsRng case) proofs should not be equal - {}",
+            "proofs should not be equal - {}",
+            failure_debug_message
+        );
+    }
+}
+
+#[test]
+// Test `Proof::new_with_rng(...)` implementation by passing valid paramter
+// values.
+fn proof_gen_verify_valid_cases() {
+    for ((key_pair, header, ph, generators, messages), failure_debug_message) in
+        test_data_proof_gen_verify_valid_cases()
+    {
+        // Signature to be used in proof_gen
+        let signature = Signature::new(
+            &key_pair.secret_key,
+            &key_pair.public_key,
+            header,
+            &generators,
+            messages.clone(),
+        )
+        .expect("signing failed");
+
+        // Proof gen-verify all hidden messages
+        let indices_all_hidden = HashSet::<usize>::new();
+        let (proof, revealed_messages) = test_helper::proof_gen(
+            &key_pair.public_key,
+            &signature,
+            header,
+            ph,
+            &generators,
+            &messages,
+            &indices_all_hidden,
+            &mut OsRng,
+            failure_debug_message,
+        );
+        assert_eq!(
+            proof
+                .verify(
+                    &key_pair.public_key,
+                    header,
+                    ph,
+                    &generators,
+                    &revealed_messages
+                )
+                .expect(&format!(
+                    "proof verification failed - {failure_debug_message}"
+                )),
+            true
+        );
+
+        for i in 0..messages.len() {
+            let revealed_indices =
+                [0, i].iter().cloned().collect::<HashSet<usize>>();
+            let (proof, revealed_messages) = test_helper::proof_gen(
+                &key_pair.public_key,
+                &signature,
+                header,
+                ph,
+                &generators,
+                &messages,
+                &revealed_indices,
+                &mut OsRng,
+                failure_debug_message,
+            );
+            assert_eq!(
+                proof
+                    .verify(
+                        &key_pair.public_key,
+                        header,
+                        ph,
+                        &generators,
+                        &revealed_messages
+                    )
+                    .expect(&format!(
+                        "proof verification failed - {failure_debug_message}, \
+                         revealed indices {revealed_indices:#?}"
+                    )),
+                true
+            );
+        }
+    }
+}
+
+#[test]
+// Test `Proof::new_with_rng(...)` implementation's returned errors by passing
+// invalid paramter values.
+fn proof_gen_error_cases() {
+    for (
+        (pk, signature, header, ph, generators, messages, revealed_indices),
+        error,
+        failure_debug_message,
+    ) in test_data_proof_gen_error_cases()
+    {
+        let (proof_messages, _) = test_helper::to_proof_revealed_messages(
+            &messages,
+            &revealed_indices,
+        );
+
+        let result = Proof::new(
+            &pk,
+            &signature,
+            header,
+            ph,
+            &generators,
+            proof_messages.as_slice(),
+        );
+        assert_eq!(
+            result,
+            Err(error),
+            "proof-generation should fail - {}",
+            failure_debug_message
+        );
+    }
+}
+
+#[test]
+// Test `Proof::verify(...)` implementation's returned errors by passing
+// invalid paramter values.
+fn proof_verify_error_cases() {
+    for (
+        (pk, signature, header, ph, generators, messages, revealed_indices),
+        error,
+        failure_debug_message,
+    ) in test_data_proof_gen_error_cases()
+    {
+        let (proof_messages, _) = test_helper::to_proof_revealed_messages(
+            &messages,
+            &revealed_indices,
+        );
+
+        let result = Proof::new(
+            &pk,
+            &signature,
+            header,
+            ph,
+            &generators,
+            proof_messages.as_slice(),
+        );
+        assert_eq!(
+            result,
+            Err(error),
+            "proof-generation should fail - {}",
             failure_debug_message
         );
     }
