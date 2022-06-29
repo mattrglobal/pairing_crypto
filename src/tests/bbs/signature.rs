@@ -295,7 +295,7 @@ fn sign_verify_valid_cases() {
             header,
             &create_generators_helper(0),
             &vec![],
-            "valid header, no messages and no generators are provided",
+            "valid header, no messages and no message-generators are provided",
         ),
         (
             &sk,
@@ -303,7 +303,7 @@ fn sign_verify_valid_cases() {
             None,
             &generators,
             &messages,
-            "no header, but equal no. of messages and generators are provided",
+            "no header, but equal no. of messages and message-generators are provided",
         ),
     ];
 
@@ -331,8 +331,8 @@ fn sign_verify_valid_cases() {
 }
 
 #[test]
-// Test `Signature::new(...)` implementations returned errors by passing invalid
-// paramter values.
+// Test `Signature::new(...)` implementation's returned errors by passing
+// invalid paramter values.
 fn signature_new_error_cases() {
     let sk = SecretKey::random(&mut OsRng, TEST_KEY_INFO.as_ref())
         .expect("secret key generation failed");
