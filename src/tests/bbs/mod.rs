@@ -12,6 +12,8 @@ use crate::bbs::core::{
     types::Message,
 };
 
+mod test_data;
+
 mod generators;
 mod key_pair;
 mod proof;
