@@ -217,7 +217,6 @@ impl Signature {
         T: AsRef<[u8]>,
         M: AsRef<[Message]>,
     {
-        let header = header.as_ref();
         let messages = messages.as_ref();
 
         // Input parameter checks
