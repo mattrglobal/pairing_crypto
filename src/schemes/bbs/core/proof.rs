@@ -120,9 +120,8 @@ impl Proof {
         T: AsRef<[u8]>,
     {
         // Input parameter checks
-        // Error out if there is no `header`, no presentation-message and also
-        // not any `Message`
-        if header.is_none() && ph.is_none() && messages.is_empty() {
+        // Error out if there is no `header` and not any `ProofMessage`
+        if header.is_none() && messages.is_empty() {
             return Err(Error::BadParams {
                 cause: "nothing to prove".to_owned(),
             });
@@ -260,10 +259,17 @@ impl Proof {
     where
         T: AsRef<[u8]>,
     {
+        let total_no_of_messages = self.m_hat_list.len() + revealed_msgs.len();
+
+        // Input parameter checks
+        // Error out if there is no `header` and not any `ProofMessage`
+        if header.is_none() && (total_no_of_messages == 0) {
+            return Err(Error::BadParams {
+                cause: "nothing to verify".to_owned(),
+            });
+        }
         // Check if input proof data commitments matches no. of hidden messages
-        if self.m_hat_list.len() + revealed_msgs.len()
-            != generators.message_blinding_points_length()
-        {
+        if total_no_of_messages != generators.message_blinding_points_length() {
             return Err(Error::BadParams {
                 cause: format!(
                     "Incorrect number of messages and generators: \

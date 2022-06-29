@@ -36,7 +36,7 @@ pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
         Vec<Message>,
     ),
     &'static str,
-); 2] {
+); 4] {
     const NUM_MESSAGES: usize = 5;
     let key_pair = get_random_test_key_pair();
     let header = Some(TEST_HEADER.as_ref());
@@ -49,12 +49,34 @@ pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
             (
                 key_pair.clone(),
                 None,
+                None,
+                generators.clone(),
+                messages.clone(),
+            ),
+            "no header, no presentation-message, and equal no. of messages \
+             and message-generators are provided",
+        ),
+        (
+            (
+                key_pair.clone(),
+                header,
+                None,
+                generators.clone(),
+                messages.clone(),
+            ),
+            "valid header, no presentation-message, no messages and no \
+             message-generators are provided",
+        ),
+        (
+            (
+                key_pair.clone(),
+                None,
                 ph,
                 generators.clone(),
                 messages.clone(),
             ),
-            "no header, but equal no. of messages and message-generators are \
-             provided",
+            "no header, valid presentation-message, and equal no. of messages \
+             and message-generators are provided",
         ),
         (
             (
@@ -64,7 +86,8 @@ pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
                 generators.clone(),
                 messages.clone(),
             ),
-            "valid header, no messages and no message-generators are provided",
+            "valid header, valid presentation-message, no messages and no \
+             message-generators are provided",
         ),
     ]
 }
@@ -105,6 +128,22 @@ pub(crate) fn test_data_proof_gen_error_cases() -> [(
                 signature,
                 None,
                 None,
+                create_generators_helper(0),
+                vec![],
+                indices_all_hidden.clone(),
+            ),
+            Error::BadParams {
+                cause: "nothing to prove".to_owned(),
+            },
+            "no header, no presentation-message, no messages, no \
+             message-generators",
+        ),
+        (
+            (
+                key_pair.public_key,
+                signature,
+                None,
+                None,
                 generators.clone(),
                 vec![],
                 indices_all_hidden.clone(),
@@ -120,14 +159,64 @@ pub(crate) fn test_data_proof_gen_error_cases() -> [(
                 key_pair.public_key,
                 signature,
                 None,
+                None,
+                create_generators_helper(0),
+                messages.clone(),
+                indices_all_hidden.clone(),
+            ),
+            Error::MessageGeneratorsLengthMismatch {
+                generators: 0,
+                messages: messages.len(),
+            },
+            "no header, no presentation-message, no message-generators but \
+             messages are provided",
+        ),
+        (
+            (
+                key_pair.public_key,
+                signature,
+                None,
+                None,
+                generators.clone(),
+                vec![Message::random(&mut OsRng); 2],
+                indices_all_hidden.clone(),
+            ),
+            Error::MessageGeneratorsLengthMismatch {
+                generators: generators.message_blinding_points_length(),
+                messages: 2,
+            },
+            "no header, no presentation-message, more message-generators than \
+             messages",
+        ),
+        (
+            (
+                key_pair.public_key,
+                signature,
+                None,
+                None,
+                create_generators_helper(NUM_MESSAGES - 1),
+                messages.clone(),
+                indices_all_hidden.clone(),
+            ),
+            Error::MessageGeneratorsLengthMismatch {
+                generators: 4,
+                messages: messages.len(),
+            },
+            "no header, no presentation-message, more messages than \
+             message-generators",
+        ),
+        (
+            (
+                key_pair.public_key,
+                signature,
+                None,
                 ph,
                 generators.clone(),
                 vec![],
                 indices_all_hidden.clone(),
             ),
-            Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
-                messages: 0,
+            Error::BadParams {
+                cause: "nothing to prove".to_owned(),
             },
             "no header, valid presentation-message, no messages but \
              message-generators are provided",
@@ -181,141 +270,6 @@ pub(crate) fn test_data_proof_gen_error_cases() -> [(
                 messages: messages.len(),
             },
             "no header, valid presentation-message, more messages than \
-             message-generators",
-        ),
-        (
-            (
-                key_pair.public_key,
-                signature,
-                header,
-                ph,
-                create_generators_helper(0),
-                messages.clone(),
-                indices_all_hidden.clone(),
-            ),
-            Error::MessageGeneratorsLengthMismatch {
-                generators: 0,
-                messages: messages.len(),
-            },
-            "valid header, valid presentation-message, no message-generators \
-             but messages are provided",
-        ),
-        (
-            (
-                key_pair.public_key,
-                signature,
-                header,
-                ph,
-                generators.clone(),
-                vec![],
-                indices_all_hidden.clone(),
-            ),
-            Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
-                messages: 0,
-            },
-            "valid header, valid presentation-message, no messages but \
-             message-generators are provided",
-        ),
-        (
-            (
-                key_pair.public_key,
-                signature,
-                header,
-                ph,
-                generators.clone(),
-                vec![Message::random(&mut OsRng); 2],
-                indices_all_hidden.clone(),
-            ),
-            Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
-                messages: 2,
-            },
-            "valid header, valid presentation-message, more \
-             message-generators than messages",
-        ),
-        (
-            (
-                key_pair.public_key,
-                signature,
-                header,
-                ph,
-                create_generators_helper(NUM_MESSAGES - 1),
-                messages.clone(),
-                indices_all_hidden.clone(),
-            ),
-            Error::MessageGeneratorsLengthMismatch {
-                generators: 4,
-                messages: messages.len(),
-            },
-            "valid header, valid presentation-message, more messages than \
-             message-generators",
-        ),
-        (
-            (
-                key_pair.public_key,
-                signature,
-                None,
-                None,
-                create_generators_helper(0),
-                vec![],
-                indices_all_hidden.clone(),
-            ),
-            Error::BadParams {
-                cause: "nothing to prove".to_owned(),
-            },
-            "no header, no presentation-message, no messages, no \
-             message-generators",
-        ),
-        (
-            (
-                key_pair.public_key,
-                signature,
-                None,
-                None,
-                create_generators_helper(0),
-                messages.clone(),
-                indices_all_hidden.clone(),
-            ),
-            Error::MessageGeneratorsLengthMismatch {
-                generators: 0,
-                messages: messages.len(),
-            },
-            "no header, no presentation-message, no message-generators but \
-             messages are provided",
-        ),
-        (
-            (
-                key_pair.public_key,
-                signature,
-                None,
-                None,
-                generators.clone(),
-                vec![Message::random(&mut OsRng); 2],
-                indices_all_hidden.clone(),
-            ),
-            Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
-                messages: 2,
-            },
-            "no header, no presentation-message, more message-generators than \
-             messages",
-        ),
-        (
-            (
-                key_pair.public_key,
-                signature,
-                None,
-                None,
-                create_generators_helper(NUM_MESSAGES - 1),
-                messages.clone(),
-                indices_all_hidden.clone(),
-            ),
-            Error::MessageGeneratorsLengthMismatch {
-                generators: 4,
-                messages: messages.len(),
-            },
-            "no header, no presentation-message, more messages than \
              message-generators",
         ),
         (
@@ -384,6 +338,74 @@ pub(crate) fn test_data_proof_gen_error_cases() -> [(
                 messages: messages.len(),
             },
             "valid header, no presentation-message, more messages than \
+             message-generators",
+        ),
+        (
+            (
+                key_pair.public_key,
+                signature,
+                header,
+                ph,
+                create_generators_helper(0),
+                messages.clone(),
+                indices_all_hidden.clone(),
+            ),
+            Error::MessageGeneratorsLengthMismatch {
+                generators: 0,
+                messages: messages.len(),
+            },
+            "valid header, valid presentation-message, no message-generators \
+             but messages are provided",
+        ),
+        (
+            (
+                key_pair.public_key,
+                signature,
+                header,
+                ph,
+                generators.clone(),
+                vec![],
+                indices_all_hidden.clone(),
+            ),
+            Error::MessageGeneratorsLengthMismatch {
+                generators: generators.message_blinding_points_length(),
+                messages: 0,
+            },
+            "valid header, valid presentation-message, no messages but \
+             message-generators are provided",
+        ),
+        (
+            (
+                key_pair.public_key,
+                signature,
+                header,
+                ph,
+                generators.clone(),
+                vec![Message::random(&mut OsRng); 2],
+                indices_all_hidden.clone(),
+            ),
+            Error::MessageGeneratorsLengthMismatch {
+                generators: generators.message_blinding_points_length(),
+                messages: 2,
+            },
+            "valid header, valid presentation-message, more \
+             message-generators than messages",
+        ),
+        (
+            (
+                key_pair.public_key,
+                signature,
+                header,
+                ph,
+                create_generators_helper(NUM_MESSAGES - 1),
+                messages.clone(),
+                indices_all_hidden.clone(),
+            ),
+            Error::MessageGeneratorsLengthMismatch {
+                generators: 4,
+                messages: messages.len(),
+            },
+            "valid header, valid presentation-message, more messages than \
              message-generators",
         ),
     ]
