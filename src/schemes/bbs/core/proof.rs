@@ -119,6 +119,14 @@ impl Proof {
     where
         T: AsRef<[u8]>,
     {
+        // Input parameter checks
+        // Error out if there is no `header`, no presentation-message and also
+        // not any `Message`
+        if header.is_none() && ph.is_none() && messages.is_empty() {
+            return Err(Error::BadParams {
+                cause: "nothing to prove".to_owned(),
+            });
+        }
         // Error out if length of messages and generators are not equal
         if messages.len() != generators.message_blinding_points_length() {
             return Err(Error::MessageGeneratorsLengthMismatch {
@@ -149,8 +157,8 @@ impl Proof {
         let s_tilde = Scalar::random(&mut rng);
 
         // (m~_j1, ..., m~_jU) =  hash_to_scalar(PRF(8*ceil(log2(r))), U)
-        // these random scalars will be generated further below using
-        // ProofCommittedBuilder::commit_random(...) in `proof2` variable
+        // these random scalars will be generated further below during `C2`
+        // computation
 
         let msg: Vec<_> = messages.iter().map(|m| m.get_message()).collect();
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
@@ -252,7 +260,7 @@ impl Proof {
     where
         T: AsRef<[u8]>,
     {
-        // Input parameter checks
+        // Check if input proof data commitments matches no. of hidden messages
         if self.m_hat_list.len() + revealed_msgs.len()
             != generators.message_blinding_points_length()
         {
