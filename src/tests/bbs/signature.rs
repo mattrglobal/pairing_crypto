@@ -331,8 +331,8 @@ fn sign_verify_valid_cases() {
 }
 
 #[test]
-// Test `Signature::new(...)` implementations error returns by passing invalid
-// passing paramter values.
+// Test `Signature::new(...)` implementations returned errors by passing invalid
+// paramter values.
 fn signature_new_error_cases() {
     let sk = SecretKey::random(&mut OsRng, TEST_KEY_INFO.as_ref())
         .expect("secret key generation failed");
@@ -356,12 +356,59 @@ fn signature_new_error_cases() {
             &sk,
             &pk,
             None,
+            &create_generators_helper(0),
+            &vec![],
+            Error::BadParams {
+                cause: "nothing to sign".to_owned(),
+            },
+            "no header, no messages, no generators",
+        ),
+        (
+            &SecretKey::default(),
+            &pk,
+            None,
             &generators,
             &vec![],
             Error::BadParams {
                 cause: "nothing to sign".to_owned(),
             },
-            "no header and no messages",
+            "no header, no messages but message-generators are provided",
+        ),
+        (
+            &SecretKey::default(),
+            &pk,
+            None,
+            &create_generators_helper(0),
+            &messages,
+            Error::MessageGeneratorsLengthMismatch {
+                generators: 0,
+                messages: messages.len(),
+            },
+            "no header, no message-generators but messages are provided",
+        ),
+        (
+            &SecretKey::default(),
+            &pk,
+            None,
+            &generators,
+            &vec![Message::default(); 2],
+            Error::MessageGeneratorsLengthMismatch {
+                generators: generators.message_blinding_points_length(),
+                messages: 2,
+            },
+            "no header, more message-generators than messages",
+        ),
+        (
+            &SecretKey::default(),
+            &pk,
+            None,
+            &create_generators_helper(2),
+            &messages,
+            Error::MessageGeneratorsLengthMismatch {
+                generators: 2,
+                messages: messages.len(),
+            },
+            "no header, more messages than message-generators",
         ),
         (
             &SecretKey::default(),
@@ -373,7 +420,7 @@ fn signature_new_error_cases() {
                 generators: 0,
                 messages: messages.len(),
             },
-            "valid header, no generators but messages are provided",
+            "valid header, no message-generators but messages are provided",
         ),
         (
             &SecretKey::default(),
@@ -385,7 +432,7 @@ fn signature_new_error_cases() {
                 generators: generators.message_blinding_points_length(),
                 messages: 0,
             },
-            "valid header, no messages but generators are provided",
+            "valid header, no messages but message-generators are provided",
         ),
         (
             &SecretKey::default(),
@@ -397,7 +444,7 @@ fn signature_new_error_cases() {
                 generators: generators.message_blinding_points_length(),
                 messages: 2,
             },
-            "more generators than messages",
+            "valid header, more message-generators than messages",
         ),
         (
             &SecretKey::default(),
@@ -409,7 +456,7 @@ fn signature_new_error_cases() {
                 generators: 2,
                 messages: messages.len(),
             },
-            "more messages than generators",
+            "valid header, more messages than message-generators",
         ),
         (
             &SecretKey::default(),
