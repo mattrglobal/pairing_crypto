@@ -303,7 +303,8 @@ fn sign_verify_valid_cases() {
             None,
             &generators,
             &messages,
-            "no header, but equal no. of messages and message-generators are provided",
+            "no header, but equal no. of messages and message-generators are \
+             provided",
         ),
     ];
 
@@ -333,7 +334,7 @@ fn sign_verify_valid_cases() {
 #[test]
 // Test `Signature::new(...)` implementation's returned errors by passing
 // invalid paramter values.
-fn signature_new_error_cases() {
+fn signature_new_invalid_parameters() {
     let sk = SecretKey::random(&mut OsRng, TEST_KEY_INFO.as_ref())
         .expect("secret key generation failed");
     let pk = PublicKey::from(&sk);
@@ -1052,7 +1053,7 @@ fn verify_tampered_signature_parameters_no_messages_signature() {
 }
 
 #[test]
-fn verify_error_cases() {
+fn verify_invalid_parameters() {
     let sk = SecretKey::random(&mut OsRng, TEST_KEY_INFO.as_ref())
         .expect("secret key generation failed");
     let pk = PublicKey::from(&sk);
@@ -1226,7 +1227,7 @@ macro_rules! concat_3 {
 }
 
 #[test]
-fn from_octets_error_cases() {
+fn from_octets_invalid_parameters() {
     let test_data = [
         (
             vec![],

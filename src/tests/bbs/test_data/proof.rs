@@ -92,7 +92,7 @@ pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
     ]
 }
 
-pub(crate) fn test_data_proof_gen_error_cases() -> [(
+pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
     (
         PublicKey,
         Signature,
@@ -671,7 +671,7 @@ pub(crate) fn test_data_proof_uniqueness() -> [(
     ]
 }
 
-pub(crate) fn test_data_from_octets_error_cases(
+pub(crate) fn test_data_from_octets_invalid_parameters(
 ) -> [(Vec<u8>, Error, &'static str); 26] {
     let a_prime = G1Projective::random(&mut OsRng).to_affine().to_compressed();
     let a_bar = G1Projective::random(&mut OsRng).to_affine().to_compressed();

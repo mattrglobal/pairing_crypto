@@ -1,8 +1,8 @@
 use super::{
     create_generators_helper,
     test_data::proof::{
-        test_data_from_octets_error_cases,
-        test_data_proof_gen_error_cases,
+        test_data_from_octets_invalid_parameters,
+        test_data_proof_gen_invalid_parameters,
         test_data_proof_gen_verify_valid_cases,
         test_data_proof_uniqueness,
     },
@@ -470,12 +470,12 @@ fn proof_gen_with_invalid_public_key() {
 #[test]
 // Test `Proof::new_with_rng(...)` implementation's returned errors by passing
 // invalid paramter values.
-fn proof_gen_error_cases() {
+fn proof_gen_invalid_parameters() {
     for (
         (pk, signature, header, ph, generators, messages, revealed_indices),
         error,
         failure_debug_message,
-    ) in test_data_proof_gen_error_cases()
+    ) in test_data_proof_gen_invalid_parameters()
     {
         let (proof_messages, _) = test_helper::to_proof_revealed_messages(
             &messages,
@@ -507,7 +507,7 @@ fn proof_verify_error_cases() {
         (pk, signature, header, ph, generators, messages, revealed_indices),
         error,
         failure_debug_message,
-    ) in test_data_proof_gen_error_cases()
+    ) in test_data_proof_gen_invalid_parameters()
     {
         let (proof_messages, _) = test_helper::to_proof_revealed_messages(
             &messages,
@@ -573,9 +573,9 @@ fn to_octets() {
 }
 
 #[test]
-fn from_octets_error_cases() {
+fn from_octets_invalid_parameters() {
     for (octets, error, failure_debug_message) in
-        test_data_from_octets_error_cases()
+        test_data_from_octets_invalid_parameters()
     {
         let result = Proof::from_octets(octets);
         assert_eq!(
