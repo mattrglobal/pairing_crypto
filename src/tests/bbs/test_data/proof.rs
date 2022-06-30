@@ -1142,7 +1142,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
         HashMap<usize, Message>,
     ),
     &'static str,
-); 12] {
+); 15] {
     const NUM_MESSAGES: usize = 5;
     let key_pair = get_random_test_key_pair();
     let header = Some(TEST_HEADER.as_ref());
@@ -1183,28 +1183,29 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     .expect("signing failed");
 
     // Generate a valid proof
-    let (proof, revealed_messages) = test_helper::proof_gen(
-        &key_pair.public_key,
-        &signature,
-        header,
-        ph,
-        &generators,
-        &messages,
-        &indices_all_hidden,
-        &mut OsRng,
-        "proof generation failed",
-    );
+    let (proof_all_hidden_messages, no_revealed_messages) =
+        test_helper::proof_gen(
+            &key_pair.public_key,
+            &signature,
+            header,
+            ph,
+            &generators,
+            &messages,
+            &indices_all_hidden,
+            &mut OsRng,
+            "proof generation failed",
+        );
 
     // Before tampering proof, make sure it is valid proof and verification
     // works
     assert_eq!(
-        proof
+        proof_all_hidden_messages
             .verify(
                 &key_pair.public_key,
                 header,
                 ph,
                 &generators,
-                &revealed_messages
+                &no_revealed_messages
             )
             .expect("proof verification failed"),
         true
@@ -1304,10 +1305,59 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
         true
     );
 
+    let indices_all_revealed = (0..NUM_MESSAGES)
+        .collect::<Vec<usize>>()
+        .iter()
+        .cloned()
+        .collect::<HashSet<usize>>();
+    // Generate a valid proof
+    let (proof_all_revealed_messages, all_revealed_messages) =
+        test_helper::proof_gen(
+            &key_pair.public_key,
+            &signature,
+            header,
+            ph,
+            &generators,
+            &messages,
+            &indices_all_revealed,
+            &mut OsRng,
+            "proof generation failed",
+        );
+
+    let all_revealed_but_different_messages = (0..NUM_MESSAGES)
+        .map(|i| (i, Message::random(&mut OsRng)))
+        .collect::<HashMap<usize, Message>>();
+
+    let mut revealed_messages_first_elem_different =
+        all_revealed_messages.clone();
+    *revealed_messages_first_elem_different.get_mut(&0).unwrap() =
+        Message::random(&mut OsRng);
+
+    let mut revealed_messages_last_elem_different =
+        all_revealed_messages.clone();
+    *revealed_messages_last_elem_different
+        .get_mut(&(NUM_MESSAGES - 1))
+        .unwrap() = Message::random(&mut OsRng);
+
+    // Before tampering proof, make sure it is valid proof and verification
+    // works
+    assert_eq!(
+        proof_all_revealed_messages
+            .verify(
+                &key_pair.public_key,
+                header,
+                ph,
+                &generators,
+                &all_revealed_messages
+            )
+            .expect("proof verification failed"),
+        true
+    );
+
     [
         (
             (
-                proof.clone(),
+                proof_all_hidden_messages.clone(),
                 get_random_test_key_pair().public_key,
                 header,
                 ph,
@@ -1318,7 +1368,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
         ),
         (
             (
-                proof.clone(),
+                proof_all_hidden_messages.clone(),
                 key_pair.public_key,
                 Some(ANOTHER_TEST_HEADER.as_ref()),
                 ph,
@@ -1329,7 +1379,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
         ),
         (
             (
-                proof.clone(),
+                proof_all_hidden_messages.clone(),
                 key_pair.public_key,
                 None,
                 ph,
@@ -1340,7 +1390,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
         ),
         (
             (
-                proof.clone(),
+                proof_all_hidden_messages.clone(),
                 key_pair.public_key,
                 header,
                 Some(TEST_PRESENTATION_HEADER_2.as_ref()),
@@ -1351,7 +1401,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
         ),
         (
             (
-                proof.clone(),
+                proof_all_hidden_messages.clone(),
                 key_pair.public_key,
                 header,
                 None,
@@ -1362,7 +1412,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
         ),
         (
             (
-                proof.clone(),
+                proof_all_hidden_messages.clone(),
                 key_pair.public_key,
                 header,
                 ph,
@@ -1373,7 +1423,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
         ),
         (
             (
-                proof.clone(),
+                proof_all_hidden_messages.clone(),
                 key_pair.public_key,
                 header,
                 ph,
@@ -1384,7 +1434,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
         ),
         (
             (
-                proof.clone(),
+                proof_all_hidden_messages.clone(),
                 key_pair.public_key,
                 header,
                 ph,
@@ -1438,6 +1488,42 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
             ),
             "proof has `None` header, `None` ph, header parameter is `None` \
              value, ph paramter is a `non-None`",
+        ),
+        (
+            (
+                proof_all_revealed_messages.clone(),
+                key_pair.public_key,
+                header,
+                ph,
+                generators.clone(),
+                all_revealed_but_different_messages,
+            ),
+            "proof: all revealed messages, revealed_messages: all revealed \
+             but all different messages",
+        ),
+        (
+            (
+                proof_all_revealed_messages.clone(),
+                key_pair.public_key,
+                header,
+                ph,
+                generators.clone(),
+                revealed_messages_first_elem_different,
+            ),
+            "proof: all revealed messages, revealed_messages: all revealed \
+             but first message is different",
+        ),
+        (
+            (
+                proof_all_revealed_messages.clone(),
+                key_pair.public_key,
+                header,
+                ph,
+                generators.clone(),
+                revealed_messages_last_elem_different,
+            ),
+            "proof: all revealed messages, revealed_messages: all revealed \
+             but last message is different",
         ),
     ]
 }

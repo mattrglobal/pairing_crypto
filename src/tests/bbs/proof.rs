@@ -45,6 +45,7 @@ use core::convert::TryFrom;
 use ff::Field;
 use group::{Curve, Group};
 use hashbrown::{HashMap, HashSet};
+use rand::{prelude::SliceRandom, thread_rng};
 use rand_core::OsRng;
 
 pub(crate) mod test_helper {
@@ -408,6 +409,72 @@ fn proof_gen_verify_valid_cases() {
             );
         }
     }
+}
+
+#[test]
+// Test proof-verification case with
+//    all revealed messages proof value and
+//    a `revealed_messages` value where all revealed messages are the original
+// messages but those may not be at their original indices
+fn proof_gen_verify_all_revealed_shuffled_indices() {
+    const NUM_MESSAGES: usize = 5;
+    let key_pair = get_random_test_key_pair();
+    let header = Some(TEST_HEADER.as_ref());
+    let ph = Some(TEST_PRESENTATION_HEADER_1.as_ref());
+    let messages = get_random_test_messages(NUM_MESSAGES);
+    let generators = create_generators_helper(messages.len());
+
+    // Signature to be used in proof_gen
+    let signature = Signature::new(
+        &key_pair.secret_key,
+        &key_pair.public_key,
+        header,
+        &generators,
+        messages.clone(),
+    )
+    .expect("signing failed");
+
+    // Proof gen-verify all revealed messages
+    let indices_all_revealed = (0..NUM_MESSAGES)
+        .collect::<Vec<usize>>()
+        .iter()
+        .cloned()
+        .collect::<HashSet<usize>>();
+    let (proof_all_revealed_messages, _) = test_helper::proof_gen(
+        &key_pair.public_key,
+        &signature,
+        header,
+        ph,
+        &generators,
+        &messages,
+        &indices_all_revealed,
+        &mut OsRng,
+        "proof generation failed",
+    );
+
+    // Make a `revealed_messages` value where all revealed messages are the
+    // original messages but those may not be at their original indices
+    let mut shuffled_messages = messages.clone();
+    shuffled_messages.shuffle(&mut thread_rng());
+
+    let revealed_messages_same_but_shuffled_indices = shuffled_messages
+        .iter()
+        .enumerate()
+        .map(|(i, &m)| (i, m))
+        .collect::<HashMap<usize, Message>>();
+
+    assert_eq!(
+        proof_all_revealed_messages
+            .verify(
+                &key_pair.public_key,
+                header,
+                ph,
+                &generators,
+                &revealed_messages_same_but_shuffled_indices
+            )
+            .expect("proof-verification should not fail"),
+        true
+    );
 }
 
 #[test]
