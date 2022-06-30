@@ -6,6 +6,7 @@ use super::{
         test_data_proof_gen_verify_valid_cases,
         test_data_proof_uniqueness,
         test_data_proof_verify_invalid_parameters,
+        test_data_verify_tampered_proof,
     },
     EXPECTED_SIGNATURES,
     TEST_HEADER,
@@ -515,6 +516,28 @@ fn proof_verify_invalid_parameters() {
             proof.verify(&pk, header, ph, &generators, &revealed_messages),
             Err(error),
             "proof-verification should return error - {}",
+            failure_debug_message
+        );
+    }
+}
+
+#[test]
+// Test that a modified proof should not pass verification.
+fn verify_tampered_proof() {
+    for (
+        (proof, pk, header, ph, generators, revealed_messages),
+        failure_debug_message,
+    ) in test_data_verify_tampered_proof()
+    {
+        assert_eq!(
+            proof
+                .verify(&pk, header, ph, &generators, &revealed_messages)
+                .expect(&format!(
+                    "proof-verification should not return error - {}",
+                    failure_debug_message
+                )),
+            false,
+            "proof-verification should fail - {}",
             failure_debug_message
         );
     }
