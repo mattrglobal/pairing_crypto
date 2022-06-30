@@ -6,6 +6,7 @@ use super::{
         test_data_proof_gen_verify_valid_cases,
         test_data_proof_uniqueness,
         test_data_proof_verify_invalid_parameters,
+        test_data_verify_tampered_parameters,
         test_data_verify_tampered_proof,
     },
     EXPECTED_SIGNATURES,
@@ -78,7 +79,7 @@ pub(crate) mod test_helper {
         (proof_messages, revealed_messages)
     }
 
-    pub(crate) fn proof_gen<T>(
+    pub(crate) fn proof_gen<T, R>(
         pk: &PublicKey,
         signature: &Signature,
         header: Option<T>,
@@ -86,11 +87,12 @@ pub(crate) mod test_helper {
         generators: &Generators,
         messages: &Vec<Message>,
         revealed_indices: &HashSet<usize>,
-        mut rng: impl RngCore + CryptoRng,
+        mut rng: R,
         failure_debug_message: &str,
     ) -> (Proof, HashMap<usize, Message>)
     where
         T: AsRef<[u8]> + Copy,
+        R: RngCore + CryptoRng,
     {
         let (proof_messages, revealed_messages) =
             to_proof_revealed_messages(messages, revealed_indices);
@@ -521,13 +523,23 @@ fn proof_verify_invalid_parameters() {
     }
 }
 
-#[test]
-// Test that a modified proof should not pass verification.
-fn verify_tampered_proof() {
+fn verify_proof_helper<const N: usize>(
+    test_data: [(
+        (
+            Proof,
+            PublicKey,
+            Option<&'static [u8]>,
+            Option<&'static [u8]>,
+            Generators,
+            HashMap<usize, Message>,
+        ),
+        &'static str,
+    ); N],
+) {
     for (
         (proof, pk, header, ph, generators, revealed_messages),
         failure_debug_message,
-    ) in test_data_verify_tampered_proof()
+    ) in test_data
     {
         assert_eq!(
             proof
@@ -541,6 +553,22 @@ fn verify_tampered_proof() {
             failure_debug_message
         );
     }
+}
+
+#[test]
+// If we pass paramters which were used originally for proof-generation but use
+// a modified proof(by modifying `Proof` struct members) in `Proof::verify`,
+// verification should fail, i.e. return `false`.
+fn verify_tampered_proof() {
+    verify_proof_helper(test_data_verify_tampered_proof());
+}
+
+#[test]
+// If paramters passed to Proof::verify(...) are valid but not the one which
+// were used during proof-generation then proof-verification should fail i.e.
+// return `false`.
+fn verify_tampered_parameters() {
+    verify_proof_helper(test_data_verify_tampered_parameters());
 }
 
 #[test]
