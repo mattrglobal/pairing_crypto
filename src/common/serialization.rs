@@ -16,18 +16,10 @@ pub(crate) fn i2osp(
         return Err(Error::Serde);
     }
 
-    if octet_length <= core::mem::size_of::<u64>() {
-        return Ok((&integer.to_be_bytes()
-            [core::mem::size_of::<u64>() - octet_length..])
-            .to_vec());
-    }
-
-    let mut output = vec![0u8; octet_length];
-    output.splice(
-        octet_length - core::mem::size_of::<u64>()..octet_length,
-        integer.to_be_bytes().iter().cloned(),
-    );
-    Ok(output)
+    Ok(
+        (&integer.to_be_bytes()[core::mem::size_of::<u64>() - octet_length..])
+            .to_vec(),
+    )
 }
 
 /// Helper function to compute "I2OSP(len(input), octent_length) || input".
