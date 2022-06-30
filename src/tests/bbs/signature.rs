@@ -484,7 +484,7 @@ fn signature_new_invalid_parameters() {
 }
 
 #[test]
-// Test if `verify` succeeds with tampered signature components.
+// Test that `Signature::verify()` fails with tampered signature components.
 fn verify_tampered_signature() {
     let key_pair = KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
         .expect("key pair generation failed");
