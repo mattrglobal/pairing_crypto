@@ -12,52 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ------------------------------------------------------------------------------
-#[allow(unused_macros)]
 macro_rules! wasm_impl {
-    (
-    $(#[$meta:meta])+
-    $name:ident,
-    $($field:ident:$type:ident),+
-    ) => {
-        $(#[$meta])*
-        pub struct $name {
-            $(
-                pub $field: $type,
-            )*
-        }
-
-        try_from_impl!($name);
-    };
-
-    (
-     $name:ident,
-     $($field:ident:$type:ident),+) => {
-        #[allow(non_snake_case)]
-        #[derive(Debug, Deserialize, Serialize)]
-        pub struct $name {
-            $(
-                pub $field: $type,
-            )*
-        }
-
-        try_from_impl!($name);
-    };
-
-    (
-     $(#[$meta:meta])+
-     $name:ident,
-     $($field:ident:$type:ty),*) => {
-        $(#[$meta])*
-        /// Macro declaring struct name
-        pub struct $name {
-            $(
-                /// Macro declaring field and type
-                pub $field: $type,
-            )*
-        }
-
-        try_from_impl!($name);
-    };
     (
      $name:ident,
      $($field:ident:$type:ty),*) => {
