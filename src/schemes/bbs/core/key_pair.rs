@@ -114,12 +114,12 @@ impl SecretKey {
             let s = s.unwrap();
             // Zero check as Scalar::from_bytes_be() can result in zero value
             if s.is_zero().unwrap_u8() == 1u8 {
-                return Err(Error::UnexpectedZeroValue);
+                return Err(Error::InvalidSecretKey);
             }
             Ok(SecretKey(Box::new(s)))
         } else {
             Err(Error::BadParams {
-                cause: "can't built a valid scalar value from input data"
+                cause: "can't built a valid `SecretKey` from input data"
                     .to_owned(),
             })
         }

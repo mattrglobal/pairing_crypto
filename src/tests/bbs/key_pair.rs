@@ -296,15 +296,14 @@ fn key_gen_from_erroneous_rng() {
 fn secret_key_from_invalid_scalar_bytes() {
     assert_eq!(
         SecretKey::from_bytes(&[0x0; SecretKey::SIZE_BYTES]),
-        Err(Error::UnexpectedZeroValue),
+        Err(Error::InvalidSecretKey),
         "input data is all zeroes"
     );
 
     assert_eq!(
         SecretKey::from_bytes(&[0xFF; SecretKey::SIZE_BYTES]),
         Err(Error::BadParams {
-            cause: "can't built a valid scalar value from input data"
-                .to_owned()
+            cause: "can't built a valid `SecretKey` from input data".to_owned()
         }),
         "input data value is greater than modulus"
     );
