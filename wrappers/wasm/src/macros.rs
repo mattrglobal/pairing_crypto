@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ------------------------------------------------------------------------------
+#[allow(unused_macros)]
 macro_rules! wasm_impl {
     (
     $(#[$meta:meta])+
     $name:ident,
     $($field:ident:$type:ident),+
     ) => {
-        #![allow(dead_code)]
         $(#[$meta])*
         pub struct $name {
             $(
@@ -32,7 +32,6 @@ macro_rules! wasm_impl {
     (
      $name:ident,
      $($field:ident:$type:ident),+) => {
-        #![allow(dead_code)]
         #[allow(non_snake_case)]
         #[derive(Debug, Deserialize, Serialize)]
         pub struct $name {
@@ -48,7 +47,6 @@ macro_rules! wasm_impl {
      $(#[$meta:meta])+
      $name:ident,
      $($field:ident:$type:ty),*) => {
-        #![allow(dead_code)]
         $(#[$meta])*
         /// Macro declaring struct name
         pub struct $name {
