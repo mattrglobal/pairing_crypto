@@ -13,6 +13,8 @@
 // limitations under the License.
 // ------------------------------------------------------------------------------
 
+use hashbrown::HashMap;
+
 use super::dtos::BbsProofGenRevealMessageRequest;
 use crate::{
     error::Error,
@@ -72,9 +74,9 @@ pub(super) fn digest_proof_messages(
 pub(super) fn digest_revealed_proof_messages(
     messages: Option<&Vec<(usize, Vec<u8>)>>,
     total_message_count: usize,
-) -> Result<Vec<(usize, Message)>, Error> {
+) -> Result<HashMap<usize, Message>, Error> {
     if messages.is_none() {
-        return Ok(vec![]);
+        return Ok(HashMap::new());
     }
     let messages = messages.unwrap();
 

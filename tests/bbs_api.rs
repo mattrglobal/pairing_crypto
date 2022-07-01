@@ -181,7 +181,7 @@ fn proof_gen_failure_message_modified() {
         .map(|&e| e.to_vec())
         .collect::<Vec<Vec<u8>>>();
 
-    let (secret_key, public_key) = KeyPair::random(&mut OsRng)
+    let (secret_key, public_key) = KeyPair::random(&mut OsRng, &[])
         .map(|key_pair| {
             (
                 key_pair.secret_key.to_bytes().to_vec(),

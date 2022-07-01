@@ -1,4 +1,8 @@
-use super::constants::{OCTET_POINT_G2_LENGTH, OCTET_SCALAR_LENGTH};
+use super::constants::{
+    MIN_KEY_GEN_IKM_LENGTH,
+    OCTET_POINT_G2_LENGTH,
+    OCTET_SCALAR_LENGTH,
+};
 use crate::{
     common::util::vec_to_byte_array,
     curves::bls12_381::{
@@ -11,36 +15,39 @@ use crate::{
     error::Error,
     print_byte_array,
 };
-use core::ops::{BitOr, Not};
 use ff::Field;
 use group::{Curve, Group};
 use rand::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
 use subtle::Choice;
-use zeroize::DefaultIsZeroes;
+use zeroize::Zeroize;
 
 /// The secret key is field element 0 < `x` < `r`
 /// where `r` is the curve order. See Section 4.3 in
 /// <https://eprint.iacr.org/2016/663.pdf>.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct SecretKey(pub Scalar);
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+pub struct SecretKey(pub Box<Scalar>);
 
 impl Default for SecretKey {
     fn default() -> Self {
-        Self(Scalar::zero())
+        Self(Box::new(Scalar::zero()))
     }
 }
 
-impl DefaultIsZeroes for SecretKey {}
-
-impl From<SecretKey> for [u8; SecretKey::SIZE_BYTES] {
-    fn from(sk: SecretKey) -> [u8; SecretKey::SIZE_BYTES] {
-        sk.to_bytes()
+impl Zeroize for SecretKey {
+    fn zeroize(&mut self) {
+        self.0 = Box::new(Scalar::zero());
     }
 }
 
-impl<'a> From<&'a SecretKey> for [u8; SecretKey::SIZE_BYTES] {
-    fn from(sk: &'a SecretKey) -> [u8; SecretKey::SIZE_BYTES] {
+impl Drop for SecretKey {
+    fn drop(&mut self) {
+        self.zeroize();
+    }
+}
+
+impl From<&SecretKey> for [u8; SecretKey::SIZE_BYTES] {
+    fn from(sk: &SecretKey) -> [u8; SecretKey::SIZE_BYTES] {
         sk.to_bytes()
     }
 }
@@ -58,29 +65,36 @@ impl SecretKey {
         T: AsRef<[u8]>,
     {
         if let Some(out) = generate_sk(ikm, key_info) {
-            return Some(SecretKey(out));
+            // Extra assurance
+            if out.is_zero().unwrap_u8() == 1u8 {
+                return None;
+            }
+            return Some(SecretKey(Box::new(out)));
         }
         None
     }
 
     /// Compute a secret key from a CS-PRNG.
-    pub fn random<R>(rng: &mut R) -> Option<Self>
+    pub fn random<R, T>(rng: &mut R, key_info: T) -> Option<Self>
     where
         R: RngCore + CryptoRng,
+        T: AsRef<[u8]>,
     {
-        let mut ikm = [0u8; Self::SIZE_BYTES];
+        let mut ikm = [0u8; MIN_KEY_GEN_IKM_LENGTH];
 
         if rng.try_fill_bytes(&mut ikm).is_ok() {
-            let key_info = [];
-
             return Self::new(ikm.as_ref(), key_info.as_ref());
         }
         None
     }
 
+    pub(super) fn as_scalar(&self) -> Scalar {
+        *self.0
+    }
+
     /// Convert a vector of bytes of big-endian representation of the secret
     /// key.
-    pub fn from_vec(bytes: Vec<u8>) -> Result<Self, Error> {
+    pub fn from_vec(bytes: &Vec<u8>) -> Result<Self, Error> {
         match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
             Ok(result) => Self::from_bytes(&result),
             Err(e) => Err(e),
@@ -88,18 +102,26 @@ impl SecretKey {
     }
 
     /// Convert the secret key to a big-endian representation.
-    pub fn to_bytes(self) -> [u8; Self::SIZE_BYTES] {
+    pub fn to_bytes(&self) -> [u8; Self::SIZE_BYTES] {
         self.0.to_bytes_be()
     }
 
     /// Convert a big-endian representation of the secret key.
     pub fn from_bytes(bytes: &[u8; Self::SIZE_BYTES]) -> Result<Self, Error> {
-        let result = Scalar::from_bytes_be(bytes).map(SecretKey);
+        let s = Scalar::from_bytes_be(bytes);
 
-        if result.is_some().unwrap_u8() == 1u8 {
-            Ok(result.unwrap())
+        if s.is_some().unwrap_u8() == 1u8 {
+            let s = s.unwrap();
+            // Zero check as Scalar::from_bytes_be() can result in zero value
+            if s.is_zero().unwrap_u8() == 1u8 {
+                return Err(Error::InvalidSecretKey);
+            }
+            Ok(SecretKey(Box::new(s)))
         } else {
-            Err(Error::BadEncoding)
+            Err(Error::BadParams {
+                cause: "can't built a valid `SecretKey` from input data"
+                    .to_owned(),
+            })
         }
     }
 }
@@ -141,15 +163,12 @@ impl<'a> From<&'a PublicKey> for [u8; PublicKey::SIZE_BYTES] {
 }
 
 impl PublicKey {
-    /// Number of bytes needed to represent the public key in compressed form
+    /// Number of bytes needed to represent the public key in compressed form.
     pub const SIZE_BYTES: usize = OCTET_POINT_G2_LENGTH;
 
-    /// Check if this PublicKey is valid
+    /// Check if the `PublicKey` is valid.
     pub fn is_valid(&self) -> Choice {
-        self.0
-            .is_identity()
-            .not()
-            .bitor(self.0.to_affine().is_torsion_free())
+        (!self.0.is_identity()) & self.0.to_affine().is_torsion_free()
     }
 
     /// Get the G2 representation in affine, compressed and big-endian form
@@ -160,7 +179,7 @@ impl PublicKey {
 
     /// Convert a vector of bytes of big-endian representation of the public
     /// key.
-    pub fn from_vec(bytes: Vec<u8>) -> Result<Self, Error> {
+    pub fn from_vec(bytes: &Vec<u8>) -> Result<Self, Error> {
         match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
             Ok(result) => Self::octets_to_point(&result),
             Err(e) => Err(e),
@@ -184,9 +203,7 @@ impl PublicKey {
 }
 
 /// A BBS key pair.
-#[derive(
-    Default, Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize,
-)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct KeyPair {
     /// Secret key.
     pub secret_key: SecretKey,
@@ -195,7 +212,17 @@ pub struct KeyPair {
     pub public_key: PublicKey,
 }
 
-impl DefaultIsZeroes for KeyPair {}
+impl Zeroize for KeyPair {
+    fn zeroize(&mut self) {
+        self.secret_key.zeroize();
+    }
+}
+
+impl Drop for KeyPair {
+    fn drop(&mut self) {
+        self.zeroize();
+    }
+}
 
 impl KeyPair {
     /// Generate a BBS key pair from provided IKM.
@@ -205,7 +232,7 @@ impl KeyPair {
     {
         if let Some(secret_key) = SecretKey::new(ikm, key_info) {
             return Some(Self {
-                secret_key,
+                secret_key: secret_key.clone(),
                 public_key: PublicKey::from(&secret_key),
             });
         }
@@ -213,15 +240,14 @@ impl KeyPair {
     }
 
     /// Compute a secret key from a CS-PRNG.
-    pub fn random<R>(rng: &mut R) -> Option<Self>
+    pub fn random<R, T>(rng: &mut R, key_info: T) -> Option<Self>
     where
         R: RngCore + CryptoRng,
+        T: AsRef<[u8]>,
     {
-        let mut ikm = [0u8; SecretKey::SIZE_BYTES];
+        let mut ikm = [0u8; MIN_KEY_GEN_IKM_LENGTH];
 
         if rng.try_fill_bytes(&mut ikm).is_ok() {
-            let key_info = [];
-
             return Self::new(ikm.as_ref(), key_info.as_ref());
         }
         None
