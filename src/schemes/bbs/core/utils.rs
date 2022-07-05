@@ -16,8 +16,10 @@ use crate::{
     curves::bls12_381::{G1Affine, G1Projective, Scalar},
     error::Error,
 };
+use blstrs::hash_to_curve::ExpandMsgXof;
 use ff::Field;
 use group::{Curve, Group};
+use sha3::Shake256;
 
 /// Get the representation of a point G1(in Projective form) to compressed
 /// and big-endian octets form.
@@ -86,7 +88,7 @@ where
         )?);
     }
 
-    Ok(hash_to_scalar(data_to_hash, 1)?[0])
+    Ok(hash_to_scalar::<ExpandMsgXof<Shake256>>(&data_to_hash, 1)?[0])
 }
 
 /// Computes `B` value.
@@ -149,5 +151,7 @@ where
             OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
         )?);
     }
-    Ok(Challenge(hash_to_scalar(data_to_hash, 1)?[0]))
+    Ok(Challenge(
+        hash_to_scalar::<ExpandMsgXof<Shake256>>(&data_to_hash, 1)?[0],
+    ))
 }

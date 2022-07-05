@@ -1,6 +1,7 @@
 use super::constants::{
     DST_LENGTH_ENCODING_LENGTH,
     HASH_TO_CURVE_G1_DST,
+    HASH_TO_SCALAR_DST,
     MAX_DST_SIZE,
     MAX_MESSAGE_SIZE,
     MAX_VALUE_GENERATION_RETRY_COUNT,
@@ -8,10 +9,12 @@ use super::constants::{
     XOF_NO_OF_BYTES,
 };
 use crate::{
-    common::serialization::i2osp_with_data,
+    common::serialization::{i2osp, i2osp_with_data},
     curves::bls12_381::{G1Projective, Scalar},
     error::Error,
 };
+use blstrs::hash_to_curve::{ExpandMessage, ExpandMessageState, ExpandMsgXof};
+use ff::Field;
 use group::Group;
 use sha3::{
     digest::{ExtendableOutput, Update, XofReader},
@@ -44,52 +47,46 @@ where
     let dst_prime = i2osp_with_data(dst, DST_LENGTH_ENCODING_LENGTH)?;
 
     // hash_to_scalar(msg_prime || dst_prime, 1)
-    Ok(hash_to_scalar([msg_prime, dst_prime].concat(), 1)?[0])
+    Ok(hash_to_scalar::<ExpandMsgXof<Shake256>>(
+        &[msg_prime, dst_prime].concat(),
+        1,
+    )?[0])
 }
 
-/// Hash arbitrary data to `n` number of scalars as specified in [3.3.10. Hash to scalar](https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-hash-to-scalar).
-// TODO make const time
-pub(crate) fn hash_to_scalar<T>(
-    msg_octets: T,
-    n: usize,
-) -> Result<Vec<Scalar>, Error>
-where
-    T: AsRef<[u8]>,
-{
-    // Return early if no Scalar need to be produced
-    if n == 0 {
-        return Ok(vec![]);
-    }
-    let mut i = 0;
-    let mut scalars = Vec::with_capacity(n);
+/// Hash arbitrary data to `n` number of scalars as specified in BBS specification [section Hash to scalar](https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-hash-to-scalar).
+/// Hashes a byte string of arbitrary length into one or more elements of
+/// `Self`, using [`ExpandMessage`] variant `X`.
+pub(crate) fn hash_to_scalar<X: ExpandMessage>(
+    msg_octets: &[u8],
+    count: usize,
+) -> Result<Vec<Scalar>, Error> {
+    let len_in_bytes = count * XOF_NO_OF_BYTES;
 
-    let mut hasher = Shake256::default();
-    hasher.update(msg_octets);
-    let mut xof_reader = hasher.finalize_xof();
+    let mut t = 0;
+    loop {
+        let msg_prime = [
+            [msg_octets, &i2osp(t, 1)?].concat(),
+            i2osp(count as u64, 4)?,
+        ]
+        .concat();
 
-    while i < n {
-        let mut data_to_hash = [0u8; XOF_NO_OF_BYTES];
-        let mut retry_count = 0;
-        loop {
-            if retry_count == MAX_VALUE_GENERATION_RETRY_COUNT {
-                return Err(Error::MaxRetryReached);
-            }
-            xof_reader.read(&mut data_to_hash);
-            // In success case, `Scalar::from_bytes_be_wide` return a non-zero
-            // Scalar value satisfying 0<s<r
-            let s = Scalar::from_bytes_be_wide(&data_to_hash);
-            if s.is_some().unwrap_u8() == 1u8 {
-                let s = s.unwrap();
-                scalars.push(s);
-                break;
-            } else {
-                retry_count += 1;
-                continue;
-            }
+        let mut expander =
+            X::init_expand(&msg_prime, HASH_TO_SCALAR_DST, len_in_bytes);
+
+        let mut buf = [0u8; 64];
+        let output = (0..count)
+            .map(|_| {
+                expander.read_into(&mut buf[16..]);
+                Scalar::from_be_bytes_wide_mod_r(&buf)
+            })
+            .collect::<Vec<Scalar>>();
+
+        if output.iter().any(|item| item.is_zero().unwrap_u8() == 1u8) {
+            t += 1;
+            continue;
         }
-        i += 1;
+        return Ok(output);
     }
-    Ok(scalars)
 }
 
 /// A convenient wrapper over underlying `hash_to_curve_g1` implementation(from

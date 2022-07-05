@@ -30,12 +30,15 @@ pub(crate) const GLOBAL_SIG_DOMAIN_GENERATOR_SEED: &[u8] =
     b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_SIG_DOMAIN_GENERATOR_SEED";
 
 /// DST for `hash_to_curve` operation in G1.
-pub(crate) const HASH_TO_CURVE_G1_DST: &[u8] =
-    b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO";
+pub(crate) const HASH_TO_CURVE_G1_DST: &[u8; 57] =
+    b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_HASH_TO_CURVE_G1_DST";
 
-/// Number of bytes to draw from the xof when performing operations such as
-/// creating generators or computing the e and s components of the signature.
-pub(crate) const XOF_NO_OF_BYTES: usize = 64usize;
+/// DST for `hash_to_scalar` operation.
+pub(crate) const HASH_TO_SCALAR_DST: &[u8; 55] =
+    b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_HASH_TO_SCALAR_DST";
+
+/// Number of bytes to draw from the XOF when generating Scalars or Generators.
+pub(crate) const XOF_NO_OF_BYTES: usize = 48usize;
 
 /// Maximum allowed DST size in bytes as per BBS Signature specification.
 /// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-encoding-of-elements-to-be->

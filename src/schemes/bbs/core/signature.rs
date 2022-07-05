@@ -24,6 +24,7 @@ use crate::{
     error::Error,
     print_byte_array,
 };
+use blstrs::hash_to_curve::ExpandMsgXof;
 use core::{convert::TryFrom, fmt};
 use ff::Field;
 use group::{Curve, Group};
@@ -36,6 +37,7 @@ use serde::{
     Serialize,
     Serializer,
 };
+use sha3::Shake256;
 use subtle::{Choice, ConditionallySelectable};
 
 /// A BBS+ signature
@@ -183,7 +185,8 @@ impl Signature {
         for m in messages {
             data_to_hash.extend(m.to_bytes().as_ref());
         }
-        let scalars = hash_to_scalar(data_to_hash, 2)?;
+        let scalars =
+            hash_to_scalar::<ExpandMsgXof<Shake256>>(&data_to_hash, 2)?;
         let (e, s) = (scalars[0], scalars[1]);
 
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
