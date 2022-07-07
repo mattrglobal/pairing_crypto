@@ -1183,12 +1183,12 @@ fn to_octets() {
     .expect("signing failed");
 
     let mut signature_octets = signature.to_octets();
-    let _expected_signature_octets = <[u8; Signature::SIZE_BYTES]>::try_from(
+    let expected_signature_octets = <[u8; Signature::SIZE_BYTES]>::try_from(
         hex::decode(EXPECTED_SIGNATURE).expect("hex decoding failed"),
     )
     .expect("signature hex decoding failed");
     println!("{:?},", hex::encode(signature_octets));
-    // assert_eq!(signature_octets, expected_signature_octets);
+    assert_eq!(signature_octets, expected_signature_octets);
 
     let a = G1Projective::random(&mut OsRng);
     let e = Scalar::random(&mut OsRng);
