@@ -64,8 +64,11 @@ pub(crate) fn hash_to_scalar<X: ExpandMessage>(
 
     let mut t = 0;
     loop {
+        if t == MAX_VALUE_GENERATION_RETRY_COUNT {
+            return Err(Error::MaxRetryReached);
+        }
         let msg_prime = [
-            [msg_octets, &i2osp(t, 1)?].concat(),
+            [msg_octets, &i2osp(t as u64, 1)?].concat(),
             i2osp(count as u64, 4)?,
         ]
         .concat();
@@ -77,7 +80,7 @@ pub(crate) fn hash_to_scalar<X: ExpandMessage>(
         let output = (0..count)
             .map(|_| {
                 expander.read_into(&mut buf[16..]);
-                Scalar::from_be_bytes_wide_mod_r(&buf)
+                Scalar::from_wide_bytes_be_mod_r(&buf)
             })
             .collect::<Vec<Scalar>>();
 
