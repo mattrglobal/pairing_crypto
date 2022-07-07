@@ -194,19 +194,13 @@ impl Proof {
         let mut H_points = Vec::new();
         let mut m_tilde_scalars = Vec::new();
         let mut hidden_messages = Vec::new();
-        let mut revealed_messages = HashMap::new();
         for (i, generator) in
             generators.message_blinding_points_iter().enumerate()
         {
-            match messages[i] {
-                ProofMessage::Revealed(m) => {
-                    revealed_messages.insert(i, m);
-                }
-                ProofMessage::Hidden(m) => {
-                    H_points.push(*generator);
-                    m_tilde_scalars.push(Scalar::random(&mut rng));
-                    hidden_messages.push(m.0);
-                }
+            if let ProofMessage::Hidden(m) = messages[i] {
+                H_points.push(*generator);
+                m_tilde_scalars.push(Scalar::random(&mut rng));
+                hidden_messages.push(m.0);
             }
         }
         let C2 = G1Projective::multi_exp(
@@ -214,9 +208,7 @@ impl Proof {
             &[[-r3_tilde, s_tilde].to_vec(), m_tilde_scalars.clone()].concat(),
         );
 
-        // proof_octs = (A' || Abar || D || C1 || C2)
-        // revealed_octs = (R || i1 || ... || iR || msg_i1 || ... || msg_iR)
-        // c = hash_to_scalar((proof_octs||revealed_octs||domain||ph), 1)
+        // c = hash_to_scalar((PK || A' || Abar || D || C1 || C2 || ph), 1)
         let c = compute_challenge(PK, &A_prime, &A_bar, &D, &C1, &C2, ph)?;
 
         // e^ = e~ + c * e
