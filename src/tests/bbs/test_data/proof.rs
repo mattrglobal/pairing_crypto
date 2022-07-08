@@ -28,8 +28,8 @@ use crate::{
 };
 use ff::Field;
 use group::{Curve, Group};
-use hashbrown::{HashMap, HashSet};
 use rand_core::OsRng;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
     (
@@ -104,7 +104,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
         Option<&'static [u8]>,
         Generators,
         Vec<Message>,
-        HashSet<usize>,
+        BTreeSet<usize>,
     ),
     Error,
     &'static str,
@@ -115,7 +115,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
     let ph = Some(TEST_PRESENTATION_HEADER_1.as_ref());
     let messages = get_random_test_messages(NUM_MESSAGES);
     let generators = create_generators_helper(messages.len());
-    let indices_all_hidden = HashSet::<usize>::new();
+    let indices_all_hidden = BTreeSet::<usize>::new();
     let signature = Signature::new(
         &key_pair.secret_key,
         &key_pair.public_key,
@@ -423,7 +423,7 @@ pub(crate) fn test_data_proof_uniqueness() -> [(
         Option<&'static [u8]>,
         Generators,
         Vec<Message>,
-        HashSet<usize>,
+        BTreeSet<usize>,
     ),
     (
         PublicKey,
@@ -432,7 +432,7 @@ pub(crate) fn test_data_proof_uniqueness() -> [(
         Option<&'static [u8]>,
         Generators,
         Vec<Message>,
-        HashSet<usize>,
+        BTreeSet<usize>,
     ),
     &'static str,
 ); 9] {
@@ -456,13 +456,13 @@ pub(crate) fn test_data_proof_uniqueness() -> [(
         "generators creation with different message generators seed failed",
     );
     let indices: Vec<usize> = (0..NUM_MESSAGES).collect();
-    let indices_all_hidden = HashSet::<usize>::new();
+    let indices_all_hidden = BTreeSet::<usize>::new();
     let indices_all_revealed =
-        indices.iter().cloned().collect::<HashSet<usize>>();
+        indices.iter().cloned().collect::<BTreeSet<usize>>();
     let first_and_last_indices_revealed = [0, NUM_MESSAGES - 1]
         .iter()
         .cloned()
-        .collect::<HashSet<usize>>();
+        .collect::<BTreeSet<usize>>();
     let signature = Signature::new(
         &key_pair.secret_key,
         &key_pair.public_key,
@@ -682,7 +682,7 @@ pub(crate) fn test_data_proof_verify_invalid_parameters() -> [(
         Option<&'static [u8]>,
         Option<&'static [u8]>,
         Generators,
-        HashMap<usize, Message>,
+        BTreeMap<usize, Message>,
     ),
     Error,
     &'static str,
@@ -693,7 +693,7 @@ pub(crate) fn test_data_proof_verify_invalid_parameters() -> [(
     let ph = Some(TEST_PRESENTATION_HEADER_1.as_ref());
     let messages = get_random_test_messages(NUM_MESSAGES);
     let generators = create_generators_helper(messages.len());
-    let indices_all_hidden = HashSet::<usize>::new();
+    let indices_all_hidden = BTreeSet::<usize>::new();
     let signature = Signature::new(
         &key_pair.secret_key,
         &key_pair.public_key,
@@ -719,7 +719,7 @@ pub(crate) fn test_data_proof_verify_invalid_parameters() -> [(
     // The default proof has empty `m_hat_list`, i.e. no hidden message
     let default_proof = Proof::default();
 
-    let mut one_revealed_message = HashMap::new();
+    let mut one_revealed_message = BTreeMap::new();
     one_revealed_message.insert(NUM_MESSAGES, Message::random(&mut OsRng));
 
     let mut default_proof_1_hidden_message = Proof::default();
@@ -729,7 +729,7 @@ pub(crate) fn test_data_proof_verify_invalid_parameters() -> [(
     let mut default_proof_4_hidden_message = Proof::default();
     default_proof_4_hidden_message.m_hat_list =
         vec![FiatShamirProof(Scalar::random(&mut OsRng)); NUM_MESSAGES - 1];
-    let mut revealed_messages_out_of_bound_index = HashMap::new();
+    let mut revealed_messages_out_of_bound_index = BTreeMap::new();
     revealed_messages_out_of_bound_index
         .insert(NUM_MESSAGES, Message::random(&mut OsRng));
 
@@ -741,7 +741,7 @@ pub(crate) fn test_data_proof_verify_invalid_parameters() -> [(
                 None,
                 ph,
                 generators.clone(),
-                HashMap::new(),
+                BTreeMap::new(),
             ),
             Error::BadParams {
                 cause: format!("nothing to verify",),
@@ -756,7 +756,7 @@ pub(crate) fn test_data_proof_verify_invalid_parameters() -> [(
                 header,
                 ph,
                 create_generators_helper(1),
-                HashMap::new(),
+                BTreeMap::new(),
             ),
             Error::BadParams {
                 cause: format!(
@@ -775,7 +775,7 @@ pub(crate) fn test_data_proof_verify_invalid_parameters() -> [(
                 header,
                 ph,
                 create_generators_helper(0),
-                HashMap::new(),
+                BTreeMap::new(),
             ),
             Error::BadParams {
                 cause: format!(
@@ -813,7 +813,7 @@ pub(crate) fn test_data_proof_verify_invalid_parameters() -> [(
                 header,
                 ph,
                 create_generators_helper(1),
-                HashMap::new(),
+                BTreeMap::new(),
             ),
             Error::BadParams {
                 cause: format!(
@@ -832,7 +832,7 @@ pub(crate) fn test_data_proof_verify_invalid_parameters() -> [(
                 header,
                 ph,
                 create_generators_helper(0),
-                HashMap::new(),
+                BTreeMap::new(),
             ),
             Error::BadParams {
                 cause: format!(
@@ -903,7 +903,7 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
         Option<&'static [u8]>,
         Option<&'static [u8]>,
         Generators,
-        HashMap<usize, Message>,
+        BTreeMap<usize, Message>,
     ),
     &'static str,
 ); 11] {
@@ -913,7 +913,7 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
     let ph = Some(TEST_PRESENTATION_HEADER_1.as_ref());
     let messages = get_random_test_messages(NUM_MESSAGES);
     let generators = create_generators_helper(messages.len());
-    let indices_all_hidden = HashSet::<usize>::new();
+    let indices_all_hidden = BTreeSet::<usize>::new();
     let signature = Signature::new(
         &key_pair.secret_key,
         &key_pair.public_key,
@@ -1139,7 +1139,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
         Option<&'static [u8]>,
         Option<&'static [u8]>,
         Generators,
-        HashMap<usize, Message>,
+        BTreeMap<usize, Message>,
     ),
     &'static str,
 ); 15] {
@@ -1172,7 +1172,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     .expect(
         "generators creation with different message generators seed failed",
     );
-    let indices_all_hidden = HashSet::<usize>::new();
+    let indices_all_hidden = BTreeSet::<usize>::new();
     let signature = Signature::new(
         &key_pair.secret_key,
         &key_pair.public_key,
@@ -1309,7 +1309,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
         .collect::<Vec<usize>>()
         .iter()
         .cloned()
-        .collect::<HashSet<usize>>();
+        .collect::<BTreeSet<usize>>();
     // Generate a valid proof
     let (proof_all_revealed_messages, all_revealed_messages) =
         test_helper::proof_gen(
@@ -1326,7 +1326,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
 
     let all_revealed_but_different_messages = (0..NUM_MESSAGES)
         .map(|i| (i, Message::random(&mut OsRng)))
-        .collect::<HashMap<usize, Message>>();
+        .collect::<BTreeMap<usize, Message>>();
 
     let mut revealed_messages_first_elem_different =
         all_revealed_messages.clone();

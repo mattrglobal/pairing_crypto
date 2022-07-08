@@ -13,7 +13,8 @@
 // limitations under the License.
 // ------------------------------------------------------------------------------
 
-use hashbrown::HashMap;
+#[cfg(feature = "alloc")]
+use alloc::collections::BTreeMap;
 
 use super::dtos::BbsProofGenRevealMessageRequest;
 use crate::{
@@ -74,9 +75,9 @@ pub(super) fn digest_proof_messages(
 pub(super) fn digest_revealed_proof_messages(
     messages: Option<&Vec<(usize, Vec<u8>)>>,
     total_message_count: usize,
-) -> Result<HashMap<usize, Message>, Error> {
+) -> Result<BTreeMap<usize, Message>, Error> {
     if messages.is_none() {
-        return Ok(HashMap::new());
+        return Ok(BTreeMap::new());
     }
     let messages = messages.unwrap();
 

@@ -1,5 +1,3 @@
-use hashbrown::HashMap;
-
 use super::{
     dtos::{BbsProofGenRequest, BbsProofVerifyRequest},
     utils::{
@@ -22,6 +20,9 @@ use crate::{
         GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
     },
 };
+
+#[cfg(feature = "alloc")]
+use alloc::collections::BTreeMap;
 
 /// Generate a signature proof of knowledge.
 pub fn proof_gen(request: BbsProofGenRequest) -> Result<Vec<u8>, Error> {
@@ -85,7 +86,7 @@ pub fn proof_verify(request: BbsProofVerifyRequest) -> Result<bool, Error> {
     let public_key = PublicKey::from_vec(&request.public_key)?;
 
     // Digest the revealed proof messages
-    let messages: HashMap<usize, Message> = digest_revealed_proof_messages(
+    let messages: BTreeMap<usize, Message> = digest_revealed_proof_messages(
         request.messages.as_ref(),
         request.total_message_count,
     )?;

@@ -44,19 +44,18 @@ use crate::{
 use core::convert::TryFrom;
 use ff::Field;
 use group::{Curve, Group};
-use hashbrown::{HashMap, HashSet};
 use rand::{prelude::SliceRandom, thread_rng};
 use rand_core::OsRng;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub(crate) mod test_helper {
     use super::*;
-    use hashbrown::HashMap;
     use rand::{CryptoRng, RngCore};
 
     pub(super) fn to_proof_revealed_messages(
         messages: &Vec<Message>,
-        revealed_indices: &HashSet<usize>,
-    ) -> (Vec<ProofMessage>, HashMap<usize, Message>) {
+        revealed_indices: &BTreeSet<usize>,
+    ) -> (Vec<ProofMessage>, BTreeMap<usize, Message>) {
         if revealed_indices.len() > messages.len() {
             panic!("more revealed indices than messages");
         }
@@ -67,7 +66,7 @@ pub(crate) mod test_helper {
         }
 
         let mut proof_messages: Vec<ProofMessage> = Vec::new();
-        let mut revealed_messages: HashMap<usize, Message> = HashMap::new();
+        let mut revealed_messages: BTreeMap<usize, Message> = BTreeMap::new();
 
         for (i, &m) in messages.iter().enumerate() {
             if revealed_indices.contains(&i) {
@@ -87,10 +86,10 @@ pub(crate) mod test_helper {
         ph: Option<T>,
         generators: &Generators,
         messages: &Vec<Message>,
-        revealed_indices: &HashSet<usize>,
+        revealed_indices: &BTreeSet<usize>,
         mut rng: R,
         failure_debug_message: &str,
-    ) -> (Proof, HashMap<usize, Message>)
+    ) -> (Proof, BTreeMap<usize, Message>)
     where
         T: AsRef<[u8]> + Copy,
         R: RngCore + CryptoRng,
@@ -276,7 +275,7 @@ fn gen_verify_different_key_pairs() {
             );
             assert_eq!(proof.to_octets(), expected_proof);
             proof_values.push(hex::encode(proof.to_octets()));
-            let mut revealed_msgs = HashMap::new();
+            let mut revealed_msgs = BTreeMap::new();
             for k in 0..j {
                 revealed_msgs.insert(k, proof_msgs[k].get_message());
             }
@@ -351,7 +350,7 @@ fn proof_gen_verify_valid_cases() {
         .expect("signing failed");
 
         // Proof gen-verify all hidden messages
-        let indices_all_hidden = HashSet::<usize>::new();
+        let indices_all_hidden = BTreeSet::<usize>::new();
         let (proof, revealed_messages) = test_helper::proof_gen(
             &key_pair.public_key,
             &signature,
@@ -380,7 +379,7 @@ fn proof_gen_verify_valid_cases() {
 
         for i in 0..messages.len() {
             let revealed_indices =
-                [0, i].iter().cloned().collect::<HashSet<usize>>();
+                [0, i].iter().cloned().collect::<BTreeSet<usize>>();
             let (proof, revealed_messages) = test_helper::proof_gen(
                 &key_pair.public_key,
                 &signature,
@@ -439,7 +438,7 @@ fn proof_gen_verify_all_revealed_shuffled_indices() {
         .collect::<Vec<usize>>()
         .iter()
         .cloned()
-        .collect::<HashSet<usize>>();
+        .collect::<BTreeSet<usize>>();
     let (proof_all_revealed_messages, _) = test_helper::proof_gen(
         &key_pair.public_key,
         &signature,
@@ -461,7 +460,7 @@ fn proof_gen_verify_all_revealed_shuffled_indices() {
         .iter()
         .enumerate()
         .map(|(i, &m)| (i, m))
-        .collect::<HashMap<usize, Message>>();
+        .collect::<BTreeMap<usize, Message>>();
 
     assert_eq!(
         proof_all_revealed_messages
@@ -487,7 +486,7 @@ fn proof_gen_with_invalid_public_key() {
     let ph = Some(TEST_PRESENTATION_HEADER_1.as_ref());
     let messages = get_random_test_messages(NUM_MESSAGES);
     let generators = create_generators_helper(messages.len());
-    let indices_all_hidden = HashSet::<usize>::new();
+    let indices_all_hidden = BTreeSet::<usize>::new();
     let signature = Signature::new(
         &key_pair.secret_key,
         &key_pair.public_key,
@@ -598,7 +597,7 @@ fn verify_proof_helper<const N: usize>(
             Option<&'static [u8]>,
             Option<&'static [u8]>,
             Generators,
-            HashMap<usize, Message>,
+            BTreeMap<usize, Message>,
         ),
         &'static str,
     ); N],
