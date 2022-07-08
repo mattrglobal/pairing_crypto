@@ -127,9 +127,9 @@ impl Proof {
             });
         }
         // Error out if length of messages and generators are not equal
-        if messages.len() != generators.message_blinding_points_length() {
+        if messages.len() != generators.message_generators_length() {
             return Err(Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: messages.len(),
             });
         }
@@ -179,14 +179,14 @@ impl Proof {
         let A_bar = G1Projective::multi_exp(&[A_prime, B], &[-signature.e, r1]);
 
         // D = B * r1 + H_s * r2
-        let D = G1Projective::multi_exp(&[B, generators.H_s()], &[r1, r2]);
+        let D = G1Projective::multi_exp(&[B, generators.Q_1()], &[r1, r2]);
 
         // s' = s + r2 * r3
         let s_prime = signature.s + r2 * r3;
 
         // C1 = A' * e~ + H_s * r2~
         let C1 = G1Projective::multi_exp(
-            &[A_prime, generators.H_s()],
+            &[A_prime, generators.Q_1()],
             &[e_tilde, r2_tilde],
         );
 
@@ -194,9 +194,7 @@ impl Proof {
         let mut H_points = Vec::new();
         let mut m_tilde_scalars = Vec::new();
         let mut hidden_messages = Vec::new();
-        for (i, generator) in
-            generators.message_blinding_points_iter().enumerate()
-        {
+        for (i, generator) in generators.message_generators_iter().enumerate() {
             if let ProofMessage::Hidden(m) = messages[i] {
                 H_points.push(*generator);
                 m_tilde_scalars.push(Scalar::random(&mut rng));
@@ -204,7 +202,7 @@ impl Proof {
             }
         }
         let C2 = G1Projective::multi_exp(
-            &[[D, generators.H_s()].to_vec(), H_points].concat(),
+            &[[D, generators.Q_1()].to_vec(), H_points].concat(),
             &[[-r3_tilde, s_tilde].to_vec(), m_tilde_scalars.clone()].concat(),
         );
 
@@ -270,13 +268,13 @@ impl Proof {
             });
         }
         // Check if input proof data commitments matches no. of hidden messages
-        if total_no_of_messages != generators.message_blinding_points_length() {
+        if total_no_of_messages != generators.message_generators_length() {
             return Err(Error::BadParams {
                 cause: format!(
                     "Incorrect number of messages and generators: \
                      [#generators: {}, #hidden_messages: {}, \
                      #revealed_messages: {}]",
-                    generators.message_blinding_points_length(),
+                    generators.message_generators_length(),
                     self.m_hat_list.len(),
                     revealed_messages.len()
                 ),
@@ -311,12 +309,12 @@ impl Proof {
         let domain = compute_domain(
             PK,
             header,
-            generators.message_blinding_points_length(),
+            generators.message_generators_length(),
             generators,
         )?;
 
         // C1 = (Abar - D) * c + A' * e^ + H_s * r2^
-        let C1_points = [self.A_bar - self.D, self.A_prime, generators.H_s()];
+        let C1_points = [self.A_bar - self.D, self.A_prime, generators.Q_1()];
         let C1_scalars = [self.c.0, self.e_hat.0, self.r2_hat.0];
         let C1 = G1Projective::multi_exp(&C1_points, &C1_scalars);
 
@@ -329,11 +327,11 @@ impl Proof {
         T_points.push(P1);
         T_scalars.push(Scalar::one());
         // H_d * domain
-        T_points.push(generators.H_d());
+        T_points.push(generators.Q_2());
         T_scalars.push(domain);
         // H_i1 * msg_i1 + ... H_iR * msg_iR
         for (idx, msg) in revealed_messages {
-            if let Some(g) = generators.get_message_blinding_point(*idx) {
+            if let Some(g) = generators.get_message_generators_at_index(*idx) {
                 T_points.push(g);
                 T_scalars.push(msg.0);
             } else {
@@ -358,13 +356,11 @@ impl Proof {
         C2_points.push(self.D);
         C2_scalars.push(-self.r3_hat.0);
         // H_s * s^
-        C2_points.push(generators.H_s());
+        C2_points.push(generators.Q_1());
         C2_scalars.push(self.s_hat.0);
         // H_j1 * m^_j1 + ... + H_jU * m^_jU
         let mut j = 0;
-        for (i, generator) in
-            generators.message_blinding_points_iter().enumerate()
-        {
+        for (i, generator) in generators.message_generators_iter().enumerate() {
             if revealed_messages.contains_key(&i) {
                 continue;
             }

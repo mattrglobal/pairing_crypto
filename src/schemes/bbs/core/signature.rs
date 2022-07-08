@@ -164,9 +164,9 @@ impl Signature {
             });
         }
         // Error out if length of messages and generators are not equal
-        if messages.len() != generators.message_blinding_points_length() {
+        if messages.len() != generators.message_generators_length() {
             return Err(Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: messages.len(),
             });
         }
@@ -230,9 +230,9 @@ impl Signature {
             });
         }
         // Error out if length of messages and generators are not equal
-        if messages.len() != generators.message_blinding_points_length() {
+        if messages.len() != generators.message_generators_length() {
             return Err(Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: messages.len(),
             });
         }

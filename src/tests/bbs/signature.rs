@@ -19,9 +19,9 @@ use crate::{
     from_vec_deserialization_invalid_vec_size,
     tests::bbs::{
         get_test_messages,
-        test_generators_random_h_d,
-        test_generators_random_h_s,
         test_generators_random_message_generators,
+        test_generators_random_q_1,
+        test_generators_random_q_2,
         EXPECTED_SIGNATURE,
     },
     Error,
@@ -393,7 +393,7 @@ fn signature_new_invalid_parameters() {
             &generators,
             &vec![Message::default(); 2],
             Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: 2,
             },
             "no header, more message-generators than messages",
@@ -429,7 +429,7 @@ fn signature_new_invalid_parameters() {
             &generators,
             &vec![],
             Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: 0,
             },
             "valid header, no messages but message-generators are provided",
@@ -441,7 +441,7 @@ fn signature_new_invalid_parameters() {
             &generators,
             &vec![Message::default(); 2],
             Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: 2,
             },
             "valid header, more message-generators than messages",
@@ -586,8 +586,8 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
         KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
             .expect("key pair generation failed");
     let different_header = Some(b"another-set-of-header".as_ref());
-    let generators_different_h_s = test_generators_random_h_s(messages.len());
-    let generators_different_h_d = test_generators_random_h_d(messages.len());
+    let generators_different_q_1 = test_generators_random_q_1(messages.len());
+    let generators_different_q_2 = test_generators_random_q_2(messages.len());
     let generators_different_message_generators =
         test_generators_random_message_generators(messages.len());
     let mut messages_one_extra_message_at_start = messages.clone();
@@ -631,16 +631,16 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
         (
             &key_pair.public_key,
             header,
-            &generators_different_h_s,
+            &generators_different_q_1,
             &messages,
-            "different H_s value of generators",
+            "different Q_1 value of generators",
         ),
         (
             &key_pair.public_key,
             header,
-            &generators_different_h_d,
+            &generators_different_q_2,
             &messages,
-            "different H_d value of generators",
+            "different Q_2 value of generators",
         ),
         (
             &key_pair.public_key,
@@ -701,7 +701,7 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
             &generators,
             &vec![
                 Message::random(&mut OsRng);
-                generators.message_blinding_points_length()
+                generators.message_generators_length()
             ],
             "all messages are different",
         ),
@@ -812,8 +812,8 @@ fn verify_tampered_signature_parameters_no_header_signature() {
         KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
             .expect("key pair generation failed");
     let different_header = Some(b"another-set-of-header".as_ref());
-    let generators_different_h_s = test_generators_random_h_s(messages.len());
-    let generators_different_h_d = test_generators_random_h_d(messages.len());
+    let generators_different_q_1 = test_generators_random_q_1(messages.len());
+    let generators_different_q_2 = test_generators_random_q_2(messages.len());
     let generators_different_message_generators =
         test_generators_random_message_generators(messages.len());
 
@@ -843,16 +843,16 @@ fn verify_tampered_signature_parameters_no_header_signature() {
         (
             &key_pair.public_key,
             header,
-            &generators_different_h_s,
+            &generators_different_q_1,
             &messages,
-            "different H_s value of generators",
+            "different Q_1 value of generators",
         ),
         (
             &key_pair.public_key,
             header,
-            &generators_different_h_d,
+            &generators_different_q_2,
             &messages,
-            "different H_d value of generators",
+            "different Q_2 value of generators",
         ),
         (
             &key_pair.public_key,
@@ -881,7 +881,7 @@ fn verify_tampered_signature_parameters_no_header_signature() {
             &generators,
             &vec![
                 Message::random(&mut OsRng);
-                generators.message_blinding_points_length()
+                generators.message_generators_length()
             ],
             "all messages are different",
         ),
@@ -930,8 +930,8 @@ fn verify_tampered_signature_parameters_no_messages_signature() {
         KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
             .expect("key pair generation failed");
     let different_header = Some(b"another-set-of-header".as_ref());
-    let generators_different_h_s = test_generators_random_h_s(messages.len());
-    let generators_different_h_d = test_generators_random_h_d(messages.len());
+    let generators_different_q_1 = test_generators_random_q_1(messages.len());
+    let generators_different_q_2 = test_generators_random_q_2(messages.len());
     // [(PK, header, generators, messages, failure-debug-message)]
     let test_data = [
         (
@@ -951,16 +951,16 @@ fn verify_tampered_signature_parameters_no_messages_signature() {
         (
             &key_pair.public_key,
             header,
-            &generators_different_h_s,
+            &generators_different_q_1,
             &messages,
-            "different H_s value of generators",
+            "different Q_1 value of generators",
         ),
         (
             &key_pair.public_key,
             header,
-            &generators_different_h_d,
+            &generators_different_q_2,
             &messages,
-            "different H_d value of generators",
+            "different Q_2 value of generators",
         ),
     ];
 
@@ -1023,7 +1023,7 @@ fn verify_invalid_parameters() {
             &generators,
             &vec![],
             Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: 0,
             },
             "valid header, no messages but generators are provided",
@@ -1034,7 +1034,7 @@ fn verify_invalid_parameters() {
             &generators,
             &vec![Message::default(); 2],
             Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: 2,
             },
             "more generators than messages",

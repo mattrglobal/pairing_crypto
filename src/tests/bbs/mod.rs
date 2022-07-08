@@ -67,15 +67,15 @@ fn create_generators_helper(num_of_messages: usize) -> Generators {
     Generators::new(num_of_messages).expect("generators creation failed")
 }
 
-fn test_generators_random_h_s(num_of_messages: usize) -> Generators {
+fn test_generators_random_q_1(num_of_messages: usize) -> Generators {
     let mut generators = create_generators_helper(num_of_messages);
-    generators.H_s = G1Projective::random(&mut OsRng);
+    generators.Q_1 = G1Projective::random(&mut OsRng);
     generators
 }
 
-fn test_generators_random_h_d(num_of_messages: usize) -> Generators {
+fn test_generators_random_q_2(num_of_messages: usize) -> Generators {
     let mut generators = create_generators_helper(num_of_messages);
-    generators.H_d = G1Projective::random(&mut OsRng);
+    generators.Q_2 = G1Projective::random(&mut OsRng);
     generators
 }
 
@@ -83,8 +83,7 @@ fn test_generators_random_message_generators(
     num_of_messages: usize,
 ) -> Generators {
     let mut generators = create_generators_helper(num_of_messages);
-    generators.message_generators =
-        vec![G1Projective::random(&mut OsRng); num_of_messages];
+    generators.H_list = vec![G1Projective::random(&mut OsRng); num_of_messages];
     generators
 }
 

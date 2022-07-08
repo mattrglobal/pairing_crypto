@@ -13,9 +13,9 @@ use crate::{
         get_random_test_key_pair,
         get_random_test_messages,
         proof::test_helper,
-        test_generators_random_h_d,
-        test_generators_random_h_s,
         test_generators_random_message_generators,
+        test_generators_random_q_1,
+        test_generators_random_q_2,
         ANOTHER_TEST_HEADER,
         TEST_HEADER,
         TEST_PRESENTATION_HEADER_1,
@@ -183,7 +183,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 indices_all_hidden.clone(),
             ),
             Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: 2,
             },
             "no header, no presentation-message, more message-generators than \
@@ -250,7 +250,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 indices_all_hidden.clone(),
             ),
             Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: 2,
             },
             "no header, valid presentation-message, more message-generators \
@@ -301,7 +301,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 indices_all_hidden.clone(),
             ),
             Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: 0,
             },
             "valid header, no presentation-message, no messages but \
@@ -318,7 +318,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 indices_all_hidden.clone(),
             ),
             Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: 2,
             },
             "valid header, no presentation-message, more message-generators \
@@ -369,7 +369,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 indices_all_hidden.clone(),
             ),
             Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: 0,
             },
             "valid header, valid presentation-message, no messages but \
@@ -386,7 +386,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 indices_all_hidden.clone(),
             ),
             Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: 2,
             },
             "valid header, valid presentation-message, more \
@@ -1140,8 +1140,8 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     let ph = Some(TEST_PRESENTATION_HEADER_1.as_ref());
     let messages = get_random_test_messages(NUM_MESSAGES);
     let generators = create_generators_helper(messages.len());
-    let generators_different_h_s = test_generators_random_h_s(messages.len());
-    let generators_different_h_d = test_generators_random_h_d(messages.len());
+    let generators_different_q_1 = test_generators_random_q_1(messages.len());
+    let generators_different_q_2 = test_generators_random_q_2(messages.len());
     let generators_different_message_generators =
         test_generators_random_message_generators(messages.len());
 
@@ -1389,10 +1389,10 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 key_pair.public_key,
                 header,
                 ph,
-                generators_different_h_s,
+                generators_different_q_1,
                 revealed_messages.clone(),
             ),
-            "H_s value of generators is different",
+            "Q_1 value of generators is different",
         ),
         (
             (
@@ -1400,10 +1400,10 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 key_pair.public_key,
                 header,
                 ph,
-                generators_different_h_d,
+                generators_different_q_2,
                 revealed_messages.clone(),
             ),
-            "H_d value of generators is different",
+            "Q_2 value of generators is different",
         ),
         (
             (

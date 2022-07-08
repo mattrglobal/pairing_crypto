@@ -59,9 +59,9 @@ where
     T: AsRef<[u8]>,
 {
     // Error out if length of messages and generators are not equal
-    if L != generators.message_blinding_points_length() {
+    if L != generators.message_generators_length() {
         return Err(Error::MessageGeneratorsLengthMismatch {
-            generators: generators.message_blinding_points_length(),
+            generators: generators.message_generators_length(),
             messages: L,
         });
     }
@@ -72,10 +72,10 @@ where
     data_to_hash.extend(PK.point_to_octets().as_ref());
     data_to_hash
         .extend(i2osp(L as u64, OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH)?);
-    data_to_hash.extend(point_to_octets_g1(&generators.H_s()).as_ref());
-    data_to_hash.extend(point_to_octets_g1(&generators.H_d()).as_ref());
+    data_to_hash.extend(point_to_octets_g1(&generators.Q_1()).as_ref());
+    data_to_hash.extend(point_to_octets_g1(&generators.Q_2()).as_ref());
 
-    for generator in generators.message_blinding_points_iter() {
+    for generator in generators.message_generators_iter() {
         data_to_hash.extend(point_to_octets_g1(generator).as_ref());
     }
     // As of now we support only BLS12/381 ciphersuite, it's OK to use this
@@ -105,9 +105,9 @@ pub(crate) fn compute_B(
 ) -> Result<G1Projective, Error> {
     // Input params check
     // Error out if length of generators and messages are not equal
-    if messages.len() != generators.message_blinding_points_length() {
+    if messages.len() != generators.message_generators_length() {
         return Err(Error::MessageGeneratorsLengthMismatch {
-            generators: generators.message_blinding_points_length(),
+            generators: generators.message_generators_length(),
             messages: messages.len(),
         });
     }
@@ -115,10 +115,10 @@ pub(crate) fn compute_B(
     // Spec doesn't define P1, using G1Projective::generator() as P1
     let mut points: Vec<_> = vec![
         G1Projective::generator(),
-        generators.H_s(),
-        generators.H_d(),
+        generators.Q_1(),
+        generators.Q_2(),
     ];
-    points.extend(generators.message_blinding_points_iter());
+    points.extend(generators.message_generators_iter());
     let scalars: Vec<_> = [Scalar::one(), *s, *domain]
         .iter()
         .copied()
