@@ -1,26 +1,27 @@
 use super::constants::{
     DST_LENGTH_ENCODING_LENGTH,
+    GENERATOR_DST,
     GENERATOR_SEED,
-    HASH_TO_CURVE_G1_DST,
     HASH_TO_SCALAR_DST,
     MAX_DST_SIZE,
     MAX_MESSAGE_SIZE,
     MAX_VALUE_GENERATION_RETRY_COUNT,
     OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+    SEED_DST,
     XOF_NO_OF_BYTES,
 };
 use crate::{
     common::serialization::{i2osp, i2osp_with_data},
-    curves::bls12_381::{G1Projective, Scalar},
+    curves::bls12_381::{
+        hash_to_curve::{ExpandMessage, ExpandMessageState, ExpandMsgXof},
+        G1Projective,
+        Scalar,
+    },
     error::Error,
 };
-use blstrs::hash_to_curve::{ExpandMessage, ExpandMessageState, ExpandMsgXof};
 use ff::Field;
 use group::Group;
-use sha3::{
-    digest::{ExtendableOutput, Update, XofReader},
-    Shake256,
-};
+use sha3::Shake256;
 
 /// Hash arbitrary data to a scalar as specified in [3.3.9.1 Hash to scalar](https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-mapmessagetoscalarashash).
 pub(crate) fn map_message_to_scalar_as_hash<T>(
@@ -94,47 +95,46 @@ pub(crate) fn hash_to_scalar<X: ExpandMessage>(
 }
 
 /// A convenient wrapper over underlying `hash_to_curve_g1` implementation(from
-/// pairing lib) to use during `Generators` value generation.
-pub(crate) fn create_generators(
+/// pairing lib) which is used in `Generators` creation.
+pub(crate) fn create_generators<X: ExpandMessage>(
     count: usize,
 ) -> Result<Vec<G1Projective>, Error> {
-    // Return early if no Point need to be produced
-    if count == 0 {
-        return Ok(vec![]);
-    }
     // Spec doesn't define P1
     let p1 = G1Projective::generator();
-    let mut i = 0;
+
     let mut points = Vec::with_capacity(count);
 
-    let mut hasher = Shake256::default();
-    hasher.update(GENERATOR_SEED);
-    let mut xof_reader = hasher.finalize_xof();
+    //  v = expand_message(generator_seed, seed_dst, seed_len)
+    let mut expander =
+        X::init_expand(GENERATOR_SEED, SEED_DST, XOF_NO_OF_BYTES);
+    let mut v = [0u8; XOF_NO_OF_BYTES];
+    expander.read_into(&mut v);
 
+    let mut n = 1;
+
+    let mut i = 0;
     while i < count {
-        let mut data_to_hash = [0u8; XOF_NO_OF_BYTES];
-        let mut retry_count = 0;
-        loop {
-            if retry_count == MAX_VALUE_GENERATION_RETRY_COUNT {
-                return Err(Error::MaxRetryReached);
-            }
-            xof_reader.read(&mut data_to_hash);
-            let p = G1Projective::hash_to_curve(
-                &data_to_hash,
-                HASH_TO_CURVE_G1_DST,
-                &[],
-            );
+        // v = expand_message(v || I2OSP(n, 4), seed_dst, seed_len)
+        let mut expander = X::init_expand(
+            &[v.as_ref(), &i2osp(n, 4)?].concat(),
+            SEED_DST,
+            XOF_NO_OF_BYTES,
+        );
+        expander.read_into(&mut v);
 
-            if (p.is_identity().unwrap_u8() == 1)
-                || p == p1
-                || points.iter().any(|e| e == &p)
-            {
-                retry_count += 1;
-                continue;
-            }
-            points.push(p);
-            break;
+        n += 1;
+
+        // candidate = hash_to_curve_g1(v, generator_dst)
+        let candidate = G1Projective::hash_to::<X>(&v, GENERATOR_DST);
+
+        if (candidate.is_identity().unwrap_u8() == 1)
+            || candidate == p1
+            || points.iter().any(|e| e == &candidate)
+        {
+            continue;
         }
+
+        points.push(candidate);
         i += 1;
     }
     Ok(points)

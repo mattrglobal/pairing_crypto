@@ -13,10 +13,14 @@ use super::{
 };
 use crate::{
     common::serialization::{i2osp, i2osp_with_data},
-    curves::bls12_381::{G1Affine, G1Projective, Scalar},
+    curves::bls12_381::{
+        hash_to_curve::ExpandMsgXof,
+        G1Affine,
+        G1Projective,
+        Scalar,
+    },
     error::Error,
 };
-use blstrs::hash_to_curve::ExpandMsgXof;
 use ff::Field;
 use group::{Curve, Group};
 use sha3::Shake256;

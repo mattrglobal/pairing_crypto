@@ -1111,7 +1111,7 @@ fn to_octets() {
         hex::decode(EXPECTED_SIGNATURE).expect("hex decoding failed"),
     )
     .expect("signature hex decoding failed");
-    println!("{:?},", hex::encode(signature_octets));
+    // println!("{:?},", hex::encode(signature_octets));
     assert_eq!(signature_octets, expected_signature_octets);
 
     let a = G1Projective::random(&mut OsRng);

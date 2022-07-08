@@ -5,10 +5,6 @@ pub(crate) const MAX_VALUE_GENERATION_RETRY_COUNT: usize = 5;
 pub(crate) const BBS_CIPHERSUITE_ID: &[u8; 37] =
     b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_";
 
-/// DST for `hash_to_curve` operation in G1.
-pub(crate) const HASH_TO_CURVE_G1_DST: &[u8; 57] =
-    b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_HASH_TO_CURVE_G1_DST";
-
 /// DST for `hash_to_scalar` operation.
 pub(crate) const HASH_TO_SCALAR_DST: &[u8; 55] =
     b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_HASH_TO_SCALAR_DST";
@@ -24,12 +20,12 @@ pub(crate) const GENERATOR_SEED: &[u8; 59] =
     b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_MESSAGE_GENERATOR_SEED";
 
 // /// Generator DST which is used by the `create_generators ` operation.
-// pub(crate) const GENERATOR_DST: &[u8; 55] =
-// b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_SIG_GENERATOR_DST_";
-//
+pub(crate) const GENERATOR_DST: &[u8; 55] =
+    b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_SIG_GENERATOR_DST_";
+
 // Seed DST which is used by the `create_generators ` operation.
-// pub(crate) const SEED_DST: &[u8; 56] =
-// b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_SIG_GENERATOR_SEED_";
+pub(crate) const SEED_DST: &[u8; 56] =
+    b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_SIG_GENERATOR_SEED_";
 
 /// Number of bytes to draw from the XOF when generating Scalars or Generators.
 pub(crate) const XOF_NO_OF_BYTES: usize = 48usize;

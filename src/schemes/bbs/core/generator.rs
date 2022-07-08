@@ -1,5 +1,10 @@
+use sha3::Shake256;
+
 use super::hash_utils::create_generators;
-use crate::{curves::bls12_381::G1Projective, error::Error};
+use crate::{
+    curves::bls12_381::{hash_to_curve::ExpandMsgXof, G1Projective},
+    error::Error,
+};
 
 /// The generators that are used to sign a vector of commitments for a BBS
 /// signature. These must be the same generators used by sign, verify, prove,
@@ -17,7 +22,8 @@ impl Generators {
     /// Construct `Generators` from the given `seed` values.
     /// The implementation follows `CreateGenerators` section as defined in <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-creategenerators>.
     pub fn new(count: usize) -> Result<Self, Error> {
-        let generators = create_generators(count + 2)?;
+        let generators =
+            create_generators::<ExpandMsgXof<Shake256>>(count + 2)?;
         Ok(Self {
             H_s: generators[0],
             H_d: generators[1],
