@@ -178,19 +178,19 @@ impl Proof {
         // Abar = A' * (-e) + B * r1
         let A_bar = G1Projective::multi_exp(&[A_prime, B], &[-signature.e, r1]);
 
-        // D = B * r1 + H_s * r2
+        // D = B * r1 + Q_1 * r2
         let D = G1Projective::multi_exp(&[B, generators.Q_1()], &[r1, r2]);
 
         // s' = s + r2 * r3
         let s_prime = signature.s + r2 * r3;
 
-        // C1 = A' * e~ + H_s * r2~
+        // C1 = A' * e~ + Q_1 * r2~
         let C1 = G1Projective::multi_exp(
             &[A_prime, generators.Q_1()],
             &[e_tilde, r2_tilde],
         );
 
-        //  C2 = D * (-r3~) + H_s * s~ + H_j1 * m~_j1 + ... + H_jU * m~_jU
+        //  C2 = D * (-r3~) + Q_1 * s~ + H_j1 * m~_j1 + ... + H_jU * m~_jU
         let mut H_points = Vec::new();
         let mut m_tilde_scalars = Vec::new();
         let mut hidden_messages = Vec::new();
@@ -318,7 +318,7 @@ impl Proof {
         let C1_scalars = [self.c.0, self.e_hat.0, self.r2_hat.0];
         let C1 = G1Projective::multi_exp(&C1_points, &C1_scalars);
 
-        // T = P1 + H_d * domain + H_i1 * msg_i1 + ... H_iR * msg_iR
+        // T = P1 + Q_2 * domain + H_i1 * msg_i1 + ... H_iR * msg_iR
         let T_len = 1 + 1 + revealed_messages.len();
         let mut T_points = Vec::with_capacity(T_len);
         let mut T_scalars = Vec::with_capacity(T_len);
@@ -355,7 +355,7 @@ impl Proof {
         // D * (-r3^)
         C2_points.push(self.D);
         C2_scalars.push(-self.r3_hat.0);
-        // H_s * s^
+        // Q_1 * s^
         C2_points.push(generators.Q_1());
         C2_scalars.push(self.s_hat.0);
         // H_j1 * m^_j1 + ... + H_jU * m^_jU

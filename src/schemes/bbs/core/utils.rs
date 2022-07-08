@@ -96,7 +96,7 @@ where
 }
 
 /// Computes `B` value.
-/// B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
+/// B = P1 + Q_1 * s + Q_2 * domain + H_1 * msg_1 + ... + H_L * msg_L
 pub(crate) fn compute_B(
     s: &Scalar,
     domain: &Scalar,
