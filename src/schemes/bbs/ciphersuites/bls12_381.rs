@@ -1,10 +1,5 @@
 pub(crate) use crate::schemes::bbs::core::{
-    constants::{
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        MAP_MESSAGE_TO_SCALAR_DST,
-    },
+    constants::MAP_MESSAGE_TO_SCALAR_DST,
     generator::*,
     proof::*,
     signature::*,

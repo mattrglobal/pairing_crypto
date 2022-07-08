@@ -10,9 +10,6 @@ use crate::{
         PublicKey,
         SecretKey,
         Signature,
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
     },
 };
 
@@ -30,12 +27,7 @@ pub fn sign(request: BbsSignRequest) -> Result<[u8; 112], Error> {
     let messages: Vec<Message> = digest_messages(request.messages.as_ref())?;
 
     // Derive generators
-    let generators = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        messages.len(),
-    )?;
+    let generators = Generators::new(messages.len())?;
 
     // Produce the signature and return
     Signature::new(&sk, &pk, request.header.as_ref(), &generators, &messages)
@@ -51,12 +43,7 @@ pub fn verify(request: BbsVerifyRequest) -> Result<bool, Error> {
     let messages: Vec<Message> = digest_messages(request.messages.as_ref())?;
 
     // Derive generators
-    let generators = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        messages.len(),
-    )?;
+    let generators = Generators::new(messages.len())?;
 
     // Parse signature from request
     let signature = Signature::from_vec(&request.signature)?;

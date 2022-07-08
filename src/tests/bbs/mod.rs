@@ -1,12 +1,9 @@
+use blstrs::G1Projective;
+use group::Group;
 use rand_core::OsRng;
 
 use crate::bbs::core::{
-    constants::{
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        MAP_MESSAGE_TO_SCALAR_DST,
-    },
+    constants::MAP_MESSAGE_TO_SCALAR_DST,
     generator::Generators,
     key_pair::KeyPair,
     types::Message,
@@ -65,13 +62,28 @@ const TEST_PRESENTATION_HEADER_1: &[u8; 26] = b"test_presentation-header-1";
 const TEST_PRESENTATION_HEADER_2: &[u8; 26] = b"test_presentation-header-2";
 
 fn create_generators_helper(num_of_messages: usize) -> Generators {
-    Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        num_of_messages,
-    )
-    .expect("generators creation failed")
+    Generators::new(num_of_messages).expect("generators creation failed")
+}
+
+fn test_generators_random_h_s(num_of_messages: usize) -> Generators {
+    let mut generators = create_generators_helper(num_of_messages);
+    generators.H_s = G1Projective::random(&mut OsRng);
+    generators
+}
+
+fn test_generators_random_h_d(num_of_messages: usize) -> Generators {
+    let mut generators = create_generators_helper(num_of_messages);
+    generators.H_d = G1Projective::random(&mut OsRng);
+    generators
+}
+
+fn test_generators_random_message_generators(
+    num_of_messages: usize,
+) -> Generators {
+    let mut generators = create_generators_helper(num_of_messages);
+    generators.message_generators =
+        vec![G1Projective::random(&mut OsRng); num_of_messages];
+    generators
 }
 
 fn get_test_messages() -> Vec<Message> {

@@ -1,5 +1,6 @@
 use super::constants::{
     DST_LENGTH_ENCODING_LENGTH,
+    GENERATOR_SEED,
     HASH_TO_CURVE_G1_DST,
     HASH_TO_SCALAR_DST,
     MAX_DST_SIZE,
@@ -94,28 +95,23 @@ pub(crate) fn hash_to_scalar<X: ExpandMessage>(
 
 /// A convenient wrapper over underlying `hash_to_curve_g1` implementation(from
 /// pairing lib) to use during `Generators` value generation.
-// TODO make const time
-pub(crate) fn create_generators<T>(
-    seed: T,
-    n: usize,
-) -> Result<Vec<G1Projective>, Error>
-where
-    T: AsRef<[u8]>,
-{
+pub(crate) fn create_generators(
+    count: usize,
+) -> Result<Vec<G1Projective>, Error> {
     // Return early if no Point need to be produced
-    if n == 0 {
+    if count == 0 {
         return Ok(vec![]);
     }
     // Spec doesn't define P1
     let p1 = G1Projective::generator();
     let mut i = 0;
-    let mut points = Vec::with_capacity(n);
+    let mut points = Vec::with_capacity(count);
 
     let mut hasher = Shake256::default();
-    hasher.update(seed);
+    hasher.update(GENERATOR_SEED);
     let mut xof_reader = hasher.finalize_xof();
 
-    while i < n {
+    while i < count {
         let mut data_to_hash = [0u8; XOF_NO_OF_BYTES];
         let mut retry_count = 0;
         loop {

@@ -1,12 +1,6 @@
 use crate::{
     bbs::core::{
-        constants::{
-            GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-            GLOBAL_MESSAGE_GENERATOR_SEED,
-            GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-            OCTET_POINT_G1_LENGTH,
-            OCTET_SCALAR_LENGTH,
-        },
+        constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
         generator::Generators,
         key_pair::{KeyPair, PublicKey},
         proof::Proof,
@@ -19,6 +13,9 @@ use crate::{
         get_random_test_key_pair,
         get_random_test_messages,
         proof::test_helper,
+        test_generators_random_h_d,
+        test_generators_random_h_s,
+        test_generators_random_message_generators,
         ANOTHER_TEST_HEADER,
         TEST_HEADER,
         TEST_PRESENTATION_HEADER_1,
@@ -446,15 +443,9 @@ pub(crate) fn test_data_proof_uniqueness() -> [(
     let messages = get_random_test_messages(NUM_MESSAGES);
     let messages2 = get_random_test_messages(NUM_MESSAGES);
     let generators = create_generators_helper(messages.len());
-    let generators_different_message_gens_seed = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        b"test-message-generators-seed-2".as_ref(),
-        messages.len(),
-    )
-    .expect(
-        "generators creation with different message generators seed failed",
-    );
+    let generators_different_message_generators =
+        test_generators_random_message_generators(messages.len());
+
     let indices: Vec<usize> = (0..NUM_MESSAGES).collect();
     let indices_all_hidden = HashSet::<usize>::new();
     let indices_all_revealed =
@@ -582,7 +573,7 @@ pub(crate) fn test_data_proof_uniqueness() -> [(
                 signature,
                 header,
                 ph,
-                generators_different_message_gens_seed.clone(),
+                generators_different_message_generators.clone(),
                 messages.clone(),
                 indices_all_hidden.clone(),
             ),
@@ -1149,29 +1140,11 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     let ph = Some(TEST_PRESENTATION_HEADER_1.as_ref());
     let messages = get_random_test_messages(NUM_MESSAGES);
     let generators = create_generators_helper(messages.len());
-    let generators_different_blind_value_seed = Generators::new(
-        b"test-blind-value-seed-2".as_ref(),
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        messages.len(),
-    )
-    .expect("generators creation with different blind value seed failed");
-    let generators_different_sig_domain_seed = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        b"test-sig-domain-seed-2".as_ref(),
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        messages.len(),
-    )
-    .expect("generators creation with different sig domain seed failed");
-    let generators_different_message_gens_seed = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        b"test-message-generators-seed-2".as_ref(),
-        messages.len(),
-    )
-    .expect(
-        "generators creation with different message generators seed failed",
-    );
+    let generators_different_h_s = test_generators_random_h_s(messages.len());
+    let generators_different_h_d = test_generators_random_h_d(messages.len());
+    let generators_different_message_generators =
+        test_generators_random_message_generators(messages.len());
+
     let indices_all_hidden = HashSet::<usize>::new();
     let signature = Signature::new(
         &key_pair.secret_key,
@@ -1416,10 +1389,10 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 key_pair.public_key,
                 header,
                 ph,
-                generators_different_blind_value_seed,
+                generators_different_h_s,
                 revealed_messages.clone(),
             ),
-            "blind-value generator is different",
+            "H_s value of generators is different",
         ),
         (
             (
@@ -1427,10 +1400,10 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 key_pair.public_key,
                 header,
                 ph,
-                generators_different_sig_domain_seed,
+                generators_different_h_d,
                 revealed_messages.clone(),
             ),
-            "signature-domain generator is different",
+            "H_d value of generators is different",
         ),
         (
             (
@@ -1438,7 +1411,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 key_pair.public_key,
                 header,
                 ph,
-                generators_different_message_gens_seed,
+                generators_different_message_generators,
                 revealed_messages.clone(),
             ),
             "message-generators are different",

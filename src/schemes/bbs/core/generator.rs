@@ -6,29 +6,22 @@ use crate::{curves::bls12_381::G1Projective, error::Error};
 /// and verify proof.
 #[allow(non_snake_case)]
 #[derive(Debug, Clone)]
-pub struct Generators {
-    H_s: G1Projective,
-    H_d: G1Projective,
-    message_generators: Vec<G1Projective>,
+pub(crate) struct Generators {
+    pub(crate) H_s: G1Projective,
+    pub(crate) H_d: G1Projective,
+    pub(crate) message_generators: Vec<G1Projective>,
 }
 
 #[allow(non_snake_case)]
 impl Generators {
     /// Construct `Generators` from the given `seed` values.
     /// The implementation follows `CreateGenerators` section as defined in <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-creategenerators>.
-    pub fn new<T: AsRef<[u8]>>(
-        blind_value_generator_seed: T,
-        sig_domain_generator_seed: T,
-        message_generator_seed: T,
-        no_of_message_generators: usize,
-    ) -> Result<Self, Error> {
+    pub fn new(count: usize) -> Result<Self, Error> {
+        let generators = create_generators(count + 2)?;
         Ok(Self {
-            H_s: create_generators(blind_value_generator_seed, 1)?[0],
-            H_d: create_generators(sig_domain_generator_seed, 1)?[0],
-            message_generators: create_generators(
-                message_generator_seed,
-                no_of_message_generators,
-            )?,
+            H_s: generators[0],
+            H_d: generators[1],
+            message_generators: generators[2..].to_vec(),
         })
     }
 
