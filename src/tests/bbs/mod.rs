@@ -1,12 +1,14 @@
-use blstrs::G1Projective;
 use group::Group;
 use rand_core::OsRng;
 
-use crate::bbs::core::{
-    constants::MAP_MESSAGE_TO_SCALAR_DST,
-    generator::Generators,
-    key_pair::KeyPair,
-    types::Message,
+use crate::{
+    bbs::core::{
+        constants::MAP_MESSAGE_TO_SCALAR_DST,
+        generator::Generators,
+        key_pair::KeyPair,
+        types::Message,
+    },
+    curves::bls12_381::G1Projective,
 };
 
 mod test_data;

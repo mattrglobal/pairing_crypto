@@ -15,6 +15,7 @@ use super::{
 use crate::{
     common::util::vec_to_byte_array,
     curves::bls12_381::{
+        hash_to_curve::ExpandMsgXof,
         Bls12,
         G1Projective,
         G2Prepared,
@@ -24,7 +25,6 @@ use crate::{
     error::Error,
     print_byte_array,
 };
-use blstrs::hash_to_curve::ExpandMsgXof;
 use core::{convert::TryFrom, fmt};
 use ff::Field;
 use group::{Curve, Group};

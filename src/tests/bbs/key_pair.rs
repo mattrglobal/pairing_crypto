@@ -3,10 +3,10 @@ use crate::{
         constants::MIN_KEY_GEN_IKM_LENGTH,
         key_pair::{KeyPair, PublicKey, SecretKey},
     },
+    curves::bls12_381::G2Projective,
     from_vec_deserialization_invalid_vec_size,
     Error,
 };
-use blstrs::G2Projective;
 use core::convert::TryFrom;
 use ff::Field;
 use group::{Curve, Group};
