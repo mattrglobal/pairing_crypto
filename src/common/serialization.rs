@@ -17,7 +17,7 @@ pub(crate) fn i2osp(
     }
 
     Ok(
-        (&integer.to_be_bytes()[core::mem::size_of::<u64>() - octet_length..])
+        (integer.to_be_bytes()[core::mem::size_of::<u64>() - octet_length..])
             .to_vec(),
     )
 }
