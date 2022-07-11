@@ -17,9 +17,6 @@ use crate::{
         ProofMessage,
         PublicKey,
         Signature,
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
     },
 };
 
@@ -40,12 +37,7 @@ pub fn proof_gen(request: BbsProofGenRequest) -> Result<Vec<u8>, Error> {
     }
 
     // Derive generators
-    let generators = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        digested_messages.len(),
-    )?;
+    let generators = Generators::new(digested_messages.len())?;
     // Parse signature from request
     let signature = Signature::from_vec(&request.signature)?;
 
@@ -91,12 +83,7 @@ pub fn proof_verify(request: BbsProofVerifyRequest) -> Result<bool, Error> {
     )?;
 
     // Derive generators
-    let generators = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        request.total_message_count,
-    )?;
+    let generators = Generators::new(request.total_message_count)?;
 
     let proof = Proof::from_octets(request.proof)?;
 

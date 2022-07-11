@@ -11,20 +11,19 @@ use crate::{
     bbs::{
         ciphersuites::bls12_381::{Message, PublicKey, SecretKey, Signature},
         core::{
-            constants::{
-                GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-                GLOBAL_MESSAGE_GENERATOR_SEED,
-                GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-                OCTET_POINT_G1_LENGTH,
-                OCTET_SCALAR_LENGTH,
-            },
-            generator::Generators,
+            constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
             key_pair::KeyPair,
         },
     },
     curves::bls12_381::{G1Projective, Scalar},
     from_vec_deserialization_invalid_vec_size,
-    tests::bbs::{get_test_messages, EXPECTED_SIGNATURE},
+    tests::bbs::{
+        get_test_messages,
+        test_generators_random_message_generators,
+        test_generators_random_q_1,
+        test_generators_random_q_2,
+        EXPECTED_SIGNATURE,
+    },
     Error,
 };
 use core::convert::TryFrom;
@@ -394,7 +393,7 @@ fn signature_new_invalid_parameters() {
             &generators,
             &vec![Message::default(); 2],
             Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: 2,
             },
             "no header, more message-generators than messages",
@@ -430,7 +429,7 @@ fn signature_new_invalid_parameters() {
             &generators,
             &vec![],
             Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: 0,
             },
             "valid header, no messages but message-generators are provided",
@@ -442,7 +441,7 @@ fn signature_new_invalid_parameters() {
             &generators,
             &vec![Message::default(); 2],
             Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: 2,
             },
             "valid header, more message-generators than messages",
@@ -490,13 +489,7 @@ fn verify_tampered_signature() {
         .expect("key pair generation failed");
     let header = Some(TEST_HEADER.as_ref());
     let messages = get_test_messages();
-    let generators = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        messages.len(),
-    )
-    .expect("generators creation failed");
+    let generators = create_generators_helper(messages.len());
 
     // Just to make sure sign-verify succeeds with above valid values
     let signature = Signature::new(
@@ -570,13 +563,7 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
     let key_pair = KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
         .expect("key pair generation failed");
     let header = Some(TEST_HEADER.as_ref());
-    let generators = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        messages.len(),
-    )
-    .expect("generators creation failed");
+    let generators = create_generators_helper(messages.len());
 
     // Just to make sure sign-verify succeeds with above valid values
     let signature = Signature::new(
@@ -599,30 +586,10 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
         KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
             .expect("key pair generation failed");
     let different_header = Some(b"another-set-of-header".as_ref());
-    let generators_different_blind_value_seed = Generators::new(
-        b"test-blind-value-seed-2".as_ref(),
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        messages.len(),
-    )
-    .expect("generators creation with different blind value seed failed");
-    let generators_different_sig_domain_seed = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        b"test-sig-domain-seed-2".as_ref(),
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        messages.len(),
-    )
-    .expect("generators creation with different sig domain seed failed");
-    let generators_different_message_gens_seed = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        b"test-message-generators-seed-2".as_ref(),
-        messages.len(),
-    )
-    .expect(
-        "generators creation with different message generators seed failed",
-    );
-
+    let generators_different_q_1 = test_generators_random_q_1(messages.len());
+    let generators_different_q_2 = test_generators_random_q_2(messages.len());
+    let generators_different_message_generators =
+        test_generators_random_message_generators(messages.len());
     let mut messages_one_extra_message_at_start = messages.clone();
     messages_one_extra_message_at_start.insert(0, Message::random(&mut OsRng));
     let mut messages_one_extra_message_at_last = messages.clone();
@@ -664,23 +631,23 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
         (
             &key_pair.public_key,
             header,
-            &generators_different_blind_value_seed,
+            &generators_different_q_1,
             &messages,
-            "different blind value seed generator",
+            "different Q_1 value of generators",
         ),
         (
             &key_pair.public_key,
             header,
-            &generators_different_sig_domain_seed,
+            &generators_different_q_2,
             &messages,
-            "different sign domain seed generator",
+            "different Q_2 value of generators",
         ),
         (
             &key_pair.public_key,
             header,
-            &generators_different_message_gens_seed,
+            &generators_different_message_generators,
             &messages,
-            "different message generators seed generators",
+            "different message generators",
         ),
         (
             &key_pair.public_key,
@@ -734,7 +701,7 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
             &generators,
             &vec![
                 Message::random(&mut OsRng);
-                generators.message_blinding_points_length()
+                generators.message_generators_length()
             ],
             "all messages are different",
         ),
@@ -822,13 +789,7 @@ fn verify_tampered_signature_parameters_no_header_signature() {
         .expect("key pair generation failed");
     let header = None;
     let messages = get_test_messages();
-    let generators = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        messages.len(),
-    )
-    .expect("generators creation failed");
+    let generators = create_generators_helper(messages.len());
 
     // Just to make sure sign-verify succeeds with above valid values
     let signature = Signature::new(
@@ -851,29 +812,11 @@ fn verify_tampered_signature_parameters_no_header_signature() {
         KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
             .expect("key pair generation failed");
     let different_header = Some(b"another-set-of-header".as_ref());
-    let generators_different_blind_value_seed = Generators::new(
-        b"test-blind-value-seed-2".as_ref(),
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        messages.len(),
-    )
-    .expect("generators creation with different blind value seed failed");
-    let generators_different_sig_domain_seed = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        b"test-sig-domain-seed-2".as_ref(),
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        messages.len(),
-    )
-    .expect("generators creation with different sig domain seed failed");
-    let generators_different_message_gens_seed = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        b"test-message-generators-seed-2".as_ref(),
-        messages.len(),
-    )
-    .expect(
-        "generators creation with different message generators seed failed",
-    );
+    let generators_different_q_1 = test_generators_random_q_1(messages.len());
+    let generators_different_q_2 = test_generators_random_q_2(messages.len());
+    let generators_different_message_generators =
+        test_generators_random_message_generators(messages.len());
+
     let mut messages_different_first_message = messages.clone();
     *messages_different_first_message.first_mut().unwrap() =
         Message::random(&mut OsRng);
@@ -900,23 +843,23 @@ fn verify_tampered_signature_parameters_no_header_signature() {
         (
             &key_pair.public_key,
             header,
-            &generators_different_blind_value_seed,
+            &generators_different_q_1,
             &messages,
-            "different blind value seed generator",
+            "different Q_1 value of generators",
         ),
         (
             &key_pair.public_key,
             header,
-            &generators_different_sig_domain_seed,
+            &generators_different_q_2,
             &messages,
-            "different sign domain seed generator",
+            "different Q_2 value of generators",
         ),
         (
             &key_pair.public_key,
             header,
-            &generators_different_message_gens_seed,
+            &generators_different_message_generators,
             &messages,
-            "different message generators seed generators",
+            "different message generators",
         ),
         (
             &key_pair.public_key,
@@ -938,7 +881,7 @@ fn verify_tampered_signature_parameters_no_header_signature() {
             &generators,
             &vec![
                 Message::random(&mut OsRng);
-                generators.message_blinding_points_length()
+                generators.message_generators_length()
             ],
             "all messages are different",
         ),
@@ -964,13 +907,7 @@ fn verify_tampered_signature_parameters_no_messages_signature() {
         .expect("key pair generation failed");
     let header = Some(TEST_HEADER.as_ref());
     let messages = vec![];
-    let generators = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        messages.len(),
-    )
-    .expect("generators creation failed");
+    let generators = create_generators_helper(messages.len());
 
     // Just to make sure sign-verify succeeds with above valid values
     let signature = Signature::new(
@@ -993,21 +930,8 @@ fn verify_tampered_signature_parameters_no_messages_signature() {
         KeyPair::random(&mut OsRng, TEST_KEY_INFO.as_ref())
             .expect("key pair generation failed");
     let different_header = Some(b"another-set-of-header".as_ref());
-    let generators_different_blind_value_seed = Generators::new(
-        b"test-blind-value-seed-2".as_ref(),
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        messages.len(),
-    )
-    .expect("generators creation with different blind value seed failed");
-    let generators_different_sig_domain_seed = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        b"test-sig-domain-seed-2".as_ref(),
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        messages.len(),
-    )
-    .expect("generators creation with different sig domain seed failed");
-
+    let generators_different_q_1 = test_generators_random_q_1(messages.len());
+    let generators_different_q_2 = test_generators_random_q_2(messages.len());
     // [(PK, header, generators, messages, failure-debug-message)]
     let test_data = [
         (
@@ -1027,16 +951,16 @@ fn verify_tampered_signature_parameters_no_messages_signature() {
         (
             &key_pair.public_key,
             header,
-            &generators_different_blind_value_seed,
+            &generators_different_q_1,
             &messages,
-            "different blind value seed generator",
+            "different Q_1 value of generators",
         ),
         (
             &key_pair.public_key,
             header,
-            &generators_different_sig_domain_seed,
+            &generators_different_q_2,
             &messages,
-            "different sign domain seed generator",
+            "different Q_2 value of generators",
         ),
     ];
 
@@ -1099,7 +1023,7 @@ fn verify_invalid_parameters() {
             &generators,
             &vec![],
             Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: 0,
             },
             "valid header, no messages but generators are provided",
@@ -1110,7 +1034,7 @@ fn verify_invalid_parameters() {
             &generators,
             &vec![Message::default(); 2],
             Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: 2,
             },
             "more generators than messages",
@@ -1187,7 +1111,7 @@ fn to_octets() {
         hex::decode(EXPECTED_SIGNATURE).expect("hex decoding failed"),
     )
     .expect("signature hex decoding failed");
-    println!("{:?},", hex::encode(signature_octets));
+    // println!("{:?},", hex::encode(signature_octets));
     assert_eq!(signature_octets, expected_signature_octets);
 
     let a = G1Projective::random(&mut OsRng);
