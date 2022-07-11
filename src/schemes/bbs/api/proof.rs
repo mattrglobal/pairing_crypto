@@ -24,6 +24,9 @@ use crate::{
 #[cfg(feature = "alloc")]
 use alloc::collections::BTreeMap;
 
+#[cfg(not(feature = "alloc"))]
+use std::collections::BTreeMap;
+
 /// Generate a signature proof of knowledge.
 pub fn proof_gen(request: BbsProofGenRequest) -> Result<Vec<u8>, Error> {
     // Parse public key from request

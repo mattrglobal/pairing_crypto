@@ -25,6 +25,9 @@ use sha3::Shake256;
 #[cfg(feature = "alloc")]
 use alloc::collections::BTreeMap;
 
+#[cfg(not(feature = "alloc"))]
+use std::collections::BTreeMap;
+
 /// Get the representation of a point G1(in Projective form) to compressed
 /// and big-endian octets form.
 pub(crate) fn point_to_octets_g1(

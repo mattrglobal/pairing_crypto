@@ -29,6 +29,9 @@ use rand_core::OsRng;
 #[cfg(feature = "alloc")]
 use alloc::collections::BTreeMap;
 
+#[cfg(not(feature = "alloc"))]
+use std::collections::BTreeMap;
+
 // Convert slice to a fixed array
 macro_rules! slicer {
     ($d:expr, $b:expr, $e:expr, $s:expr) => {

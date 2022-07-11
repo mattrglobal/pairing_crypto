@@ -7,9 +7,9 @@ name = "pairing_crypto"
 version = "0.1.0"
 
 [features]
-default = ["alloc"]
+default = []
 alloc = []
-wasm = ["getrandom"]
+wasm = ["alloc", "getrandom"]
 
 [dependencies]
 digest = "0.9"

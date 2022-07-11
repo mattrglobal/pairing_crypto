@@ -16,6 +16,9 @@
 #[cfg(feature = "alloc")]
 use alloc::collections::BTreeMap;
 
+#[cfg(not(feature = "alloc"))]
+use std::collections::BTreeMap;
+
 use super::dtos::BbsProofGenRevealMessageRequest;
 use crate::{
     error::Error,
