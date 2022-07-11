@@ -3,6 +3,7 @@
 use super::{
     constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
     generator::Generators,
+    hash_utils::create_random_scalar,
     key_pair::PublicKey,
     signature::Signature,
     types::{Challenge, FiatShamirProof, Message, ProofMessage},
@@ -15,7 +16,14 @@ use super::{
     },
 };
 use crate::{
-    curves::bls12_381::{Bls12, G1Projective, G2Affine, G2Prepared, Scalar},
+    curves::bls12_381::{
+        hash_to_curve::ExpandMsgXof,
+        Bls12,
+        G1Projective,
+        G2Affine,
+        G2Prepared,
+        Scalar,
+    },
     error::Error,
     print_byte_array,
 };
@@ -26,6 +34,7 @@ use hashbrown::HashMap;
 use pairing::{MillerLoopResult as _, MultiMillerLoop};
 use rand::{CryptoRng, RngCore};
 use rand_core::OsRng;
+use sha3::Shake256;
 
 // Convert slice to a fixed array
 macro_rules! slicer {
@@ -148,12 +157,16 @@ impl Proof {
         let domain = compute_domain(PK, header, messages.len(), generators)?;
 
         // (r1, r2, e~, r2~, r3~, s~) = hash_to_scalar(PRF(8*ceil(log2(r))), 6)
-        let r1 = Scalar::random(&mut rng);
-        let r2 = Scalar::random(&mut rng);
-        let e_tilde = Scalar::random(&mut rng);
-        let r2_tilde = Scalar::random(&mut rng);
-        let r3_tilde = Scalar::random(&mut rng);
-        let s_tilde = Scalar::random(&mut rng);
+        let r1 = create_random_scalar::<_, ExpandMsgXof<Shake256>>(&mut rng)?;
+        let r2 = create_random_scalar::<_, ExpandMsgXof<Shake256>>(&mut rng)?;
+        let e_tilde =
+            create_random_scalar::<_, ExpandMsgXof<Shake256>>(&mut rng)?;
+        let r2_tilde =
+            create_random_scalar::<_, ExpandMsgXof<Shake256>>(&mut rng)?;
+        let r3_tilde =
+            create_random_scalar::<_, ExpandMsgXof<Shake256>>(&mut rng)?;
+        let s_tilde =
+            create_random_scalar::<_, ExpandMsgXof<Shake256>>(&mut rng)?;
 
         // (m~_j1, ..., m~_jU) =  hash_to_scalar(PRF(8*ceil(log2(r))), U)
         // these random scalars will be generated further below during `C2`
