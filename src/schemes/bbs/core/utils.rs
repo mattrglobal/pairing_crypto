@@ -136,6 +136,7 @@ pub(crate) fn compute_B(
 }
 
 /// Compute Fiat Shamir heuristic challenge.
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn compute_challenge<T>(
     A_prime: &G1Projective,
     A_bar: &G1Projective,
