@@ -397,7 +397,11 @@ impl Proof {
         }
         let C2 = G1Projective::multi_exp(&C2_points, &C2_scalars);
 
-        // cv = hash_to_scalar((PK || A' || Abar || D || C1 || C2 || ph), 1)
+        // cv_array = (A', Abar, D, C1, C2, R, i1, ..., iR,  msg_i1, ...,
+        //                msg_iR, domain, ph)
+        // cv_for_hash = encode_for_hash(cv_array)
+        //  if cv_for_hash is INVALID, return INVALID
+        //  cv = hash_to_scalar(cv_for_hash, 1)
         let cv = compute_challenge(
             &self.A_prime,
             &self.A_bar,
