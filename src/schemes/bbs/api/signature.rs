@@ -18,10 +18,10 @@ use crate::{
 /// key-pair generated using `KeyPair` APIs.
 pub fn sign(request: BbsSignRequest<'_>) -> Result<[u8; 112], Error> {
     // Parse the secret key
-    let sk = SecretKey::from_bytes(&request.secret_key)?;
+    let sk = SecretKey::from_bytes(request.secret_key)?;
 
     // Parse public key from request
-    let pk = PublicKey::from_octets(&request.public_key)?;
+    let pk = PublicKey::from_octets(request.public_key)?;
 
     // Digest the supplied messages
     let messages: Vec<Message> = digest_messages(request.messages.as_ref())?;
@@ -37,7 +37,7 @@ pub fn sign(request: BbsSignRequest<'_>) -> Result<[u8; 112], Error> {
 /// Verifies a signature.
 pub fn verify(request: BbsVerifyRequest<'_>) -> Result<bool, Error> {
     // Parse public key from request
-    let pk = PublicKey::from_octets(&request.public_key)?;
+    let pk = PublicKey::from_octets(request.public_key)?;
 
     // Digest the supplied messages
     let messages: Vec<Message> = digest_messages(request.messages.as_ref())?;
@@ -46,7 +46,7 @@ pub fn verify(request: BbsVerifyRequest<'_>) -> Result<bool, Error> {
     let generators = Generators::new(messages.len())?;
 
     // Parse signature from request
-    let signature = Signature::from_octets(&request.signature)?;
+    let signature = Signature::from_octets(request.signature)?;
 
     signature.verify(&pk, request.header.as_ref(), &generators, &messages)
 }

@@ -27,7 +27,7 @@ use std::collections::BTreeMap;
 /// Generate a signature proof of knowledge.
 pub fn proof_gen(request: BbsProofGenRequest<'_>) -> Result<Vec<u8>, Error> {
     // Parse public key from request
-    let pk = PublicKey::from_octets(&request.public_key)?;
+    let pk = PublicKey::from_octets(request.public_key)?;
 
     let mut digested_messages = vec![];
     if request.messages.is_some() {
@@ -43,7 +43,7 @@ pub fn proof_gen(request: BbsProofGenRequest<'_>) -> Result<Vec<u8>, Error> {
     // Derive generators
     let generators = Generators::new(digested_messages.len())?;
     // Parse signature from request
-    let signature = Signature::from_octets(&request.signature)?;
+    let signature = Signature::from_octets(request.signature)?;
 
     // Verify the signature to check the messages supplied are valid
     if !(signature.verify(
@@ -78,7 +78,7 @@ pub fn proof_gen(request: BbsProofGenRequest<'_>) -> Result<Vec<u8>, Error> {
 /// Verify a signature proof of knowledge.
 pub fn proof_verify(request: BbsProofVerifyRequest<'_>) -> Result<bool, Error> {
     // Parse public key from request
-    let public_key = PublicKey::from_octets(&request.public_key)?;
+    let public_key = PublicKey::from_octets(request.public_key)?;
 
     // Digest the revealed proof messages
     let messages: BTreeMap<usize, Message> = digest_revealed_proof_messages(
