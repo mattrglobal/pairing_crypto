@@ -4,7 +4,6 @@ use super::{
     constants::{
         BBS_CIPHERSUITE_ID,
         NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
-        OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
         OCTET_POINT_G1_LENGTH,
     },
     generator::Generators,
@@ -77,8 +76,7 @@ where
     // header), 1)
     let mut data_to_hash = vec![];
     data_to_hash.extend(PK.point_to_octets().as_ref());
-    data_to_hash
-        .extend(i2osp(L as u64, OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH)?);
+    data_to_hash.extend(i2osp(L as u64, NON_NEGATIVE_INTEGER_ENCODING_LENGTH)?);
     data_to_hash.extend(point_to_octets_g1(&generators.Q_1()).as_ref());
     data_to_hash.extend(point_to_octets_g1(&generators.Q_2()).as_ref());
 
@@ -90,12 +88,12 @@ where
     // generic parameter when initializing a curve specific ciphersuite.
     data_to_hash.extend(i2osp_with_data(
         BBS_CIPHERSUITE_ID,
-        OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
     )?);
     if let Some(header) = header {
         data_to_hash.extend(i2osp_with_data(
             header.as_ref(),
-            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+            NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
         )?);
     }
 
@@ -175,7 +173,7 @@ where
     if let Some(ph) = ph {
         data_to_hash.extend(i2osp_with_data(
             ph.as_ref(),
-            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+            NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
         )?);
     }
 
