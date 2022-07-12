@@ -1140,42 +1140,6 @@ macro_rules! concat_3 {
 fn from_octets_invalid_parameters() {
     let test_data = [
         (
-            vec![],
-            Error::MalformedSignature {
-                cause: format!(
-                    "invalid input buffer size: {} bytes, expected data size: \
-                     {} bytes",
-                    0,
-                    Signature::SIZE_BYTES
-                ),
-            },
-            "empty input data",
-        ),
-        (
-            vec![0xA; Signature::SIZE_BYTES - 1],
-            Error::MalformedSignature {
-                cause: format!(
-                    "invalid input buffer size: {} bytes, expected data size: \
-                     {} bytes",
-                    Signature::SIZE_BYTES - 1,
-                    Signature::SIZE_BYTES
-                ),
-            },
-            "input data length is less than 1 from expected",
-        ),
-        (
-            vec![0xB; Signature::SIZE_BYTES + 1],
-            Error::MalformedSignature {
-                cause: format!(
-                    "invalid input buffer size: {} bytes, expected data size: \
-                     {} bytes",
-                    Signature::SIZE_BYTES + 1,
-                    Signature::SIZE_BYTES
-                ),
-            },
-            "input data length is greater than 1 from expected",
-        ),
-        (
             vec![0x0; Signature::SIZE_BYTES],
             Error::BadEncoding,
             "input data is all zeroes",
