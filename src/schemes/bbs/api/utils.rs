@@ -31,8 +31,9 @@ use crate::{
 
 /// Digests the set of input messages and returns in the form of an internal
 /// structure
+#[allow(clippy::useless_asref)]
 pub(super) fn digest_messages(
-    messages: Option<&Vec<Vec<u8>>>,
+    messages: Option<&[&[u8]]>,
 ) -> Result<Vec<Message>, Error> {
     if let Some(messages) = messages {
         return messages
@@ -50,14 +51,14 @@ pub(super) fn digest_messages(
 
 /// Digests a set of supplied proof messages
 pub(super) fn digest_proof_messages(
-    messages: Option<&Vec<BbsProofGenRevealMessageRequest>>,
+    messages: Option<&[BbsProofGenRevealMessageRequest<'_>]>,
 ) -> Result<Vec<ProofMessage>, Error> {
     if let Some(messages) = messages {
         return messages
             .iter()
             .map(|element| {
                 match Message::from_arbitrary_data(
-                    element.value.clone().as_ref(),
+                    element.value,
                     MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
                 ) {
                     Ok(digested_message) => {
@@ -75,8 +76,9 @@ pub(super) fn digest_proof_messages(
     Ok(vec![])
 }
 
+#[allow(clippy::useless_asref)]
 pub(super) fn digest_revealed_proof_messages(
-    messages: Option<&Vec<(usize, Vec<u8>)>>,
+    messages: Option<&[(usize, &[u8])]>,
     total_message_count: usize,
 ) -> Result<BTreeMap<usize, Message>, Error> {
     if messages.is_none() {

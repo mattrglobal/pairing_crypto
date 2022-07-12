@@ -24,7 +24,7 @@ pub fn sign(request: BbsSignRequest<'_>) -> Result<[u8; 112], Error> {
     let pk = PublicKey::from_octets(request.public_key)?;
 
     // Digest the supplied messages
-    let messages: Vec<Message> = digest_messages(request.messages.as_ref())?;
+    let messages: Vec<Message> = digest_messages(request.messages)?;
 
     // Derive generators
     let generators = Generators::new(messages.len())?;
@@ -40,7 +40,7 @@ pub fn verify(request: BbsVerifyRequest<'_>) -> Result<bool, Error> {
     let pk = PublicKey::from_octets(request.public_key)?;
 
     // Digest the supplied messages
-    let messages: Vec<Message> = digest_messages(request.messages.as_ref())?;
+    let messages: Vec<Message> = digest_messages(request.messages)?;
 
     // Derive generators
     let generators = Generators::new(messages.len())?;

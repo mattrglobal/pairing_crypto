@@ -30,12 +30,11 @@ pub fn proof_gen(request: BbsProofGenRequest<'_>) -> Result<Vec<u8>, Error> {
     let pk = PublicKey::from_octets(request.public_key)?;
 
     let mut digested_messages = vec![];
-    if request.messages.is_some() {
-        let request_messages = request.messages.as_ref().unwrap();
+    if let Some(request_messages) = request.messages {
         let request_messages = request_messages
             .iter()
-            .map(|element| element.value.clone())
-            .collect::<Vec<Vec<u8>>>();
+            .map(|element| element.value)
+            .collect::<Vec<_>>();
         // Digest the supplied messages
         digested_messages = digest_messages(Some(&request_messages))?;
     }
@@ -57,7 +56,7 @@ pub fn proof_gen(request: BbsProofGenRequest<'_>) -> Result<Vec<u8>, Error> {
 
     // Digest the supplied messages
     let messages: Vec<ProofMessage> =
-        match digest_proof_messages(request.messages.as_ref()) {
+        match digest_proof_messages(request.messages) {
             Ok(messages) => messages,
             Err(e) => return Err(e),
         };
@@ -82,7 +81,7 @@ pub fn proof_verify(request: BbsProofVerifyRequest<'_>) -> Result<bool, Error> {
 
     // Digest the revealed proof messages
     let messages: BTreeMap<usize, Message> = digest_revealed_proof_messages(
-        request.messages.as_ref(),
+        request.messages,
         request.total_message_count,
     )?;
 
