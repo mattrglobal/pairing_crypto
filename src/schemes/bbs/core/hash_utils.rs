@@ -21,6 +21,7 @@ use crate::{
 };
 use ff::Field;
 use group::Group;
+use rand::RngCore;
 use sha3::Shake256;
 
 /// Hash arbitrary data to a scalar as specified in [3.3.9.1 Hash to scalar](https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-mapmessagetoscalarashash).
@@ -91,6 +92,19 @@ pub(crate) fn hash_to_scalar<X: ExpandMessage>(
         }
         return Ok(output);
     }
+}
+
+/// Utility function to create random `Scalar` values using `hash_to_scalar`
+/// function.
+pub(crate) fn create_random_scalar<R, X: ExpandMessage>(
+    mut rng: R,
+) -> Result<Scalar, Error>
+where
+    R: RngCore,
+{
+    let mut raw = [0u8; 32];
+    rng.fill_bytes(&mut raw[..]);
+    Ok(hash_to_scalar::<X>(&raw, 1)?[0])
 }
 
 /// A convenient wrapper over underlying `hash_to_curve_g1` implementation(from
