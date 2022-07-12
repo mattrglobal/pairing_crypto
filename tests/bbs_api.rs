@@ -62,7 +62,7 @@ fn sign_verify_e2e_nominal() {
                 .map(|key_pair| {
                     (
                         key_pair.secret_key.to_bytes().to_vec(),
-                        key_pair.public_key.point_to_octets().to_vec(),
+                        key_pair.public_key.to_octets().to_vec(),
                     )
                 })
                 .expect("key generation failed");
@@ -105,7 +105,7 @@ fn proof_gen_verify_e2e_nominal() {
                 .map(|key_pair| {
                     (
                         key_pair.secret_key.to_bytes().to_vec(),
-                        key_pair.public_key.point_to_octets().to_vec(),
+                        key_pair.public_key.to_octets().to_vec(),
                     )
                 })
                 .expect("key generation failed");
@@ -185,7 +185,7 @@ fn proof_gen_failure_message_modified() {
         .map(|key_pair| {
             (
                 key_pair.secret_key.to_bytes().to_vec(),
-                key_pair.public_key.point_to_octets().to_vec(),
+                key_pair.public_key.to_octets().to_vec(),
             )
         })
         .expect("key generation failed");

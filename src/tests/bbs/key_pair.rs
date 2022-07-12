@@ -80,7 +80,7 @@ fn key_gen_expected_values() {
         "generated secret key value doesn't match to expected value"
     );
     assert_eq!(
-        pk.point_to_octets().to_vec(),
+        pk.to_octets().to_vec(),
         hex::decode(EXPECTED_TEST_PUBLIC_KEY).unwrap(),
         "generated public key value doesn't match to expected value"
     );
@@ -94,7 +94,7 @@ fn key_gen_expected_values() {
         "generated secret key value doesn't match to expected value"
     );
     assert_eq!(
-        pk.point_to_octets().to_vec(),
+        pk.to_octets().to_vec(),
         hex::decode(EXPECTED_TEST_PUBLIC_KEY).unwrap(),
         "generated public key value doesn't match to expected value"
     );
@@ -312,13 +312,13 @@ fn secret_key_from_invalid_scalar_bytes() {
 #[test]
 fn public_key_from_invalid_bytes() {
     assert_eq!(
-        PublicKey::octets_to_point(&[0x0; PublicKey::SIZE_BYTES]),
+        PublicKey::from_octets(&[0x0; PublicKey::SIZE_BYTES]),
         Err(Error::BadEncoding),
         "input data is all zeroes"
     );
 
     assert_eq!(
-        PublicKey::octets_to_point(&[0xFF; PublicKey::SIZE_BYTES]),
+        PublicKey::from_octets(&[0xFF; PublicKey::SIZE_BYTES]),
         Err(Error::BadEncoding),
         "input data is all '0xFF'"
     );
@@ -394,8 +394,8 @@ fn key_serde() {
         pk,
         PublicKey,
         EXPECTED_TEST_PUBLIC_KEY,
-        point_to_octets,
-        octets_to_point
+        to_octets,
+        from_octets
     );
 
     // <[u8; PublicKey::SIZE_BYTES]>::from(PublicKey)

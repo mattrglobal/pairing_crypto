@@ -24,7 +24,7 @@ fn sign_benchmark(c: &mut Criterion) {
             .map(|key_pair| {
                 (
                     key_pair.secret_key.to_bytes().to_vec(),
-                    key_pair.public_key.point_to_octets().to_vec(),
+                    key_pair.public_key.to_octets().to_vec(),
                 )
             })
             .expect("key generation failed");
