@@ -38,8 +38,9 @@ pub(crate) const MAX_DST_SIZE: u8 = u8::MAX - 1;
 /// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-encoding-of-elements-to-be->
 pub(crate) const MAX_MESSAGE_SIZE: u64 = u64::MAX - 1;
 
-/// Number of bytes specified to encode length of a message octet string.
-pub(crate) const OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH: usize = 8;
+/// Number of bytes specified to encode length of a non-negative-integer. This
+/// value is used in `i2osp` call.
+pub(crate) const NON_NEGATIVE_INTEGER_ENCODING_LENGTH: usize = 8;
 
 /// Number of bytes specified to encode length of a dst octet string.
 pub(crate) const DST_LENGTH_ENCODING_LENGTH: usize = 1;

@@ -3,7 +3,7 @@
 use super::{
     constants::{
         BBS_CIPHERSUITE_ID,
-        OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
         OCTET_POINT_G1_LENGTH,
     },
     generator::Generators,
@@ -24,6 +24,12 @@ use crate::{
 use ff::Field;
 use group::{Curve, Group};
 use sha3::Shake256;
+
+#[cfg(feature = "alloc")]
+use alloc::collections::BTreeMap;
+
+#[cfg(not(feature = "alloc"))]
+use std::collections::BTreeMap;
 
 /// Get the representation of a point G1(in Projective form) to compressed
 /// and big-endian octets form.
@@ -70,8 +76,7 @@ where
     // header), 1)
     let mut data_to_hash = vec![];
     data_to_hash.extend(PK.point_to_octets().as_ref());
-    data_to_hash
-        .extend(i2osp(L as u64, OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH)?);
+    data_to_hash.extend(i2osp(L as u64, NON_NEGATIVE_INTEGER_ENCODING_LENGTH)?);
     data_to_hash.extend(point_to_octets_g1(&generators.Q_1()).as_ref());
     data_to_hash.extend(point_to_octets_g1(&generators.Q_2()).as_ref());
 
@@ -83,12 +88,12 @@ where
     // generic parameter when initializing a curve specific ciphersuite.
     data_to_hash.extend(i2osp_with_data(
         BBS_CIPHERSUITE_ID,
-        OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+        NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
     )?);
     if let Some(header) = header {
         data_to_hash.extend(i2osp_with_data(
             header.as_ref(),
-            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+            NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
         )?);
     }
 
@@ -129,32 +134,50 @@ pub(crate) fn compute_B(
 }
 
 /// Compute Fiat Shamir heuristic challenge.
-/// c = hash_to_scalar((PK || A' || Abar || D || C1 || C2 || ph), 1)
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn compute_challenge<T>(
-    PK: &PublicKey,
     A_prime: &G1Projective,
     A_bar: &G1Projective,
     D: &G1Projective,
     C1: &G1Projective,
     C2: &G1Projective,
+    disclosed_messages: &BTreeMap<usize, Message>,
+    domain: &Scalar,
     ph: Option<T>,
 ) -> Result<Challenge, Error>
 where
     T: AsRef<[u8]>,
 {
+    // c_array = (A', Abar, D, C1, C2, R, i1, ..., iR, msg_i1, ..., msg_iR,
+    //              domain, ph)
+    // c_for_hash = encode_for_hash(c_array)
+    // if c_for_hash is INVALID, return INVALID
     let mut data_to_hash = vec![];
-    data_to_hash.extend(PK.point_to_octets().as_ref());
     data_to_hash.extend(point_to_octets_g1(A_prime).as_ref());
     data_to_hash.extend(point_to_octets_g1(A_bar).as_ref());
     data_to_hash.extend(point_to_octets_g1(D).as_ref());
     data_to_hash.extend(point_to_octets_g1(C1));
     data_to_hash.extend(point_to_octets_g1(C2));
+    data_to_hash.extend(i2osp(
+        disclosed_messages.len() as u64,
+        NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
+    )?);
+    for &i in disclosed_messages.keys() {
+        data_to_hash
+            .extend(i2osp(i as u64, NON_NEGATIVE_INTEGER_ENCODING_LENGTH)?);
+    }
+    for &msg in disclosed_messages.values() {
+        data_to_hash.extend(&msg.to_bytes());
+    }
+    data_to_hash.extend(&domain.to_bytes_be());
     if let Some(ph) = ph {
         data_to_hash.extend(i2osp_with_data(
             ph.as_ref(),
-            OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+            NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
         )?);
     }
+
+    // c = hash_to_scalar(c_for_hash, 1)
     Ok(Challenge(
         hash_to_scalar::<ExpandMsgXof<Shake256>>(&data_to_hash, 1)?[0],
     ))

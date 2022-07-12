@@ -6,7 +6,7 @@ use super::constants::{
     MAX_DST_SIZE,
     MAX_MESSAGE_SIZE,
     MAX_VALUE_GENERATION_RETRY_COUNT,
-    OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH,
+    NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
     SEED_DST,
     XOF_NO_OF_BYTES,
 };
@@ -43,8 +43,7 @@ where
     }
 
     // msg_prime = I2OSP(len(msg), 8) || msg
-    let msg_prime =
-        i2osp_with_data(msg, OCTETS_MESSAGE_LENGTH_ENCODING_LENGTH)?;
+    let msg_prime = i2osp_with_data(msg, NON_NEGATIVE_INTEGER_ENCODING_LENGTH)?;
 
     // dst_prime = I2OSP(len(dst), 1) || dst
     let dst_prime = i2osp_with_data(dst, DST_LENGTH_ENCODING_LENGTH)?;

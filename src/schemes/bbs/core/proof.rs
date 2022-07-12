@@ -30,11 +30,16 @@ use crate::{
 use core::convert::TryFrom;
 use ff::Field;
 use group::{prime::PrimeCurveAffine, Curve, Group};
-use hashbrown::HashMap;
 use pairing::{MillerLoopResult as _, MultiMillerLoop};
 use rand::{CryptoRng, RngCore};
 use rand_core::OsRng;
 use sha3::Shake256;
+
+#[cfg(feature = "alloc")]
+use alloc::collections::BTreeMap;
+
+#[cfg(not(feature = "alloc"))]
+use std::collections::BTreeMap;
 
 // Convert slice to a fixed array
 macro_rules! slicer {
@@ -207,11 +212,17 @@ impl Proof {
         let mut H_points = Vec::new();
         let mut m_tilde_scalars = Vec::new();
         let mut hidden_messages = Vec::new();
+        let mut disclosed_messages = BTreeMap::new();
         for (i, generator) in generators.message_generators_iter().enumerate() {
-            if let ProofMessage::Hidden(m) = messages[i] {
-                H_points.push(*generator);
-                m_tilde_scalars.push(Scalar::random(&mut rng));
-                hidden_messages.push(m.0);
+            match messages[i] {
+                ProofMessage::Revealed(m) => {
+                    disclosed_messages.insert(i, m);
+                }
+                ProofMessage::Hidden(m) => {
+                    H_points.push(*generator);
+                    m_tilde_scalars.push(Scalar::random(&mut rng));
+                    hidden_messages.push(m.0);
+                }
             }
         }
         let C2 = G1Projective::multi_exp(
@@ -219,8 +230,21 @@ impl Proof {
             &[[-r3_tilde, s_tilde].to_vec(), m_tilde_scalars.clone()].concat(),
         );
 
-        // c = hash_to_scalar((PK || A' || Abar || D || C1 || C2 || ph), 1)
-        let c = compute_challenge(PK, &A_prime, &A_bar, &D, &C1, &C2, ph)?;
+        // c_array = (A', Abar, D, C1, C2, R, i1, ..., iR, msg_i1, ..., msg_iR,
+        //                domain, ph)
+        // c_for_hash = encode_for_hash(c_array)
+        // if c_for_hash is INVALID, return INVALID
+        // c = hash_to_scalar(c_for_hash, 1)
+        let c = compute_challenge(
+            &A_prime,
+            &A_bar,
+            &D,
+            &C1,
+            &C2,
+            &disclosed_messages,
+            &domain,
+            ph,
+        )?;
 
         // e^ = e~ + c * e
         let e_hat = FiatShamirProof(e_tilde + c.0 * signature.e);
@@ -265,13 +289,13 @@ impl Proof {
         header: Option<T>,
         ph: Option<T>,
         generators: &Generators,
-        revealed_messages: &HashMap<usize, Message>,
+        disclosed_messages: &BTreeMap<usize, Message>,
     ) -> Result<bool, Error>
     where
         T: AsRef<[u8]>,
     {
         let total_no_of_messages =
-            self.m_hat_list.len() + revealed_messages.len();
+            self.m_hat_list.len() + disclosed_messages.len();
 
         // Input parameter checks
         // Error out if there is no `header` and not any `ProofMessage`
@@ -289,11 +313,14 @@ impl Proof {
                      #revealed_messages: {}]",
                     generators.message_generators_length(),
                     self.m_hat_list.len(),
-                    revealed_messages.len()
+                    disclosed_messages.len()
                 ),
             });
         }
-        if revealed_messages.keys().any(|r| *r >= total_no_of_messages) {
+        if disclosed_messages
+            .keys()
+            .any(|r| *r >= total_no_of_messages)
+        {
             return Err(Error::BadParams {
                 cause: format!(
                     "revealed message index value is invalid, maximum allowed \
@@ -332,7 +359,7 @@ impl Proof {
         let C1 = G1Projective::multi_exp(&C1_points, &C1_scalars);
 
         // T = P1 + Q_2 * domain + H_i1 * msg_i1 + ... H_iR * msg_iR
-        let T_len = 1 + 1 + revealed_messages.len();
+        let T_len = 1 + 1 + disclosed_messages.len();
         let mut T_points = Vec::with_capacity(T_len);
         let mut T_scalars = Vec::with_capacity(T_len);
         let P1 = G1Projective::generator();
@@ -343,7 +370,7 @@ impl Proof {
         T_points.push(generators.Q_2());
         T_scalars.push(domain);
         // H_i1 * msg_i1 + ... H_iR * msg_iR
-        for (idx, msg) in revealed_messages {
+        for (idx, msg) in disclosed_messages {
             if let Some(g) = generators.get_message_generators_at_index(*idx) {
                 T_points.push(g);
                 T_scalars.push(msg.0);
@@ -374,7 +401,7 @@ impl Proof {
         // H_j1 * m^_j1 + ... + H_jU * m^_jU
         let mut j = 0;
         for (i, generator) in generators.message_generators_iter().enumerate() {
-            if revealed_messages.contains_key(&i) {
+            if disclosed_messages.contains_key(&i) {
                 continue;
             }
             C2_points.push(*generator);
@@ -383,14 +410,19 @@ impl Proof {
         }
         let C2 = G1Projective::multi_exp(&C2_points, &C2_scalars);
 
-        // cv = hash_to_scalar((PK || A' || Abar || D || C1 || C2 || ph), 1)
+        // cv_array = (A', Abar, D, C1, C2, R, i1, ..., iR,  msg_i1, ...,
+        //                msg_iR, domain, ph)
+        // cv_for_hash = encode_for_hash(cv_array)
+        //  if cv_for_hash is INVALID, return INVALID
+        //  cv = hash_to_scalar(cv_for_hash, 1)
         let cv = compute_challenge(
-            PK,
             &self.A_prime,
             &self.A_bar,
             &self.D,
             &C1,
             &C2,
+            disclosed_messages,
+            &domain,
             ph,
         )?;
 
