@@ -17,7 +17,6 @@ use crate::{
     },
     common::util::vec_to_byte_array,
     curves::bls12_381::{G1Projective, Scalar},
-    from_vec_deserialization_invalid_vec_size,
     tests::bbs::{
         get_test_messages,
         test_generators_random_message_generators,
@@ -1128,21 +1127,6 @@ fn to_octets() {
     ]
     .concat();
     assert_eq!(signature_octets, expected_signature_octets.as_slice());
-}
-
-#[test]
-fn from_vec_deserialization() {
-    let mut signature = Signature::default();
-    signature.A = G1Projective::random(&mut OsRng);
-    signature.e = Scalar::random(&mut OsRng);
-    signature.s = Scalar::random(&mut OsRng);
-    let signature_octets = signature.to_octets();
-
-    let signature_from_vec = Signature::from_vec(&Vec::from(signature_octets))
-        .expect("`Signature::from_vec(...)` should not fail");
-    assert_eq!(signature, signature_from_vec);
-
-    from_vec_deserialization_invalid_vec_size!(Signature);
 }
 
 // Concat 3 input buffers.

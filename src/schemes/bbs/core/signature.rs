@@ -13,7 +13,6 @@ use super::{
     },
 };
 use crate::{
-    common::util::vec_to_byte_array,
     curves::bls12_381::{
         hash_to_curve::ExpandMsgXof,
         Bls12,
@@ -291,15 +290,6 @@ impl Signature {
 
         // return (a_octets || e_octets || s_octets)
         bytes
-    }
-
-    /// Convert from a vector of bytes of big-endian representation of the
-    /// `Signature`.
-    pub fn from_vec(bytes: &Vec<u8>) -> Result<Self, Error> {
-        match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
-            Ok(result) => Self::from_octets(&result),
-            Err(e) => Err(e),
-        }
     }
 
     /// Get the `Signature` from a sequence of bytes in big endian
