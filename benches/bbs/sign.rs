@@ -23,8 +23,8 @@ fn sign_benchmark(c: &mut Criterion) {
         KeyPair::random(&mut OsRng, TEST_KEY_INFOS.as_ref())
             .map(|key_pair| {
                 (
-                    key_pair.secret_key.to_bytes().to_vec(),
-                    key_pair.public_key.to_octets().to_vec(),
+                    key_pair.secret_key.to_bytes(),
+                    key_pair.public_key.to_octets(),
                 )
             })
             .expect("key generation failed");
@@ -40,8 +40,8 @@ fn sign_benchmark(c: &mut Criterion) {
             |b| {
                 b.iter(|| {
                     sign(BbsSignRequest {
-                        secret_key: black_box(secret_key.clone()),
-                        public_key: black_box(public_key.clone()),
+                        secret_key: black_box(&secret_key),
+                        public_key: black_box(&public_key),
                         header: black_box(Some(TEST_HEADER.as_ref().to_vec())),
                         messages: black_box(Some(messages.to_vec())),
                     })
@@ -51,8 +51,8 @@ fn sign_benchmark(c: &mut Criterion) {
         );
 
         let signature = sign(BbsSignRequest {
-            secret_key: secret_key.clone(),
-            public_key: public_key.clone(),
+            secret_key: &secret_key,
+            public_key: &public_key,
             header: Some(TEST_HEADER.as_ref().to_vec()),
             messages: Some(messages.to_vec()),
         })
@@ -63,10 +63,10 @@ fn sign_benchmark(c: &mut Criterion) {
             |b| {
                 b.iter(|| {
                     assert!(verify(BbsVerifyRequest {
-                        public_key: black_box(public_key.clone()),
+                        public_key: black_box(&public_key),
                         header: black_box(Some(TEST_HEADER.as_ref().to_vec())),
                         messages: black_box(Some(messages.to_vec())),
-                        signature: black_box(signature.to_vec()),
+                        signature: black_box(&signature),
                     })
                     .unwrap());
                 });

@@ -32,8 +32,8 @@ fn proof_all_hidden_benchmark(c: &mut Criterion) {
         KeyPair::random(&mut OsRng, TEST_KEY_INFOS.as_ref())
             .map(|key_pair| {
                 (
-                    key_pair.secret_key.to_bytes().to_vec(),
-                    key_pair.public_key.to_octets().to_vec(),
+                    key_pair.secret_key.to_bytes(),
+                    key_pair.public_key.to_octets(),
                 )
             })
             .expect("key generation failed");
@@ -45,8 +45,8 @@ fn proof_all_hidden_benchmark(c: &mut Criterion) {
             .collect();
 
         let signature = sign(BbsSignRequest {
-            secret_key: secret_key.clone(),
-            public_key: public_key.clone(),
+            secret_key: &secret_key,
+            public_key: &public_key,
             header: Some(TEST_HEADER.as_ref().to_vec()),
             messages: Some(messages.to_vec()),
         })
@@ -54,10 +54,10 @@ fn proof_all_hidden_benchmark(c: &mut Criterion) {
 
         assert_eq!(
             verify(BbsVerifyRequest {
-                public_key: public_key.clone(),
+                public_key: &public_key,
                 header: Some(TEST_HEADER.as_ref().to_vec()),
                 messages: Some(messages.to_vec()),
-                signature: signature.to_vec(),
+                signature: &signature,
             })
             .expect("error during signature verification"),
             true
@@ -77,10 +77,10 @@ fn proof_all_hidden_benchmark(c: &mut Criterion) {
             |b| {
                 b.iter(|| {
                     proof_gen(BbsProofGenRequest {
-                        public_key: black_box(public_key.clone()),
+                        public_key: black_box(&public_key),
                         header: black_box(Some(TEST_HEADER.to_vec())),
                         messages: black_box(Some(proof_messages.clone())),
-                        signature: black_box(signature.to_vec()),
+                        signature: black_box(&signature),
                         presentation_message: black_box(Some(
                             TEST_PRESENTATION_MESSAGE.to_vec(),
                         )),
@@ -91,10 +91,10 @@ fn proof_all_hidden_benchmark(c: &mut Criterion) {
         );
 
         let proof = proof_gen(BbsProofGenRequest {
-            public_key: public_key.clone(),
+            public_key: &public_key,
             header: Some(TEST_HEADER.to_vec()),
             messages: Some(proof_messages.clone()),
-            signature: signature.to_vec(),
+            signature: &signature,
             presentation_message: Some(TEST_PRESENTATION_MESSAGE.to_vec()),
         })
         .expect("proof generation failed");
@@ -107,7 +107,7 @@ fn proof_all_hidden_benchmark(c: &mut Criterion) {
             |b| {
                 b.iter(|| {
                     assert!(proof_verify(BbsProofVerifyRequest {
-                        public_key: black_box(public_key.clone()),
+                        public_key: black_box(&public_key),
                         header: black_box(Some(TEST_HEADER.to_vec())),
                         presentation_message: black_box(Some(
                             TEST_PRESENTATION_MESSAGE.to_vec()
@@ -128,8 +128,8 @@ fn proof_50_percent_revealed_benchmark(c: &mut Criterion) {
         KeyPair::random(&mut OsRng, TEST_KEY_INFOS.as_ref())
             .map(|key_pair| {
                 (
-                    key_pair.secret_key.to_bytes().to_vec(),
-                    key_pair.public_key.to_octets().to_vec(),
+                    key_pair.secret_key.to_bytes(),
+                    key_pair.public_key.to_octets(),
                 )
             })
             .expect("key generation failed");
@@ -142,8 +142,8 @@ fn proof_50_percent_revealed_benchmark(c: &mut Criterion) {
             .collect();
 
         let signature = sign(BbsSignRequest {
-            secret_key: secret_key.clone(),
-            public_key: public_key.clone(),
+            secret_key: &secret_key,
+            public_key: &public_key,
             header: Some(TEST_HEADER.as_ref().to_vec()),
             messages: Some(messages.to_vec()),
         })
@@ -151,10 +151,10 @@ fn proof_50_percent_revealed_benchmark(c: &mut Criterion) {
 
         assert_eq!(
             verify(BbsVerifyRequest {
-                public_key: public_key.clone(),
+                public_key: &public_key,
                 header: Some(TEST_HEADER.as_ref().to_vec()),
                 messages: Some(messages.to_vec()),
-                signature: signature.to_vec(),
+                signature: &signature,
             })
             .expect("error during signature verification"),
             true
@@ -187,10 +187,10 @@ fn proof_50_percent_revealed_benchmark(c: &mut Criterion) {
             |b| {
                 b.iter(|| {
                     proof_gen(BbsProofGenRequest {
-                        public_key: black_box(public_key.clone()),
+                        public_key: black_box(&public_key),
                         header: black_box(Some(TEST_HEADER.to_vec())),
                         messages: black_box(Some(proof_messages.clone())),
-                        signature: black_box(signature.to_vec()),
+                        signature: black_box(&signature),
                         presentation_message: black_box(Some(
                             TEST_PRESENTATION_MESSAGE.to_vec(),
                         )),
@@ -201,10 +201,10 @@ fn proof_50_percent_revealed_benchmark(c: &mut Criterion) {
         );
 
         let proof = proof_gen(BbsProofGenRequest {
-            public_key: public_key.clone(),
+            public_key: &public_key,
             header: Some(TEST_HEADER.to_vec()),
             messages: Some(proof_messages.clone()),
-            signature: signature.to_vec(),
+            signature: &signature,
             presentation_message: Some(TEST_PRESENTATION_MESSAGE.to_vec()),
         })
         .expect("proof generation failed");
@@ -217,7 +217,7 @@ fn proof_50_percent_revealed_benchmark(c: &mut Criterion) {
             |b| {
                 b.iter(|| {
                     assert!(proof_verify(BbsProofVerifyRequest {
-                        public_key: black_box(public_key.clone()),
+                        public_key: black_box(&public_key),
                         header: black_box(Some(TEST_HEADER.to_vec())),
                         presentation_message: black_box(Some(
                             TEST_PRESENTATION_MESSAGE.to_vec()
