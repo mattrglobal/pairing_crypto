@@ -15,6 +15,7 @@ use crate::{
             key_pair::KeyPair,
         },
     },
+    common::util::vec_to_byte_array,
     curves::bls12_381::{G1Projective, Scalar},
     from_vec_deserialization_invalid_vec_size,
     tests::bbs::{
@@ -70,7 +71,7 @@ fn sign_verify_serde_nominal() {
 
     let signature_octets = signature.to_octets();
     let signature_from_deserialization =
-        Signature::from_octets(signature_octets)
+        Signature::from_octets(&signature_octets)
             .expect("signature deserialization failed");
     assert_eq!(
         signature, signature_from_deserialization,
@@ -1303,7 +1304,9 @@ fn from_octets_invalid_parameters() {
     ];
 
     for (octets, error, failure_debug_message) in test_data {
-        let result = Signature::from_octets(octets);
+        let result = Signature::from_octets(
+            &vec_to_byte_array::<{ Signature::SIZE_BYTES }>(&octets).unwrap(),
+        );
         assert_eq!(
             result,
             Err(error),

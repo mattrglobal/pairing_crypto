@@ -312,19 +312,7 @@ impl Signature {
     /// For BLS12-381 based implementation, G1_COMPRESSED_SIZE is 48 byes, and
     /// SCALAR_SIZE is 32 bytes, then bytes sequence will be treated as
     /// [48, 32, 32] to represent (A, e, s).    
-    pub fn from_octets<T: AsRef<[u8]>>(data: T) -> Result<Self, Error> {
-        let data = data.as_ref();
-        if data.len() != Self::SIZE_BYTES {
-            return Err(Error::MalformedSignature {
-                cause: format!(
-                    "invalid input buffer size: {} bytes, expected data size: \
-                     {} bytes",
-                    data.len(),
-                    Self::SIZE_BYTES
-                ),
-            });
-        }
-
+    pub fn from_octets(data: &[u8; Self::SIZE_BYTES]) -> Result<Self, Error> {
         let mut offset = 0;
         let mut end = Self::G1_COMPRESSED_SIZE;
 
