@@ -94,7 +94,7 @@ describe("bls12381", () => {
           ],
         };
         await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
-          "Error: data conversion failed: cause: source vector size 10, expected destination byte array size 32"
+          "Error: vector to fixed-sized array conversion failed"
         );
       });
 
@@ -112,7 +112,7 @@ describe("bls12381", () => {
           ],
         };
         await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
-          "Error: data conversion failed: cause: source vector size 64, expected destination byte array size 32"
+          "Error: vector to fixed-sized array conversion failed"
         );
       });
 

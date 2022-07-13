@@ -31,7 +31,9 @@ describe("bls12381", () => {
           messages: [stringToBytes("ExampleMessage")],
           signature: base64Decode("jYidhsdqxvAyNXMV4/vNfGM/4AULfSyf"),
         };
-        expect((await bls12381.bbs.verify(request)).verified).toBeFalsy();
+        await expect(bls12381.bbs.verify(request)).rejects.toThrowError(
+          "Error: vector to fixed-sized array conversion failed"
+        );
       });
 
       // TODO fixture
@@ -82,7 +84,9 @@ describe("bls12381", () => {
             "jYidhsdqxvAyNXMV4/vNfGM/4AULfSyfvQiwh+dDd4JtnT5xHnwpzMYdLdHzBYwXaGE1k6ln/pwtI4RwQZpl03SCv/mT/3AdK8PB2y43MGdMSeGTyZGfZf+rUrEDEs3lTfmPK54E+JBzd96gnrF2iQ=="
           ),
         };
-        expect((await bls12381.bbs.verify(request)).verified).toBeFalsy();
+        await expect(bls12381.bbs.verify(request)).rejects.toThrowError(
+          "Error: vector to fixed-sized array conversion failed"
+        );
       });
     });
   });
