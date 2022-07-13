@@ -1,6 +1,12 @@
 use crate::dtos::{BbsVerifyRequestDto, ByteArray, PairingCryptoFfiError};
+use core::convert::TryFrom;
 use ffi_support::{ConcurrentHandleMap, ErrorCode, ExternError};
-use pairing_crypto::bbs::ciphersuites::bls12_381::{verify, BbsVerifyRequest};
+use pairing_crypto::bbs::ciphersuites::bls12_381::{
+    verify,
+    BbsVerifyRequest,
+    BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+    BBS_BLS12381G1_SIGNATURE_LENGTH,
+};
 
 lazy_static! {
     pub static ref BBS_VERIFY_CONTEXT: ConcurrentHandleMap<BbsVerifyRequestDto> =
@@ -52,34 +58,40 @@ pub extern "C" fn bls12381_bbs_verify_context_finish(
         err,
         handle,
         move |ctx| -> Result<i32, PairingCryptoFfiError> {
-            if ctx.public_key.is_empty() {
-                return Err(PairingCryptoFfiError::new(
-                    "public_key must be set",
-                ));
-            }
-            if ctx.signature.is_empty() {
-                return Err(PairingCryptoFfiError::new(
-                    "signature must be set",
-                ));
-            }
+            let public_key = get_array_value_from_context!(
+                ctx.public_key,
+                BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+                "public key"
+            );
 
             let header = if ctx.header.is_empty() {
                 None
             } else {
-                Some(ctx.header.clone())
+                Some(ctx.header.as_slice())
             };
 
-            let messages = if ctx.messages.is_empty() {
+            let signature = get_array_value_from_context!(
+                ctx.signature,
+                BBS_BLS12381G1_SIGNATURE_LENGTH,
+                "signature"
+            );
+
+            let messages = ctx
+                .messages
+                .iter()
+                .map(|m| m.as_ref())
+                .collect::<Vec<&[u8]>>();
+            let messages = if messages.is_empty() {
                 None
             } else {
-                Some(ctx.messages.clone())
+                Some(messages.as_slice())
             };
 
             match verify(BbsVerifyRequest {
-                public_key: ctx.public_key.clone(),
+                public_key: &public_key,
                 header,
                 messages,
-                signature: ctx.signature.clone(),
+                signature: &signature,
             })
             .unwrap()
             {
