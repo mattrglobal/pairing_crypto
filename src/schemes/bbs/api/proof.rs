@@ -25,7 +25,9 @@ use alloc::collections::BTreeMap;
 use std::collections::BTreeMap;
 
 /// Generate a signature proof of knowledge.
-pub fn proof_gen(request: BbsProofGenRequest<'_>) -> Result<Vec<u8>, Error> {
+pub fn proof_gen<T: AsRef<[u8]>>(
+    request: BbsProofGenRequest<'_, T>,
+) -> Result<Vec<u8>, Error> {
     // Parse public key from request
     let pk = PublicKey::from_octets(request.public_key)?;
 
@@ -33,7 +35,7 @@ pub fn proof_gen(request: BbsProofGenRequest<'_>) -> Result<Vec<u8>, Error> {
     if let Some(request_messages) = request.messages {
         let request_messages = request_messages
             .iter()
-            .map(|element| element.value)
+            .map(|element| element.value.as_ref())
             .collect::<Vec<_>>();
         // Digest the supplied messages
         digested_messages = digest_messages(Some(&request_messages))?;
@@ -75,7 +77,9 @@ pub fn proof_gen(request: BbsProofGenRequest<'_>) -> Result<Vec<u8>, Error> {
 }
 
 /// Verify a signature proof of knowledge.
-pub fn proof_verify(request: BbsProofVerifyRequest<'_>) -> Result<bool, Error> {
+pub fn proof_verify<T: AsRef<[u8]>>(
+    request: BbsProofVerifyRequest<'_, T>,
+) -> Result<bool, Error> {
     // Parse public key from request
     let public_key = PublicKey::from_octets(request.public_key)?;
 

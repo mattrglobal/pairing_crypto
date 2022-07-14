@@ -127,13 +127,14 @@ fn proof_gen_verify_e2e_nominal() {
         );
 
         // Start with all hidden messages
-        let mut proof_messages: Vec<BbsProofGenRevealMessageRequest> = messages
-            .iter()
-            .map(|value| BbsProofGenRevealMessageRequest {
-                reveal: false,
-                value: value.clone(),
-            })
-            .collect();
+        let mut proof_messages: Vec<BbsProofGenRevealMessageRequest<_>> =
+            messages
+                .iter()
+                .map(|value| BbsProofGenRevealMessageRequest {
+                    reveal: false,
+                    value: value.clone(),
+                })
+                .collect();
 
         // Reveal 1 message at a time
         for j in 0..proof_messages.len() {
@@ -204,7 +205,7 @@ fn proof_gen_failure_message_modified() {
     );
 
     // Start with all hidden messages
-    let mut proof_messages: Vec<BbsProofGenRevealMessageRequest> = messages
+    let mut proof_messages: Vec<BbsProofGenRevealMessageRequest<_>> = messages
         .iter()
         .map(|value| BbsProofGenRevealMessageRequest {
             reveal: false,

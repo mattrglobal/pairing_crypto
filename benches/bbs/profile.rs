@@ -151,7 +151,7 @@ fn profile_proof_gen(c: &mut Criterion) {
         true
     );
 
-    let mut proof_messages: Vec<BbsProofGenRevealMessageRequest> = messages
+    let mut proof_messages: Vec<BbsProofGenRevealMessageRequest<_>> = messages
         .iter()
         .map(|value| BbsProofGenRevealMessageRequest {
             reveal: false,
@@ -213,7 +213,7 @@ fn profile_proof_verify(c: &mut Criterion) {
         true
     );
 
-    let mut proof_messages: Vec<BbsProofGenRevealMessageRequest> = messages
+    let mut proof_messages: Vec<BbsProofGenRevealMessageRequest<_>> = messages
         .iter()
         .map(|value| BbsProofGenRevealMessageRequest {
             reveal: false,

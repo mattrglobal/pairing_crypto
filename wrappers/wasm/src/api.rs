@@ -77,7 +77,7 @@ pub async fn bls12381_bbs_sign(
     let request: BbsSignRequestDto = request.try_into()?;
 
     let result = if let Some(messages) = request.messages {
-        sign(BbsSignRequest {
+        sign(BbsSignRequest::<&[u8]> {
             secret_key: &vec_to_u8_sized_array!(
                 request.secretKey,
                 BBS_BLS12381G1_SECRET_KEY_LENGTH
@@ -90,13 +90,13 @@ pub async fn bls12381_bbs_sign(
             messages: Some(
                 messages
                     .iter()
-                    .map(Vec::as_slice)
+                    .map(Vec::as_ref)
                     .collect::<Vec<&[u8]>>()
                     .as_slice(),
             ),
         })
     } else {
-        sign(BbsSignRequest {
+        sign(BbsSignRequest::<&[u8]> {
             secret_key: &vec_to_u8_sized_array!(
                 request.secretKey,
                 BBS_BLS12381G1_SECRET_KEY_LENGTH
@@ -144,7 +144,7 @@ pub async fn bls12381_bbs_verify(request: JsValue) -> Result<JsValue, JsValue> {
     };
 
     let result = if let Some(messages) = request.messages {
-        verify(BbsVerifyRequest {
+        verify(BbsVerifyRequest::<&[u8]> {
             public_key: &vec_to_u8_sized_array!(
                 request.publicKey,
                 BBS_BLS12381G1_PUBLIC_KEY_LENGTH
@@ -163,7 +163,7 @@ pub async fn bls12381_bbs_verify(request: JsValue) -> Result<JsValue, JsValue> {
             ),
         })
     } else {
-        verify(BbsVerifyRequest {
+        verify(BbsVerifyRequest::<&[u8]> {
             public_key: &vec_to_u8_sized_array!(
                 request.publicKey,
                 BBS_BLS12381G1_PUBLIC_KEY_LENGTH
@@ -251,7 +251,7 @@ pub async fn bls12381_bbs_derive_proof(
                         reveal: item.reveal,
                         value: item.value.as_ref(),
                     })
-                    .collect::<Vec<BbsProofGenRevealMessageRequest<'_>>>()
+                    .collect::<Vec<BbsProofGenRevealMessageRequest<_>>>()
                     .as_slice(),
             ),
         })

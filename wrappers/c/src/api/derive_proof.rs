@@ -114,7 +114,7 @@ pub extern "C" fn bls12381_bbs_derive_proof_context_finish(
                     reveal: item.reveal,
                     value: item.value.as_ref(),
                 })
-                .collect::<Vec<BbsProofGenRevealMessageRequest<'_>>>();
+                .collect::<Vec<BbsProofGenRevealMessageRequest<_>>>();
             let messages = if messages.is_empty() {
                 None
             } else {

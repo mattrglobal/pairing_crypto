@@ -19,7 +19,7 @@ use pairing_crypto::bbs::{
 extern crate criterion;
 
 use criterion::{black_box, Criterion};
-use rand::{rngs::OsRng, Rng, RngCore};
+use rand::{rngs::OsRng, RngCore};
 
 const TEST_HEADER: &[u8; 16] = b"some_app_context";
 const TEST_PRESENTATION_MESSAGE: &[u8; 25] = b"test-presentation-message";
@@ -72,7 +72,7 @@ fn proof_all_hidden_benchmark(c: &mut Criterion) {
         );
 
         // All hidden
-        let proof_messages: Vec<BbsProofGenRevealMessageRequest> = messages
+        let proof_messages: Vec<BbsProofGenRevealMessageRequest<_>> = messages
             .iter()
             .map(|value| BbsProofGenRevealMessageRequest {
                 reveal: false,
@@ -165,13 +165,14 @@ fn proof_50_percent_revealed_benchmark(c: &mut Criterion) {
             true
         );
 
-        let mut proof_messages: Vec<BbsProofGenRevealMessageRequest> = messages
-            .iter()
-            .map(|value| BbsProofGenRevealMessageRequest {
-                reveal: false,
-                value: value.clone(),
-            })
-            .collect();
+        let mut proof_messages: Vec<BbsProofGenRevealMessageRequest<_>> =
+            messages
+                .iter()
+                .map(|value| BbsProofGenRevealMessageRequest {
+                    reveal: false,
+                    value: value.clone(),
+                })
+                .collect();
 
         // Hide first 50% messages
         for i in 0..num_revealed_messages {

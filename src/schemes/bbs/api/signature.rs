@@ -16,7 +16,9 @@ use crate::{
 /// Creates a signature.
 /// Security Warning: `secret_key` and `public_key` in `request` must be related
 /// key-pair generated using `KeyPair` APIs.
-pub fn sign(request: BbsSignRequest<'_>) -> Result<[u8; 112], Error> {
+pub fn sign<T: AsRef<[u8]>>(
+    request: BbsSignRequest<'_, T>,
+) -> Result<[u8; 112], Error> {
     // Parse the secret key
     let sk = SecretKey::from_bytes(request.secret_key)?;
 
@@ -35,7 +37,9 @@ pub fn sign(request: BbsSignRequest<'_>) -> Result<[u8; 112], Error> {
 }
 
 /// Verifies a signature.
-pub fn verify(request: BbsVerifyRequest<'_>) -> Result<bool, Error> {
+pub fn verify<T: AsRef<[u8]>>(
+    request: BbsVerifyRequest<'_, T>,
+) -> Result<bool, Error> {
     // Parse public key from request
     let pk = PublicKey::from_octets(request.public_key)?;
 
