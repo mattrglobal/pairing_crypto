@@ -4,11 +4,14 @@ use crate::dtos::{
     ByteArray,
     PairingCryptoFfiError,
 };
+use core::convert::TryFrom;
 use ffi_support::{ByteBuffer, ConcurrentHandleMap, ErrorCode, ExternError};
 use pairing_crypto::bbs::ciphersuites::bls12_381::{
     proof_gen,
     BbsProofGenRequest,
     BbsProofGenRevealMessageRequest,
+    BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+    BBS_BLS12381G1_SIGNATURE_LENGTH,
 };
 
 lazy_static! {
@@ -64,10 +67,7 @@ pub extern "C" fn bls12381_bbs_derive_proof_context_add_message(
 ) -> i32 {
     let message = message.to_vec();
     if message.is_empty() {
-        *err = ExternError::new_error(
-            ErrorCode::new(1),
-            "Message cannot be empty",
-        );
+        *err = ExternError::new_error(ErrorCode::new(1), "empty message");
         return 1;
     }
     BBS_DERIVE_PROOF_CONTEXT.call_with_output_mut(err, handle, |ctx| {
@@ -89,48 +89,49 @@ pub extern "C" fn bls12381_bbs_derive_proof_context_finish(
         err,
         handle,
         move |ctx| -> Result<ByteBuffer, PairingCryptoFfiError> {
-            if ctx.public_key.is_empty() {
-                return Err(PairingCryptoFfiError::new(
-                    "public_key must be set",
-                ));
-            }
-            if ctx.signature.is_empty() {
-                return Err(PairingCryptoFfiError::new(
-                    "signature must be set",
-                ));
-            }
+            let public_key = get_array_value_from_context!(
+                ctx.public_key,
+                BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+                "public key"
+            );
 
             let header = if ctx.header.is_empty() {
                 None
             } else {
-                Some(ctx.header.clone())
+                Some(ctx.header.as_slice())
             };
 
-            let messages = if ctx.messages.is_empty() {
+            let signature = get_array_value_from_context!(
+                ctx.signature,
+                BBS_BLS12381G1_SIGNATURE_LENGTH,
+                "signature"
+            );
+
+            let messages = ctx
+                .messages
+                .iter()
+                .map(|item| BbsProofGenRevealMessageRequest {
+                    reveal: item.reveal,
+                    value: item.value.as_ref(),
+                })
+                .collect::<Vec<BbsProofGenRevealMessageRequest<_>>>();
+            let messages = if messages.is_empty() {
                 None
             } else {
-                Some(
-                    ctx.messages
-                        .iter()
-                        .map(|item| BbsProofGenRevealMessageRequest {
-                            reveal: item.reveal,
-                            value: item.value.clone(),
-                        })
-                        .collect(),
-                )
+                Some(messages.as_slice())
             };
 
             let presentation_message = if ctx.presentation_message.is_empty() {
                 None
             } else {
-                Some(ctx.presentation_message.clone())
+                Some(ctx.presentation_message.as_slice())
             };
 
             let proof = proof_gen(BbsProofGenRequest {
-                public_key: ctx.public_key.clone(),
+                public_key: &public_key,
                 header,
                 messages,
-                signature: ctx.signature.clone(),
+                signature: &signature,
                 presentation_message,
             })?;
 

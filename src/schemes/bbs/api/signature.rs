@@ -3,6 +3,7 @@ use super::{
     utils::digest_messages,
 };
 use crate::{
+    bbs::core::constants::BBS_BLS12381G1_SIGNATURE_LENGTH,
     error::Error,
     schemes::bbs::ciphersuites::bls12_381::{
         Generators,
@@ -16,15 +17,17 @@ use crate::{
 /// Creates a signature.
 /// Security Warning: `secret_key` and `public_key` in `request` must be related
 /// key-pair generated using `KeyPair` APIs.
-pub fn sign(request: BbsSignRequest) -> Result<[u8; 112], Error> {
+pub fn sign<T: AsRef<[u8]>>(
+    request: BbsSignRequest<'_, T>,
+) -> Result<[u8; BBS_BLS12381G1_SIGNATURE_LENGTH], Error> {
     // Parse the secret key
-    let sk = SecretKey::from_vec(&request.secret_key)?;
+    let sk = SecretKey::from_bytes(request.secret_key)?;
 
     // Parse public key from request
-    let pk = PublicKey::from_vec(&request.public_key)?;
+    let pk = PublicKey::from_octets(request.public_key)?;
 
     // Digest the supplied messages
-    let messages: Vec<Message> = digest_messages(request.messages.as_ref())?;
+    let messages: Vec<Message> = digest_messages(request.messages)?;
 
     // Derive generators
     let generators = Generators::new(messages.len())?;
@@ -35,18 +38,20 @@ pub fn sign(request: BbsSignRequest) -> Result<[u8; 112], Error> {
 }
 
 /// Verifies a signature.
-pub fn verify(request: BbsVerifyRequest) -> Result<bool, Error> {
+pub fn verify<T: AsRef<[u8]>>(
+    request: BbsVerifyRequest<'_, T>,
+) -> Result<bool, Error> {
     // Parse public key from request
-    let pk = PublicKey::from_vec(&request.public_key)?;
+    let pk = PublicKey::from_octets(request.public_key)?;
 
     // Digest the supplied messages
-    let messages: Vec<Message> = digest_messages(request.messages.as_ref())?;
+    let messages: Vec<Message> = digest_messages(request.messages)?;
 
     // Derive generators
     let generators = Generators::new(messages.len())?;
 
     // Parse signature from request
-    let signature = Signature::from_vec(&request.signature)?;
+    let signature = Signature::from_octets(request.signature)?;
 
     signature.verify(&pk, request.header.as_ref(), &generators, &messages)
 }

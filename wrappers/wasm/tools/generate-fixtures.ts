@@ -204,6 +204,7 @@ const generateSignatureTestVectors = async () => {
     signerKeyInfo,
     presentationMessage,
     messages: messages.slice(0, 1),
+    header,
     verifyFixtures: true,
     messagesToReveal: [0],
   });
@@ -282,6 +283,7 @@ const generateSignatureTestVectors = async () => {
   fixture = await generateFixture({
     signerKeyIkm,
     signerKeyInfo,
+    header,
     presentationMessage,
     messages: messages.slice(0, 10),
     verifyFixtures: true,

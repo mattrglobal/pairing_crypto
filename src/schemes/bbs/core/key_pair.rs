@@ -139,7 +139,7 @@ impl Default for PublicKey {
 impl core::fmt::Display for PublicKey {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "PublicKey(")?;
-        print_byte_array!(f, self.point_to_octets());
+        print_byte_array!(f, self.to_octets());
         write!(f, ")")
     }
 }
@@ -152,13 +152,13 @@ impl From<&SecretKey> for PublicKey {
 
 impl From<PublicKey> for [u8; PublicKey::SIZE_BYTES] {
     fn from(pk: PublicKey) -> Self {
-        pk.point_to_octets()
+        pk.to_octets()
     }
 }
 
 impl<'a> From<&'a PublicKey> for [u8; PublicKey::SIZE_BYTES] {
     fn from(pk: &'a PublicKey) -> [u8; PublicKey::SIZE_BYTES] {
-        pk.point_to_octets()
+        pk.to_octets()
     }
 }
 
@@ -173,7 +173,7 @@ impl PublicKey {
 
     /// Get the G2 representation in affine, compressed and big-endian form
     /// of PublicKey.
-    pub fn point_to_octets(&self) -> [u8; Self::SIZE_BYTES] {
+    pub fn to_octets(&self) -> [u8; Self::SIZE_BYTES] {
         self.0.to_affine().to_compressed()
     }
 
@@ -181,16 +181,14 @@ impl PublicKey {
     /// key.
     pub fn from_vec(bytes: &Vec<u8>) -> Result<Self, Error> {
         match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
-            Ok(result) => Self::octets_to_point(&result),
+            Ok(result) => Self::from_octets(&result),
             Err(e) => Err(e),
         }
     }
 
     /// Convert from G2 point in affine, compressed and big-endian form to
     /// PublicKey.
-    pub fn octets_to_point(
-        bytes: &[u8; Self::SIZE_BYTES],
-    ) -> Result<Self, Error> {
+    pub fn from_octets(bytes: &[u8; Self::SIZE_BYTES]) -> Result<Self, Error> {
         let result = G2Affine::from_compressed(bytes)
             .map(|p| Self(G2Projective::from(&p)));
 

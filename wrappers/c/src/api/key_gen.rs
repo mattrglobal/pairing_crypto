@@ -18,9 +18,8 @@ pub extern "C" fn bls12381_generate_key_pair(
     if let Some(key_pair) = KeyPair::new(ikm.to_vec(), key_info.to_vec()) {
         *secret_key =
             ByteBuffer::from_vec(key_pair.secret_key.to_bytes().to_vec());
-        *public_key = ByteBuffer::from_vec(
-            key_pair.public_key.point_to_octets().to_vec(),
-        );
+        *public_key =
+            ByteBuffer::from_vec(key_pair.public_key.to_octets().to_vec());
         *err = ExternError::success();
         return 0;
     }

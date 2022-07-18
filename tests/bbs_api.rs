@@ -51,27 +51,25 @@ const TEST_HEADER: &[u8; 16] = b"some_app_context";
 
 #[test]
 fn sign_verify_e2e_nominal() {
-    let messages = &TEST_CLAIMS
-        .iter()
-        .map(|&e| e.to_vec())
-        .collect::<Vec<Vec<u8>>>();
+    let header = TEST_HEADER.as_ref();
+    let messages = &TEST_CLAIMS;
 
     for i in 0..TEST_KEY_INFOS.len() {
         let (secret_key, public_key) =
             KeyPair::new(KEY_GEN_SEED.as_ref(), TEST_KEY_INFOS[i].as_ref())
                 .map(|key_pair| {
                     (
-                        key_pair.secret_key.to_bytes().to_vec(),
-                        key_pair.public_key.point_to_octets().to_vec(),
+                        key_pair.secret_key.to_bytes(),
+                        key_pair.public_key.to_octets(),
                     )
                 })
                 .expect("key generation failed");
 
         let signature = sign(BbsSignRequest {
-            secret_key,
-            public_key: public_key.clone(),
-            header: Some(TEST_HEADER.to_vec()),
-            messages: Some(messages.to_vec()),
+            secret_key: &secret_key,
+            public_key: &public_key,
+            header: Some(header),
+            messages: Some(messages),
         })
         .expect("signature generation failed");
 
@@ -81,10 +79,10 @@ fn sign_verify_e2e_nominal() {
 
         assert_eq!(
             verify(BbsVerifyRequest {
-                public_key,
-                header: Some(TEST_HEADER.to_vec()),
-                messages: Some(messages.to_vec()),
-                signature: signature.to_vec(),
+                public_key: &public_key,
+                header: Some(header),
+                messages: Some(messages),
+                signature: &signature,
             })
             .expect("error during signature verification"),
             true
@@ -94,76 +92,74 @@ fn sign_verify_e2e_nominal() {
 
 #[test]
 fn proof_gen_verify_e2e_nominal() {
-    let messages = &TEST_CLAIMS
-        .iter()
-        .map(|&e| e.to_vec())
-        .collect::<Vec<Vec<u8>>>();
+    let header = TEST_HEADER.as_ref();
+    let presentation_message = TEST_PRESENTATION_MESSAGE.as_ref();
+    let messages = &TEST_CLAIMS;
 
     for i in 0..TEST_KEY_INFOS.len() {
         let (secret_key, public_key) =
             KeyPair::new(KEY_GEN_SEED.as_ref(), TEST_KEY_INFOS[i].as_ref())
                 .map(|key_pair| {
                     (
-                        key_pair.secret_key.to_bytes().to_vec(),
-                        key_pair.public_key.point_to_octets().to_vec(),
+                        key_pair.secret_key.to_bytes(),
+                        key_pair.public_key.to_octets(),
                     )
                 })
                 .expect("key generation failed");
 
         let signature = sign(BbsSignRequest {
-            secret_key: secret_key.clone(),
-            public_key: public_key.clone(),
-            header: Some(TEST_HEADER.to_vec()),
-            messages: Some(messages.clone()),
+            secret_key: &secret_key,
+            public_key: &public_key,
+            header: Some(header),
+            messages: Some(messages),
         })
         .expect("signature generation failed");
 
         assert_eq!(
             verify(BbsVerifyRequest {
-                public_key: public_key.clone(),
-                header: Some(TEST_HEADER.to_vec()),
-                messages: Some(messages.clone()),
-                signature: signature.to_vec(),
+                public_key: &public_key,
+                header: Some(header),
+                messages: Some(messages),
+                signature: &signature,
             })
             .expect("error during signature verification"),
             true
         );
 
         // Start with all hidden messages
-        let mut proof_messages: Vec<BbsProofGenRevealMessageRequest> = messages
-            .iter()
-            .map(|value| BbsProofGenRevealMessageRequest {
-                reveal: false,
-                value: value.clone(),
-            })
-            .collect();
+        let mut proof_messages: Vec<BbsProofGenRevealMessageRequest<_>> =
+            messages
+                .iter()
+                .map(|value| BbsProofGenRevealMessageRequest {
+                    reveal: false,
+                    value: value.clone(),
+                })
+                .collect();
 
         // Reveal 1 message at a time
         for j in 0..proof_messages.len() {
             let proof = &proof_gen(BbsProofGenRequest {
-                public_key: public_key.clone(),
-                header: Some(TEST_HEADER.to_vec()),
-                messages: Some(proof_messages.clone()),
-                signature: signature.to_vec(),
-                presentation_message: Some(TEST_PRESENTATION_MESSAGE.to_vec()),
+                public_key: &public_key,
+                header: Some(header),
+                messages: Some(&proof_messages),
+                signature: &signature,
+                presentation_message: Some(presentation_message),
             })
             .expect("proof generation failed");
 
             let mut revealed_msgs = Vec::new();
             for k in 0..j {
-                revealed_msgs.push((k as usize, TEST_CLAIMS[k].to_vec()));
+                revealed_msgs.push((k as usize, TEST_CLAIMS[k]));
             }
 
             assert_eq!(
                 proof_verify(BbsProofVerifyRequest {
-                    public_key: public_key.clone(),
-                    header: Some(TEST_HEADER.to_vec()),
-                    presentation_message: Some(
-                        TEST_PRESENTATION_MESSAGE.to_vec()
-                    ),
-                    proof: proof.clone(),
+                    public_key: &public_key,
+                    header: Some(header),
+                    presentation_message: Some(presentation_message),
+                    proof: &proof,
                     total_message_count: messages.len(),
-                    messages: Some(revealed_msgs.as_slice().to_vec()),
+                    messages: Some(revealed_msgs.as_slice()),
                 })
                 .expect("proof verification failed"),
                 true
@@ -176,41 +172,40 @@ fn proof_gen_verify_e2e_nominal() {
 #[test]
 fn proof_gen_failure_message_modified() {
     const NUM_REVEALED_MESSAGES: usize = 4;
-    let messages = &TEST_CLAIMS
-        .iter()
-        .map(|&e| e.to_vec())
-        .collect::<Vec<Vec<u8>>>();
+    let header = TEST_HEADER.as_ref();
+    let presentation_message = TEST_PRESENTATION_MESSAGE.as_ref();
+    let messages = &TEST_CLAIMS;
 
     let (secret_key, public_key) = KeyPair::random(&mut OsRng, &[])
         .map(|key_pair| {
             (
-                key_pair.secret_key.to_bytes().to_vec(),
-                key_pair.public_key.point_to_octets().to_vec(),
+                key_pair.secret_key.to_bytes(),
+                key_pair.public_key.to_octets(),
             )
         })
         .expect("key generation failed");
 
     let signature = sign(BbsSignRequest {
-        secret_key: secret_key.clone(),
-        public_key: public_key.clone(),
-        header: Some(TEST_HEADER.to_vec()),
-        messages: Some(messages.clone()),
+        secret_key: &secret_key,
+        public_key: &public_key,
+        header: Some(header),
+        messages: Some(messages),
     })
     .expect("signature generation failed");
 
     assert_eq!(
         verify(BbsVerifyRequest {
-            public_key: public_key.clone(),
-            header: Some(TEST_HEADER.to_vec()),
-            messages: Some(messages.clone()),
-            signature: signature.to_vec(),
+            public_key: &public_key,
+            header: Some(header),
+            messages: Some(messages),
+            signature: &signature,
         })
         .expect("error during signature verification"),
         true
     );
 
     // Start with all hidden messages
-    let mut proof_messages: Vec<BbsProofGenRevealMessageRequest> = messages
+    let mut proof_messages: Vec<BbsProofGenRevealMessageRequest<_>> = messages
         .iter()
         .map(|value| BbsProofGenRevealMessageRequest {
             reveal: false,
@@ -225,14 +220,14 @@ fn proof_gen_failure_message_modified() {
     }
 
     // Modify one of the messages
-    proof_messages[1].value[1] = 5u8;
+    proof_messages[1].value = &[0xA; 50];
 
     let result = proof_gen(BbsProofGenRequest {
-        public_key: public_key.clone(),
-        header: Some(TEST_HEADER.to_vec()),
-        messages: Some(proof_messages.clone()),
-        signature: signature.to_vec(),
-        presentation_message: Some(TEST_PRESENTATION_MESSAGE.to_vec()),
+        public_key: &public_key,
+        header: Some(header),
+        messages: Some(&proof_messages),
+        signature: &signature,
+        presentation_message: Some(presentation_message),
     });
     assert_eq!(result, Err(Error::SignatureVerification));
 }

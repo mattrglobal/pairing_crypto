@@ -1,8 +1,10 @@
 use crate::dtos::{BbsVerifyProofRequestDto, ByteArray, PairingCryptoFfiError};
+use core::convert::TryFrom;
 use ffi_support::{ConcurrentHandleMap, ErrorCode, ExternError};
 use pairing_crypto::bbs::ciphersuites::bls12_381::{
     proof_verify,
     BbsProofVerifyRequest,
+    BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
 };
 
 lazy_static! {
@@ -92,37 +94,44 @@ pub extern "C" fn bls12381_bbs_verify_proof_context_finish(
         err,
         handle,
         move |ctx| -> Result<i32, PairingCryptoFfiError> {
-            if ctx.public_key.is_empty() {
-                return Err(PairingCryptoFfiError::new(
-                    "public_key must be set",
-                ));
-            }
-            if ctx.proof.is_empty() {
-                return Err(PairingCryptoFfiError::new("proof must be set"));
-            }
+            let public_key = get_array_value_from_context!(
+                ctx.public_key,
+                BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+                "public key"
+            );
 
             let header = if ctx.header.is_empty() {
                 None
             } else {
-                Some(ctx.header.clone())
+                Some(ctx.header.as_slice())
             };
 
             let presentation_message = if ctx.presentation_message.is_empty() {
                 None
             } else {
-                Some(ctx.presentation_message.clone())
+                Some(ctx.presentation_message.as_slice())
             };
 
-            let messages = if ctx.messages.is_empty() {
+            let messages = ctx
+                .messages
+                .iter()
+                .map(|(i, m)| (*i, m.as_ref()))
+                .collect::<Vec<(usize, &[u8])>>();
+
+            let messages = if messages.is_empty() {
                 None
             } else {
-                Some(ctx.messages.clone())
+                Some(messages.as_slice())
             };
 
+            if ctx.proof.is_empty() {
+                return Err(PairingCryptoFfiError::new("proof must be set"));
+            }
+
             match proof_verify(BbsProofVerifyRequest {
-                public_key: ctx.public_key.clone(),
+                public_key: &public_key,
                 header,
-                proof: ctx.proof.clone(),
+                proof: &ctx.proof,
                 presentation_message,
                 messages,
                 total_message_count: ctx.total_message_count,

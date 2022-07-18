@@ -13,7 +13,6 @@ use super::{
     },
 };
 use crate::{
-    common::util::vec_to_byte_array,
     curves::bls12_381::{
         hash_to_curve::ExpandMsgXof,
         Bls12,
@@ -293,15 +292,6 @@ impl Signature {
         bytes
     }
 
-    /// Convert from a vector of bytes of big-endian representation of the
-    /// `Signature`.
-    pub fn from_vec(bytes: &Vec<u8>) -> Result<Self, Error> {
-        match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
-            Ok(result) => Self::from_octets(&result),
-            Err(e) => Err(e),
-        }
-    }
-
     /// Get the `Signature` from a sequence of bytes in big endian
     /// format. Each member of `Signature` is deserialized from
     /// big-endian bytes as defined in BBS spec <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.11>.
@@ -312,19 +302,7 @@ impl Signature {
     /// For BLS12-381 based implementation, G1_COMPRESSED_SIZE is 48 byes, and
     /// SCALAR_SIZE is 32 bytes, then bytes sequence will be treated as
     /// [48, 32, 32] to represent (A, e, s).    
-    pub fn from_octets<T: AsRef<[u8]>>(data: T) -> Result<Self, Error> {
-        let data = data.as_ref();
-        if data.len() != Self::SIZE_BYTES {
-            return Err(Error::MalformedSignature {
-                cause: format!(
-                    "invalid input buffer size: {} bytes, expected data size: \
-                     {} bytes",
-                    data.len(),
-                    Self::SIZE_BYTES
-                ),
-            });
-        }
-
+    pub fn from_octets(data: &[u8; Self::SIZE_BYTES]) -> Result<Self, Error> {
         let mut offset = 0;
         let mut end = Self::G1_COMPRESSED_SIZE;
 

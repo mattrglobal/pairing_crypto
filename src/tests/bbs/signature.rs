@@ -15,8 +15,8 @@ use crate::{
             key_pair::KeyPair,
         },
     },
+    common::util::vec_to_byte_array,
     curves::bls12_381::{G1Projective, Scalar},
-    from_vec_deserialization_invalid_vec_size,
     tests::bbs::{
         get_test_messages,
         test_generators_random_message_generators,
@@ -70,7 +70,7 @@ fn sign_verify_serde_nominal() {
 
     let signature_octets = signature.to_octets();
     let signature_from_deserialization =
-        Signature::from_octets(signature_octets)
+        Signature::from_octets(&signature_octets)
             .expect("signature deserialization failed");
     assert_eq!(
         signature, signature_from_deserialization,
@@ -1129,21 +1129,6 @@ fn to_octets() {
     assert_eq!(signature_octets, expected_signature_octets.as_slice());
 }
 
-#[test]
-fn from_vec_deserialization() {
-    let mut signature = Signature::default();
-    signature.A = G1Projective::random(&mut OsRng);
-    signature.e = Scalar::random(&mut OsRng);
-    signature.s = Scalar::random(&mut OsRng);
-    let signature_octets = signature.to_octets();
-
-    let signature_from_vec = Signature::from_vec(&Vec::from(signature_octets))
-        .expect("`Signature::from_vec(...)` should not fail");
-    assert_eq!(signature, signature_from_vec);
-
-    from_vec_deserialization_invalid_vec_size!(Signature);
-}
-
 // Concat 3 input buffers.
 macro_rules! concat_3 {
     ($a:expr, $e:expr, $s:expr) => {
@@ -1154,42 +1139,6 @@ macro_rules! concat_3 {
 #[test]
 fn from_octets_invalid_parameters() {
     let test_data = [
-        (
-            vec![],
-            Error::MalformedSignature {
-                cause: format!(
-                    "invalid input buffer size: {} bytes, expected data size: \
-                     {} bytes",
-                    0,
-                    Signature::SIZE_BYTES
-                ),
-            },
-            "empty input data",
-        ),
-        (
-            vec![0xA; Signature::SIZE_BYTES - 1],
-            Error::MalformedSignature {
-                cause: format!(
-                    "invalid input buffer size: {} bytes, expected data size: \
-                     {} bytes",
-                    Signature::SIZE_BYTES - 1,
-                    Signature::SIZE_BYTES
-                ),
-            },
-            "input data length is less than 1 from expected",
-        ),
-        (
-            vec![0xB; Signature::SIZE_BYTES + 1],
-            Error::MalformedSignature {
-                cause: format!(
-                    "invalid input buffer size: {} bytes, expected data size: \
-                     {} bytes",
-                    Signature::SIZE_BYTES + 1,
-                    Signature::SIZE_BYTES
-                ),
-            },
-            "input data length is greater than 1 from expected",
-        ),
         (
             vec![0x0; Signature::SIZE_BYTES],
             Error::BadEncoding,
@@ -1303,7 +1252,9 @@ fn from_octets_invalid_parameters() {
     ];
 
     for (octets, error, failure_debug_message) in test_data {
-        let result = Signature::from_octets(octets);
+        let result = Signature::from_octets(
+            &vec_to_byte_array::<{ Signature::SIZE_BYTES }>(&octets).unwrap(),
+        );
         assert_eq!(
             result,
             Err(error),

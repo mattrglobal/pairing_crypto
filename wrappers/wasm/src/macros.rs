@@ -41,3 +41,16 @@ macro_rules! try_from_impl {
         }
     };
 }
+
+macro_rules! vec_to_u8_sized_array {
+    (
+        $value:expr,
+        $length:expr
+    ) => {
+        <[u8; $length]>::try_from($value).map_err(|_| {
+            serde_wasm_bindgen::Error::new::<&str>(
+                "vector to fixed-sized array conversion failed",
+            )
+        })?
+    };
+}

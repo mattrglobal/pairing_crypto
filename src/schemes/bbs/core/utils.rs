@@ -75,7 +75,7 @@ where
     // domain = hash_to_scalar((PK || L || generators || Ciphersuite_ID ||
     // header), 1)
     let mut data_to_hash = vec![];
-    data_to_hash.extend(PK.point_to_octets().as_ref());
+    data_to_hash.extend(PK.to_octets().as_ref());
     data_to_hash.extend(i2osp(L as u64, NON_NEGATIVE_INTEGER_ENCODING_LENGTH)?);
     data_to_hash.extend(point_to_octets_g1(&generators.Q_1()).as_ref());
     data_to_hash.extend(point_to_octets_g1(&generators.Q_2()).as_ref());
