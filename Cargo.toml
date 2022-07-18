@@ -52,3 +52,8 @@ harness = false
 name = "bbs_proof"
 path = "benches/bbs/proof.rs"
 harness = false
+
+[workspace]
+members = [
+    "tools/bbs-fixtures-generator",
+]
