@@ -3,6 +3,7 @@ use super::{
     utils::digest_messages,
 };
 use crate::{
+    bbs::core::constants::BBS_BLS12381G1_SIGNATURE_LENGTH,
     error::Error,
     schemes::bbs::ciphersuites::bls12_381::{
         Generators,
@@ -18,7 +19,7 @@ use crate::{
 /// key-pair generated using `KeyPair` APIs.
 pub fn sign<T: AsRef<[u8]>>(
     request: BbsSignRequest<'_, T>,
-) -> Result<[u8; 112], Error> {
+) -> Result<[u8; BBS_BLS12381G1_SIGNATURE_LENGTH], Error> {
     // Parse the secret key
     let sk = SecretKey::from_bytes(request.secret_key)?;
 
