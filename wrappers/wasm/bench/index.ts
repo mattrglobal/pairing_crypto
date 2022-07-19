@@ -19,7 +19,7 @@ import {
   BbsDeriveProofRequest,
   BbsSignRequest,
   BbsVerifyProofRequest,
-  bls12381,
+  bbs,
   utilities,
 } from "../lib/index";
 import { randomBytes } from "@stablelib/random";
