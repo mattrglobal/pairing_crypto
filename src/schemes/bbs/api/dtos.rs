@@ -5,7 +5,7 @@ use crate::bbs::core::constants::{
 };
 
 /// Sign request for a BBS signature.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct BbsSignRequest<'a, T: AsRef<[u8]>> {
     /// Secret key
     pub secret_key: &'a [u8; BBS_BLS12381G1_SECRET_KEY_LENGTH],
@@ -29,7 +29,7 @@ impl<'a, T: AsRef<[u8]>> Default for BbsSignRequest<'a, T> {
 }
 
 /// Verify request for a BBS signature.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct BbsVerifyRequest<'a, T: AsRef<[u8]>> {
     /// Public key
     pub public_key: &'a [u8; BBS_BLS12381G1_PUBLIC_KEY_LENGTH],
@@ -63,7 +63,7 @@ pub struct BbsProofGenRevealMessageRequest<T: AsRef<[u8]>> {
 
 /// Derive proof request for computing a signature proof of knowledge for a
 /// supplied BBS signature.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct BbsProofGenRequest<'a, T: AsRef<[u8]>> {
     /// Public key associated to the BBS signature
     pub public_key: &'a [u8; BBS_BLS12381G1_PUBLIC_KEY_LENGTH],
@@ -91,7 +91,7 @@ impl<'a, T: AsRef<[u8]>> Default for BbsProofGenRequest<'a, T> {
 }
 
 /// Verify proof request for verifying a supplied signature proof of knowledge.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct BbsProofVerifyRequest<'a, T: AsRef<[u8]>> {
     /// Public key associated to the signature proof of knowledge (who signed
     /// the original BBS signature the proof is derived from)

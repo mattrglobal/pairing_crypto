@@ -26,7 +26,7 @@ use std::collections::BTreeMap;
 
 /// Generate a signature proof of knowledge.
 pub fn proof_gen<T: AsRef<[u8]>>(
-    request: BbsProofGenRequest<'_, T>,
+    request: &BbsProofGenRequest<'_, T>,
 ) -> Result<Vec<u8>, Error> {
     // Parse public key from request
     let pk = PublicKey::from_octets(request.public_key)?;
@@ -78,7 +78,7 @@ pub fn proof_gen<T: AsRef<[u8]>>(
 
 /// Verify a signature proof of knowledge.
 pub fn proof_verify<T: AsRef<[u8]>>(
-    request: BbsProofVerifyRequest<'_, T>,
+    request: &BbsProofVerifyRequest<'_, T>,
 ) -> Result<bool, Error> {
     // Parse public key from request
     let public_key = PublicKey::from_octets(request.public_key)?;

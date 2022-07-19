@@ -128,7 +128,7 @@ pub extern "C" fn bls12381_bbs_verify_proof_context_finish(
                 return Err(PairingCryptoFfiError::new("proof must be set"));
             }
 
-            match proof_verify(BbsProofVerifyRequest {
+            match proof_verify(&BbsProofVerifyRequest {
                 public_key: &public_key,
                 header,
                 proof: &ctx.proof,

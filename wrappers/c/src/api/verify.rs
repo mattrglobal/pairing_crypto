@@ -87,7 +87,7 @@ pub extern "C" fn bls12381_bbs_verify_context_finish(
                 Some(messages.as_slice())
             };
 
-            match verify(BbsVerifyRequest {
+            match verify(&BbsVerifyRequest {
                 public_key: &public_key,
                 header,
                 messages,
