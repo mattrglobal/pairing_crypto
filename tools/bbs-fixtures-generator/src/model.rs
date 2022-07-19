@@ -62,8 +62,6 @@ pub struct FixtureSignature {
     pub key_pair: KeyPair,
     #[serde(serialize_with = "hex::serde::serialize")]
     pub header: Vec<u8>,
-    #[serde(serialize_with = "hex::serde::serialize")]
-    pub presentation_message: Vec<u8>,
     #[serde(serialize_with = "serialize_messages")]
     pub messages: Vec<Vec<u8>>,
     #[serde(serialize_with = "hex::serde::serialize")]
@@ -77,7 +75,6 @@ impl From<FixtureGenInput> for FixtureSignature {
             case_name: Default::default(),
             key_pair: val.key_pair,
             header: val.header,
-            presentation_message: val.presentation_message,
             messages: val.messages,
             signature: Default::default(),
             result: Default::default(),

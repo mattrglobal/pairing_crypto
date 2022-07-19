@@ -2,6 +2,7 @@ use clap::Parser;
 
 mod generators;
 mod model;
+mod util;
 
 use model::{FixtureGenInput, TestAsset};
 

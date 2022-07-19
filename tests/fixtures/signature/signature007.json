@@ -1,0 +1,17 @@
+{
+  "caseName": "multi-message signature",
+  "signerKeyPair": {
+    "secret_key": "37bef9ca386366431e0db43924b0f3ae833d5eb9030eaab0c845397f44534599",
+    "public_key": "a8eae5caaa61dbed0fae4e9605d2ea7d6f9c9f74c9a76e9f281682e19809b501f06cb27326376a39aa221df60cfba28b04c4f0d3931ad311a7818626e8381f2c3fca472a4cc6a0345fe77f5efb8be751b600648a7cda5459425207583e200545"
+  },
+  "header": "11223344556677889900aabbccddeeff",
+  "messages": [
+    "9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02",
+    "87a8bd656d49ee07b8110e1d8fd4f1dcef6fb9bc368c492d9bc8c4f98a739ac6"
+  ],
+  "signature": "948ab0936308d498d3253ad3c4ccd06cd2705155bb237dcbe0f91bb9290c2936f88291831276f1d8965777fb4148b9de310312d2706bbde03f753074780ddcae715eda2bc0bc2d298a150d5e436a5b6a4b908c1c06e3d1caf7770c135165804d50263237d958927fa2df0e9954de1bb4",
+  "result": {
+    "valid": false,
+    "reason": "wrong public key"
+  }
+}
