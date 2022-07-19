@@ -1,6 +1,9 @@
-use pairing_crypto::bbs::ciphersuites::bls12_381::KeyPair;
+use pairing_crypto::bbs::{
+    ciphersuites::bls12_381::KeyPair,
+    core::key_pair::PublicKey,
+};
 use serde::{
-    ser::{SerializeSeq, SerializeStruct},
+    ser::{SerializeMap, SerializeSeq, SerializeStruct},
     Serializer,
 };
 use serde_derive::{Deserialize, Serialize};
@@ -86,20 +89,33 @@ impl From<FixtureGenInput> for FixtureSignature {
 #[serde(rename_all = "camelCase")]
 pub struct FixtureProof {
     pub case_name: String,
-    #[serde(serialize_with = "serialize_key_pair")]
-    #[serde(rename = "signerKeyPair")]
-    pub key_pair: KeyPair,
+    #[serde(serialize_with = "serialize_public_key")]
+    pub signer_public_key: PublicKey,
     #[serde(serialize_with = "hex::serde::serialize")]
     pub header: Vec<u8>,
     #[serde(serialize_with = "hex::serde::serialize")]
     pub presentation_message: Vec<u8>,
-    #[serde(serialize_with = "serialize_messages")]
-    pub messages: Vec<Vec<u8>>,
-    #[serde(serialize_with = "hex::serde::serialize")]
-    pub signature: Vec<u8>,
+    #[serde(serialize_with = "serialize_disclosed_messages")]
+    pub disclosed_messages: Vec<(usize, Vec<u8>)>,
+    pub total_message_count: usize,
     #[serde(serialize_with = "hex::serde::serialize")]
     pub proof: Vec<u8>,
     pub result: ExpectedResult,
+}
+
+impl From<FixtureGenInput> for FixtureProof {
+    fn from(val: FixtureGenInput) -> Self {
+        Self {
+            case_name: Default::default(),
+            signer_public_key: val.key_pair.public_key,
+            header: val.header,
+            presentation_message: val.presentation_message,
+            disclosed_messages: Default::default(),
+            total_message_count: Default::default(),
+            proof: Default::default(),
+            result: Default::default(),
+        }
+    }
 }
 
 fn serialize_key_pair<S>(
@@ -121,6 +137,16 @@ where
     state.end()
 }
 
+fn serialize_public_key<S>(
+    public_key: &PublicKey,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    serializer.serialize_str(&hex::encode(&public_key.to_octets()))
+}
+
 fn serialize_messages<S>(
     messages: &Vec<Vec<u8>>,
     serializer: S,
@@ -133,4 +159,18 @@ where
         seq.serialize_element(&hex::encode(&m))?;
     }
     seq.end()
+}
+
+fn serialize_disclosed_messages<S>(
+    disclosed_messages: &Vec<(usize, Vec<u8>)>,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    let mut map = serializer.serialize_map(Some(disclosed_messages.len()))?;
+    for (i, m) in disclosed_messages {
+        map.serialize_entry(i, &hex::encode(&m))?;
+    }
+    map.end()
 }

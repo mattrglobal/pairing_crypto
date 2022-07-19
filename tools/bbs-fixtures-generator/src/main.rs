@@ -30,4 +30,5 @@ fn main() {
     let fixture_gen_request: FixtureGenInput = test_asset.into();
 
     generators::signature::generate(&fixture_gen_request, &fixture_output_dir);
+    generators::proof::generate(&fixture_gen_request, &fixture_output_dir);
 }
