@@ -12,134 +12,136 @@
  */
 
 import { randomBytes } from "@stablelib/random";
-import { BbsSignRequest, bls12381, KeyPair } from "../../../lib";
+import { BbsSignRequest, bbs, KeyPair } from "../../../lib";
 import { stringToBytes } from "../../utilities";
 
-describe("bls12381", () => {
-  describe("bbs", () => {
-    let keyPair: KeyPair;
+describe("bbs", () => {
+  describe("ciphersuites", () => {
+    describe("bls12381", () => {
+      let keyPair: KeyPair;
 
-    beforeAll(async () => {
-      keyPair = await bls12381.bbs.generateKeyPair(
-        randomBytes(32),
-        randomBytes(32),
-      );
-    });
-
-    describe("sign", () => {
-      it("should sign a single message", async () => {
-        const request: BbsSignRequest = {
-          secretKey: keyPair.secretKey,
-          publicKey: keyPair.publicKey,
-          messages: [stringToBytes("ExampleMessage")],
-        };
-        const signature = await bls12381.bbs.sign(request);
-        expect(signature).toBeInstanceOf(Uint8Array);
-        expect(signature.length).toEqual(bls12381.bbs.SIGNATURE_LENGTH);
-      });
-
-      it("should sign multiple messages", async () => {
-        const request: BbsSignRequest = {
-          secretKey: keyPair.secretKey,
-          publicKey: keyPair.publicKey,
-          messages: [
-            stringToBytes("ExampleMessage"),
-            stringToBytes("ExampleMessage2"),
-            stringToBytes("ExampleMessage3"),
-          ],
-        };
-        const signature = await bls12381.bbs.sign(request);
-        expect(signature).toBeInstanceOf(Uint8Array);
-        expect(signature.length).toEqual(bls12381.bbs.SIGNATURE_LENGTH);
-      });
-
-      it("should throw error if secret key not present", async () => {
-        const request: any = {
-          secretKey: undefined,
-          publicKey: keyPair.publicKey,
-          messages: [
-            stringToBytes("ExampleMessage"),
-            stringToBytes("ExampleMessage2"),
-            stringToBytes("ExampleMessage3"),
-          ],
-        };
-        await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
-          "Request object missing required element"
+      beforeAll(async () => {
+        keyPair = await bbs.ciphersuites.bls12381.generateKeyPair(
+          randomBytes(32),
+          randomBytes(32),
         );
       });
 
-      it("should throw error if public key not present", async () => {
-        const request: any = {
-          secretKey: keyPair.secretKey,
-          publicKey: undefined,
-          messages: [
-            stringToBytes("ExampleMessage"),
-            stringToBytes("ExampleMessage2"),
-            stringToBytes("ExampleMessage3"),
-          ],
-        };
-        await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
-          "Request object missing required element"
-        );
-      });
+      describe("sign", () => {
+        it("should sign a single message", async () => {
+          const request: BbsSignRequest = {
+            secretKey: keyPair.secretKey,
+            publicKey: keyPair.publicKey,
+            messages: [stringToBytes("ExampleMessage")],
+          };
+          const signature = await bbs.ciphersuites.bls12381.sign(request);
+          expect(signature).toBeInstanceOf(Uint8Array);
+          expect(signature.length).toEqual(bbs.ciphersuites.bls12381.SIGNATURE_LENGTH);
+        });
 
-      it("should throw error if secret length is too small", async () => {
-        const request: BbsSignRequest = {
-          secretKey: keyPair.secretKey?.slice(0, 10) ?? undefined,
-          publicKey: keyPair.publicKey,
-          messages: [
-            stringToBytes("ExampleMessage"),
-            stringToBytes("ExampleMessage2"),
-            stringToBytes("ExampleMessage3"),
-          ],
-        };
-        await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
-          "Error: vector to fixed-sized array conversion failed"
-        );
-      });
+        it("should sign multiple messages", async () => {
+          const request: BbsSignRequest = {
+            secretKey: keyPair.secretKey,
+            publicKey: keyPair.publicKey,
+            messages: [
+              stringToBytes("ExampleMessage"),
+              stringToBytes("ExampleMessage2"),
+              stringToBytes("ExampleMessage3"),
+            ],
+          };
+          const signature = await bbs.ciphersuites.bls12381.sign(request);
+          expect(signature).toBeInstanceOf(Uint8Array);
+          expect(signature.length).toEqual(bbs.ciphersuites.bls12381.SIGNATURE_LENGTH);
+        });
 
-      it("should throw error if secret length is too large", async () => {
-        const request: BbsSignRequest = {
-          secretKey: new Uint8Array([
-            ...keyPair.secretKey,
-            ...keyPair.secretKey,
-          ]),
-          publicKey: keyPair.publicKey,
-          messages: [
-            stringToBytes("ExampleMessage"),
-            stringToBytes("ExampleMessage2"),
-            stringToBytes("ExampleMessage3"),
-          ],
-        };
-        await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
-          "Error: vector to fixed-sized array conversion failed"
-        );
-      });
+        it("should throw error if secret key not present", async () => {
+          const request: any = {
+            secretKey: undefined,
+            publicKey: keyPair.publicKey,
+            messages: [
+              stringToBytes("ExampleMessage"),
+              stringToBytes("ExampleMessage2"),
+              stringToBytes("ExampleMessage3"),
+            ],
+          };
+          await expect(bbs.ciphersuites.bls12381.sign(request)).rejects.toThrowError(
+            "Request object missing required element"
+          );
+        });
 
-      it("should throw error when messages are empty and header is absent", async () => {
-        const request: BbsSignRequest = {
-          secretKey: keyPair.secretKey,
-          publicKey: keyPair.publicKey,
-          messages: [],
-        };
-        await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
-          "Error: bad arguments: cause: nothing to sign"
-        );
-      });
+        it("should throw error if public key not present", async () => {
+          const request: any = {
+            secretKey: keyPair.secretKey,
+            publicKey: undefined,
+            messages: [
+              stringToBytes("ExampleMessage"),
+              stringToBytes("ExampleMessage2"),
+              stringToBytes("ExampleMessage3"),
+            ],
+          };
+          await expect(bbs.ciphersuites.bls12381.sign(request)).rejects.toThrowError(
+            "Request object missing required element"
+          );
+        });
 
-      it("should throw when secret key invalid", async () => {
-        const request: BbsSignRequest = {
-          secretKey: new Uint8Array(32),
-          publicKey: keyPair.publicKey,
-          messages: [
-            stringToBytes("ExampleMessage"),
-            stringToBytes("ExampleMessage2"),
-            stringToBytes("ExampleMessage3"),
-          ],
-        };
-        await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
-          "Error: secret key is not valid."
-        );
+        it("should throw error if secret length is too small", async () => {
+          const request: BbsSignRequest = {
+            secretKey: keyPair.secretKey?.slice(0, 10) ?? undefined,
+            publicKey: keyPair.publicKey,
+            messages: [
+              stringToBytes("ExampleMessage"),
+              stringToBytes("ExampleMessage2"),
+              stringToBytes("ExampleMessage3"),
+            ],
+          };
+          await expect(bbs.ciphersuites.bls12381.sign(request)).rejects.toThrowError(
+            "Error: vector to fixed-sized array conversion failed"
+          );
+        });
+
+        it("should throw error if secret length is too large", async () => {
+          const request: BbsSignRequest = {
+            secretKey: new Uint8Array([
+              ...keyPair.secretKey,
+              ...keyPair.secretKey,
+            ]),
+            publicKey: keyPair.publicKey,
+            messages: [
+              stringToBytes("ExampleMessage"),
+              stringToBytes("ExampleMessage2"),
+              stringToBytes("ExampleMessage3"),
+            ],
+          };
+          await expect(bbs.ciphersuites.bls12381.sign(request)).rejects.toThrowError(
+            "Error: vector to fixed-sized array conversion failed"
+          );
+        });
+
+        it("should throw error when messages are empty and header is absent", async () => {
+          const request: BbsSignRequest = {
+            secretKey: keyPair.secretKey,
+            publicKey: keyPair.publicKey,
+            messages: [],
+          };
+          await expect(bbs.ciphersuites.bls12381.sign(request)).rejects.toThrowError(
+            "Error: bad arguments: cause: nothing to sign"
+          );
+        });
+
+        it("should throw when secret key invalid", async () => {
+          const request: BbsSignRequest = {
+            secretKey: new Uint8Array(32),
+            publicKey: keyPair.publicKey,
+            messages: [
+              stringToBytes("ExampleMessage"),
+              stringToBytes("ExampleMessage2"),
+              stringToBytes("ExampleMessage3"),
+            ],
+          };
+          await expect(bbs.ciphersuites.bls12381.sign(request)).rejects.toThrowError(
+            "Error: secret key is not valid."
+          );
+        });
       });
     });
   });

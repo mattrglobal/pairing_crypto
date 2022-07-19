@@ -14,7 +14,7 @@ lazy_static! {
 }
 
 #[no_mangle]
-pub extern "C" fn bls12381_bbs_sign_context_init(err: &mut ExternError) -> u64 {
+pub extern "C" fn bbs_bls12381_sign_context_init(err: &mut ExternError) -> u64 {
     BBS_SIGN_CONTEXT.insert_with_output(err, || BbsSignRequestDto {
         secret_key: Vec::new(),
         public_key: Vec::new(),
@@ -24,31 +24,31 @@ pub extern "C" fn bls12381_bbs_sign_context_init(err: &mut ExternError) -> u64 {
 }
 
 set_byte_array_impl!(
-    bls12381_bbs_sign_context_set_secret_key,
+    bbs_bls12381_sign_context_set_secret_key,
     BBS_SIGN_CONTEXT,
     secret_key
 );
 
 set_byte_array_impl!(
-    bls12381_bbs_sign_context_set_public_key,
+    bbs_bls12381_sign_context_set_public_key,
     BBS_SIGN_CONTEXT,
     public_key
 );
 
 set_byte_array_impl!(
-    bls12381_bbs_sign_context_set_header,
+    bbs_bls12381_sign_context_set_header,
     BBS_SIGN_CONTEXT,
     header
 );
 
 add_byte_array_impl!(
-    bls12381_bbs_sign_context_add_message,
+    bbs_bls12381_sign_context_add_message,
     BBS_SIGN_CONTEXT,
     messages
 );
 
 #[no_mangle]
-pub extern "C" fn bls12381_bbs_sign_context_finish(
+pub extern "C" fn bbs_bls12381_sign_context_finish(
     handle: u64,
     signature: &mut ByteBuffer,
     err: &mut ExternError,
@@ -105,4 +105,4 @@ pub extern "C" fn bls12381_bbs_sign_context_finish(
     err.get_code().code()
 }
 
-define_handle_map_deleter!(BBS_SIGN_CONTEXT, bls12381_bbs_sign_free);
+define_handle_map_deleter!(BBS_SIGN_CONTEXT, bbs_bls12381_sign_free);

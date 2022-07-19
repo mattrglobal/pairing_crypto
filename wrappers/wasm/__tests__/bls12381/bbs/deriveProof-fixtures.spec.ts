@@ -11,66 +11,17 @@
  * limitations under the License.
  */
 
-import { BbsDeriveProofRequest, bls12381 } from "../../../lib";
+import { BbsDeriveProofRequest, bbs } from "../../../lib";
 import { stringToBytes } from "../../utilities";
 import { SignatureFixture, signatureFixtures } from "../../../__fixtures__";
 
 signatureFixtures.forEach((item: SignatureFixture) => {
-  describe("bls12381", () => {
-    describe("bbs", () => {
-      describe("deriveProof - test fixtures", () => {
-        if (item.value.result.valid) {
-          it(`should deriveProof revealing all messages for case: ${item.value.caseName}`, async () => {
-            const request: BbsDeriveProofRequest = {
-              publicKey: new Uint8Array(
-                Buffer.from(item.value.signerKeyPair.publicKey, "hex")
-              ),
-              header: new Uint8Array(
-                Buffer.from(item.value.header, "hex")
-              ),
-              signature: new Uint8Array(
-                Buffer.from(item.value.signature, "hex")
-              ),
-              messages: item.value.messages.map((item) => {
-                return {
-                  value: new Uint8Array(Buffer.from(item, "hex")),
-                  reveal: true,
-                };
-              }),
-              presentationMessage: stringToBytes("0123456789"),
-            };
-
-            const proof = await bls12381.bbs.deriveProof(request);
-            expect(proof).toBeInstanceOf(Uint8Array);
-          });
-
-          it(`should deriveProof revealing no messages for case: ${item.value.caseName}`, async () => {
-            const request: BbsDeriveProofRequest = {
-              publicKey: new Uint8Array(
-                Buffer.from(item.value.signerKeyPair.publicKey, "hex")
-              ),
-              header: new Uint8Array(
-                Buffer.from(item.value.header, "hex")
-              ),
-              signature: new Uint8Array(
-                Buffer.from(item.value.signature, "hex")
-              ),
-              messages: item.value.messages.map((item) => {
-                return {
-                  value: new Uint8Array(Buffer.from(item, "hex")),
-                  reveal: false,
-                };
-              }),
-              presentationMessage: stringToBytes("0123456789"),
-            };
-
-            const proof = await bls12381.bbs.deriveProof(request);
-            expect(proof).toBeInstanceOf(Uint8Array);
-          });
-
-          if (item.value.messages.length > 1) {
-            it(`should deriveProof revealing some messages for case: ${item.value.caseName}`, async () => {
-              const messagesToReveal = [0]; // TODO could get more intelligent here
+  describe("bbs", () => {
+    describe("ciphersuites", () => {
+      describe("bls12381", () => {
+        describe("deriveProof - test fixtures", () => {
+          if (item.value.result.valid) {
+            it(`should deriveProof revealing all messages for case: ${item.value.caseName}`, async () => {
               const request: BbsDeriveProofRequest = {
                 publicKey: new Uint8Array(
                   Buffer.from(item.value.signerKeyPair.publicKey, "hex")
@@ -81,47 +32,98 @@ signatureFixtures.forEach((item: SignatureFixture) => {
                 signature: new Uint8Array(
                   Buffer.from(item.value.signature, "hex")
                 ),
-                messages: item.value.messages.map((item, index) => {
+                messages: item.value.messages.map((item) => {
                   return {
                     value: new Uint8Array(Buffer.from(item, "hex")),
-                    reveal: messagesToReveal.includes(index) ? true : false,
+                    reveal: true,
                   };
                 }),
                 presentationMessage: stringToBytes("0123456789"),
               };
 
-              const proof = await bls12381.bbs.deriveProof(request);
+              const proof = await bbs.ciphersuites.bls12381.deriveProof(request);
               expect(proof).toBeInstanceOf(Uint8Array);
             });
-          }
-        } else {
-          it(`should fail to deriveProof for case: ${item.value.caseName} because ${item.value.result["reason"]}`, async () => {
-            const request: BbsDeriveProofRequest = {
-              publicKey: new Uint8Array(
-                Buffer.from(item.value.signerKeyPair.publicKey, "hex")
-              ),
-              header: new Uint8Array(
-                Buffer.from(item.value.header, "hex")
-              ),
-              signature: new Uint8Array(
-                Buffer.from(item.value.signature, "hex")
-              ),
-              messages: item.value.messages.map((item) => {
-                return {
-                  value: new Uint8Array(Buffer.from(item, "hex")),
-                  reveal: true,
-                };
-              }),
-              presentationMessage: stringToBytes("0123456789"),
-            };
 
-            await expect(
-              bls12381.bbs.deriveProof(request)
-            ).rejects.toThrowError(
-              "Error: signature verification failed."
-            );
-          });
-        }
+            it(`should deriveProof revealing no messages for case: ${item.value.caseName}`, async () => {
+              const request: BbsDeriveProofRequest = {
+                publicKey: new Uint8Array(
+                  Buffer.from(item.value.signerKeyPair.publicKey, "hex")
+                ),
+                header: new Uint8Array(
+                  Buffer.from(item.value.header, "hex")
+                ),
+                signature: new Uint8Array(
+                  Buffer.from(item.value.signature, "hex")
+                ),
+                messages: item.value.messages.map((item) => {
+                  return {
+                    value: new Uint8Array(Buffer.from(item, "hex")),
+                    reveal: false,
+                  };
+                }),
+                presentationMessage: stringToBytes("0123456789"),
+              };
+
+              const proof = await bbs.ciphersuites.bls12381.deriveProof(request);
+              expect(proof).toBeInstanceOf(Uint8Array);
+            });
+
+            if (item.value.messages.length > 1) {
+              it(`should deriveProof revealing some messages for case: ${item.value.caseName}`, async () => {
+                const messagesToReveal = [0]; // TODO could get more intelligent here
+                const request: BbsDeriveProofRequest = {
+                  publicKey: new Uint8Array(
+                    Buffer.from(item.value.signerKeyPair.publicKey, "hex")
+                  ),
+                  header: new Uint8Array(
+                    Buffer.from(item.value.header, "hex")
+                  ),
+                  signature: new Uint8Array(
+                    Buffer.from(item.value.signature, "hex")
+                  ),
+                  messages: item.value.messages.map((item, index) => {
+                    return {
+                      value: new Uint8Array(Buffer.from(item, "hex")),
+                      reveal: messagesToReveal.includes(index) ? true : false,
+                    };
+                  }),
+                  presentationMessage: stringToBytes("0123456789"),
+                };
+
+                const proof = await bbs.ciphersuites.bls12381.deriveProof(request);
+                expect(proof).toBeInstanceOf(Uint8Array);
+              });
+            }
+          } else {
+            it(`should fail to deriveProof for case: ${item.value.caseName} because ${item.value.result["reason"]}`, async () => {
+              const request: BbsDeriveProofRequest = {
+                publicKey: new Uint8Array(
+                  Buffer.from(item.value.signerKeyPair.publicKey, "hex")
+                ),
+                header: new Uint8Array(
+                  Buffer.from(item.value.header, "hex")
+                ),
+                signature: new Uint8Array(
+                  Buffer.from(item.value.signature, "hex")
+                ),
+                messages: item.value.messages.map((item) => {
+                  return {
+                    value: new Uint8Array(Buffer.from(item, "hex")),
+                    reveal: true,
+                  };
+                }),
+                presentationMessage: stringToBytes("0123456789"),
+              };
+
+              await expect(
+                bbs.ciphersuites.bls12381.deriveProof(request)
+              ).rejects.toThrowError(
+                "Error: signature verification failed."
+              );
+            });
+          }
+        });
       });
     });
   });

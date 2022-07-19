@@ -11,10 +11,12 @@
  * limitations under the License.
  */
 
-describe("bls12381", () => {
-  describe("bbs", () => {
-    describe("deriveProof", () => {
-      it.todo("place holder test");
+describe("bbs", () => {
+  describe("ciphersuites", () => {
+    describe("bls12381", () => {
+      describe("deriveProof", () => {
+        it.todo("place holder test");
+      });
     });
   });
 });

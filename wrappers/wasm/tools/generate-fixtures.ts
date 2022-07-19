@@ -1,7 +1,7 @@
 import { randomBytes } from "@stablelib/random";
 import { generateMessages } from "../bench/helper";
 
-import { bls12381, KeyPair, utilities } from "../lib";
+import { bbs, KeyPair, utilities } from "../lib";
 
 import fs from "fs";
 
@@ -137,7 +137,7 @@ const generateFixture = async (
   let ikm = request.signerKeyIkm ?? randomBytes(32);
   let keyInfo = request.signerKeyInfo ?? randomBytes(32);
   let signerKeyPair =
-    request.signerKeyPair ?? (await bls12381.bbs.generateKeyPair(ikm, keyInfo));
+    request.signerKeyPair ?? (await bbs.ciphersuites.bls12381.generateKeyPair(ikm, keyInfo));
   const messages = request.numberOfMessages
     ? generateMessages(request.numberOfMessages, MESSAGE_SIZE_BYTES)
     : (request.messages as Uint8Array[]);
@@ -145,7 +145,7 @@ const generateFixture = async (
   let header = request.header ?? randomBytes(32);
 
 
-  const signature = await bls12381.bbs.sign({
+  const signature = await bbs.ciphersuites.bls12381.sign({
     secretKey: signerKeyPair.secretKey,
     publicKey: signerKeyPair.publicKey,
     header,
@@ -155,7 +155,7 @@ const generateFixture = async (
 
   if (request.verifyFixtures) {
     if (
-      !(await bls12381.bbs.verify({
+      !(await bbs.ciphersuites.bls12381.verify({
         publicKey: signerKeyPair.publicKey,
         header,
         messages,
@@ -173,7 +173,7 @@ const generateFixture = async (
     request.messagesToReveal
   );
 
-  const proof = await bls12381.bbs.deriveProof({
+  const proof = await bbs.ciphersuites.bls12381.deriveProof({
     messages: revealMessages,
     publicKey: signerKeyPair.publicKey,
     header,
