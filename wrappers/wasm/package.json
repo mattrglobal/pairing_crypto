@@ -1,10 +1,10 @@
 {
-    "name": "@mattrglobal/pairing-crypto-wasm",
+    "name": "@mattrglobal/pairing-crypto",
     "version": "0.1.0",
     "author": "MATTR",
     "license": "Apache-2.0",
     "private": false,
-    "description": "A compilation of the rust based 'pairing_crypto' crate to wasm",
+    "description": "A compilation of the rust based 'pairing-crypto' crate to wasm",
     "homepage": "https://github.com/mattrglobal/pairing_crypto",
     "main": "lib/index.js",
     "types": "lib/index.d.ts",
@@ -28,7 +28,8 @@
         "build": "./scripts/build-package.sh",
         "test": "jest",
         "benchmark": "ts-node bench/index.ts",
-        "generate-fixtures": "ts-node tools/generate-fixtures.ts"
+        "generate-fixtures": "ts-node tools/generate-fixtures.ts",
+        "publish:unstable": "./scripts/publish-unstable.sh"
     },
     "devDependencies": {
         "@commitlint/config-conventional": "^17.0.2",
