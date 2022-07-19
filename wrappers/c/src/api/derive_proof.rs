@@ -20,7 +20,7 @@ lazy_static! {
 }
 
 #[no_mangle]
-pub extern "C" fn bbs_bls12381_derive_proof_context_init(
+pub extern "C" fn bbs_ciphersuites_bls12381_derive_proof_context_init(
     err: &mut ExternError,
 ) -> u64 {
     BBS_DERIVE_PROOF_CONTEXT.insert_with_output(err, || {
@@ -35,31 +35,31 @@ pub extern "C" fn bbs_bls12381_derive_proof_context_init(
 }
 
 set_byte_array_impl!(
-    bbs_bls12381_derive_proof_context_set_public_key,
+    bbs_ciphersuites_bls12381_derive_proof_context_set_public_key,
     BBS_DERIVE_PROOF_CONTEXT,
     public_key
 );
 
 set_byte_array_impl!(
-    bbs_bls12381_derive_proof_context_set_header,
+    bbs_ciphersuites_bls12381_derive_proof_context_set_header,
     BBS_DERIVE_PROOF_CONTEXT,
     header
 );
 
 set_byte_array_impl!(
-    bbs_bls12381_derive_proof_context_set_signature,
+    bbs_ciphersuites_bls12381_derive_proof_context_set_signature,
     BBS_DERIVE_PROOF_CONTEXT,
     signature
 );
 
 set_byte_array_impl!(
-    bbs_bls12381_derive_proof_context_set_presentation_message,
+    bbs_ciphersuites_bls12381_derive_proof_context_set_presentation_message,
     BBS_DERIVE_PROOF_CONTEXT,
     presentation_message
 );
 
 #[no_mangle]
-pub extern "C" fn bbs_bls12381_derive_proof_context_add_message(
+pub extern "C" fn bbs_ciphersuites_bls12381_derive_proof_context_add_message(
     handle: u64,
     message: &mut ByteArray,
     reveal: bool,
@@ -80,7 +80,7 @@ pub extern "C" fn bbs_bls12381_derive_proof_context_add_message(
 }
 
 #[no_mangle]
-pub extern "C" fn bbs_bls12381_derive_proof_context_finish(
+pub extern "C" fn bbs_ciphersuites_bls12381_derive_proof_context_finish(
     handle: u64,
     proof: &mut ByteBuffer,
     err: &mut ExternError,
@@ -150,5 +150,5 @@ pub extern "C" fn bbs_bls12381_derive_proof_context_finish(
 
 define_handle_map_deleter!(
     BBS_DERIVE_PROOF_CONTEXT,
-    bbs_bls12381_derive_proof_free
+    bbs_ciphersuites_bls12381_derive_proof_free
 );

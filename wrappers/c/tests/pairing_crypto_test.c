@@ -44,7 +44,7 @@ int main(int argc, char **argv)
     printf("Create BLS12381 key pair...");
     fflush(stdout);
 
-    if (bls12381_generate_key_pair(*ikm, *key_info, (ByteBuffer *)secret_key, (ByteBuffer *)public_key, err) != 0)
+    if (bbs_ciphersuites_bls12381_generate_key_pair(*ikm, *key_info, (ByteBuffer *)secret_key, (ByteBuffer *)public_key, err) != 0)
     {
         // TODO need to check the actual value of the populated public key and secret key
         printf("fail\n");
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 
     printf("Create sign context...");
     fflush(stdout);
-    handle = bls12381_bbs_sign_context_init(err);
+    handle = bbs_ciphersuites_bls12381_sign_context_init(err);
 
     if (handle == 0)
     {
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 
     printf("Set secret key in sign context...");
     fflush(stdout);
-    if (bls12381_bbs_sign_context_set_secret_key(handle, *secret_key, err) != 0)
+    if (bbs_ciphersuites_bls12381_sign_context_set_secret_key(handle, *secret_key, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 
     printf("Set public key in sign context...");
     fflush(stdout);
-    if (bls12381_bbs_sign_context_set_public_key(handle, *public_key, err) != 0)
+    if (bbs_ciphersuites_bls12381_sign_context_set_public_key(handle, *public_key, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 
     printf("Set header in sign context...");
     fflush(stdout);
-    if (bls12381_bbs_sign_context_set_header(handle, *header, err) != 0)
+    if (bbs_ciphersuites_bls12381_sign_context_set_header(handle, *header, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
     fflush(stdout);
     for (i = 0; i < message_count; i++)
     {
-        if (bls12381_bbs_sign_context_add_message(handle, *messages[i], err) != 0)
+        if (bbs_ciphersuites_bls12381_sign_context_add_message(handle, *messages[i], err) != 0)
         {
             printf("fail\n");
             goto Fail;
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 
     printf("Sign %d messages ...", message_count);
     fflush(stdout);
-    if (bls12381_bbs_sign_context_finish(handle, (ByteBuffer *)signature, err) != 0)
+    if (bbs_ciphersuites_bls12381_sign_context_finish(handle, (ByteBuffer *)signature, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -131,7 +131,7 @@ int main(int argc, char **argv)
 
     printf("Create new verify signature context...");
     fflush(stdout);
-    handle = bls12381_bbs_verify_context_init(err);
+    handle = bbs_ciphersuites_bls12381_verify_context_init(err);
     if (handle == 0)
     {
         printf("fail\n");
@@ -141,7 +141,7 @@ int main(int argc, char **argv)
 
     printf("Set public key in verify signature context...");
     fflush(stdout);
-    if (bls12381_bbs_verify_context_set_public_key(handle, *public_key, err) != 0)
+    if (bbs_ciphersuites_bls12381_verify_context_set_public_key(handle, *public_key, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
 
     printf("Set header in verify context...");
     fflush(stdout);
-    if (bls12381_bbs_verify_context_set_header(handle, *header, err) != 0)
+    if (bbs_ciphersuites_bls12381_verify_context_set_header(handle, *header, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
     fflush(stdout);
     for (i = 0; i < message_count; i++)
     {
-        if (bls12381_bbs_verify_context_set_message(handle, *messages[i], err) != 0)
+        if (bbs_ciphersuites_bls12381_verify_context_set_message(handle, *messages[i], err) != 0)
         {
             printf("fail\n");
             goto Fail;
@@ -171,7 +171,7 @@ int main(int argc, char **argv)
 
     printf("Set signature in verify signature context...");
     fflush(stdout);
-    if (bls12381_bbs_verify_context_set_signature(handle, *signature, err) != 0)
+    if (bbs_ciphersuites_bls12381_verify_context_set_signature(handle, *signature, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -180,7 +180,7 @@ int main(int argc, char **argv)
 
     printf("Verifying signature...");
     fflush(stdout);
-    if (bls12381_bbs_verify_context_finish(handle, err) != 0)
+    if (bbs_ciphersuites_bls12381_verify_context_finish(handle, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -189,7 +189,7 @@ int main(int argc, char **argv)
 
     printf("Create new derive proof context...");
     fflush(stdout);
-    handle = bls12381_bbs_derive_proof_context_init(err);
+    handle = bbs_ciphersuites_bls12381_derive_proof_context_init(err);
     if (handle == 0)
     {
         printf("fail\n");
@@ -199,7 +199,7 @@ int main(int argc, char **argv)
 
     printf("Set header in proof context...");
     fflush(stdout);
-    if (bls12381_bbs_derive_proof_context_set_header(handle, *header, err) != 0)
+    if (bbs_ciphersuites_bls12381_derive_proof_context_set_header(handle, *header, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -210,7 +210,7 @@ int main(int argc, char **argv)
     fflush(stdout);
     for (i = 0; i < message_count; i++)
     {
-        if (bls12381_bbs_derive_proof_context_add_message(handle, messages[i], true, err) != 0)
+        if (bbs_ciphersuites_bls12381_derive_proof_context_add_message(handle, messages[i], true, err) != 0)
         {
             printf("fail\n");
             goto Fail;
@@ -220,7 +220,7 @@ int main(int argc, char **argv)
 
     printf("Setting signature in proof context...");
     fflush(stdout);
-    if (bls12381_bbs_derive_proof_context_set_signature(handle, *signature, err) != 0)
+    if (bbs_ciphersuites_bls12381_derive_proof_context_set_signature(handle, *signature, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -229,7 +229,7 @@ int main(int argc, char **argv)
 
     printf("Set public key in proof context...");
     fflush(stdout);
-    if (bls12381_bbs_derive_proof_context_set_public_key(handle, *public_key, err) != 0)
+    if (bbs_ciphersuites_bls12381_derive_proof_context_set_public_key(handle, *public_key, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -238,7 +238,7 @@ int main(int argc, char **argv)
 
     printf("Set presentation message in proof context...");
     fflush(stdout);
-    if (bls12381_bbs_derive_proof_context_set_presentation_message(handle, *presentation_message, err) != 0)
+    if (bbs_ciphersuites_bls12381_derive_proof_context_set_presentation_message(handle, *presentation_message, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -247,7 +247,7 @@ int main(int argc, char **argv)
 
     printf("Creating proof...");
     fflush(stdout);
-    if (bls12381_bbs_derive_proof_context_finish(handle, (ByteBuffer *)proof, err) != 0)
+    if (bbs_ciphersuites_bls12381_derive_proof_context_finish(handle, (ByteBuffer *)proof, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -256,7 +256,7 @@ int main(int argc, char **argv)
 
     printf("Create new verify proof context...");
     fflush(stdout);
-    handle = bls12381_bbs_verify_proof_context_init(err);
+    handle = bbs_ciphersuites_bls12381_verify_proof_context_init(err);
     if (handle == 0)
     {
         printf("fail\n");
@@ -266,7 +266,7 @@ int main(int argc, char **argv)
 
     printf("Set header in proof context...");
     fflush(stdout);
-    if (bls12381_bbs_verify_proof_context_set_header(handle, *header, err) != 0)
+    if (bbs_ciphersuites_bls12381_verify_proof_context_set_header(handle, *header, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -277,7 +277,7 @@ int main(int argc, char **argv)
     fflush(stdout);
     for (i = 0; i < message_count; i++)
     {
-        if (bls12381_bbs_verify_proof_context_add_message(handle, messages[i], true, err) != 0)
+        if (bbs_ciphersuites_bls12381_verify_proof_context_add_message(handle, messages[i], true, err) != 0)
         {
             printf("fail\n");
             goto Fail;
@@ -287,7 +287,7 @@ int main(int argc, char **argv)
 
     printf("Setting proof in proof context...");
     fflush(stdout);
-    if (bls12381_bbs_verify_proof_context_set_proof(handle, *proof, err) != 0)
+    if (bbs_ciphersuites_bls12381_verify_proof_context_set_proof(handle, *proof, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -296,7 +296,7 @@ int main(int argc, char **argv)
 
     printf("Set public key in proof context...");
     fflush(stdout);
-    if (bls12381_bbs_verify_proof_context_set_public_key(handle, *public_key, err) != 0)
+    if (bbs_ciphersuites_bls12381_verify_proof_context_set_public_key(handle, *public_key, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -305,7 +305,7 @@ int main(int argc, char **argv)
 
     printf("Set presentation message in proof context...");
     fflush(stdout);
-    if (bls12381_bbs_verify_proof_context_set_presentation_message(handle, *presentation_message, err) != 0)
+    if (bbs_ciphersuites_bls12381_verify_proof_context_set_presentation_message(handle, *presentation_message, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -314,7 +314,7 @@ int main(int argc, char **argv)
 
     printf("Verifying proof...");
     fflush(stdout);
-    if (bls12381_bbs_verify_proof_context_finish(handle, err) != 0)
+    if (bbs_ciphersuites_bls12381_verify_proof_context_finish(handle, err) != 0)
     {
         printf("fail\n");
         goto Fail;
