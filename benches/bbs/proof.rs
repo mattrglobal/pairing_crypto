@@ -52,7 +52,7 @@ fn proof_all_hidden_benchmark(c: &mut Criterion) {
         let messages: Vec<&[u8]> =
             messages.iter().map(|m| m.as_ref()).collect();
 
-        let signature = sign(BbsSignRequest {
+        let signature = sign(&BbsSignRequest {
             secret_key: &secret_key,
             public_key: &public_key,
             header: Some(header),
@@ -61,7 +61,7 @@ fn proof_all_hidden_benchmark(c: &mut Criterion) {
         .expect("signature generation failed");
 
         assert_eq!(
-            verify(BbsVerifyRequest {
+            verify(&BbsVerifyRequest {
                 public_key: &public_key,
                 header: Some(header),
                 messages: Some(messages.as_slice()),
@@ -84,7 +84,7 @@ fn proof_all_hidden_benchmark(c: &mut Criterion) {
             &format!("proof_gen all hidden - total messages {}", num_messages),
             |b| {
                 b.iter(|| {
-                    proof_gen(BbsProofGenRequest {
+                    proof_gen(&BbsProofGenRequest {
                         public_key: black_box(&public_key),
                         header: black_box(Some(header)),
                         messages: black_box(Some(&proof_messages)),
@@ -98,7 +98,7 @@ fn proof_all_hidden_benchmark(c: &mut Criterion) {
             },
         );
 
-        let proof = proof_gen(BbsProofGenRequest {
+        let proof = proof_gen(&BbsProofGenRequest {
             public_key: &public_key,
             header: Some(header),
             messages: Some(&proof_messages),
@@ -114,7 +114,7 @@ fn proof_all_hidden_benchmark(c: &mut Criterion) {
             ),
             |b| {
                 b.iter(|| {
-                    assert!(proof_verify(BbsProofVerifyRequest {
+                    assert!(proof_verify(&BbsProofVerifyRequest {
                         public_key: black_box(&public_key),
                         header: Some(header),
                         presentation_message: black_box(Some(
@@ -146,7 +146,7 @@ fn proof_50_percent_revealed_benchmark(c: &mut Criterion) {
         let messages: Vec<&[u8]> =
             messages.iter().map(|m| m.as_ref()).collect();
 
-        let signature = sign(BbsSignRequest {
+        let signature = sign(&BbsSignRequest {
             secret_key: &secret_key,
             public_key: &public_key,
             header: Some(header),
@@ -155,7 +155,7 @@ fn proof_50_percent_revealed_benchmark(c: &mut Criterion) {
         .expect("signature generation failed");
 
         assert_eq!(
-            verify(BbsVerifyRequest {
+            verify(&BbsVerifyRequest {
                 public_key: &public_key,
                 header: Some(header),
                 messages: Some(messages.as_slice()),
@@ -192,7 +192,7 @@ fn proof_50_percent_revealed_benchmark(c: &mut Criterion) {
             ),
             |b| {
                 b.iter(|| {
-                    proof_gen(BbsProofGenRequest {
+                    proof_gen(&BbsProofGenRequest {
                         public_key: black_box(&public_key),
                         header: Some(header),
                         messages: black_box(Some(&proof_messages)),
@@ -206,7 +206,7 @@ fn proof_50_percent_revealed_benchmark(c: &mut Criterion) {
             },
         );
 
-        let proof = proof_gen(BbsProofGenRequest {
+        let proof = proof_gen(&BbsProofGenRequest {
             public_key: &public_key,
             header: Some(header),
             messages: Some(&proof_messages),
@@ -222,7 +222,7 @@ fn proof_50_percent_revealed_benchmark(c: &mut Criterion) {
             ),
             |b| {
                 b.iter(|| {
-                    assert!(proof_verify(BbsProofVerifyRequest {
+                    assert!(proof_verify(&BbsProofVerifyRequest {
                         public_key: black_box(&public_key),
                         header: Some(header),
                         presentation_message: black_box(Some(
