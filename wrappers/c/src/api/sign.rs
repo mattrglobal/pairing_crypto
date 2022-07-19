@@ -86,7 +86,7 @@ pub extern "C" fn bls12381_bbs_sign_context_finish(
                 Some(messages.as_slice())
             };
 
-            let s = sign(BbsSignRequest {
+            let s = sign(&BbsSignRequest {
                 secret_key: &secret_key,
                 public_key: &public_key,
                 header,

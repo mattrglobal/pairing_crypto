@@ -43,7 +43,7 @@ fn sign_benchmark(c: &mut Criterion) {
             &format!("sign - total messages {}", num_messages),
             |b| {
                 b.iter(|| {
-                    sign(BbsSignRequest {
+                    sign(&BbsSignRequest {
                         secret_key: black_box(&secret_key),
                         public_key: black_box(&public_key),
                         header: black_box(Some(header)),
@@ -54,7 +54,7 @@ fn sign_benchmark(c: &mut Criterion) {
             },
         );
 
-        let signature = sign(BbsSignRequest {
+        let signature = sign(&BbsSignRequest {
             secret_key: &secret_key,
             public_key: &public_key,
             header: Some(header),
@@ -66,7 +66,7 @@ fn sign_benchmark(c: &mut Criterion) {
             &format!("sign_verify - total messages {}", num_messages),
             |b| {
                 b.iter(|| {
-                    assert!(verify(BbsVerifyRequest {
+                    assert!(verify(&BbsVerifyRequest {
                         public_key: black_box(&public_key),
                         header: black_box(Some(header)),
                         messages: black_box(Some(&messages[..])),

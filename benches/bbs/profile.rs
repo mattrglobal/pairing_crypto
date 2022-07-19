@@ -75,7 +75,7 @@ fn profile_sign(c: &mut Criterion) {
         &format!("profile - sign total messages {}", NUM_MESSAGES),
         |b| {
             b.iter(|| {
-                sign(BbsSignRequest {
+                sign(&BbsSignRequest {
                     secret_key: black_box(&secret_key),
                     public_key: black_box(&public_key),
                     header: black_box(Some(header)),
@@ -97,7 +97,7 @@ fn profile_verify(c: &mut Criterion) {
     }
     let messages: Vec<&[u8]> = messages.iter().map(|m| m.as_ref()).collect();
 
-    let signature = sign(BbsSignRequest {
+    let signature = sign(&BbsSignRequest {
         secret_key: &secret_key,
         public_key: &public_key,
         header: Some(header),
@@ -109,7 +109,7 @@ fn profile_verify(c: &mut Criterion) {
         &format!("profile - verify total messages {}", NUM_MESSAGES),
         |b| {
             b.iter(|| {
-                assert!(verify(BbsVerifyRequest {
+                assert!(verify(&BbsVerifyRequest {
                     public_key: black_box(&public_key),
                     header: black_box(Some(header)),
                     messages: black_box(Some(&messages[..])),
@@ -132,7 +132,7 @@ fn profile_proof_gen(c: &mut Criterion) {
     }
     let messages: Vec<&[u8]> = messages.iter().map(|m| m.as_ref()).collect();
 
-    let signature = sign(BbsSignRequest {
+    let signature = sign(&BbsSignRequest {
         secret_key: &secret_key,
         public_key: &public_key,
         header: Some(header),
@@ -141,7 +141,7 @@ fn profile_proof_gen(c: &mut Criterion) {
     .expect("signature generation failed");
 
     assert_eq!(
-        verify(BbsVerifyRequest {
+        verify(&BbsVerifyRequest {
             public_key: &public_key,
             header: Some(header),
             messages: Some(messages.as_slice()),
@@ -170,7 +170,7 @@ fn profile_proof_gen(c: &mut Criterion) {
         ),
         |b| {
             b.iter(|| {
-                proof_gen(BbsProofGenRequest {
+                proof_gen(&BbsProofGenRequest {
                     public_key: black_box(&public_key),
                     header: Some(header),
                     messages: black_box(Some(&proof_messages)),
@@ -194,7 +194,7 @@ fn profile_proof_verify(c: &mut Criterion) {
     }
     let messages: Vec<&[u8]> = messages.iter().map(|m| m.as_ref()).collect();
 
-    let signature = sign(BbsSignRequest {
+    let signature = sign(&BbsSignRequest {
         secret_key: &secret_key,
         public_key: &public_key,
         header: Some(header),
@@ -203,7 +203,7 @@ fn profile_proof_verify(c: &mut Criterion) {
     .expect("signature generation failed");
 
     assert_eq!(
-        verify(BbsVerifyRequest {
+        verify(&BbsVerifyRequest {
             public_key: &public_key,
             header: Some(header),
             messages: Some(messages.as_slice()),
@@ -230,7 +230,7 @@ fn profile_proof_verify(c: &mut Criterion) {
         .map(|(k, m)| (k as usize, m.clone()))
         .collect::<Vec<(usize, &[u8])>>();
 
-    let proof = proof_gen(BbsProofGenRequest {
+    let proof = proof_gen(&BbsProofGenRequest {
         public_key: &public_key,
         header: Some(header),
         messages: Some(&proof_messages),
@@ -246,7 +246,7 @@ fn profile_proof_verify(c: &mut Criterion) {
         ),
         |b| {
             b.iter(|| {
-                assert!(proof_verify(BbsProofVerifyRequest {
+                assert!(proof_verify(&BbsProofVerifyRequest {
                     public_key: black_box(&public_key),
                     header: Some(header),
                     presentation_message: black_box(Some(presentation_message)),
