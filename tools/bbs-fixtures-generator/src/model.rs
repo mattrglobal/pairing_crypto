@@ -14,6 +14,8 @@ pub struct TestAsset {
     #[serde(deserialize_with = "hex::serde::deserialize")]
     pub key_ikm: Vec<u8>,
     #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub spare_key_ikm: Vec<u8>,
+    #[serde(deserialize_with = "hex::serde::deserialize")]
     pub key_info: Vec<u8>,
     #[serde(deserialize_with = "hex::serde::deserialize")]
     pub header: Vec<u8>,
@@ -25,6 +27,7 @@ pub struct TestAsset {
 #[derive(Debug, Default, Clone)]
 pub struct FixtureGenInput {
     pub key_pair: KeyPair,
+    pub spare_key_pair: KeyPair,
     pub header: Vec<u8>,
     pub presentation_message: Vec<u8>,
     pub messages: Vec<Vec<u8>>,
@@ -33,6 +36,7 @@ pub struct FixtureGenInput {
 impl From<TestAsset> for FixtureGenInput {
     fn from(t: TestAsset) -> Self {
         let key_pair = KeyPair::new(&t.key_ikm, &t.key_info).unwrap();
+        let spare_key_pair = KeyPair::new(&t.key_ikm, &t.key_info).unwrap();
 
         let messages = t
             .messages
@@ -42,6 +46,7 @@ impl From<TestAsset> for FixtureGenInput {
 
         Self {
             key_pair,
+            spare_key_pair,
             header: t.header,
             presentation_message: t.presentation_message,
             messages,

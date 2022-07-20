@@ -8,7 +8,7 @@ use pairing_crypto::bbs::{
     },
     core::key_pair::KeyPair,
 };
-use rand::{prelude::SliceRandom, rngs::OsRng, thread_rng};
+use rand::{prelude::SliceRandom, thread_rng};
 use std::path::PathBuf;
 
 use crate::{
@@ -125,8 +125,10 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
     save_test_vector_to_file(&fixture, &output_dir.join("signature006.json"));
 
     // multi message - wrong public key
-    let key_pair =
-        KeyPair::random(&mut OsRng, b"some-key-info".as_ref()).unwrap();
+    let key_pair = KeyPair {
+        secret_key: fixture_gen_input.key_pair.secret_key.clone(),
+        public_key: fixture_gen_input.spare_key_pair.public_key,
+    };
     let fixture = FixtureSignature {
         case_name: "multi-message signature".to_owned(),
         key_pair,
