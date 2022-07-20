@@ -23,23 +23,22 @@ import {
 export * from "./types";
 
 export namespace bbs {
-  namespace ciphersuites {
 
-    namespace bls12381 {
-      const PRIVATE_KEY_LENGTH = 32;
-      const PUBLIC_KEY_LENGTH = 96;
-      const SIGNATURE_LENGTH = 112;
+  namespace bls12381 {
+    const PRIVATE_KEY_LENGTH = 32;
+    const PUBLIC_KEY_LENGTH = 96;
+    const SIGNATURE_LENGTH = 112;
 
-      function generateKeyPair(ikm: Uint8Array, keyInfo: Uint8Array): Promise<Required<KeyPair>>;
-      function sign(request: BbsSignRequest): Promise<Uint8Array>;
-      function verify(request: BbsVerifyRequest): Promise<BbsVerifyResult>;
-      function deriveProof(request: BbsDeriveProofRequest): Promise<Uint8Array>;
-      function verifyProof(
-        request: BbsVerifyProofRequest
-      ): Promise<BbsVerifyResult>;
-    }
+    function generateKeyPair(ikm: Uint8Array, keyInfo: Uint8Array): Promise<Required<KeyPair>>;
+    function sign(request: BbsSignRequest): Promise<Uint8Array>;
+    function verify(request: BbsVerifyRequest): Promise<BbsVerifyResult>;
+    function deriveProof(request: BbsDeriveProofRequest): Promise<Uint8Array>;
+    function verifyProof(
+      request: BbsVerifyProofRequest
+    ): Promise<BbsVerifyResult>;
   }
 }
+
 
 export namespace utilities {
   function convertToRevealMessageArray(

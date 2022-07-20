@@ -30,7 +30,7 @@ const runBbsBenchmark = async (
   messageSizeInBytes: number,
   numberRevealed: number
 ): Promise<void> => {
-  const keyPair = await bbs.ciphersuites.bls12381.generateKeyPair(randomBytes(32), randomBytes(32));
+  const keyPair = await bbs.bls12381.generateKeyPair(randomBytes(32), randomBytes(32));
   const messages = generateMessages(numberOfMessages, messageSizeInBytes);
   const header = randomBytes(50);
 
@@ -41,7 +41,7 @@ const runBbsBenchmark = async (
     messages,
   };
 
-  const messageSignature = await bbs.ciphersuites.bls12381.sign(messageSignRequest);
+  const messageSignature = await bbs.bls12381.sign(messageSignRequest);
 
   const messageVerifyRequest = {
     signature: messageSignature,
@@ -65,7 +65,7 @@ const runBbsBenchmark = async (
     presentationMessage,
   };
 
-  const proof = await bbs.ciphersuites.bls12381.deriveProof(messageDeriveProof);
+  const proof = await bbs.bls12381.deriveProof(messageDeriveProof);
 
   const verifyProofRequest: BbsVerifyProofRequest = {
     proof,
@@ -78,29 +78,29 @@ const runBbsBenchmark = async (
 
   report(
     `BBS Sign ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
-    await benchmarkPromise(() => bbs.ciphersuites.bls12381.sign(messageSignRequest))
+    await benchmarkPromise(() => bbs.bls12381.sign(messageSignRequest))
   );
 
   report(
     `BBS Verify ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
-    await benchmarkPromise(() => bbs.ciphersuites.bls12381.verify(messageVerifyRequest))
+    await benchmarkPromise(() => bbs.bls12381.verify(messageVerifyRequest))
   );
 
   report(
     `BBS Derive Proof ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
-    await benchmarkPromise(() => bbs.ciphersuites.bls12381.deriveProof(messageDeriveProof))
+    await benchmarkPromise(() => bbs.bls12381.deriveProof(messageDeriveProof))
   );
 
   report(
     `BBS Verify Proof ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
-    await benchmarkPromise(() => bbs.ciphersuites.bls12381.verifyProof(verifyProofRequest))
+    await benchmarkPromise(() => bbs.bls12381.verifyProof(verifyProofRequest))
   );
 };
 
 (async () => {
   report(
     "BBS Key Generation",
-    await benchmarkPromise(() => bbs.ciphersuites.bls12381.generateKeyPair(randomBytes(32), randomBytes(32)))
+    await benchmarkPromise(() => bbs.bls12381.generateKeyPair(randomBytes(32), randomBytes(32)))
   );
 
   // ------------------------------ 1, 100 byte message ------------------------------

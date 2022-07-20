@@ -12,11 +12,9 @@
  */
 
 describe("bbs", () => {
-  describe("ciphersuites", () => {
-    describe("bls12381", () => {
-      describe("deriveProof", () => {
-        it.todo("place holder test");
-      });
+  describe("bls12381", () => {
+    describe("deriveProof", () => {
+      it.todo("place holder test");
     });
   });
 });

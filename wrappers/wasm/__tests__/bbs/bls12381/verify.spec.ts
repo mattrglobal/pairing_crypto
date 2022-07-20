@@ -16,79 +16,77 @@ import { BbsVerifyRequest, bbs, KeyPair } from "../../../lib/index";
 import { base64Decode, stringToBytes } from "../../utilities";
 
 describe("bbs", () => {
-  describe("ciphersuites", () => {
-    describe("bls12381", () => {
-      describe("verify", () => {
-        let keyPair: KeyPair;
+  describe("bls12381", () => {
+    describe("verify", () => {
+      let keyPair: KeyPair;
 
-        beforeAll(async () => {
-          keyPair = await bbs.ciphersuites.bls12381.generateKeyPair(randomBytes(32),
-            randomBytes(32));
-        });
+      beforeAll(async () => {
+        keyPair = await bbs.bls12381.generateKeyPair(randomBytes(32),
+          randomBytes(32));
+      });
 
-        it("should throw error when signature wrong length", async () => {
-          const request: BbsVerifyRequest = {
-            publicKey: keyPair.publicKey,
-            messages: [stringToBytes("ExampleMessage")],
-            signature: base64Decode("jYidhsdqxvAyNXMV4/vNfGM/4AULfSyf"),
-          };
-          await expect(bbs.ciphersuites.bls12381.verify(request)).rejects.toThrowError(
-            "Error: vector to fixed-sized array conversion failed"
-          );
-        });
+      it("should throw error when signature wrong length", async () => {
+        const request: BbsVerifyRequest = {
+          publicKey: keyPair.publicKey,
+          messages: [stringToBytes("ExampleMessage")],
+          signature: base64Decode("jYidhsdqxvAyNXMV4/vNfGM/4AULfSyf"),
+        };
+        await expect(bbs.bls12381.verify(request)).rejects.toThrowError(
+          "Error: vector to fixed-sized array conversion failed"
+        );
+      });
 
-        // TODO fixture
-        it("should not verify valid signature with wrong single message", async () => {
-          const messages = [stringToBytes("BadMessage")];
-          const verifyRequest: BbsVerifyRequest = {
-            publicKey: keyPair.publicKey,
-            messages,
-            signature: base64Decode(
-              "kTV8dar9xLWQZ5EzaWYqTRmgA6dw6wcrUw5c///crRD2QQPXX9Di+lgCPCXAA5D8Pytuh6bNSx6k4NZTR9KfSNdaejKl2zTU9poRfzZ2SIskdgSHTZ2y7jLm/UEGKsAs3tticBVj1Pm2GNhQI/OlXQ=="
-            ),
-          };
-          expect((await bbs.ciphersuites.bls12381.verify(verifyRequest)).verified).toBeFalsy();
-        });
+      // TODO fixture
+      it("should not verify valid signature with wrong single message", async () => {
+        const messages = [stringToBytes("BadMessage")];
+        const verifyRequest: BbsVerifyRequest = {
+          publicKey: keyPair.publicKey,
+          messages,
+          signature: base64Decode(
+            "kTV8dar9xLWQZ5EzaWYqTRmgA6dw6wcrUw5c///crRD2QQPXX9Di+lgCPCXAA5D8Pytuh6bNSx6k4NZTR9KfSNdaejKl2zTU9poRfzZ2SIskdgSHTZ2y7jLm/UEGKsAs3tticBVj1Pm2GNhQI/OlXQ=="
+          ),
+        };
+        expect((await bbs.bls12381.verify(verifyRequest)).verified).toBeFalsy();
+      });
 
-        it("should not verify valid signature with wrong messages", async () => {
-          const messages = [
-            stringToBytes("BadMessage"),
-            stringToBytes("BadMessage"),
-            stringToBytes("BadMessage"),
-          ];
-          const verifyRequest: BbsVerifyRequest = {
-            publicKey: keyPair.publicKey,
-            messages,
-            signature: base64Decode(
-              "jYidhsdqxvAyNXMV4/vNfGM/4AULfSyfvQiwh+dDd4JtnT5xHnwpzMYdLdHzBYwXaGE1k6ln/pwtI4RwQZpl03SCv/mT/3AdK8PB2y43MGdMSeGTyZGfZf+rUrEDEs3lTfmPK54E+JBzd96gnrF2iQ=="
-            ),
-          };
-          expect((await bbs.ciphersuites.bls12381.verify(verifyRequest)).verified).toBeFalsy();
-        });
+      it("should not verify valid signature with wrong messages", async () => {
+        const messages = [
+          stringToBytes("BadMessage"),
+          stringToBytes("BadMessage"),
+          stringToBytes("BadMessage"),
+        ];
+        const verifyRequest: BbsVerifyRequest = {
+          publicKey: keyPair.publicKey,
+          messages,
+          signature: base64Decode(
+            "jYidhsdqxvAyNXMV4/vNfGM/4AULfSyfvQiwh+dDd4JtnT5xHnwpzMYdLdHzBYwXaGE1k6ln/pwtI4RwQZpl03SCv/mT/3AdK8PB2y43MGdMSeGTyZGfZf+rUrEDEs3lTfmPK54E+JBzd96gnrF2iQ=="
+          ),
+        };
+        expect((await bbs.bls12381.verify(verifyRequest)).verified).toBeFalsy();
+      });
 
-        it("should not verify when messages empty", async () => {
-          const request: BbsVerifyRequest = {
-            publicKey: keyPair.publicKey,
-            messages: [],
-            signature: base64Decode(
-              "jYidhsdqxvAyNXMV4/vNfGM/4AULfSyfvQiwh+dDd4JtnT5xHnwpzMYdLdHzBYwXaGE1k6ln/pwtI4RwQZpl03SCv/mT/3AdK8PB2y43MGdMSeGTyZGfZf+rUrEDEs3lTfmPK54E+JBzd96gnrF2iQ=="
-            ),
-          };
-          expect((await bbs.ciphersuites.bls12381.verify(request)).verified).toBeFalsy();
-        });
+      it("should not verify when messages empty", async () => {
+        const request: BbsVerifyRequest = {
+          publicKey: keyPair.publicKey,
+          messages: [],
+          signature: base64Decode(
+            "jYidhsdqxvAyNXMV4/vNfGM/4AULfSyfvQiwh+dDd4JtnT5xHnwpzMYdLdHzBYwXaGE1k6ln/pwtI4RwQZpl03SCv/mT/3AdK8PB2y43MGdMSeGTyZGfZf+rUrEDEs3lTfmPK54E+JBzd96gnrF2iQ=="
+          ),
+        };
+        expect((await bbs.bls12381.verify(request)).verified).toBeFalsy();
+      });
 
-        it("should not verify when public key invalid length", async () => {
-          const request: BbsVerifyRequest = {
-            publicKey: new Uint8Array(20),
-            messages: [],
-            signature: base64Decode(
-              "jYidhsdqxvAyNXMV4/vNfGM/4AULfSyfvQiwh+dDd4JtnT5xHnwpzMYdLdHzBYwXaGE1k6ln/pwtI4RwQZpl03SCv/mT/3AdK8PB2y43MGdMSeGTyZGfZf+rUrEDEs3lTfmPK54E+JBzd96gnrF2iQ=="
-            ),
-          };
-          await expect(bbs.ciphersuites.bls12381.verify(request)).rejects.toThrowError(
-            "Error: vector to fixed-sized array conversion failed"
-          );
-        });
+      it("should not verify when public key invalid length", async () => {
+        const request: BbsVerifyRequest = {
+          publicKey: new Uint8Array(20),
+          messages: [],
+          signature: base64Decode(
+            "jYidhsdqxvAyNXMV4/vNfGM/4AULfSyfvQiwh+dDd4JtnT5xHnwpzMYdLdHzBYwXaGE1k6ln/pwtI4RwQZpl03SCv/mT/3AdK8PB2y43MGdMSeGTyZGfZf+rUrEDEs3lTfmPK54E+JBzd96gnrF2iQ=="
+          ),
+        };
+        await expect(bbs.bls12381.verify(request)).rejects.toThrowError(
+          "Error: vector to fixed-sized array conversion failed"
+        );
       });
     });
   });

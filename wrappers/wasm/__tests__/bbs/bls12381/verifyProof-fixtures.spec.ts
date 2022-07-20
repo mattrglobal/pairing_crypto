@@ -17,13 +17,40 @@ import { ProofFixture, proofFixtures } from "../../../__fixtures__";
 
 proofFixtures.forEach((item: ProofFixture) => {
   describe("bbs", () => {
-    describe("ciphersuites", () => {
-      describe("bls12381", () => {
-        describe("verifyProof - test fixtures", () => {
-          if (item.value.result.valid) {
-            it(`should verify case: ${item.value.caseName}`, async () => {
-              expect(
-                await bbs.ciphersuites.bls12381.verifyProof({
+    describe("bls12381", () => {
+      describe("verifyProof - test fixtures", () => {
+        if (item.value.result.valid) {
+          it(`should verify case: ${item.value.caseName}`, async () => {
+            expect(
+              await bbs.bls12381.verifyProof({
+                publicKey: new Uint8Array(
+                  Buffer.from(item.value.signerPublicKey, "hex")
+                ),
+                proof: new Uint8Array(Buffer.from(item.value.proof, "hex")),
+                presentationMessage: new Uint8Array(
+                  Buffer.from(item.value.presentationMessage, "hex")
+                ),
+                totalMessageCount: item.value.totalMessageCount,
+                messages: Object.entries(item.value.revealedMessages).reduce(
+                  (map, val, _) => {
+                    const key = parseInt(val[0]);
+                    const message = new Uint8Array(Buffer.from(val[1], "hex"));
+                    map = {
+                      ...map,
+                      [key]: message,
+                    };
+                    return map;
+                  },
+                  {}
+                ),
+              })
+            ).toBeTruthy();
+          });
+        } else {
+          it(`should fail to verify case: ${item.value.caseName} because ${item.value.result["reason"]}`, async () => {
+            expect(
+              (
+                await bbs.bls12381.verifyProof({
                   publicKey: new Uint8Array(
                     Buffer.from(item.value.signerPublicKey, "hex")
                   ),
@@ -35,53 +62,24 @@ proofFixtures.forEach((item: ProofFixture) => {
                   messages: Object.entries(item.value.revealedMessages).reduce(
                     (map, val, _) => {
                       const key = parseInt(val[0]);
-                      const message = new Uint8Array(Buffer.from(val[1], "hex"));
+                      const message = new Uint8Array(
+                        Buffer.from(val[1], "hex")
+                      );
+
                       map = {
                         ...map,
                         [key]: message,
                       };
+
                       return map;
                     },
                     {}
                   ),
                 })
-              ).toBeTruthy();
-            });
-          } else {
-            it(`should fail to verify case: ${item.value.caseName} because ${item.value.result["reason"]}`, async () => {
-              expect(
-                (
-                  await bbs.ciphersuites.bls12381.verifyProof({
-                    publicKey: new Uint8Array(
-                      Buffer.from(item.value.signerPublicKey, "hex")
-                    ),
-                    proof: new Uint8Array(Buffer.from(item.value.proof, "hex")),
-                    presentationMessage: new Uint8Array(
-                      Buffer.from(item.value.presentationMessage, "hex")
-                    ),
-                    totalMessageCount: item.value.totalMessageCount,
-                    messages: Object.entries(item.value.revealedMessages).reduce(
-                      (map, val, _) => {
-                        const key = parseInt(val[0]);
-                        const message = new Uint8Array(
-                          Buffer.from(val[1], "hex")
-                        );
-
-                        map = {
-                          ...map,
-                          [key]: message,
-                        };
-
-                        return map;
-                      },
-                      {}
-                    ),
-                  })
-                ).verified
-              ).toBeFalsy();
-            });
-          }
-        });
+              ).verified
+            ).toBeFalsy();
+          });
+        }
       });
     });
   });

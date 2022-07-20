@@ -7,7 +7,7 @@ use pairing_crypto::bbs::ciphersuites::bls12_381::KeyPair;
 /// * ikm: UInt8Array with 32 elements
 /// * key_info: UInt8Array with 32 elements
 #[no_mangle]
-pub extern "C" fn bbs_ciphersuites_bls12381_generate_key_pair(
+pub extern "C" fn bbs_bls12381_generate_key_pair(
     ikm: ByteArray,
     key_info: ByteArray,
     secret_key: &mut ByteBuffer,

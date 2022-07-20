@@ -14,7 +14,7 @@ lazy_static! {
 }
 
 #[no_mangle]
-pub extern "C" fn bbs_ciphersuites_bls12381_verify_context_init(
+pub extern "C" fn bbs_bls12381_verify_context_init(
     err: &mut ExternError,
 ) -> u64 {
     BBS_VERIFY_CONTEXT.insert_with_output(err, || BbsVerifyRequestDto {
@@ -26,31 +26,31 @@ pub extern "C" fn bbs_ciphersuites_bls12381_verify_context_init(
 }
 
 set_byte_array_impl!(
-    bbs_ciphersuites_bls12381_verify_context_set_public_key,
+    bbs_bls12381_verify_context_set_public_key,
     BBS_VERIFY_CONTEXT,
     public_key
 );
 
 set_byte_array_impl!(
-    bbs_ciphersuites_bls12381_verify_context_set_header,
+    bbs_bls12381_verify_context_set_header,
     BBS_VERIFY_CONTEXT,
     header
 );
 
 add_byte_array_impl!(
-    bbs_ciphersuites_bls12381_verify_context_set_message,
+    bbs_bls12381_verify_context_set_message,
     BBS_VERIFY_CONTEXT,
     messages
 );
 
 set_byte_array_impl!(
-    bbs_ciphersuites_bls12381_verify_context_set_signature,
+    bbs_bls12381_verify_context_set_signature,
     BBS_VERIFY_CONTEXT,
     signature
 );
 
 #[no_mangle]
-pub extern "C" fn bbs_ciphersuites_bls12381_verify_context_finish(
+pub extern "C" fn bbs_bls12381_verify_context_finish(
     handle: u64,
     err: &mut ExternError,
 ) -> i32 {
@@ -102,7 +102,4 @@ pub extern "C" fn bbs_ciphersuites_bls12381_verify_context_finish(
     )
 }
 
-define_handle_map_deleter!(
-    BBS_VERIFY_CONTEXT,
-    bbs_ciphersuites_bls12381_verify_free
-);
+define_handle_map_deleter!(BBS_VERIFY_CONTEXT, bbs_bls12381_verify_free);

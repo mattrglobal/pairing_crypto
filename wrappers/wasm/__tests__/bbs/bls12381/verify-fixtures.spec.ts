@@ -17,53 +17,51 @@ import { SignatureFixture, signatureFixtures } from "../../../__fixtures__";
 
 signatureFixtures.forEach((item: SignatureFixture) => {
   describe("bbs", () => {
-    describe("ciphersuites", () => {
-      describe("bls12381", () => {
-        describe("verify - test fixtures", () => {
-          if (item.value.result.valid) {
-            it(`should verify case: ${item.value.caseName}`, async () => {
-              expect(
-                (
-                  await bbs.ciphersuites.bls12381.verify({
-                    publicKey: new Uint8Array(
-                      Buffer.from(item.value.signerKeyPair.publicKey, "hex")
-                    ),
-                    header: new Uint8Array(
-                      Buffer.from(item.value.header, "hex")
-                    ),
-                    signature: new Uint8Array(
-                      Buffer.from(item.value.signature, "hex")
-                    ),
-                    messages: item.value.messages.map(
-                      (item) => new Uint8Array(Buffer.from(item, "hex"))
-                    ),
-                  })
-                ).verified
-              ).toBeTruthy();
-            });
-          } else {
-            it(`should fail to verify case: ${item.value.caseName} because ${item.value.result["reason"]}`, async () => {
-              expect(
-                (
-                  await bbs.ciphersuites.bls12381.verify({
-                    publicKey: new Uint8Array(
-                      Buffer.from(item.value.signerKeyPair.publicKey, "hex")
-                    ),
-                    header: new Uint8Array(
-                      Buffer.from(item.value.header, "hex")
-                    ),
-                    signature: new Uint8Array(
-                      Buffer.from(item.value.signature, "hex")
-                    ),
-                    messages: item.value.messages.map(
-                      (item) => new Uint8Array(Buffer.from(item, "hex"))
-                    ),
-                  })
-                ).verified
-              ).toBeFalsy();
-            });
-          }
-        });
+    describe("bls12381", () => {
+      describe("verify - test fixtures", () => {
+        if (item.value.result.valid) {
+          it(`should verify case: ${item.value.caseName}`, async () => {
+            expect(
+              (
+                await bbs.bls12381.verify({
+                  publicKey: new Uint8Array(
+                    Buffer.from(item.value.signerKeyPair.publicKey, "hex")
+                  ),
+                  header: new Uint8Array(
+                    Buffer.from(item.value.header, "hex")
+                  ),
+                  signature: new Uint8Array(
+                    Buffer.from(item.value.signature, "hex")
+                  ),
+                  messages: item.value.messages.map(
+                    (item) => new Uint8Array(Buffer.from(item, "hex"))
+                  ),
+                })
+              ).verified
+            ).toBeTruthy();
+          });
+        } else {
+          it(`should fail to verify case: ${item.value.caseName} because ${item.value.result["reason"]}`, async () => {
+            expect(
+              (
+                await bbs.bls12381.verify({
+                  publicKey: new Uint8Array(
+                    Buffer.from(item.value.signerKeyPair.publicKey, "hex")
+                  ),
+                  header: new Uint8Array(
+                    Buffer.from(item.value.header, "hex")
+                  ),
+                  signature: new Uint8Array(
+                    Buffer.from(item.value.signature, "hex")
+                  ),
+                  messages: item.value.messages.map(
+                    (item) => new Uint8Array(Buffer.from(item, "hex"))
+                  ),
+                })
+              ).verified
+            ).toBeFalsy();
+          });
+        }
       });
     });
   });

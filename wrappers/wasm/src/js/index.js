@@ -53,10 +53,10 @@ const initialize = async () => {
     }
 }
 
-const bbs_ciphersuites_bls12381_generate_key_pair = async (ikm, keyInfo) => {
+const bbs_bls12381_generate_key_pair = async (ikm, keyInfo) => {
     await initialize();
     var result = await throwErrorOnRejectedPromise(
-        wasm.bbs_ciphersuites_bls12381_generate_key_pair(ikm, keyInfo)
+        wasm.bbs_bls12381_generate_key_pair(ikm, keyInfo)
     );
     return {
         secretKey: new Uint8Array(result.secretKey),
@@ -64,24 +64,24 @@ const bbs_ciphersuites_bls12381_generate_key_pair = async (ikm, keyInfo) => {
     };
 };
 
-const bbs_ciphersuites_bls12381_sign = async (request) => {
+const bbs_bls12381_sign = async (request) => {
     await initialize();
-    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_ciphersuites_bls12381_sign(request)));
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bls12381_sign(request)));
 };
 
-const bbs_ciphersuites_bls12381_verify = async (request) => {
+const bbs_bls12381_verify = async (request) => {
     await initialize();
-    return await throwErrorOnRejectedPromise(wasm.bbs_ciphersuites_bls12381_verify(request));
+    return await throwErrorOnRejectedPromise(wasm.bbs_bls12381_verify(request));
 };
 
-const bbs_ciphersuites_bls12381_derive_proof = async (request) => {
+const bbs_bls12381_derive_proof = async (request) => {
     await initialize();
-    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_ciphersuites_bls12381_derive_proof(request)));
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bls12381_derive_proof(request)));
 }
 
-const bbs_ciphersuites_bls12381_verify_proof = async (request) => {
+const bbs_bls12381_verify_proof = async (request) => {
     await initialize();
-    return await throwErrorOnRejectedPromise(wasm.bbs_ciphersuites_bls12381_verify_proof(request));
+    return await throwErrorOnRejectedPromise(wasm.bbs_bls12381_verify_proof(request));
 }
 
 const convertToRevealMessageArray = (messages, revealedIndicies) => {
@@ -114,18 +114,16 @@ const convertRevealMessageArrayToRevealMap = (messages) => {
 }
 
 module.exports.bbs = {
-    ciphersuites: {
-        bls12381: {
-            PRIVATE_KEY_LENGTH: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
-            PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_PUBLIC_KEY_LENGTH,
-            SIGNATURE_LENGTH: BBS_SIGNATURE_LENGTH,
+    bls12381: {
+        PRIVATE_KEY_LENGTH: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
+        PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_PUBLIC_KEY_LENGTH,
+        SIGNATURE_LENGTH: BBS_SIGNATURE_LENGTH,
 
-            generateKeyPair: bbs_ciphersuites_bls12381_generate_key_pair,
-            sign: bbs_ciphersuites_bls12381_sign,
-            verify: bbs_ciphersuites_bls12381_verify,
-            deriveProof: bbs_ciphersuites_bls12381_derive_proof,
-            verifyProof: bbs_ciphersuites_bls12381_verify_proof
-        }
+        generateKeyPair: bbs_bls12381_generate_key_pair,
+        sign: bbs_bls12381_sign,
+        verify: bbs_bls12381_verify,
+        deriveProof: bbs_bls12381_derive_proof,
+        verifyProof: bbs_bls12381_verify_proof
     }
 }
 
