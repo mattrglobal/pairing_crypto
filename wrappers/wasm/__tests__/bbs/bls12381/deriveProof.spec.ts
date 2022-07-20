@@ -11,8 +11,8 @@
  * limitations under the License.
  */
 
-describe("bls12381", () => {
-  describe("bbs", () => {
+describe("bbs", () => {
+  describe("bls12381", () => {
     describe("deriveProof", () => {
       it.todo("place holder test");
     });

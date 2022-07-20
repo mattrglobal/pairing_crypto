@@ -12,16 +12,16 @@
  */
 
 import { randomBytes } from "@stablelib/random";
-import { BbsVerifyRequest, bls12381, KeyPair } from "../../../lib/index";
+import { BbsVerifyRequest, bbs, KeyPair } from "../../../lib/index";
 import { base64Decode, stringToBytes } from "../../utilities";
 
-describe("bls12381", () => {
-  describe("bbs", () => {
+describe("bbs", () => {
+  describe("bls12381", () => {
     describe("verify", () => {
       let keyPair: KeyPair;
 
       beforeAll(async () => {
-        keyPair = await bls12381.bbs.generateKeyPair(randomBytes(32),
+        keyPair = await bbs.bls12381.generateKeyPair(randomBytes(32),
           randomBytes(32));
       });
 
@@ -31,7 +31,7 @@ describe("bls12381", () => {
           messages: [stringToBytes("ExampleMessage")],
           signature: base64Decode("jYidhsdqxvAyNXMV4/vNfGM/4AULfSyf"),
         };
-        await expect(bls12381.bbs.verify(request)).rejects.toThrowError(
+        await expect(bbs.bls12381.verify(request)).rejects.toThrowError(
           "Error: vector to fixed-sized array conversion failed"
         );
       });
@@ -46,7 +46,7 @@ describe("bls12381", () => {
             "kTV8dar9xLWQZ5EzaWYqTRmgA6dw6wcrUw5c///crRD2QQPXX9Di+lgCPCXAA5D8Pytuh6bNSx6k4NZTR9KfSNdaejKl2zTU9poRfzZ2SIskdgSHTZ2y7jLm/UEGKsAs3tticBVj1Pm2GNhQI/OlXQ=="
           ),
         };
-        expect((await bls12381.bbs.verify(verifyRequest)).verified).toBeFalsy();
+        expect((await bbs.bls12381.verify(verifyRequest)).verified).toBeFalsy();
       });
 
       it("should not verify valid signature with wrong messages", async () => {
@@ -62,7 +62,7 @@ describe("bls12381", () => {
             "jYidhsdqxvAyNXMV4/vNfGM/4AULfSyfvQiwh+dDd4JtnT5xHnwpzMYdLdHzBYwXaGE1k6ln/pwtI4RwQZpl03SCv/mT/3AdK8PB2y43MGdMSeGTyZGfZf+rUrEDEs3lTfmPK54E+JBzd96gnrF2iQ=="
           ),
         };
-        expect((await bls12381.bbs.verify(verifyRequest)).verified).toBeFalsy();
+        expect((await bbs.bls12381.verify(verifyRequest)).verified).toBeFalsy();
       });
 
       it("should not verify when messages empty", async () => {
@@ -73,7 +73,7 @@ describe("bls12381", () => {
             "jYidhsdqxvAyNXMV4/vNfGM/4AULfSyfvQiwh+dDd4JtnT5xHnwpzMYdLdHzBYwXaGE1k6ln/pwtI4RwQZpl03SCv/mT/3AdK8PB2y43MGdMSeGTyZGfZf+rUrEDEs3lTfmPK54E+JBzd96gnrF2iQ=="
           ),
         };
-        expect((await bls12381.bbs.verify(request)).verified).toBeFalsy();
+        expect((await bbs.bls12381.verify(request)).verified).toBeFalsy();
       });
 
       it("should not verify when public key invalid length", async () => {
@@ -84,7 +84,7 @@ describe("bls12381", () => {
             "jYidhsdqxvAyNXMV4/vNfGM/4AULfSyfvQiwh+dDd4JtnT5xHnwpzMYdLdHzBYwXaGE1k6ln/pwtI4RwQZpl03SCv/mT/3AdK8PB2y43MGdMSeGTyZGfZf+rUrEDEs3lTfmPK54E+JBzd96gnrF2iQ=="
           ),
         };
-        await expect(bls12381.bbs.verify(request)).rejects.toThrowError(
+        await expect(bbs.bls12381.verify(request)).rejects.toThrowError(
           "Error: vector to fixed-sized array conversion failed"
         );
       });

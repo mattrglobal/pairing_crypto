@@ -11,13 +11,13 @@
  * limitations under the License.
  */
 
-import { BbsDeriveProofRequest, bls12381 } from "../../../lib";
+import { BbsDeriveProofRequest, bbs } from "../../../lib";
 import { stringToBytes } from "../../utilities";
 import { SignatureFixture, signatureFixtures } from "../../../__fixtures__";
 
 signatureFixtures.forEach((item: SignatureFixture) => {
-  describe("bls12381", () => {
-    describe("bbs", () => {
+  describe("bbs", () => {
+    describe("bls12381", () => {
       describe("deriveProof - test fixtures", () => {
         if (item.value.result.valid) {
           it(`should deriveProof revealing all messages for case: ${item.value.caseName}`, async () => {
@@ -40,7 +40,7 @@ signatureFixtures.forEach((item: SignatureFixture) => {
               presentationMessage: stringToBytes("0123456789"),
             };
 
-            const proof = await bls12381.bbs.deriveProof(request);
+            const proof = await bbs.bls12381.deriveProof(request);
             expect(proof).toBeInstanceOf(Uint8Array);
           });
 
@@ -64,7 +64,7 @@ signatureFixtures.forEach((item: SignatureFixture) => {
               presentationMessage: stringToBytes("0123456789"),
             };
 
-            const proof = await bls12381.bbs.deriveProof(request);
+            const proof = await bbs.bls12381.deriveProof(request);
             expect(proof).toBeInstanceOf(Uint8Array);
           });
 
@@ -90,7 +90,7 @@ signatureFixtures.forEach((item: SignatureFixture) => {
                 presentationMessage: stringToBytes("0123456789"),
               };
 
-              const proof = await bls12381.bbs.deriveProof(request);
+              const proof = await bbs.bls12381.deriveProof(request);
               expect(proof).toBeInstanceOf(Uint8Array);
             });
           }
@@ -116,7 +116,7 @@ signatureFixtures.forEach((item: SignatureFixture) => {
             };
 
             await expect(
-              bls12381.bbs.deriveProof(request)
+              bbs.bls12381.deriveProof(request)
             ).rejects.toThrowError(
               "Error: signature verification failed."
             );

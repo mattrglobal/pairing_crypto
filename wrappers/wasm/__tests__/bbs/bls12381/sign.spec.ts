@@ -12,15 +12,15 @@
  */
 
 import { randomBytes } from "@stablelib/random";
-import { BbsSignRequest, bls12381, KeyPair } from "../../../lib";
+import { BbsSignRequest, bbs, KeyPair } from "../../../lib";
 import { stringToBytes } from "../../utilities";
 
-describe("bls12381", () => {
-  describe("bbs", () => {
+describe("bbs", () => {
+  describe("bls12381", () => {
     let keyPair: KeyPair;
 
     beforeAll(async () => {
-      keyPair = await bls12381.bbs.generateKeyPair(
+      keyPair = await bbs.bls12381.generateKeyPair(
         randomBytes(32),
         randomBytes(32),
       );
@@ -33,9 +33,9 @@ describe("bls12381", () => {
           publicKey: keyPair.publicKey,
           messages: [stringToBytes("ExampleMessage")],
         };
-        const signature = await bls12381.bbs.sign(request);
+        const signature = await bbs.bls12381.sign(request);
         expect(signature).toBeInstanceOf(Uint8Array);
-        expect(signature.length).toEqual(bls12381.bbs.SIGNATURE_LENGTH);
+        expect(signature.length).toEqual(bbs.bls12381.SIGNATURE_LENGTH);
       });
 
       it("should sign multiple messages", async () => {
@@ -48,9 +48,9 @@ describe("bls12381", () => {
             stringToBytes("ExampleMessage3"),
           ],
         };
-        const signature = await bls12381.bbs.sign(request);
+        const signature = await bbs.bls12381.sign(request);
         expect(signature).toBeInstanceOf(Uint8Array);
-        expect(signature.length).toEqual(bls12381.bbs.SIGNATURE_LENGTH);
+        expect(signature.length).toEqual(bbs.bls12381.SIGNATURE_LENGTH);
       });
 
       it("should throw error if secret key not present", async () => {
@@ -63,7 +63,7 @@ describe("bls12381", () => {
             stringToBytes("ExampleMessage3"),
           ],
         };
-        await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
+        await expect(bbs.bls12381.sign(request)).rejects.toThrowError(
           "Request object missing required element"
         );
       });
@@ -78,7 +78,7 @@ describe("bls12381", () => {
             stringToBytes("ExampleMessage3"),
           ],
         };
-        await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
+        await expect(bbs.bls12381.sign(request)).rejects.toThrowError(
           "Request object missing required element"
         );
       });
@@ -93,7 +93,7 @@ describe("bls12381", () => {
             stringToBytes("ExampleMessage3"),
           ],
         };
-        await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
+        await expect(bbs.bls12381.sign(request)).rejects.toThrowError(
           "Error: vector to fixed-sized array conversion failed"
         );
       });
@@ -111,7 +111,7 @@ describe("bls12381", () => {
             stringToBytes("ExampleMessage3"),
           ],
         };
-        await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
+        await expect(bbs.bls12381.sign(request)).rejects.toThrowError(
           "Error: vector to fixed-sized array conversion failed"
         );
       });
@@ -122,7 +122,7 @@ describe("bls12381", () => {
           publicKey: keyPair.publicKey,
           messages: [],
         };
-        await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
+        await expect(bbs.bls12381.sign(request)).rejects.toThrowError(
           "Error: bad arguments: cause: nothing to sign"
         );
       });
@@ -137,7 +137,7 @@ describe("bls12381", () => {
             stringToBytes("ExampleMessage3"),
           ],
         };
-        await expect(bls12381.bbs.sign(request)).rejects.toThrowError(
+        await expect(bbs.bls12381.sign(request)).rejects.toThrowError(
           "Error: secret key is not valid."
         );
       });
