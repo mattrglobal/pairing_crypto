@@ -11,6 +11,7 @@ use pairing_crypto::bbs::ciphersuites::bls12_381::{
     BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
     BBS_BLS12381G1_SECRET_KEY_LENGTH,
 };
+use rand::RngCore;
 use std::{collections::BTreeSet, path::PathBuf};
 
 use crate::{
@@ -26,10 +27,76 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
 
     let fixture_scratch: FixtureProof = fixture_gen_input.clone().into();
 
-    // multi-message signature, all messages revealed proof
+    // Generate fixture for positive test cases
+    let fixture_data = [
+        (
+            "single message signature, message revealed proof".to_owned(),
+            "proof001.json",
+            &fixture_gen_input.messages[0..1].to_vec(),
+            BTreeSet::<usize>::from([0]),
+            ExpectedResult {
+                valid: true,
+                reason: None,
+            },
+        ),
+        (
+            "multi-message signature, all messages revealed proof".to_owned(),
+            "proof002.json",
+            &fixture_gen_input.messages,
+            (0..fixture_gen_input.messages.len()).map(|i| i).collect(),
+            ExpectedResult {
+                valid: true,
+                reason: None,
+            },
+        ),
+        (
+            "multi-message signature, multiple messages revealed proof"
+                .to_owned(),
+            "proof003.json",
+            &fixture_gen_input.messages,
+            BTreeSet::<usize>::from([0, 2, 4, 6]),
+            ExpectedResult {
+                valid: true,
+                reason: None,
+            },
+        ),
+    ];
+
+    for (
+        case_name,
+        test_vector_file_name,
+        messages,
+        disclosed_indices,
+        result,
+    ) in fixture_data
+    {
+        let (proof, disclosed_messages) = proof_gen_helper(
+            secret_key,
+            public_key,
+            header,
+            presentation_message,
+            messages,
+            &disclosed_indices,
+        );
+        let fixture = FixtureProof {
+            case_name,
+            disclosed_messages,
+            total_message_count: messages.len(),
+            proof,
+            result,
+            ..fixture_scratch.clone()
+        };
+        validate_fixture(&fixture);
+        save_test_vector_to_file(
+            &fixture,
+            &output_dir.join(test_vector_file_name),
+        );
+    }
+
+    // Generate fixtures for negative test cases
+    // multi-message signature, multiple messages revealed proof
     let messages = &fixture_gen_input.messages;
-    let disclosed_indices: BTreeSet<usize> =
-        (0..messages.len()).map(|i| i).collect();
+    let disclosed_indices = BTreeSet::<usize>::from([0, 2, 4, 6]);
     let (proof, disclosed_messages) = proof_gen_helper(
         secret_key,
         public_key,
@@ -38,10 +105,10 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         messages,
         &disclosed_indices,
     );
-    let fixture = FixtureProof {
+    let fixture_negative = FixtureProof {
         case_name: "multi-message signature, all messages revealed proof"
             .to_owned(),
-        disclosed_messages,
+        disclosed_messages: disclosed_messages.clone(),
         total_message_count: messages.len(),
         proof,
         result: ExpectedResult {
@@ -50,8 +117,130 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_scratch.clone()
     };
+
+    let mut presentation_message =
+        fixture_gen_input.presentation_message.clone();
+    presentation_message.reverse();
+    let fixture = FixtureProof {
+        presentation_message,
+        result: ExpectedResult {
+            valid: false,
+            reason: Some("different presentation message".to_owned()),
+        },
+        ..fixture_negative.clone()
+    };
     validate_fixture(&fixture);
-    save_test_vector_to_file(&fixture, &output_dir.join("proof002.json"));
+    save_test_vector_to_file(&fixture, &output_dir.join("proof004.json"));
+
+    let fixture = FixtureProof {
+        signer_public_key: fixture_gen_input.spare_key_pair.public_key,
+        result: ExpectedResult {
+            valid: false,
+            reason: Some("wrong public key".to_owned()),
+        },
+        ..fixture_negative.clone()
+    };
+    validate_fixture(&fixture);
+    save_test_vector_to_file(&fixture, &output_dir.join("proof005.json"));
+
+    let mut modified_disclosed_messages = disclosed_messages.clone();
+    let mut buffer = [0u8; 100];
+    rand::thread_rng().fill_bytes(&mut buffer);
+    modified_disclosed_messages[0].1 = buffer.to_vec();
+    let fixture = FixtureProof {
+        disclosed_messages: modified_disclosed_messages,
+        result: ExpectedResult {
+            valid: false,
+            reason: Some("modified messages".to_owned()),
+        },
+        ..fixture_negative.clone()
+    };
+    validate_fixture(&fixture);
+    save_test_vector_to_file(&fixture, &output_dir.join("proof006.json"));
+
+    let mut invalid_disclosed_messages = disclosed_messages.clone();
+    invalid_disclosed_messages.push((9, messages[9].clone()));
+    let fixture = FixtureProof {
+        disclosed_messages: invalid_disclosed_messages,
+        result: ExpectedResult {
+            valid: false,
+            reason: Some("extra message un-revealed in proof".to_owned()),
+        },
+        ..fixture_negative.clone()
+    };
+    validate_fixture(&fixture);
+    save_test_vector_to_file(&fixture, &output_dir.join("proof007.json"));
+
+    let mut invalid_disclosed_messages = disclosed_messages.clone();
+    invalid_disclosed_messages.push((9, messages[8].clone()));
+    let fixture = FixtureProof {
+        disclosed_messages: invalid_disclosed_messages,
+        result: ExpectedResult {
+            valid: false,
+            reason: Some(
+                "extra message invalid message un-revealed in proof".to_owned(),
+            ),
+        },
+        ..fixture_negative.clone()
+    };
+    validate_fixture(&fixture);
+    save_test_vector_to_file(&fixture, &output_dir.join("proof008.json"));
+
+    let mut missing_disclosed_messages = disclosed_messages.clone();
+    missing_disclosed_messages.remove(2);
+    let fixture = FixtureProof {
+        disclosed_messages: missing_disclosed_messages,
+        result: ExpectedResult {
+            valid: false,
+            reason: Some("missing message revealed in proof".to_owned()),
+        },
+        ..fixture_negative.clone()
+    };
+    validate_fixture(&fixture);
+    save_test_vector_to_file(&fixture, &output_dir.join("proof009.json"));
+
+    let mut swapped_disclosed_messages = disclosed_messages.clone();
+    swapped_disclosed_messages[1].1 = disclosed_messages[3].1.clone();
+    swapped_disclosed_messages[3].1 = disclosed_messages[1].1.clone();
+    let fixture = FixtureProof {
+        disclosed_messages: swapped_disclosed_messages,
+        result: ExpectedResult {
+            valid: false,
+            reason: Some("re-ordered messages".to_owned()),
+        },
+        ..fixture_negative.clone()
+    };
+    validate_fixture(&fixture);
+    save_test_vector_to_file(&fixture, &output_dir.join("proof010.json"));
+
+    let mut extra_disclosed_messages = disclosed_messages.clone();
+    extra_disclosed_messages.push((9, messages[9].clone()));
+    let fixture = FixtureProof {
+        disclosed_messages: extra_disclosed_messages,
+        total_message_count: messages.len() + 1,
+        result: ExpectedResult {
+            valid: false,
+            reason: Some(
+                "extra valid message, modified total message count".to_owned(),
+            ),
+        },
+        ..fixture_negative.clone()
+    };
+    validate_fixture(&fixture);
+    save_test_vector_to_file(&fixture, &output_dir.join("proof011.json"));
+
+    let fixture = FixtureProof {
+        total_message_count: messages.len() - 1,
+        result: ExpectedResult {
+            valid: false,
+            reason: Some(
+                "modified total message count less than actual".to_owned(),
+            ),
+        },
+        ..fixture_negative.clone()
+    };
+    validate_fixture(&fixture);
+    save_test_vector_to_file(&fixture, &output_dir.join("proof012.json"));
 }
 
 fn proof_gen_helper(
@@ -140,16 +329,22 @@ fn proof_gen_helper(
 // Validate generated fixture if `proof_verify` returns expected result before
 // saving to the file
 fn validate_fixture(fixture: &FixtureProof) {
-    assert_eq!(
-        proof_verify(&BbsProofVerifyRequest {
-            public_key: &fixture.signer_public_key.to_octets(),
-            header: Some(fixture.header.clone()),
-            presentation_message: Some(fixture.presentation_message.clone()),
-            messages: Some(&fixture.disclosed_messages),
-            total_message_count: fixture.total_message_count,
-            proof: &fixture.proof,
-        })
-        .unwrap(),
-        fixture.result.valid
-    );
+    let result = proof_verify(&BbsProofVerifyRequest {
+        public_key: &fixture.signer_public_key.to_octets(),
+        header: Some(fixture.header.clone()),
+        presentation_message: Some(fixture.presentation_message.clone()),
+        messages: Some(&fixture.disclosed_messages),
+        total_message_count: fixture.total_message_count,
+        proof: &fixture.proof,
+    });
+
+    if result.is_ok() {
+        assert_eq!(
+            result.unwrap(),
+            fixture.result.valid,
+            "case: {} - {:?}",
+            fixture.case_name,
+            fixture.result.reason
+        );
+    }
 }
