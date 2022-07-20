@@ -84,6 +84,13 @@ jobs:
           toolchain: stable
           override: true
 
+      # Required for publishing NPM package
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+          registry-url: "https://registry.npmjs.org"
+
       - name: Run yarn install
         run: yarn install --frozen-lockfile
 
