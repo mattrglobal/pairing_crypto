@@ -32,7 +32,7 @@ jobs:
           path: main # TODO remove once temp build step below is removed
 
       - name: Setup rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
         with:
           profile: minimal
           toolchain: stable
@@ -78,7 +78,7 @@ jobs:
           path: main # TODO remove once temp build step below is removed
 
       - name: Setup rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
         with:
           profile: minimal
           toolchain: stable
@@ -89,7 +89,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
-          registry-url: "https://registry.npmjs.org"
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Run yarn install
         run: yarn install --frozen-lockfile

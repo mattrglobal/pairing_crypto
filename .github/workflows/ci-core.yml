@@ -29,7 +29,7 @@ jobs:
           path: main # TODO remove once temp build step below is removed
 
       - name: Setup stable rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
         with:
           profile: minimal
           toolchain: stable
@@ -37,7 +37,7 @@ jobs:
 
       # Note some of the rules we use for fmt and clippy are only available with the nightly toolchain
       - name: Setup nightly rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
         with:
           profile: minimal
           toolchain: nightly
@@ -45,7 +45,7 @@ jobs:
           components: rustfmt, clippy
 
       - name: Run cargo format
-        uses: marcopolo/cargo@master
+        uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
           command: fmt
           toolchain: nightly # Note some of the rules we use for fmt are only available with the nightly toolchain
@@ -53,7 +53,7 @@ jobs:
           args: --all -- --check
 
       - name: Run cargo clippy
-        uses: marcopolo/cargo@master
+        uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
           command: clippy
           toolchain: nightly # Note some of the rules we use for clippy are only available with the nightly toolchain
@@ -61,29 +61,29 @@ jobs:
           args: -- -D warnings
 
       - name: Run cargo check
-        uses: marcopolo/cargo@master
+        uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
           command: check
           toolchain: stable
           working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
 
       - name: Run cargo audit
-        uses: marcopolo/cargo@master
+        uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
           command: audit
           toolchain: stable
           working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
 
       - name: Run cargo test
-        uses: marcopolo/cargo@master
+        uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
           command: test
           toolchain: stable
           working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
-          args: "--release"
+          args: '--release'
 
       - name: Run cargo build
-        uses: marcopolo/cargo@master
+        uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
           command: build
           toolchain: stable
