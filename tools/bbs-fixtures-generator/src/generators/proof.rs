@@ -63,5 +63,5 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_scratch.clone()
     };
-    save_test_vector_to_file(&fixture, output_dir, "proof", "proof002.json");
+    save_test_vector_to_file(&fixture, &output_dir.join("proof002.json"));
 }
