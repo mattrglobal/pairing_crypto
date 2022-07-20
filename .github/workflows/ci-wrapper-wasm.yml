@@ -57,7 +57,7 @@ jobs:
     name: Publish unstable package release
     needs: build_test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/head/master'
+    if: github.ref == 'refs/heads/master'
     defaults:
       run:
         working-directory: ./main/wrappers/wasm
