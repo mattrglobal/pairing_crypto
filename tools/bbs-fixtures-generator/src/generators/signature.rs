@@ -13,7 +13,7 @@ use std::path::PathBuf;
 
 use crate::{
     model::{ExpectedResult, FixtureGenInput, FixtureSignature},
-    util::save_test_vector_to_file,
+    util::save_test_vector,
 };
 
 pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
@@ -47,7 +47,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         ..fixture_scratch.clone()
     };
     validate_fixture(&fixture);
-    save_test_vector_to_file(&fixture, &output_dir.join("signature001.json"));
+    save_test_vector(&fixture, &output_dir.join("signature001.json"));
 
     // single message - modified message
     let fixture = FixtureSignature {
@@ -63,7 +63,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         ..fixture_scratch.clone()
     };
     validate_fixture(&fixture);
-    save_test_vector_to_file(&fixture, &output_dir.join("signature002.json"));
+    save_test_vector(&fixture, &output_dir.join("signature002.json"));
 
     // single message - extra unsigned message
     let fixture = FixtureSignature {
@@ -77,7 +77,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         ..fixture_scratch.clone()
     };
     validate_fixture(&fixture);
-    save_test_vector_to_file(&fixture, &output_dir.join("signature003.json"));
+    save_test_vector(&fixture, &output_dir.join("signature003.json"));
 
     // multi message - valid case
     let fixture = FixtureSignature {
@@ -91,7 +91,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         ..fixture_scratch.clone()
     };
     validate_fixture(&fixture);
-    save_test_vector_to_file(&fixture, &output_dir.join("signature004.json"));
+    save_test_vector(&fixture, &output_dir.join("signature004.json"));
 
     // multi message - missing messages
     let fixture = FixtureSignature {
@@ -105,7 +105,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         ..fixture_scratch.clone()
     };
     validate_fixture(&fixture);
-    save_test_vector_to_file(&fixture, &output_dir.join("signature005.json"));
+    save_test_vector(&fixture, &output_dir.join("signature005.json"));
 
     // multi message - re-ordered messages
     let mut shuffled_messages = fixture_gen_input.messages.clone();
@@ -122,7 +122,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         ..fixture_scratch.clone()
     };
     validate_fixture(&fixture);
-    save_test_vector_to_file(&fixture, &output_dir.join("signature006.json"));
+    save_test_vector(&fixture, &output_dir.join("signature006.json"));
 
     // multi message - wrong public key
     let key_pair = KeyPair {
@@ -141,7 +141,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         ..fixture_scratch.clone()
     };
     validate_fixture(&fixture);
-    save_test_vector_to_file(&fixture, &output_dir.join("signature007.json"));
+    save_test_vector(&fixture, &output_dir.join("signature007.json"));
 }
 
 // Validate generated fixture before saving to the file

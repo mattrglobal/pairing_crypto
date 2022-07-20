@@ -1,7 +1,7 @@
 use serde::Serialize;
 use std::path::PathBuf;
 
-pub fn save_test_vector_to_file<T>(fixture: &T, output_file: &PathBuf)
+pub(crate) fn save_test_vector<T>(fixture: &T, output_file: &PathBuf)
 where
     T: Serialize,
 {

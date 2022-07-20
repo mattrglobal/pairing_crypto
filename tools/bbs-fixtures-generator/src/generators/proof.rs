@@ -16,7 +16,7 @@ use std::{collections::BTreeSet, path::PathBuf};
 
 use crate::{
     model::{ExpectedResult, FixtureGenInput, FixtureProof},
-    util::save_test_vector_to_file,
+    util::save_test_vector,
 };
 
 pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
@@ -87,10 +87,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
             ..fixture_scratch.clone()
         };
         validate_fixture(&fixture);
-        save_test_vector_to_file(
-            &fixture,
-            &output_dir.join(test_vector_file_name),
-        );
+        save_test_vector(&fixture, &output_dir.join(test_vector_file_name));
     }
 
     // Generate fixtures for negative test cases
@@ -130,7 +127,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         ..fixture_negative.clone()
     };
     validate_fixture(&fixture);
-    save_test_vector_to_file(&fixture, &output_dir.join("proof004.json"));
+    save_test_vector(&fixture, &output_dir.join("proof004.json"));
 
     let fixture = FixtureProof {
         signer_public_key: fixture_gen_input.spare_key_pair.public_key,
@@ -141,7 +138,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         ..fixture_negative.clone()
     };
     validate_fixture(&fixture);
-    save_test_vector_to_file(&fixture, &output_dir.join("proof005.json"));
+    save_test_vector(&fixture, &output_dir.join("proof005.json"));
 
     let mut modified_disclosed_messages = disclosed_messages.clone();
     let mut buffer = [0u8; 100];
@@ -156,7 +153,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         ..fixture_negative.clone()
     };
     validate_fixture(&fixture);
-    save_test_vector_to_file(&fixture, &output_dir.join("proof006.json"));
+    save_test_vector(&fixture, &output_dir.join("proof006.json"));
 
     let mut invalid_disclosed_messages = disclosed_messages.clone();
     invalid_disclosed_messages.push((9, messages[9].clone()));
@@ -169,7 +166,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         ..fixture_negative.clone()
     };
     validate_fixture(&fixture);
-    save_test_vector_to_file(&fixture, &output_dir.join("proof007.json"));
+    save_test_vector(&fixture, &output_dir.join("proof007.json"));
 
     let mut invalid_disclosed_messages = disclosed_messages.clone();
     invalid_disclosed_messages.push((9, messages[8].clone()));
@@ -184,7 +181,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         ..fixture_negative.clone()
     };
     validate_fixture(&fixture);
-    save_test_vector_to_file(&fixture, &output_dir.join("proof008.json"));
+    save_test_vector(&fixture, &output_dir.join("proof008.json"));
 
     let mut missing_disclosed_messages = disclosed_messages.clone();
     missing_disclosed_messages.remove(2);
@@ -197,7 +194,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         ..fixture_negative.clone()
     };
     validate_fixture(&fixture);
-    save_test_vector_to_file(&fixture, &output_dir.join("proof009.json"));
+    save_test_vector(&fixture, &output_dir.join("proof009.json"));
 
     let mut swapped_disclosed_messages = disclosed_messages.clone();
     swapped_disclosed_messages[1].1 = disclosed_messages[3].1.clone();
@@ -211,7 +208,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         ..fixture_negative.clone()
     };
     validate_fixture(&fixture);
-    save_test_vector_to_file(&fixture, &output_dir.join("proof010.json"));
+    save_test_vector(&fixture, &output_dir.join("proof010.json"));
 
     let mut extra_disclosed_messages = disclosed_messages.clone();
     extra_disclosed_messages.push((9, messages[9].clone()));
@@ -227,7 +224,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         ..fixture_negative.clone()
     };
     validate_fixture(&fixture);
-    save_test_vector_to_file(&fixture, &output_dir.join("proof011.json"));
+    save_test_vector(&fixture, &output_dir.join("proof011.json"));
 
     let fixture = FixtureProof {
         total_message_count: messages.len() - 1,
@@ -240,7 +237,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         ..fixture_negative.clone()
     };
     validate_fixture(&fixture);
-    save_test_vector_to_file(&fixture, &output_dir.join("proof012.json"));
+    save_test_vector(&fixture, &output_dir.join("proof012.json"));
 }
 
 fn proof_gen_helper(

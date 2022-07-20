@@ -1,10 +1,5 @@
+use bbs_fixtures_generator::{FixtureGenInput, TestAsset};
 use clap::Parser;
-
-mod generators;
-mod model;
-mod util;
-
-use model::{FixtureGenInput, TestAsset};
 
 #[derive(Parser)]
 struct Cli {
@@ -29,12 +24,8 @@ fn main() {
 
     let fixture_gen_request: FixtureGenInput = test_asset.into();
 
-    generators::signature::generate(
+    bbs_fixtures_generator::generate_fixtures(
         &fixture_gen_request,
-        &fixture_output_dir.join("signature"),
-    );
-    generators::proof::generate(
-        &fixture_gen_request,
-        &fixture_output_dir.join("proof"),
+        &fixture_output_dir,
     );
 }
