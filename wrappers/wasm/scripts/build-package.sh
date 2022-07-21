@@ -38,4 +38,5 @@ cp -r src/js/* lib/
 rm lib/node/package.json lib/node/.gitignore lib/node/index_bg.wasm.d.ts lib/node/index.d.ts
 rm lib/web/package.json lib/web/.gitignore lib/web/index_bg.wasm.d.ts lib/web/index.d.ts
 
-# TODO need to generate appropriate package.json
+# Delete the un-necessary files automatically created by wasm-pack
+rm lib/package.json

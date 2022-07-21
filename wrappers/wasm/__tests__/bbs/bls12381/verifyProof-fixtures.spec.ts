@@ -11,18 +11,18 @@
  * limitations under the License.
  */
 
-import { bls12381 } from "../../../lib/index";
+import { bbs } from "../../../lib/index";
 
 import { ProofFixture, proofFixtures } from "../../../__fixtures__";
 
 proofFixtures.forEach((item: ProofFixture) => {
-  describe("bls12381", () => {
-    describe("bbs", () => {
+  describe("bbs", () => {
+    describe("bls12381", () => {
       describe("verifyProof - test fixtures", () => {
         if (item.value.result.valid) {
           it(`should verify case: ${item.value.caseName}`, async () => {
             expect(
-              await bls12381.bbs.verifyProof({
+              await bbs.bls12381.verifyProof({
                 publicKey: new Uint8Array(
                   Buffer.from(item.value.signerPublicKey, "hex")
                 ),
@@ -50,7 +50,7 @@ proofFixtures.forEach((item: ProofFixture) => {
           it(`should fail to verify case: ${item.value.caseName} because ${item.value.result["reason"]}`, async () => {
             expect(
               (
-                await bls12381.bbs.verifyProof({
+                await bbs.bls12381.verifyProof({
                   publicKey: new Uint8Array(
                     Buffer.from(item.value.signerPublicKey, "hex")
                   ),

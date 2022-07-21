@@ -38,8 +38,8 @@ use wasm_bindgen::prelude::*;
 ///
 /// Returned value is a byte array which is the concatenation of first the
 /// private key (32 bytes) followed by the public key (96) bytes.
-#[wasm_bindgen(js_name = bls12381_generate_key_pair)]
-pub async fn bls12381_generate_key_pair(
+#[wasm_bindgen(js_name = bbs_bls12381_generate_key_pair)]
+pub async fn bbs_bls12381_generate_key_pair(
     ikm: Vec<u8>,
     key_info: Vec<u8>,
 ) -> Result<JsValue, JsValue> {
@@ -65,8 +65,8 @@ pub async fn bls12381_generate_key_pair(
 ///   signed and a BLS12-381 key pair
 ///
 /// Returned value is a byte array which is the produced signature (112 bytes)
-#[wasm_bindgen(js_name = bls12381_bbs_sign)]
-pub async fn bls12381_bbs_sign(
+#[wasm_bindgen(js_name = bbs_bls12381_sign)]
+pub async fn bbs_bls12381_sign(
     request: JsValue,
 ) -> Result<JsValue, serde_wasm_bindgen::Error> {
     // Improves error output in JS based console.log() when built with debug
@@ -124,8 +124,8 @@ pub async fn bls12381_bbs_sign(
 ///
 /// Returned value is JSON structure with a boolean value indicating whether the
 /// signature was verified and if not any details on the error available
-#[wasm_bindgen(js_name = bls12381_bbs_verify)]
-pub async fn bls12381_bbs_verify(request: JsValue) -> Result<JsValue, JsValue> {
+#[wasm_bindgen(js_name = bbs_bls12381_verify)]
+pub async fn bbs_bls12381_verify(request: JsValue) -> Result<JsValue, JsValue> {
     // Improves error output in JS based console.log() when built with debug
     // feature enabled
     set_panic_hook();
@@ -218,8 +218,8 @@ pub async fn bls12381_bbs_verify(request: JsValue) -> Result<JsValue, JsValue> {
 /// }
 ///
 /// Returned value is a byte array which is the produced proof (variable length)
-#[wasm_bindgen(js_name = bls12381_bbs_derive_proof)]
-pub async fn bls12381_bbs_derive_proof(
+#[wasm_bindgen(js_name = bbs_bls12381_derive_proof)]
+pub async fn bbs_bls12381_derive_proof(
     request: JsValue,
 ) -> Result<JsValue, serde_wasm_bindgen::Error> {
     // Improves error output in JS based console.log() when built with debug
@@ -298,8 +298,8 @@ pub async fn bls12381_bbs_derive_proof(
 /// }
 ///
 /// Returned value is a byte array which is the produced proof (variable length)
-#[wasm_bindgen(js_name = bls12381_bbs_verify_proof)]
-pub async fn bls12381_bbs_verify_proof(
+#[wasm_bindgen(js_name = bbs_bls12381_verify_proof)]
+pub async fn bbs_bls12381_verify_proof(
     request: JsValue,
 ) -> Result<JsValue, serde_wasm_bindgen::Error> {
     // Improves error output in JS based console.log() when built with debug

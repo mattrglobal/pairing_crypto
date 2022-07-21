@@ -22,8 +22,9 @@ import {
 
 export * from "./types";
 
-export namespace bls12381 {
-  namespace bbs {
+export namespace bbs {
+
+  namespace bls12381 {
     const PRIVATE_KEY_LENGTH = 32;
     const PUBLIC_KEY_LENGTH = 96;
     const SIGNATURE_LENGTH = 112;
@@ -37,6 +38,7 @@ export namespace bls12381 {
     ): Promise<BbsVerifyResult>;
   }
 }
+
 
 export namespace utilities {
   function convertToRevealMessageArray(
