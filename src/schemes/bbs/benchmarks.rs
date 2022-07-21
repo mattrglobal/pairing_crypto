@@ -1,5 +1,11 @@
 use crate::schemes::bbs::ciphersuites::bls12_381::{
-    Generators, KeyPair, Message, Proof, PublicKey, SecretKey, Signature,
+    Generators,
+    KeyPair,
+    Message,
+    Proof,
+    PublicKey,
+    SecretKey,
+    Signature,
     MAP_MESSAGE_TO_SCALAR_DST,
 };
 
