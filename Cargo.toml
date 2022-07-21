@@ -52,3 +52,8 @@ harness = false
 name = "bbs_proof"
 path = "benches/bbs/proof.rs"
 harness = false
+
+[[bench]]
+name = "core_bench"
+path = "benches/bbs/core_benches.rs"
+harness = false
