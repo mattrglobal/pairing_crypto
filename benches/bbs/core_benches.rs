@@ -23,7 +23,7 @@ fn core_benchmark(c: &mut Criterion) {
                 b.iter(|| {
                     benchmarker.sign_bench_helper(messages_num);
                 })
-            }
+            },
         );
 
         // Set the signature that will be verified
@@ -35,7 +35,7 @@ fn core_benchmark(c: &mut Criterion) {
                 b.iter(|| {
                     benchmarker.sig_verify_bench_helper(messages_num);
                 })
-            }
+            },
         );
 
         // Proof benchmarks
@@ -45,7 +45,7 @@ fn core_benchmark(c: &mut Criterion) {
                 b.iter(|| {
                     benchmarker.proof_gen_bench_helper(messages_num);
                 })
-            }
+            },
         );
 
         // Set the proof that will be verifier
@@ -53,11 +53,7 @@ fn core_benchmark(c: &mut Criterion) {
 
         c.bench_function(
             &format!("proof verify - total messages {}", messages_num),
-            |b| {
-                b.iter(|| {
-                    benchmarker.proof_verify_bench_helper(messages_num)
-                })
-            }
+            |b| b.iter(|| benchmarker.proof_verify_bench_helper(messages_num)),
         );
     }
 }

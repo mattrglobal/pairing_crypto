@@ -1,21 +1,13 @@
-#![cfg_attr(debug_assertions, allow(dead_code, unused_imports))]
 use crate::schemes::bbs::ciphersuites::bls12_381::{
-    KeyPair,
-    SecretKey,
-    PublicKey,
-    Generators,
-    Message,
-    Signature,
-    Proof,
-    MAP_MESSAGE_TO_SCALAR_DST};
-
-use crate::{
-    error::Error,
+    Generators, KeyPair, Message, Proof, PublicKey, SecretKey, Signature,
+    MAP_MESSAGE_TO_SCALAR_DST,
 };
 
-use rand::{rngs::OsRng, RngCore};
-use std::collections::{BTreeMap};
+use crate::error::Error;
+
 use super::core::types::ProofMessage;
+use rand::{rngs::OsRng, RngCore};
+use std::collections::BTreeMap;
 
 const KEY_INFO: &[u8; 8] = b"key_info";
 const HEADER: &[u8; 16] = b"signature_header";
@@ -30,28 +22,23 @@ pub struct BenchHelper {
     secret_key: SecretKey,
     public_key: PublicKey,
     signature: Signature,
-    proof: Proof
+    proof: Proof,
 }
 
 impl BenchHelper {
     /// Precalculate the key pair, the generators, and the random messages.
-    pub fn init(max_count: i32) -> Result<Self, Error>{
+    pub fn init(max_count: i32) -> Result<Self, Error> {
         // Key pair
-        let (sk, pk) = 
-             KeyPair::random(&mut OsRng, KEY_INFO.as_ref())
-                 .map(|key_pair| {
-                    let sk_bytes = key_pair.secret_key.to_bytes();
-                    let pk_octets = key_pair.public_key.to_octets();
-                    (
-                        SecretKey::from_bytes(
-                            &sk_bytes
-                        ).unwrap(),
-                        PublicKey::from_octets(
-                            &pk_octets
-                        ).unwrap(),
-                    )
-                 })
-                 .expect("Key generation failed");
+        let (sk, pk) = KeyPair::random(&mut OsRng, KEY_INFO.as_ref())
+            .map(|key_pair| {
+                let sk_bytes = key_pair.secret_key.to_bytes();
+                let pk_octets = key_pair.public_key.to_octets();
+                (
+                    SecretKey::from_bytes(&sk_bytes).unwrap(),
+                    PublicKey::from_octets(&pk_octets).unwrap(),
+                )
+            })
+            .expect("Key generation failed");
 
         // Create all the generators.
         let gens = Generators::new(max_count as usize)?;
@@ -63,14 +50,15 @@ impl BenchHelper {
         }
 
         let msgs: Vec<Message> = messages
-        .iter()
-        .map(|m| {
-            Message::from_arbitrary_data(
-                m.as_ref(),
-                MAP_MESSAGE_TO_SCALAR_DST.as_ref()
-            ).unwrap()
-        })
-        .collect();        
+            .iter()
+            .map(|m| {
+                Message::from_arbitrary_data(
+                    m.as_ref(),
+                    MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
+                )
+                .unwrap()
+            })
+            .collect();
 
         Ok(Self {
             generators: gens,
@@ -78,28 +66,30 @@ impl BenchHelper {
             secret_key: sk,
             public_key: pk,
             signature: Signature::default(),
-            proof: Proof::default()
+            proof: Proof::default(),
         })
     }
 
     /// Get the "count" first generators.
     fn get_generators(&self, count: i32) -> Generators {
-        Generators { 
+        Generators {
             Q_1: self.generators.Q_1,
             Q_2: self.generators.Q_2,
-            H_list: self.generators.H_list[0..count as usize].to_vec()}
+            H_list: self.generators.H_list[0..count as usize].to_vec(),
+        }
     }
 
     /// Get the proof and disclosed messages.
     fn get_proof_revealed_messages(
-        &self, 
-        count: i32
+        &self,
+        count: i32,
     ) -> (Vec<ProofMessage>, BTreeMap<usize, Message>) {
         let mut proof_msgs: Vec<ProofMessage> = Vec::new();
         let mut revealed_msgs: BTreeMap<usize, Message> = BTreeMap::new();
 
         // Calculate the number of messages that will be revealed.
-        let threshold = (count as f32 * REVEALED_MESSAGES_PERSENTAGE).floor() as usize;
+        let threshold =
+            (count as f32 * REVEALED_MESSAGES_PERSENTAGE).floor() as usize;
 
         for (i, &msg) in self.messages[0..count as usize].iter().enumerate() {
             if i < threshold {
@@ -108,7 +98,7 @@ impl BenchHelper {
             } else {
                 proof_msgs.push(ProofMessage::Hidden(msg));
             }
-        };
+        }
         (proof_msgs, revealed_msgs)
     }
 
@@ -122,8 +112,9 @@ impl BenchHelper {
             &self.public_key,
             Some(HEADER),
             &gens,
-            &self.messages[0..count as usize])
-            .unwrap()
+            &self.messages[0..count as usize],
+        )
+        .unwrap()
     }
 
     /// Generate and return a proof on "count" messages.
@@ -140,10 +131,10 @@ impl BenchHelper {
             Some(HEADER.as_ref()),
             Some(PRESENTATION_HEADER.as_ref()),
             &gens,
-            &proof_messages)
-            .unwrap()
+            &proof_messages,
+        )
+        .unwrap()
     }
-
 
     /// Setting the signature value. Used to benchmark the signature
     /// verify operation and for the proof generation.
@@ -166,12 +157,15 @@ impl BenchHelper {
         // Get the "count" first generators.
         let gens = self.get_generators(count);
 
-        assert!(self.signature.verify(
-            &self.public_key,
-            Some(HEADER),
-            &gens,
-            &self.messages[0..count as usize]
-        ).unwrap());
+        assert!(self
+            .signature
+            .verify(
+                &self.public_key,
+                Some(HEADER),
+                &gens,
+                &self.messages[0..count as usize]
+            )
+            .unwrap());
     }
 
     /// Create a proof on a subset of the total messages with 50% of the
@@ -188,12 +182,15 @@ impl BenchHelper {
         // Get the disclosed messages.
         let (_, revealed_messages) = self.get_proof_revealed_messages(count);
 
-        assert!(self.proof.verify(
-            &self.public_key,
-            Some(HEADER.as_ref()), 
-            Some(PRESENTATION_HEADER.as_ref()),
-            &gens,
-            &revealed_messages
-        ).unwrap());
+        assert!(self
+            .proof
+            .verify(
+                &self.public_key,
+                Some(HEADER.as_ref()),
+                Some(PRESENTATION_HEADER.as_ref()),
+                &gens,
+                &revealed_messages
+            )
+            .unwrap());
     }
 }
