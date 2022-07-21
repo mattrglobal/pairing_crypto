@@ -323,9 +323,8 @@ fn proof_gen_helper(
     (proof, disclosed_messages)
 }
 
-// Validate generated fixture if `proof_verify` returns expected result before
-// saving to the file
-fn validate_fixture(fixture: &FixtureProof) {
+/// Validate fixture if `api::proof_verify` returns expected result.
+pub fn validate_fixture(fixture: &FixtureProof) {
     let result = proof_verify(&BbsProofVerifyRequest {
         public_key: &fixture.signer_public_key.to_octets(),
         header: Some(fixture.header.clone()),
@@ -335,11 +334,24 @@ fn validate_fixture(fixture: &FixtureProof) {
         proof: &fixture.proof,
     });
 
-    if result.is_ok() {
+    if fixture.result.valid {
+        assert!(
+            result.is_ok(),
+            "proof-verify should not return error, case: {}",
+            fixture.case_name
+        );
+
         assert_eq!(
             result.unwrap(),
-            fixture.result.valid,
-            "case: {} - {:?}",
+            true,
+            "proof-verify should return `true`, case: {} - {:?}",
+            fixture.case_name,
+            fixture.result.reason
+        );
+    } else {
+        assert!(
+            result.is_err() || (result.unwrap() == false),
+            "validation failed, case: {} - {:?}",
             fixture.case_name,
             fixture.result.reason
         );

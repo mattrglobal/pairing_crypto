@@ -144,8 +144,8 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
     save_test_vector(&fixture, &output_dir.join("signature007.json"));
 }
 
-// Validate generated fixture before saving to the file
-fn validate_fixture(fixture: &FixtureSignature) {
+// Validate fixture if `api::verify` returns expected result.
+pub fn validate_fixture(fixture: &FixtureSignature) {
     let result = verify(&BbsVerifyRequest {
         public_key: &fixture.key_pair.public_key.to_octets(),
         header: Some(fixture.header.clone()),
@@ -155,7 +155,14 @@ fn validate_fixture(fixture: &FixtureSignature) {
         )
         .unwrap(),
     })
-    .unwrap();
+    .expect(&format!(
+        "verify should not return error, case: {}",
+        fixture.case_name
+    ));
 
-    assert_eq!(result, fixture.result.valid);
+    assert_eq!(
+        result, fixture.result.valid,
+        "validation failed, case: {} - {:?}",
+        fixture.case_name, fixture.result.reason
+    );
 }
