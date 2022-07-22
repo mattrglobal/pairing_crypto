@@ -58,4 +58,6 @@ harness = false
 [workspace]
 members = [
     "tools/bbs-fixtures-generator",
+    "wrappers/c",
+    "wrappers/wasm"
 ]
