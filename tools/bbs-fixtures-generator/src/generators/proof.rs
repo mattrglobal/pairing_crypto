@@ -238,6 +238,19 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
     };
     validate_fixture(&fixture);
     save_test_vector(&fixture, &output_dir.join("proof012.json"));
+
+    let mut header = fixture_gen_input.header.clone();
+    header.reverse();
+    let fixture = FixtureProof {
+        header,
+        result: ExpectedResult {
+            valid: false,
+            reason: Some("different header".to_owned()),
+        },
+        ..fixture_negative.clone()
+    };
+    validate_fixture(&fixture);
+    save_test_vector(&fixture, &output_dir.join("proof013.json"));
 }
 
 fn proof_gen_helper(

@@ -108,12 +108,12 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
     save_test_vector(&fixture, &output_dir.join("signature005.json"));
 
     // multi message - re-ordered messages
-    let mut shuffled_messages = fixture_gen_input.messages.clone();
-    shuffled_messages.shuffle(&mut thread_rng());
+    let mut reversed_messages = fixture_gen_input.messages.clone();
+    reversed_messages.reverse();
 
     let fixture = FixtureSignature {
         case_name: "multi-message signature".to_owned(),
-        messages: shuffled_messages,
+        messages: reversed_messages,
         signature: signature_multi_message.to_vec(),
         result: ExpectedResult {
             valid: false,
@@ -142,6 +142,40 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
     };
     validate_fixture(&fixture);
     save_test_vector(&fixture, &output_dir.join("signature007.json"));
+
+    // multi message - different header
+    let mut header = fixture_gen_input.header.clone();
+    header.reverse();
+    let fixture = FixtureSignature {
+        case_name: "multi-message signature".to_owned(),
+        header,
+        messages: fixture_gen_input.messages.to_vec(),
+        signature: signature_multi_message.to_vec(),
+        result: ExpectedResult {
+            valid: false,
+            reason: Some("different header".to_owned()),
+        },
+        ..fixture_scratch.clone()
+    };
+    validate_fixture(&fixture);
+    save_test_vector(&fixture, &output_dir.join("signature008.json"));
+
+    // multi message - randomly shuffled messages
+    let mut shuffled_messages = fixture_gen_input.messages.clone();
+    shuffled_messages.shuffle(&mut thread_rng());
+
+    let fixture = FixtureSignature {
+        case_name: "multi-message signature".to_owned(),
+        messages: shuffled_messages,
+        signature: signature_multi_message.to_vec(),
+        result: ExpectedResult {
+            valid: false,
+            reason: Some("re-ordered(randomly shuffled) messages".to_owned()),
+        },
+        ..fixture_scratch.clone()
+    };
+    validate_fixture(&fixture);
+    save_test_vector(&fixture, &output_dir.join("signature009.json"));
 }
 
 // Validate fixture if `api::verify` returns expected result.
