@@ -115,6 +115,7 @@ pub struct FixtureProof {
     pub presentation_message: Vec<u8>,
     #[serde(serialize_with = "serialize_disclosed_messages")]
     #[serde(deserialize_with = "deserialize_disclosed_messages")]
+    #[serde(rename = "revealedMessages")]
     pub disclosed_messages: Vec<(usize, Vec<u8>)>,
     pub total_message_count: usize,
     #[serde(serialize_with = "hex::serde::serialize")]
