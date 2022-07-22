@@ -18,7 +18,7 @@ generate_headers:
 
 	@rustup run nightly cbindgen --config cbindgen.toml --crate pairing_crypto_c --output include/pairing_crypto.h
 test:
-	@${CC} tests/pairing_crypto_test.c -o pairing_crypto_test -Iinclude -Ltarget/release -lpairing_crypto_c
+	@${CC} tests/pairing_crypto_test.c -o pairing_crypto_test -Iinclude -L../../target/release -lpairing_crypto_c
 	@chmod +x pairing_crypto_test
 	@./pairing_crypto_test
 clean:
