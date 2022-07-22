@@ -132,7 +132,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
     let fixture = FixtureSignature {
         case_name: "multi-message signature".to_owned(),
         key_pair,
-        messages: fixture_gen_input.messages[..2].to_vec(),
+        messages: fixture_gen_input.messages.to_vec(),
         signature: signature_multi_message.to_vec(),
         result: ExpectedResult {
             valid: false,
