@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import { generateBbsSignRequest, generateMessages } from "./helper";
+import { generateMessages } from "./helper";
 
 /* eslint-disable @typescript-eslint/camelcase */
 import { report, benchmarkPromise } from "@stablelib/benchmark";
@@ -30,7 +30,10 @@ const runBbsBenchmark = async (
   messageSizeInBytes: number,
   numberRevealed: number
 ): Promise<void> => {
-  const keyPair = await bbs.bls12381.generateKeyPair(randomBytes(32), randomBytes(32));
+  const keyPair = await bbs.bls12381.generateKeyPair({
+    ikm: randomBytes(32),
+    keyInfo: randomBytes(32),
+  });
   const messages = generateMessages(numberOfMessages, messageSizeInBytes);
   const header = randomBytes(50);
 
@@ -100,7 +103,12 @@ const runBbsBenchmark = async (
 (async () => {
   report(
     "BBS Key Generation",
-    await benchmarkPromise(() => bbs.bls12381.generateKeyPair(randomBytes(32), randomBytes(32)))
+    await benchmarkPromise(() =>
+      bbs.bls12381.generateKeyPair({
+        ikm: randomBytes(32),
+        keyInfo: randomBytes(32),
+      })
+    )
   );
 
   // ------------------------------ 1, 100 byte message ------------------------------
