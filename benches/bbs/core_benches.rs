@@ -9,9 +9,10 @@ use std::time::Duration;
 const MAX_LOG_POW: u32 = 4;
 
 fn core_benchmark(c: &mut Criterion) {
-    let mut benchmarker = BenchHelper::init((10 as i32).pow(MAX_LOG_POW)).unwrap();
+    let mut benchmarker =
+        BenchHelper::init((10 as i32).pow(MAX_LOG_POW)).unwrap();
 
-    for messages_num in (0..=MAX_LOG_POW).map(|el| {(10 as i32).pow(el as u32)}) {
+    for messages_num in (0..=MAX_LOG_POW).map(|el| (10 as i32).pow(el as u32)) {
         println!("messages number = {}", messages_num);
         println!("==========================================================");
 
