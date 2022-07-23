@@ -6,13 +6,12 @@ extern crate criterion;
 use criterion::Criterion;
 use std::time::Duration;
 
-const MAX_MESSAGES_NUM: i32 = 100;
-const MESSAGES_STEP: usize = 10;
+const MAX_LOG_POW: u32 = 4;
 
 fn core_benchmark(c: &mut Criterion) {
-    let mut benchmarker = BenchHelper::init(MAX_MESSAGES_NUM).unwrap();
+    let mut benchmarker = BenchHelper::init((10 as i32).pow(MAX_LOG_POW)).unwrap();
 
-    for messages_num in (10..=MAX_MESSAGES_NUM).step_by(MESSAGES_STEP) {
+    for messages_num in (0..=MAX_LOG_POW).map(|el| {(10 as i32).pow(el as u32)}) {
         println!("messages number = {}", messages_num);
         println!("==========================================================");
 
