@@ -23,7 +23,7 @@
         "node": ">=8.0.0"
     },
     "scripts": {
-        "install": "./scripts/install-dependencies.sh",
+        "setup": "./scripts/install-dependencies.sh",
         "build:debug": "./scripts/build-package.sh DEBUG",
         "build": "./scripts/build-package.sh",
         "test": "jest",
