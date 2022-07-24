@@ -1,7 +1,7 @@
 # Test Fixtures Generator
 
-This crate consists:
-- a library for fixtures generation for BBS signature scheme
+This crate consists of:
+- a library for fixtures generation for the BBS signature scheme
 - a CLI tool based upon above library to generate the fixtures
 
 The library `bbs_fixtures_generator` is used in fixture based integration testing of `pairing_crypto` library.
