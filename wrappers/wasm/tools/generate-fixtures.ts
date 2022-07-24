@@ -57,47 +57,56 @@ const messages = [
   ),
   new Uint8Array(
     Buffer.from(
-      "87a8bd656d49ee07b8110e1d8fd4f1dcef6fb9bc368c492d9bc8c4f98a739ac6"
+      "87a8bd656d49ee07b8110e1d8fd4f1dcef6fb9bc368c492d9bc8c4f98a739ac6",
+      "hex"
     )
   ),
   new Uint8Array(
     Buffer.from(
-      "96012096adda3f13dd4adbe4eea481a4c4b5717932b73b00e31807d3c5894b90"
+      "96012096adda3f13dd4adbe4eea481a4c4b5717932b73b00e31807d3c5894b90",
+      "hex"
     )
   ),
   new Uint8Array(
     Buffer.from(
-      "ac55fb33a75909edac8994829b250779298aa75d69324a365733f16c333fa943"
+      "ac55fb33a75909edac8994829b250779298aa75d69324a365733f16c333fa943",
+      "hex"
     )
   ),
   new Uint8Array(
     Buffer.from(
-      "d183ddc6e2665aa4e2f088af9297b78c0d22b4290273db637ed33ff5cf703151"
+      "d183ddc6e2665aa4e2f088af9297b78c0d22b4290273db637ed33ff5cf703151",
+      "hex"
     )
   ),
   new Uint8Array(
     Buffer.from(
-      "515ae153e22aae04ad16f759e07237b43022cb1ced4c176e0999c6a8ba5817cc"
+      "515ae153e22aae04ad16f759e07237b43022cb1ced4c176e0999c6a8ba5817cc",
+      "hex"
     )
   ),
   new Uint8Array(
     Buffer.from(
-      "496694774c5604ab1b2544eababcf0f53278ff5040c1e77c811656e8220417a2"
+      "496694774c5604ab1b2544eababcf0f53278ff5040c1e77c811656e8220417a2",
+      "hex"
     )
   ),
   new Uint8Array(
     Buffer.from(
-      "77fe97eb97a1ebe2e81e4e3597a3ee740a66e9ef2412472c23364568523f8b91"
+      "77fe97eb97a1ebe2e81e4e3597a3ee740a66e9ef2412472c23364568523f8b91",
+      "hex"
     )
   ),
   new Uint8Array(
     Buffer.from(
-      "7372e9daa5ed31e6cd5c825eac1b855e84476a1d94932aa348e07b7320912416"
+      "7372e9daa5ed31e6cd5c825eac1b855e84476a1d94932aa348e07b7320912416",
+      "hex"
     )
   ),
   new Uint8Array(
     Buffer.from(
-      "c344136d9ab02da4dd5908bbba913ae6f58c2cc844b802a6f811f5fb075f9b80"
+      "c344136d9ab02da4dd5908bbba913ae6f58c2cc844b802a6f811f5fb075f9b80",
+      "hex"
     )
   ),
 ];
@@ -119,13 +128,13 @@ const signerKeyInfo = new Uint8Array(
 const spareSignerKeyPair = {
   publicKey: new Uint8Array(
     Buffer.from(
-      "b65b7cbff4e81b723456a13936b6bcc77a078bf6291765f3ae13170072249dd7daa7ec1bd82b818ab60198030b45b8fa159c155fc3841a9ad4045e37161c9f0d9a4f361b93cfdc67d365f3be1a398e56aa173d7a55e01b4a8dd2494e7fb90da7",
+      "a91de0aa76950a710fd45ae66c08b221a8b7b6e01d7c6e5284dc013b10f7ac5ee6ccec6b9f18dc4f4e9d62a75906434e084d1261beb1670be46965d4e3f4c3bce9aff1bf9c121a2ba62bdc9fc1420cf0b79948d7b5da19e689a120fc9f0cfabf",
       "hex"
     )
   ),
   secretKey: new Uint8Array(
     Buffer.from(
-      "24a038e171d441723ed5d441132af7b47d2ede63ab4c329092b342ab526b1079dbc2595897d4f2ab2de4d841cbe7d560f7aeced8e0c6d9402a95b6a6bbdfae64",
+      "593ba71072476149dead00db79a0e3058839a337d48b43490b3d2d8d5207133c",
       "hex"
     )
   ),
@@ -477,6 +486,8 @@ const generateSignatureTestVectors = async () => {
       result: { valid: false, reason: "re-ordered messages" },
     }
   );
+  // Restore the order
+  fixture.messages.reverse();
 
   // Invalid multi-message signature, wrong public key
   await writeSignatureTestVectorToFile(

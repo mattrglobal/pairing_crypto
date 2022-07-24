@@ -41,6 +41,9 @@ jobs:
       - name: Run yarn install
         run: yarn install --frozen-lockfile
 
+      - name: Run yarn setup
+        run: yarn setup
+
       - name: Run yarn build
         run: yarn build
 
@@ -89,10 +92,13 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
 
       - name: Run yarn install
         run: yarn install --frozen-lockfile
+
+      - name: Run yarn setup
+        run: yarn setup
 
       - name: Run yarn build
         run: yarn build
