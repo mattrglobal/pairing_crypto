@@ -15,16 +15,14 @@ Cargo.lock
 
 **/target
 
-
-# Added by cargo
-#
-# already existing elements were commented out
-
-#/target
-#Cargo.lock
-
 # VS code settings
 .vscode
 
 # Code coverage artifacts
 *.profraw
+
+# Ignore Gradle project-specific cache directory
+*.gradle
+
+# Ignore Gradle build output directory
+*/build
