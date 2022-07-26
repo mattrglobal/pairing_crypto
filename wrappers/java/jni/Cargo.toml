@@ -4,6 +4,14 @@ authors = ["MATTR Global Team"]
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["staticlib", "cdylib"]
+
+[profile.release]
+lto = true
+opt-level = 3
 
 [dependencies]
+pairing-crypto-c = { path = "../../c"}
+jni = "0.19"
+ffi-support = "0.4.4"
