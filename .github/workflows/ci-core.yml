@@ -74,6 +74,13 @@ jobs:
           toolchain: stable
           working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
 
+      - name: Run cargo build
+        uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
+        with:
+          command: build
+          toolchain: stable
+          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
+
       - name: Run cargo test
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
@@ -82,10 +89,19 @@ jobs:
           working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
           args: '--release'
 
-      - name: Run cargo build
+      - name: Generate fixtures
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
-          command: build
+          command: run
+          args: -p bbs-fixtures-generator -- -i  tests/fixtures/bbs/test_asset.json -o tests/fixtures/bbs/
           toolchain: stable
           working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
 
+      - name: Test after generating fixtures
+        uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
+        with:
+          command: test
+          toolchain: stable
+          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
+          args: '--release'
+     
