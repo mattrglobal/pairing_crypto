@@ -13,6 +13,6 @@ lto = true
 opt-level = 3
 
 [dependencies]
-pairing-crypto-c = { path = "../../c"}
+pairing_crypto_c = { path = "../../c"}
 jni = "0.19"
 ffi-support = "0.4.4"
