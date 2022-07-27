@@ -10,7 +10,7 @@ public class Bbs {
 
     private static native String get_last_error();
 
-    public static KeyPair generateKeyPair (byte[] ikm, byte[] keyInfo) throws Exception {
+    public static KeyPair generateBls12381KeyPair (byte[] ikm, byte[] keyInfo) throws Exception {
         byte[] public_key = new byte[KeyPair.BBS_BLS12381_PUBLIC_KEY_SIZE];
         byte[] secret_key = new byte[KeyPair.BBS_BLS12381_SECRET_KEY_SIZE];
         if (0 != bbs_bls12381_generate_key_pair(ikm, keyInfo, public_key, secret_key)) {

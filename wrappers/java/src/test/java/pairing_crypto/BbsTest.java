@@ -13,7 +13,7 @@ public class BbsTest {
         byte[] keyInfo = null;
 
         try {
-            Bbs.generateKeyPair(ikm, keyInfo);
+            Bbs.generateBls12381KeyPair(ikm, keyInfo);
             fail("Expected an exception to be thrown");
         } catch (Exception exception) {
             assertEquals("Unable to generate keys", exception.getMessage());
@@ -26,7 +26,7 @@ public class BbsTest {
         KeyPair keyPair = null;
 
         try {
-            keyPair = Bbs.generateKeyPair(ikm, keyInfo);
+            keyPair = Bbs.generateBls12381KeyPair(ikm, keyInfo);
         } catch (Exception exception) {
             exception.printStackTrace();
         }

@@ -36,7 +36,7 @@ thread_local! {
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn Java_pairing_crypto_bbs_bls12381_get_last_error<'a>(
+pub extern "C" fn Java_pairing_1crypto_Bbs_get_1last_1error<'a>(
     env: JNIEnv<'a>,
     _: JObject,
 ) -> JString<'a> {
@@ -52,7 +52,7 @@ pub extern "C" fn Java_pairing_crypto_bbs_bls12381_get_last_error<'a>(
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn Java_pairing_crypto_bbs_bls12381_generate_key_pair(
+pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1generate_1key_1pair(
     env: JNIEnv,
     _: JObject,
     ikm: jbyteArray,

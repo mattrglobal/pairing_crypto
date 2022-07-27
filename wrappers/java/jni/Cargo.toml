@@ -5,6 +5,7 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
+name = "pairing_crypto_jni"
 crate-type = ["staticlib", "cdylib"]
 
 [profile.release]
