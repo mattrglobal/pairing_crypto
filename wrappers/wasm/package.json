@@ -28,7 +28,6 @@
         "build": "./scripts/build-package.sh",
         "test": "jest",
         "benchmark": "ts-node bench/index.ts",
-        "generate-fixtures": "ts-node tools/generate-fixtures.ts",
         "publish:unstable": "./scripts/publish-unstable.sh"
     },
     "devDependencies": {
