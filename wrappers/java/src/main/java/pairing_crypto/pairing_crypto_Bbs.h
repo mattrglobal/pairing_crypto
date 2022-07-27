@@ -17,6 +17,222 @@ JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1generate_1key_1pa
 
 /*
  * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_sign_context_init
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1context_1init
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_sign_context_set_secret_key
+ * Signature: (J[B)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1context_1set_1secret_1key
+  (JNIEnv *, jclass, jlong, jbyteArray);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_sign_context_set_public_key
+ * Signature: (J[B)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1context_1set_1public_1key
+  (JNIEnv *, jclass, jlong, jbyteArray);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_sign_context_set_header
+ * Signature: (J[B)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1context_1set_1header
+  (JNIEnv *, jclass, jlong, jbyteArray);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_sign_context_add_message_bytes
+ * Signature: (J[B)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1context_1add_1message_1bytes
+  (JNIEnv *, jclass, jlong, jbyteArray);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_sign_context_finish
+ * Signature: (J[B)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1context_1finish
+  (JNIEnv *, jclass, jlong, jbyteArray);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_verify_context_init
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1context_1init
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_verify_context_set_public_key
+ * Signature: (J[B)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1context_1set_1public_1key
+  (JNIEnv *, jclass, jlong, jbyteArray);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_verify_context_set_header
+ * Signature: (J[B)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1context_1set_1header
+  (JNIEnv *, jclass, jlong, jbyteArray);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_verify_context_add_message_bytes
+ * Signature: (J[B)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1context_1add_1message_1bytes
+  (JNIEnv *, jclass, jlong, jbyteArray);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_verify_context_set_signature
+ * Signature: (J[B)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1context_1set_1signature
+  (JNIEnv *, jclass, jlong, jbyteArray);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_verify_context_finish
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1context_1finish
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_create_proof_context_init
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1create_1proof_1context_1init
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_create_proof_context_set_public_key
+ * Signature: (J[B)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1create_1proof_1context_1set_1public_1key
+  (JNIEnv *, jclass, jlong, jbyteArray);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_create_proof_context_set_header
+ * Signature: (J[B)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1create_1proof_1context_1set_1header
+  (JNIEnv *, jclass, jlong, jbyteArray);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_create_proof_context_set_signature
+ * Signature: (J[B)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1create_1proof_1context_1set_1signature
+  (JNIEnv *, jclass, jlong, jbyteArray);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_create_proof_context_set_presentation_message
+ * Signature: (J[B)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1create_1proof_1context_1set_1presentation_1message
+  (JNIEnv *, jclass, jlong, jbyteArray);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_create_proof_context_add_proof_message_bytes
+ * Signature: (J[BZ)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1create_1proof_1context_1add_1proof_1message_1bytes
+  (JNIEnv *, jclass, jlong, jbyteArray, jboolean);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_create_proof_context_finish
+ * Signature: (J[B)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1create_1proof_1context_1finish
+  (JNIEnv *, jclass, jlong, jbyteArray);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_verify_proof_context_init
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1proof_1context_1init
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_verify_proof_context_set_public_key
+ * Signature: (J[B)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1proof_1context_1set_1public_1key
+  (JNIEnv *, jclass, jlong, jbyteArray);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_verify_proof_context_set_header
+ * Signature: (J[B)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1proof_1context_1set_1header
+  (JNIEnv *, jclass, jlong, jbyteArray);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_verify_proof_context_set_proof
+ * Signature: (J[B)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1proof_1context_1set_1proof
+  (JNIEnv *, jclass, jlong, jbyteArray);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_verify_proof_context_set_presentation_message
+ * Signature: (J[B)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1proof_1context_1set_1presentation_1message
+  (JNIEnv *, jclass, jlong, jbyteArray);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_verify_proof_context_set_total_message_count
+ * Signature: (JI)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1proof_1context_1set_1total_1message_1count
+  (JNIEnv *, jclass, jlong, jint);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_verify_proof_context_add_message_bytes
+ * Signature: (JI[B)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1proof_1context_1add_1message_1bytes
+  (JNIEnv *, jclass, jlong, jint, jbyteArray);
+
+/*
+ * Class:     pairing_crypto_Bbs
+ * Method:    bbs_bls12381_verify_proof_context_finish
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1proof_1context_1finish
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     pairing_crypto_Bbs
  * Method:    get_last_error
  * Signature: ()Ljava/lang/String;
  */
