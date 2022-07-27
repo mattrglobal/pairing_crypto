@@ -92,7 +92,8 @@ jobs:
       - name: Generate fixtures
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
-          command: run -p bbs-fixtures-generator -- -i  tests/fixtures/bbs/test_asset.json -o tests/fixtures/bbs/
+          command: run
+          args: -p bbs-fixtures-generator -- -i  tests/fixtures/bbs/test_asset.json -o tests/fixtures/bbs/
           toolchain: stable
           working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
 
