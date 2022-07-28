@@ -21,8 +21,12 @@ describe("bbs", () => {
       let keyPair: KeyPair;
 
       beforeAll(async () => {
-        keyPair = await bbs.bls12381.generateKeyPair(randomBytes(32),
-          randomBytes(32));
+        keyPair = await bbs.bls12381.generateKeyPair(
+          {
+            ikm: randomBytes(32),
+            keyInfo: randomBytes(32),
+          }
+        );
       });
 
       it("should throw error when signature wrong length", async () => {

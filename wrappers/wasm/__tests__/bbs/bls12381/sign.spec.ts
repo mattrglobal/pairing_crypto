@@ -21,12 +21,25 @@ describe("bbs", () => {
 
     beforeAll(async () => {
       keyPair = await bbs.bls12381.generateKeyPair(
-        randomBytes(32),
-        randomBytes(32),
+        {
+          ikm: randomBytes(32),
+          keyInfo: randomBytes(32),
+        }
       );
     });
 
     describe("sign", () => {
+      it("should sign a header", async () => {
+        const request: BbsSignRequest = {
+          secretKey: keyPair.secretKey,
+          publicKey: keyPair.publicKey,
+          header: stringToBytes("Its a header"),
+        };
+        const signature = await bbs.bls12381.sign(request);
+        expect(signature).toBeInstanceOf(Uint8Array);
+        expect(signature.length).toEqual(bbs.bls12381.SIGNATURE_LENGTH);
+      });
+
       it("should sign a single message", async () => {
         const request: BbsSignRequest = {
           secretKey: keyPair.secretKey,
@@ -51,6 +64,16 @@ describe("bbs", () => {
         const signature = await bbs.bls12381.sign(request);
         expect(signature).toBeInstanceOf(Uint8Array);
         expect(signature.length).toEqual(bbs.bls12381.SIGNATURE_LENGTH);
+      });
+
+      it("should throw error if neither messages or header supplied", async () => {
+        const request: any = {
+          secretKey: keyPair.secretKey,
+          publicKey: keyPair.publicKey,
+        };
+        await expect(bbs.bls12381.sign(request)).rejects.toThrowError(
+          "Error: bad arguments: cause: nothing to sign"
+        );
       });
 
       it("should throw error if secret key not present", async () => {

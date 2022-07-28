@@ -21,7 +21,7 @@ const TEST_HEADER: &[u8; 16] = b"some_app_context";
 fn sign_benchmark(c: &mut Criterion) {
     let header = TEST_HEADER.as_ref();
     let (secret_key, public_key) =
-        KeyPair::random(&mut OsRng, TEST_KEY_INFOS.as_ref())
+        KeyPair::random(&mut OsRng, Some(TEST_KEY_INFOS))
             .map(|key_pair| {
                 (
                     key_pair.secret_key.to_bytes(),

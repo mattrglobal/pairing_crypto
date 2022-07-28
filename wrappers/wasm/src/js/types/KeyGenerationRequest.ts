@@ -11,11 +11,16 @@
  * limitations under the License.
  */
 
-export { BbsDeriveProofRequest } from "./BbsDeriveProofRequest";
-export { BbsSignRequest } from "./BbsSignRequest";
-export { BbsVerifyRequest } from "./BbsVerifyRequest";
-export { BbsVerifyResult } from "./BbsVerifyResult";
-export { BbsVerifyProofRequest } from "./BbsVerifyProofRequest";
-
-export { KeyPair } from "./KeyPair";
-export { KeyGenerationRequest } from "./KeyGenerationRequest";
+/**
+ * Key generation request
+ */
+export interface KeyGenerationRequest {
+  /**
+   * Optional Input Key Material, if not supplied a random value will be generated via OS RNG
+   */
+  readonly ikm?: Uint8Array;
+  /**
+   * Optional key info
+   */
+  readonly keyInfo?: Uint8Array;
+}

@@ -18,7 +18,7 @@ fn secret_key_gen_from_seed_benchmark(c: &mut Criterion) {
         b.iter(|| {
             SecretKey::new(
                 black_box(KEY_GEN_IKM.as_ref()),
-                black_box(TEST_KEY_INFOS.as_ref()),
+                black_box(Some(TEST_KEY_INFOS)),
             )
             .unwrap();
         });
@@ -30,7 +30,7 @@ fn secret_key_gen_from_random_benchmark(c: &mut Criterion) {
         b.iter(|| {
             SecretKey::random(
                 black_box(&mut OsRng),
-                black_box(TEST_KEY_INFOS.as_ref()),
+                black_box(Some(TEST_KEY_INFOS)),
             )
             .unwrap();
         });
@@ -38,7 +38,7 @@ fn secret_key_gen_from_random_benchmark(c: &mut Criterion) {
 }
 
 fn sk_to_pk_benchmark(c: &mut Criterion) {
-    let sk = SecretKey::random(&mut OsRng, TEST_KEY_INFOS.as_ref())
+    let sk = SecretKey::random(&mut OsRng, Some(TEST_KEY_INFOS))
         .expect("secret key generation failed");
 
     c.bench_function(&format!("sk_to_pk from random"), |b| {

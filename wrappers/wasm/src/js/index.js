@@ -53,10 +53,10 @@ const initialize = async () => {
     }
 }
 
-const bbs_bls12381_generate_key_pair = async (ikm, keyInfo) => {
+const bbs_bls12381_generate_key_pair = async (request) => {
     await initialize();
     var result = await throwErrorOnRejectedPromise(
-        wasm.bbs_bls12381_generate_key_pair(ikm, keyInfo)
+        wasm.bbs_bls12381_generate_key_pair(request ?? {})
     );
     return {
         secretKey: new Uint8Array(result.secretKey),

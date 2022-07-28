@@ -33,7 +33,7 @@ const NUM_MESSAGES: usize = 1;
 const NUM_REVEALED_MESSAGES: usize = 0;
 
 fn get_random_key_pair() -> ([u8; 32], [u8; 96]) {
-    KeyPair::random(&mut OsRng, TEST_KEY_INFOS.as_ref())
+    KeyPair::random(&mut OsRng, Some(TEST_KEY_INFOS))
         .map(|key_pair| {
             (
                 key_pair.secret_key.to_bytes(),
@@ -48,7 +48,7 @@ fn profile_key_gen(c: &mut Criterion) {
         b.iter(|| {
             KeyPair::new(
                 black_box(KEY_GEN_SEED.as_ref()),
-                black_box(TEST_KEY_INFOS.as_ref()),
+                black_box(Some(TEST_KEY_INFOS)),
             )
             .map(|key_pair| {
                 (
