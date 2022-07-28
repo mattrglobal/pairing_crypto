@@ -20,7 +20,12 @@ describe("bbs", () => {
     let keyPair: KeyPair;
 
     beforeAll(async () => {
-      keyPair = await bbs.bls12381.generateKeyPair();
+      keyPair = await bbs.bls12381.generateKeyPair(
+        {
+          ikm: randomBytes(32),
+          keyInfo: randomBytes(32),
+        }
+      );
     });
 
     describe("sign", () => {
