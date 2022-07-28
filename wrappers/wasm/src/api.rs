@@ -53,18 +53,18 @@ pub async fn bbs_bls12381_generate_key_pair(
     // Cast the supplied JSON request into a rust struct
     let request: KeyGenerationRequestDto = request.try_into()?;
 
-    // Set the key info to that supplied by the request if available otherwise
-    // set to the default value documented in the spec
-    let key_info = match request.keyInfo {
-        Some(val) => val,
-        None => "BBS-SIG-KEYGEN-SALT-".as_bytes().to_vec(),
-    };
-
     // // Derive secret key from supplied IKM and key information metadata.
     let key_pair = match request.ikm {
-        Some(ikm) => PairingCryptoKeyPair::new(&ikm, &key_info).unwrap(),
-        None => PairingCryptoKeyPair::random(&mut OsRng::default(), &key_info)
-            .unwrap(),
+        Some(ikm) => PairingCryptoKeyPair::new(
+            &ikm,
+            request.keyInfo.as_ref().map(Vec::as_ref),
+        )
+        .unwrap(),
+        None => PairingCryptoKeyPair::random(
+            &mut OsRng::default(),
+            request.keyInfo.as_ref().map(Vec::as_ref),
+        )
+        .unwrap(),
     };
 
     // Construct the JS DTO of the key pair to return

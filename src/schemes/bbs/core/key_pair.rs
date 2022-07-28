@@ -60,11 +60,13 @@ impl SecretKey {
     /// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.3
     /// Note this procedure does not follow
     /// https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-keygen
-    pub fn new<T>(ikm: T, key_info: T) -> Option<Self>
+    pub fn new<T>(ikm: T, key_info: Option<&[u8]>) -> Option<Self>
     where
         T: AsRef<[u8]>,
     {
-        if let Some(out) = generate_sk(ikm, key_info) {
+        let key_info = key_info.unwrap_or(&[]);
+
+        if let Some(out) = generate_sk(ikm.as_ref(), key_info) {
             // Extra assurance
             if out.is_zero().unwrap_u8() == 1u8 {
                 return None;
@@ -75,15 +77,14 @@ impl SecretKey {
     }
 
     /// Compute a secret key from a CS-PRNG.
-    pub fn random<R, T>(rng: &mut R, key_info: T) -> Option<Self>
+    pub fn random<R>(rng: &mut R, key_info: Option<&[u8]>) -> Option<Self>
     where
         R: RngCore + CryptoRng,
-        T: AsRef<[u8]>,
     {
         let mut ikm = [0u8; MIN_KEY_GEN_IKM_LENGTH];
 
         if rng.try_fill_bytes(&mut ikm).is_ok() {
-            return Self::new(ikm.as_ref(), key_info.as_ref());
+            return Self::new(ikm.as_ref(), key_info);
         }
         None
     }
@@ -224,11 +225,11 @@ impl Drop for KeyPair {
 
 impl KeyPair {
     /// Generate a BBS key pair from provided IKM.
-    pub fn new<T>(ikm: T, key_info: T) -> Option<Self>
+    pub fn new<T>(ikm: T, key_info: Option<&[u8]>) -> Option<Self>
     where
         T: AsRef<[u8]>,
     {
-        if let Some(secret_key) = SecretKey::new(ikm, key_info) {
+        if let Some(secret_key) = SecretKey::new(ikm.as_ref(), key_info) {
             return Some(Self {
                 secret_key: secret_key.clone(),
                 public_key: PublicKey::from(&secret_key),
@@ -238,15 +239,14 @@ impl KeyPair {
     }
 
     /// Compute a secret key from a CS-PRNG.
-    pub fn random<R, T>(rng: &mut R, key_info: T) -> Option<Self>
+    pub fn random<R>(rng: &mut R, key_info: Option<&[u8]>) -> Option<Self>
     where
         R: RngCore + CryptoRng,
-        T: AsRef<[u8]>,
     {
         let mut ikm = [0u8; MIN_KEY_GEN_IKM_LENGTH];
 
         if rng.try_fill_bytes(&mut ikm).is_ok() {
-            return Self::new(ikm.as_ref(), key_info.as_ref());
+            return Self::new(ikm.as_ref(), key_info);
         }
         None
     }

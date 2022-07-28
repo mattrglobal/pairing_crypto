@@ -228,11 +228,8 @@ fn gen_verify_different_key_pairs() {
 
     for i in 0..TEST_KEY_INFOS.len() {
         let pk = PublicKey::from(
-            &SecretKey::new(
-                TEST_KEY_GEN_IKM.as_ref(),
-                TEST_KEY_INFOS[i].as_ref(),
-            )
-            .expect("secret key generation failed"),
+            &SecretKey::new(TEST_KEY_GEN_IKM.as_ref(), Some(TEST_KEY_INFOS[i]))
+                .expect("secret key generation failed"),
         );
 
         // start with all hidden messages

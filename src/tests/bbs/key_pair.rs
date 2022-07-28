@@ -23,7 +23,7 @@ const EXPECTED_TEST_PUBLIC_KEY: &[u8; 192] = b"b65b7cbff4e81b723456a13936b6bcc77
 #[test]
 fn debug_display() {
     // Secret key gen from IKM
-    let sk = SecretKey::new(TEST_IKM.as_ref(), TEST_KEY_INFO.as_ref())
+    let sk = SecretKey::new(TEST_IKM.as_ref(), Some(TEST_KEY_INFO))
         .expect("secret key gen from IKM failed");
 
     // Generate public key from secret key
@@ -36,42 +36,102 @@ fn debug_display() {
 #[test]
 fn nominal() {
     // Secret key gen from IKM
-    let sk = SecretKey::new(TEST_IKM.as_ref(), TEST_KEY_INFO.as_ref())
+    let sk = SecretKey::new(TEST_IKM.as_ref(), Some(TEST_KEY_INFO))
         .expect("secret key gen from IKM failed");
-
     // Generate public key from secret key
     let pk = PublicKey::from(&sk);
-    assert_eq!(pk.is_valid().unwrap_u8(), 1, "generated public is invalid");
+    assert_eq!(
+        pk.is_valid().unwrap_u8(),
+        1,
+        "generated public key is invalid"
+    );
+
+    // Secret key gen from IKM, no key-info
+    let sk = SecretKey::new(TEST_IKM.as_ref(), None)
+        .expect("secret key gen from IKM failed");
+    // Generate public key from secret key
+    let pk = PublicKey::from(&sk);
+    assert_eq!(
+        pk.is_valid().unwrap_u8(),
+        1,
+        "generated public key is invalid"
+    );
 
     // Secret key gen from Rng
-    let sk = SecretKey::random(&mut OsRng::default(), TEST_KEY_INFO.as_ref())
+    let sk = SecretKey::random(&mut OsRng::default(), Some(TEST_KEY_INFO))
         .expect("random secret key gen failed");
-
     // Generate public key from secret key
     let pk = PublicKey::from(&sk);
-    assert_eq!(pk.is_valid().unwrap_u8(), 1, "generated public is invalid");
+    assert_eq!(
+        pk.is_valid().unwrap_u8(),
+        1,
+        "generated public key is invalid"
+    );
+
+    // Secret key gen from Rng, no key-info
+    let sk = SecretKey::random(&mut OsRng::default(), None)
+        .expect("random secret key gen failed");
+    // Generate public key from secret key
+    let pk = PublicKey::from(&sk);
+    assert_eq!(
+        pk.is_valid().unwrap_u8(),
+        1,
+        "generated public key is invalid"
+    );
 
     // Key pair gen from IKM
     let KeyPair {
         secret_key: _,
         public_key: pk,
-    } = KeyPair::new(TEST_IKM.as_ref(), TEST_KEY_INFO.as_ref())
+    } = KeyPair::new(TEST_IKM.as_ref(), Some(TEST_KEY_INFO))
         .expect("key pair generation failed");
-    assert_eq!(pk.is_valid().unwrap_u8(), 1, "generated public is invalid");
+    assert_eq!(
+        pk.is_valid().unwrap_u8(),
+        1,
+        "generated public key is invalid"
+    );
+
+    // Key pair gen from IKM, no key-info
+    let KeyPair {
+        secret_key: _,
+        public_key: pk,
+    } = KeyPair::new(TEST_IKM.as_ref(), None)
+        .expect("key pair generation failed");
+    assert_eq!(
+        pk.is_valid().unwrap_u8(),
+        1,
+        "generated public key is invalid"
+    );
 
     // Key pair gen from Rng
     let KeyPair {
         secret_key: _,
         public_key: pk,
-    } = KeyPair::random(&mut OsRng::default(), TEST_KEY_INFO.as_ref())
+    } = KeyPair::random(&mut OsRng::default(), Some(TEST_KEY_INFO))
         .expect("random key pair generation failed");
-    assert_eq!(pk.is_valid().unwrap_u8(), 1, "generated public is invalid");
+    assert_eq!(
+        pk.is_valid().unwrap_u8(),
+        1,
+        "generated public key is invalid"
+    );
+
+    // Key pair gen from Rng, no key-info
+    let KeyPair {
+        secret_key: _,
+        public_key: pk,
+    } = KeyPair::random(&mut OsRng::default(), None)
+        .expect("random key pair generation failed");
+    assert_eq!(
+        pk.is_valid().unwrap_u8(),
+        1,
+        "generated public key is invalid"
+    );
 }
 
 #[test]
 fn key_gen_expected_values() {
     // Secret key gen from IKM
-    let sk = SecretKey::new(TEST_IKM.as_ref(), TEST_KEY_INFO.as_ref())
+    let sk = SecretKey::new(TEST_IKM.as_ref(), Some(TEST_KEY_INFO))
         .expect("secret key gen from IKM failed");
     let pk = PublicKey::from(&sk);
     assert_eq!(
@@ -86,7 +146,7 @@ fn key_gen_expected_values() {
     );
 
     // Key pair gen from IKM
-    let key_pair = KeyPair::new(TEST_IKM.as_ref(), TEST_KEY_INFO.as_ref())
+    let key_pair = KeyPair::new(TEST_IKM.as_ref(), Some(TEST_KEY_INFO))
         .expect("key pair generation failed");
     assert_eq!(
         key_pair.secret_key.to_bytes().to_vec(),
@@ -105,22 +165,22 @@ fn key_gen_short_ikm() {
     let ikm = [0u8; MIN_KEY_GEN_IKM_LENGTH - 1];
 
     // Secret key gen from IKM
-    let sk = SecretKey::new(ikm.as_ref(), TEST_KEY_INFO.as_ref());
+    let sk = SecretKey::new(ikm.as_ref(), Some(TEST_KEY_INFO));
     assert!(sk.is_none(), "`SecretKey` should be a `None` value");
 
     // Key pair gen from IKM
-    let key_pair = KeyPair::new(ikm.as_ref(), TEST_KEY_INFO.as_ref());
+    let key_pair = KeyPair::new(ikm.as_ref(), Some(TEST_KEY_INFO));
     assert!(key_pair.is_none(), "`KeyPair` should be a `None` value");
 }
 
 #[test]
 fn key_gen_equality_with_same_ikm_and_key_info() {
     // Secret key gen from IKM
-    let sk1 = SecretKey::new(TEST_IKM.as_ref(), TEST_KEY_INFO.as_ref())
+    let sk1 = SecretKey::new(TEST_IKM.as_ref(), Some(TEST_KEY_INFO))
         .expect("secret key gen from IKM failed");
     // Generate public key from secret key
     let pk1 = PublicKey::from(&sk1);
-    let sk2 = SecretKey::new(TEST_IKM.as_ref(), TEST_KEY_INFO.as_ref())
+    let sk2 = SecretKey::new(TEST_IKM.as_ref(), Some(TEST_KEY_INFO))
         .expect("secret key gen from IKM failed");
     // Generate public key from secret key
     let pk2 = PublicKey::from(&sk2);
@@ -128,9 +188,17 @@ fn key_gen_equality_with_same_ikm_and_key_info() {
     assert_eq!(pk1, pk2);
 
     // Key pair gen from Rng
-    let key_pair1 = KeyPair::new(TEST_IKM.as_ref(), TEST_KEY_INFO.as_ref())
+    let key_pair1 = KeyPair::new(TEST_IKM.as_ref(), Some(TEST_KEY_INFO))
         .expect("random key pair generation failed");
-    let key_pair2 = KeyPair::new(TEST_IKM.as_ref(), TEST_KEY_INFO.as_ref())
+    let key_pair2 = KeyPair::new(TEST_IKM.as_ref(), Some(TEST_KEY_INFO))
+        .expect("random key pair generation failed");
+    assert_eq!(key_pair1.secret_key, key_pair2.secret_key);
+    assert_eq!(key_pair1.public_key, key_pair2.public_key);
+
+    // Key pair gen from Rng, no key-info
+    let key_pair1 = KeyPair::new(TEST_IKM.as_ref(), None)
+        .expect("random key pair generation failed");
+    let key_pair2 = KeyPair::new(TEST_IKM.as_ref(), None)
         .expect("random key pair generation failed");
     assert_eq!(key_pair1.secret_key, key_pair2.secret_key);
     assert_eq!(key_pair1.public_key, key_pair2.public_key);
@@ -171,10 +239,10 @@ fn key_gen_uniqueness() {
         test_data
     {
         // Using SecretKey API
-        let sk1 = SecretKey::new(ikm1, key_info_1)
+        let sk1 = SecretKey::new(ikm1, Some(key_info_1))
             .expect("first secret key gen from IKM failed");
         let pk1 = PublicKey::from(&sk1);
-        let sk2 = SecretKey::new(ikm2, key_info_2)
+        let sk2 = SecretKey::new(ikm2, Some(key_info_2))
             .expect("second secret key gen from IKM failed");
         let pk2 = PublicKey::from(&sk2);
         assert_ne!(
@@ -188,9 +256,9 @@ fn key_gen_uniqueness() {
             failure_debug_message
         );
 
-        let key_pair1 = KeyPair::new(ikm1, key_info_1)
+        let key_pair1 = KeyPair::new(ikm1, Some(key_info_1))
             .expect("first key-pair gen from IKM failed");
-        let key_pair2 = KeyPair::new(ikm2, key_info_2)
+        let key_pair2 = KeyPair::new(ikm2, Some(key_info_2))
             .expect("second key-pair gen from IKM failed");
         assert_ne!(
             key_pair1.secret_key, key_pair2.secret_key,
@@ -207,22 +275,20 @@ fn key_gen_uniqueness() {
     }
 
     // Different Rng
-    let sk1 = SecretKey::random(&mut OsRng::default(), TEST_KEY_INFO.as_ref())
+    let sk1 = SecretKey::random(&mut OsRng::default(), Some(TEST_KEY_INFO))
         .expect("secret key gen from IKM failed");
     let pk1 = PublicKey::from(&sk1);
-    let sk2 = SecretKey::random(&mut OsRng::default(), TEST_KEY_INFO.as_ref())
+    let sk2 = SecretKey::random(&mut OsRng::default(), Some(TEST_KEY_INFO))
         .expect("secret key gen from IKM failed");
     let pk2 = PublicKey::from(&sk2);
     assert_ne!(sk1, sk2);
     assert_ne!(pk1, pk2);
 
     // KeyPair different Rng
-    let key_pair1 =
-        KeyPair::random(&mut OsRng::default(), TEST_KEY_INFO.as_ref())
-            .expect("random key pair generation failed");
-    let key_pair2 =
-        KeyPair::random(&mut OsRng::default(), TEST_KEY_INFO.as_ref())
-            .expect("random key pair generation failed");
+    let key_pair1 = KeyPair::random(&mut OsRng::default(), Some(TEST_KEY_INFO))
+        .expect("random key pair generation failed");
+    let key_pair2 = KeyPair::random(&mut OsRng::default(), Some(TEST_KEY_INFO))
+        .expect("random key pair generation failed");
     assert_ne!(key_pair1.secret_key, key_pair2.secret_key);
     assert_ne!(key_pair1.public_key, key_pair2.public_key);
 }
@@ -232,7 +298,7 @@ fn key_gen_uniqueness() {
 // to those generated using `KeyPair` APIs.
 fn key_pair_sk_pk_api_consistency() {
     // Secret key gen from IKM
-    let sk = SecretKey::new(TEST_IKM.as_ref(), TEST_KEY_INFO.as_ref())
+    let sk = SecretKey::new(TEST_IKM.as_ref(), Some(TEST_KEY_INFO))
         .expect("secret key gen from IKM failed");
 
     // Generate public key from secret key
@@ -240,7 +306,7 @@ fn key_pair_sk_pk_api_consistency() {
 
     // Key pair gen from IKM
     // Key pair gen from IKM
-    let key_pair = KeyPair::new(TEST_IKM.as_ref(), TEST_KEY_INFO.as_ref())
+    let key_pair = KeyPair::new(TEST_IKM.as_ref(), Some(TEST_KEY_INFO))
         .expect("key pair generation failed");
     let (key_pair_sk, key_pair_pk) =
         (key_pair.secret_key.clone(), key_pair.public_key);
@@ -283,12 +349,12 @@ fn key_gen_from_erroneous_rng() {
 
     // Secret key gen from erroneous Rng
     let sk =
-        SecretKey::random(&mut ErroneousRng::default(), TEST_KEY_INFO.as_ref());
+        SecretKey::random(&mut ErroneousRng::default(), Some(TEST_KEY_INFO));
     assert!(sk.is_none(), "`SecretKey` should be a `None` value");
 
     // Key pair gen from erroneous Rng
     let key_pair =
-        KeyPair::random(&mut ErroneousRng::default(), TEST_KEY_INFO.as_ref());
+        KeyPair::random(&mut ErroneousRng::default(), Some(TEST_KEY_INFO));
     assert!(key_pair.is_none(), "`KeyPair` should be a `None` value");
 }
 
@@ -378,7 +444,7 @@ macro_rules! key_serde {
 #[test]
 fn key_serde() {
     // Key pair gen from IKM
-    let key_pair = KeyPair::new(TEST_IKM.as_ref(), TEST_KEY_INFO.as_ref())
+    let key_pair = KeyPair::new(TEST_IKM.as_ref(), Some(TEST_KEY_INFO))
         .expect("key pair generation failed");
     let (sk, pk) = (key_pair.secret_key.clone(), key_pair.public_key);
 
@@ -419,7 +485,7 @@ fn from_vec_deserialization_invalid_vec_size() {
 #[test]
 fn key_zeroize() {
     // Secret key gen from IKM
-    let mut sk = SecretKey::new(TEST_IKM.as_ref(), TEST_KEY_INFO.as_ref())
+    let mut sk = SecretKey::new(TEST_IKM.as_ref(), Some(TEST_KEY_INFO))
         .expect("secret key gen from IKM failed");
     assert_eq!(sk.0.is_zero().unwrap_u8(), 0u8);
     sk.zeroize();
@@ -427,7 +493,7 @@ fn key_zeroize() {
 
     // Key pair gen from Rng
     let mut key_pair =
-        KeyPair::random(&mut OsRng::default(), TEST_KEY_INFO.as_ref())
+        KeyPair::random(&mut OsRng::default(), Some(TEST_KEY_INFO))
             .expect("random key pair generation failed");
 
     assert_eq!(key_pair.secret_key.0.is_zero().unwrap_u8(), 0u8);
