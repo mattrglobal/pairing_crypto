@@ -12,7 +12,6 @@
  */
 
 import { bbs } from "../../../lib";
-import { base64Encode } from "../../utilities";
 
 describe("bbs", () => {
   describe("bls12381", () => {
@@ -35,7 +34,10 @@ describe("bbs", () => {
             )
           ),
           secretKey: new Uint8Array(
-            Buffer.from("SxLi4R28gWdxA6LHCZTc8hIYEjMcEqvMQOWF/po5Uz4=", "base64")
+            Buffer.from(
+              "SxLi4R28gWdxA6LHCZTc8hIYEjMcEqvMQOWF/po5Uz4=",
+              "base64"
+            )
           ),
           publicKey: new Uint8Array(
             Buffer.from(
@@ -46,7 +48,10 @@ describe("bbs", () => {
         },
       ].forEach((value) => {
         it(`should be able to generate a key pair with an IKM and KeyInfo`, async () => {
-          const result = await value.generateKeyFn(value.ikm, value.keyInfo);
+          const result = await value.generateKeyFn({
+            ikm: value.ikm,
+            keyInfo: value.keyInfo,
+          });
           expect(result.publicKey).toBeDefined();
           expect(result.secretKey).toBeDefined();
           expect(result.secretKey?.length as number).toEqual(
@@ -56,6 +61,17 @@ describe("bbs", () => {
           expect(result.secretKey as Uint8Array).toEqual(value.secretKey);
           expect(result.publicKey).toEqual(value.publicKey);
         });
+      });
+
+      it("should be able to generate a key pair from random", async () => {
+        const result = await bbs.bls12381.generateKeyPair();
+
+        expect(result.publicKey).toBeDefined();
+        expect(result.secretKey).toBeDefined();
+        expect(result.secretKey?.length as number).toEqual(
+          bbs.bls12381.PRIVATE_KEY_LENGTH
+        );
+        expect(result.publicKey.length).toEqual(bbs.bls12381.PUBLIC_KEY_LENGTH);
       });
     });
   });

@@ -30,25 +30,42 @@ use pairing_crypto::bbs::ciphersuites::bls12_381::{
     BBS_BLS12381G1_SECRET_KEY_LENGTH,
     BBS_BLS12381G1_SIGNATURE_LENGTH,
 };
+use rand_core::OsRng;
 use wasm_bindgen::prelude::*;
 
 /// Generate a BBS key pair on BLS 12-381 curve.
 ///
-/// * seed: UIntArray with 32 elements
+/// * request: JSON encoded request optionally containing
+///             - IKM: Input Key Material (if not supplied a random value will
+///               be generated via RNG)
+///             - key_info: Key information
 ///
 /// Returned value is a byte array which is the concatenation of first the
 /// private key (32 bytes) followed by the public key (96) bytes.
 #[wasm_bindgen(js_name = bbs_bls12381_generate_key_pair)]
 pub async fn bbs_bls12381_generate_key_pair(
-    ikm: Vec<u8>,
-    key_info: Vec<u8>,
+    request: JsValue,
 ) -> Result<JsValue, JsValue> {
     // Improves error output in JS based console.log() when built with debug
     // feature enabled
     set_panic_hook();
 
+    // Cast the supplied JSON request into a rust struct
+    let request: KeyGenerationRequestDto = request.try_into()?;
+
     // // Derive secret key from supplied IKM and key information metadata.
-    let key_pair = PairingCryptoKeyPair::new(&ikm, &key_info).unwrap();
+    let key_pair = match request.ikm {
+        Some(ikm) => PairingCryptoKeyPair::new(
+            &ikm,
+            request.keyInfo.as_ref().map(Vec::as_ref),
+        )
+        .unwrap(),
+        None => PairingCryptoKeyPair::random(
+            &mut OsRng::default(),
+            request.keyInfo.as_ref().map(Vec::as_ref),
+        )
+        .unwrap(),
+    };
 
     // Construct the JS DTO of the key pair to return
     let keypair = KeyPair {

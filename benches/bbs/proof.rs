@@ -28,7 +28,7 @@ const TEST_KEY_INFOS: &[u8; 50] =
     b"12345678901234567890123456789012345678901234567890";
 
 fn get_random_key_pair() -> ([u8; 32], [u8; 96]) {
-    KeyPair::random(&mut OsRng, TEST_KEY_INFOS.as_ref())
+    KeyPair::random(&mut OsRng, Some(TEST_KEY_INFOS))
         .map(|key_pair| {
             (
                 key_pair.secret_key.to_bytes(),

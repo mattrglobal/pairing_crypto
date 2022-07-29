@@ -56,7 +56,7 @@ fn sign_verify_e2e_nominal() {
 
     for i in 0..TEST_KEY_INFOS.len() {
         let (secret_key, public_key) =
-            KeyPair::new(KEY_GEN_SEED.as_ref(), TEST_KEY_INFOS[i].as_ref())
+            KeyPair::new(KEY_GEN_SEED.as_ref(), Some(TEST_KEY_INFOS[i]))
                 .map(|key_pair| {
                     (
                         key_pair.secret_key.to_bytes(),
@@ -98,7 +98,7 @@ fn proof_gen_verify_e2e_nominal() {
 
     for i in 0..TEST_KEY_INFOS.len() {
         let (secret_key, public_key) =
-            KeyPair::new(KEY_GEN_SEED.as_ref(), TEST_KEY_INFOS[i].as_ref())
+            KeyPair::new(KEY_GEN_SEED.as_ref(), Some(TEST_KEY_INFOS[i]))
                 .map(|key_pair| {
                     (
                         key_pair.secret_key.to_bytes(),
@@ -176,7 +176,7 @@ fn proof_gen_failure_message_modified() {
     let presentation_message = TEST_PRESENTATION_MESSAGE.as_ref();
     let messages = &TEST_CLAIMS;
 
-    let (secret_key, public_key) = KeyPair::random(&mut OsRng, &[])
+    let (secret_key, public_key) = KeyPair::random(&mut OsRng, None)
         .map(|key_pair| {
             (
                 key_pair.secret_key.to_bytes(),

@@ -18,18 +18,20 @@ import {
   KeyPair,
   BbsDeriveProofRequest,
   BbsVerifyProofRequest,
+  KeyGenerationRequest,
 } from "./types";
 
 export * from "./types";
 
 export namespace bbs {
-
   namespace bls12381 {
     const PRIVATE_KEY_LENGTH = 32;
     const PUBLIC_KEY_LENGTH = 96;
     const SIGNATURE_LENGTH = 112;
 
-    function generateKeyPair(ikm: Uint8Array, keyInfo: Uint8Array): Promise<Required<KeyPair>>;
+    function generateKeyPair(
+      request?: KeyGenerationRequest
+    ): Promise<Required<KeyPair>>;
     function sign(request: BbsSignRequest): Promise<Uint8Array>;
     function verify(request: BbsVerifyRequest): Promise<BbsVerifyResult>;
     function deriveProof(request: BbsDeriveProofRequest): Promise<Uint8Array>;
@@ -38,7 +40,6 @@ export namespace bbs {
     ): Promise<BbsVerifyResult>;
   }
 }
-
 
 export namespace utilities {
   function convertToRevealMessageArray(
