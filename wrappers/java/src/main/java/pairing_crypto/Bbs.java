@@ -16,7 +16,7 @@ public class Bbs {
 
     private static native int bbs_bls12381_sign_context_set_header(long handle, byte[] header);
 
-    private static native int bbs_bls12381_sign_context_add_message_bytes(long handle, byte[] message);
+    private static native int bbs_bls12381_sign_context_add_message(long handle, byte[] message);
 
     private static native int bbs_bls12381_sign_context_finish(long handle, byte[] signature);
 
@@ -26,7 +26,7 @@ public class Bbs {
 
     private static native int bbs_bls12381_verify_context_set_header(long handle, byte[] header);
 
-    private static native int bbs_bls12381_verify_context_add_message_bytes(long handle, byte[] message);
+    private static native int bbs_bls12381_verify_context_add_message(long handle, byte[] message);
 
     private static native int bbs_bls12381_verify_context_set_signature(long handle, byte[] signature);
 
@@ -58,7 +58,7 @@ public class Bbs {
 
     private static native int bbs_bls12381_verify_proof_context_set_total_message_count(long handle, int total_message_count);
 
-    private static native int bbs_bls12381_verify_proof_context_add_message_bytes(long handle, int index, byte[] message);
+    private static native int bbs_bls12381_verify_proof_context_add_message(long handle, int index, byte[] message);
 
     private static native int bbs_bls12381_verify_proof_context_finish(long handle);
 
