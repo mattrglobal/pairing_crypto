@@ -103,7 +103,7 @@ int main(int argc, char **argv)
     fflush(stdout);
     for (i = 0; i < message_count; i++)
     {
-        if (bbs_bls12381_sign_context_add_message(handle, *messages[i], err) != 0)
+        if (bbs_bls12381_sign_context_set_message(handle, *messages[i], err) != 0)
         {
             printf("fail\n");
             goto Fail;
