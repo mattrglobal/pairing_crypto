@@ -3,7 +3,7 @@ use pairing_crypto::Error;
 use std::{ptr, slice};
 
 /// Wrapper to convert a string to ExternError and PairingCryptoError
-pub(crate) struct PairingCryptoFfiError(pub String);
+pub struct PairingCryptoFfiError(pub String);
 
 impl PairingCryptoFfiError {
     pub fn new(m: &str) -> Self {
