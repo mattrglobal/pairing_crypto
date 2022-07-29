@@ -42,7 +42,7 @@ set_byte_array_impl!(
 );
 
 add_byte_array_impl!(
-    bbs_bls12381_sign_context_set_message,
+    bbs_bls12381_sign_context_add_message,
     BBS_SIGN_CONTEXT,
     messages
 );
