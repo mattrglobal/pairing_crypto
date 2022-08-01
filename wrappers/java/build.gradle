@@ -11,6 +11,8 @@ plugins {
     id 'java-library'
 }
 
+apply plugin : "java-library" 
+
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()

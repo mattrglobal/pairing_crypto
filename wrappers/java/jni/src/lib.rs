@@ -26,6 +26,7 @@ use pairing_crypto_c::{
             bbs_bls12381_derive_proof_context_set_public_key,
             bbs_bls12381_derive_proof_context_set_signature,
         },
+        get_proof_size::bbs_bls12381_get_proof_size,
         key_gen::bbs_bls12381_generate_key_pair,
         sign::{
             bbs_bls12381_sign_context_add_message,
@@ -495,6 +496,17 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1derive_1proof_1context
             )
         }
     }
+}
+
+/// Caller should treat negative return values as error.
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1proof_1size(
+    _: JNIEnv,
+    _: JObject,
+    num_undisclosed_messages: jint,
+) -> jint {
+    bbs_bls12381_get_proof_size(num_undisclosed_messages as usize)
 }
 
 #[allow(non_snake_case)]

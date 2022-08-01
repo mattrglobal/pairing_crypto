@@ -2,6 +2,8 @@ package pairing_crypto;
 
 public class Bbs {
 
+    public static final int BBS_BLS12381_SIGNATURE_SIZE = 112;
+
     static {
         System.loadLibrary("pairing_crypto_jni");
     }
@@ -31,6 +33,8 @@ public class Bbs {
     private static native int bbs_bls12381_verify_context_set_signature(long handle, byte[] signature);
 
     private static native int bbs_bls12381_verify_context_finish(long handle);
+
+    private static native int bbs_bls12381_proof_size(int numberOfUndisclosedMessages);
 
     private static native long bbs_bls12381_derive_proof_context_init();
 
@@ -72,5 +76,127 @@ public class Bbs {
         }
         return new KeyPair(public_key, secret_key);
     }
+    
+    private static byte[] sign(byte[] secret_key, byte[] public_key, byte[] header, byte[][] messages) throws Exception {
+        long handle = bbs_bls12381_sign_context_init();
+        if (0 == handle) {
+            throw new Exception("Unable to create signing context");
+        }
+        if (0 != bbs_bls12381_sign_context_set_secret_key(handle, secret_key)) {
+            throw new Exception("Unable to set secret key");
+        }
+        if (0 != bbs_bls12381_sign_context_set_public_key(handle, public_key)) {
+            throw new Exception("Unable to set public key");
+        }
+        if (0 != bbs_bls12381_sign_context_set_header(handle, header)) {
+            throw new Exception("Unable to set header");
+        }
+        for (byte[] message : messages) {
+            if (0 != bbs_bls12381_sign_context_add_message(handle, message)) {
+                throw new Exception("Unable to add message");
+            }
+        }
+        byte[] signature = new byte[BBS_BLS12381_SIGNATURE_SIZE];
+        if (0 != bbs_bls12381_sign_context_finish(handle, signature)) {
+            throw new Exception("Unable to create signature");
+        }
+        return signature;
+    }
 
+    public static boolean verify(byte[] public_key, byte[] header, byte[] signature, byte[][] messages) throws Exception {
+        long handle = bbs_bls12381_verify_context_init();
+        if (0 == handle) {
+            throw new Exception("Unable to create verify signature context");
+        }
+        if (0 != bbs_bls12381_verify_context_set_public_key(handle, public_key)) {
+            throw new Exception("Unable to set public key");
+        }
+        if (0 != bbs_bls12381_sign_context_set_header(handle, header)) {
+            throw new Exception("Unable to set header");
+        }
+        if (0 != bbs_bls12381_verify_context_set_signature(handle, signature)) {
+            throw new Exception("Unable to set signature");
+        }
+        for (byte[] message : messages) {
+            if (0 != bbs_bls12381_verify_context_add_message(handle, message)) {
+                throw new Exception("Unable to add message");
+            }
+        }
+        int res = bbs_bls12381_verify_context_finish(handle);
+
+        switch (res) {
+            case 0:
+                return true;
+            case 1:
+                return false;
+            default:
+                throw new Exception("Unable to verify signature");
+        }
+    }
+
+    public static byte[] createProof(byte[] publicKey, byte[] header, byte[] presentation_message, byte[] signature, ProofGenRevealMessage [] messages) throws Exception {
+        int numberOfUndisclosedMessages = 0;
+        long handle = bbs_bls12381_derive_proof_context_init();
+        if (0 == handle) {
+            throw new Exception("Unable to create proof context");
+        }
+        if (0 != bbs_bls12381_derive_proof_context_set_public_key(handle, publicKey)) {
+            throw new Exception("Unable to set public key");
+        }
+        if (0 != bbs_bls12381_sign_context_set_header(handle, header)) {
+            throw new Exception("Unable to set header");
+        }
+        if (0 != bbs_bls12381_derive_proof_context_set_presentation_message(handle, presentation_message)) {
+            throw new Exception("Unable to set presentation message");
+        }
+        if (0 != bbs_bls12381_derive_proof_context_set_signature(handle, signature)) {
+            throw new Exception("Unable to set signature: " + get_last_error());
+        }
+        for (ProofGenRevealMessage message : messages) {
+            if (0 != bbs_bls12381_derive_proof_context_add_message(handle, message.reveal, message.message)) {
+                throw new Exception("Unable to add message");
+            }
+            if(false == message.reveal) {
+                numberOfUndisclosedMessages++;
+            }
+        }
+        int proofSize = bbs_bls12381_proof_size(numberOfUndisclosedMessages);
+        if (proofSize <= 0) {
+            throw new Exception("Unable to get proof size");
+        }
+        byte[] proof = new byte[proofSize];
+        if (0 != bbs_bls12381_derive_proof_context_finish(handle, proof)) {
+            throw new Exception("Unable to create proof");
+        }
+        return proof;
+    }
+
+    public static boolean verifyProof(byte[] public_key, byte[] header, byte[] presentation_message, byte[] proof, byte[][] messages) throws Exception {
+        int i = 0;
+        long handle = bbs_bls12381_verify_proof_context_init();
+        if (0 == handle) {
+            throw new Exception("Unable to create verify signature context");
+        }
+        if (0 != bbs_bls12381_verify_proof_context_set_public_key(handle, public_key)) {
+            throw new Exception("Unable to set public key");
+        }
+        if (0 != bbs_bls12381_sign_context_set_header(handle, header)) {
+            throw new Exception("Unable to set header");
+        }
+        if (0 != bbs_bls12381_derive_proof_context_set_presentation_message(handle, presentation_message)) {
+            throw new Exception("Unable to set presentation message");
+        }
+        if (0 != bbs_bls12381_verify_proof_context_set_proof(handle, proof)) {
+            throw new Exception("Unable to set proof");
+        }
+        for (byte[] message : messages) {
+            if (0 != bbs_bls12381_verify_proof_context_add_message(handle, i, message)) {
+                throw new Exception("Unable to add message");
+            }
+            i++;
+        }
+        int res = bbs_bls12381_verify_proof_context_finish(handle);
+
+        return res <= 0;
+    }
 }
