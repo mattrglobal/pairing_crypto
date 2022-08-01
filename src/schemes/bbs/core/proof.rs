@@ -455,6 +455,12 @@ impl Proof {
             == 1)
     }
 
+    /// Return the size of proof in bytes for `num_undisclosed_messages`.
+    pub fn get_size(num_undisclosed_messages: usize) -> usize {
+        OCTET_POINT_G1_LENGTH * 3
+            + OCTET_SCALAR_LENGTH * (5 + num_undisclosed_messages)
+    }
+
     /// Store the proof as a sequence of bytes in big endian format.
     /// This method implements `ProofToOctets` API as defined in BBS specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-prooftooctets>.
     /// Each member of the struct is serialized to big-endian format.
