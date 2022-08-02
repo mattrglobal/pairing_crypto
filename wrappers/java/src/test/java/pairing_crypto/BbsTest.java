@@ -23,8 +23,9 @@ public class BbsTest {
 
     @Test public void canGenerateBbsBls12381KeyPair() {
         byte[] ikm = new byte[32];
-        byte[] keyInfo = null;
+        byte[] keyInfo = new byte[10];
         KeyPair keyPair = null;
+
 
         try {
             keyPair = Bbs.generateBls12381KeyPair(ikm, keyInfo);
@@ -39,7 +40,7 @@ public class BbsTest {
 
     @Test public void canSignVerifyMessage() {
         byte[] ikm = new byte[32];
-        byte[] keyInfo = null;
+        byte[] keyInfo = new byte[10];
         KeyPair keyPair = null;
 
         try {
@@ -61,7 +62,7 @@ public class BbsTest {
         byte[] signature = new byte[Bbs.BBS_BLS12381_SIGNATURE_SIZE];
 
         try {
-            signature = Bbs.sign(secretKey, publicKey, header, messages);
+            signature = Bbs.sign(keyPair.secretKey, keyPair.publicKey, header, messages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -81,7 +82,7 @@ public class BbsTest {
 
     @Test public void canCreateVerifyProof() {
         byte[] ikm = new byte[32];
-        byte[] keyInfo = null;
+        byte[] keyInfo = new byte[10];
         KeyPair keyPair = null;
 
         try {
