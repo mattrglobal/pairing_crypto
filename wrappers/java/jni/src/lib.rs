@@ -136,7 +136,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1context_1init(
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1set_1secret_1key(
+pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1context_1set_1secret_1key(
     env: JNIEnv,
     _: JObject,
     handle: jlong,
@@ -162,7 +162,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1set_1secret_1key
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1set_1public_1key(
+pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1context_1set_1public_1key(
     env: JNIEnv,
     _: JObject,
     handle: jlong,
@@ -210,7 +210,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1context_1set_1he
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1add_1message(
+pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1context_1add_1message(
     env: JNIEnv,
     _: JObject,
     handle: jlong,
@@ -232,7 +232,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1add_1message(
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1finish(
+pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1context_1finish(
     env: JNIEnv,
     _: JObject,
     handle: jlong,
@@ -253,7 +253,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1finish(
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1init(
+pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1context_1init(
     _: JNIEnv,
     _: JObject,
 ) -> jlong {
@@ -263,7 +263,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1init(
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1set_1public_1key(
+pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1context_1set_1public_1key(
     env: JNIEnv,
     _: JObject,
     handle: jlong,
@@ -289,7 +289,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1set_1public_1k
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1set_1header(
+pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1context_1set_1header(
     env: JNIEnv,
     _: JObject,
     handle: jlong,
@@ -311,7 +311,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1set_1header(
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1add_1message(
+pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1context_1add_1message(
     env: JNIEnv,
     _: JObject,
     handle: jlong,
@@ -333,7 +333,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1add_1message(
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1set_1signature(
+pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1context_1set_1signature(
     env: JNIEnv,
     _: JObject,
     handle: jlong,
@@ -359,7 +359,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1set_1signature
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1finish(
+pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1context_1finish(
     _: JNIEnv,
     _: JObject,
     handle: jlong,
