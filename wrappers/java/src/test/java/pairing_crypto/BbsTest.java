@@ -36,4 +36,77 @@ public class BbsTest {
         assertEquals(KeyPair.BBS_BLS12381_SECRET_KEY_SIZE, keyPair.secretKey.length);
     }
 
+    @Test public void canSignMessage() {
+        byte[] ikm = new byte[32];
+        byte[] keyInfo = null;
+        KeyPair keyPair = null;
+
+        try {
+            keyPair = Bbs.generateBls12381KeyPair(ikm, keyInfo);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+
+        byte[] header = "test-header".getBytes();
+
+        byte[][] messages = {
+                "message1".getBytes(),
+                "message2".getBytes(),
+                "message3".getBytes(),
+        };
+        byte[] secretKey = keyPair.secretKey;
+        byte[] publicKey = keyPair.publicKey;
+
+        byte[] signature = new byte[Bbs.BBS_BLS12381_SIGNATURE_SIZE];
+
+        try {
+            signature = Bbs.sign(secretKey, publicKey, header, messages);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+
+        assertNotNull(signature);
+    }
+
+    @Test public void canVerifyMessage() {
+        byte[] ikm = new byte[32];
+        byte[] keyInfo = null;
+        KeyPair keyPair = null;
+
+        try {
+            keyPair = Bbs.generateBls12381KeyPair(ikm, keyInfo);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+
+        byte[] header = "test-header".getBytes();
+
+        byte[][] messages = {
+                "message1".getBytes(),
+                "message2".getBytes(),
+                "message3".getBytes(),
+        };
+        byte[] secretKey = keyPair.secretKey;
+        byte[] publicKey = keyPair.publicKey;
+
+        byte[] signature = new byte[Bbs.BBS_BLS12381_SIGNATURE_SIZE];
+
+        try {
+            signature = Bbs.sign(secretKey, publicKey, header, messages);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+
+        assertNotNull(signature);
+
+        boolean isVerified = false;
+
+        try {
+            isVerified = Bbs.verify(publicKey, header, signature, messages);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+
+        assertTrue(isVerified);
+    }
 }
