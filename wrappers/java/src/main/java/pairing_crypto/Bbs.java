@@ -77,7 +77,7 @@ public class Bbs {
         return new KeyPair(public_key, secret_key);
     }
     
-    private static byte[] sign(byte[] secret_key, byte[] public_key, byte[] header, byte[][] messages) throws Exception {
+    public static byte[] sign(byte[] secret_key, byte[] public_key, byte[] header, byte[][] messages) throws Exception {
         long handle = bbs_bls12381_sign_context_init();
         if (0 == handle) {
             throw new Exception("Unable to create signing context");
