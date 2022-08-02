@@ -1,5 +1,9 @@
 package pairing_crypto;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.HashMap;
+
 public class Bbs {
 
     public static final int BBS_BLS12381_SIGNATURE_SIZE = 112;
@@ -134,7 +138,7 @@ public class Bbs {
         }
     }
 
-    public static byte[] createProof(byte[] publicKey, byte[] header, byte[] presentation_message, byte[] signature, ProofGenRevealMessage [] messages) throws Exception {
+    public static byte[] createProof(byte[] publicKey, byte[] header, byte[] presentation_message, byte[] signature, HashSet<Integer> disclosedIndices, byte[][] messages) throws Exception {
         int numberOfUndisclosedMessages = 0;
         long handle = bbs_bls12381_derive_proof_context_init();
         if (0 == handle) {
@@ -152,12 +156,17 @@ public class Bbs {
         if (0 != bbs_bls12381_derive_proof_context_set_signature(handle, signature)) {
             throw new Exception("Unable to set signature: " + get_last_error());
         }
-        for (ProofGenRevealMessage message : messages) {
-            if (0 != bbs_bls12381_derive_proof_context_add_message(handle, message.reveal, message.message)) {
-                throw new Exception("Unable to add message");
-            }
-            if(false == message.reveal) {
+        for (byte[] message : messages) {
+            int i = 0;
+            boolean reveal = false;
+            if (disclosedIndices.contains(i)) {
+                reveal = true;
                 numberOfUndisclosedMessages++;
+            } else {
+                reveal = false;
+            }
+            if (0 != bbs_bls12381_derive_proof_context_add_message(handle, reveal, message)) {
+                throw new Exception("Unable to add message");
             }
         }
         int proofSize = bbs_bls12381_proof_size(numberOfUndisclosedMessages);
@@ -171,8 +180,7 @@ public class Bbs {
         return proof;
     }
 
-    public static boolean verifyProof(byte[] public_key, byte[] header, byte[] presentation_message, byte[] proof, byte[][] messages) throws Exception {
-        int i = 0;
+    public static boolean verifyProof(byte[] public_key, byte[] header, byte[] presentation_message, byte[] proof, HashMap<Integer, byte[]> messages) throws Exception {
         long handle = bbs_bls12381_verify_proof_context_init();
         if (0 == handle) {
             throw new Exception("Unable to create verify signature context");
@@ -189,11 +197,10 @@ public class Bbs {
         if (0 != bbs_bls12381_verify_proof_context_set_proof(handle, proof)) {
             throw new Exception("Unable to set proof");
         }
-        for (byte[] message : messages) {
-            if (0 != bbs_bls12381_verify_proof_context_add_message(handle, i, message)) {
+        for (Map.Entry<Integer, byte[]> message : messages.entrySet()) {
+            if (0 != bbs_bls12381_verify_proof_context_add_message(handle, message.getKey(), message.getValue())) {
                 throw new Exception("Unable to add message");
             }
-            i++;
         }
         int res = bbs_bls12381_verify_proof_context_finish(handle);
 
