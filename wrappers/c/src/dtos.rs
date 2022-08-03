@@ -96,12 +96,6 @@ impl From<&Vec<u8>> for ByteArray {
     }
 }
 
-impl From<Vec<u8>> for ByteArray {
-    fn from(b: Vec<u8>) -> Self {
-        Self::from_slice(&b)
-    }
-}
-
 impl From<&[u8]> for ByteArray {
     fn from(b: &[u8]) -> Self {
         Self::from_slice(b)
@@ -152,4 +146,17 @@ pub struct BbsVerifyProofRequestDto {
     pub presentation_message: Vec<u8>,
     pub total_message_count: usize,
     pub messages: Vec<(usize, Vec<u8>)>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn convert() {
+        let v = vec![1u8, 2, 3];
+        let arr = ByteArray::from(&v);
+        assert_eq!(arr.length, v.len());
+        assert_eq!(arr.to_vec(), vec![1u8, 2, 3]);
+    }
 }
