@@ -149,7 +149,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1context_1set_1se
                 2
             } else {
                 let mut error = ExternError::success();
-                let byte_array = ByteArray::from(s);
+                let byte_array = ByteArray::from(&s);
                 bbs_bls12381_sign_context_set_secret_key(
                     handle as u64,
                     &byte_array,
@@ -175,7 +175,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1context_1set_1pu
                 2
             } else {
                 let mut error = ExternError::success();
-                let byte_array = ByteArray::from(s);
+                let byte_array = ByteArray::from(&s);
                 bbs_bls12381_sign_context_set_public_key(
                     handle as u64,
                     &byte_array,
@@ -198,7 +198,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1context_1set_1he
         Err(_) => 1,
         Ok(s) => {
             let mut error = ExternError::success();
-            let byte_array = ByteArray::from(s);
+            let byte_array = ByteArray::from(&s);
             bbs_bls12381_sign_context_set_header(
                 handle as u64,
                 &byte_array,
@@ -220,7 +220,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1sign_1context_1add_1me
         Err(_) => 1,
         Ok(s) => {
             let mut error = ExternError::success();
-            let byte_array = ByteArray::from(s);
+            let byte_array = ByteArray::from(&s);
             bbs_bls12381_sign_context_add_message(
                 handle as u64,
                 &byte_array,
@@ -276,7 +276,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1context_1set_1
                 2
             } else {
                 let mut error = ExternError::success();
-                let byte_array = ByteArray::from(s);
+                let byte_array = ByteArray::from(&s);
                 bbs_bls12381_verify_context_set_public_key(
                     handle as u64,
                     &byte_array,
@@ -299,7 +299,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1context_1set_1
         Err(_) => 1,
         Ok(s) => {
             let mut error = ExternError::success();
-            let byte_array = ByteArray::from(s);
+            let byte_array = ByteArray::from(&s);
             bbs_bls12381_verify_context_set_header(
                 handle as u64,
                 &byte_array,
@@ -321,7 +321,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1context_1add_1
         Err(_) => 1,
         Ok(s) => {
             let mut error = ExternError::success();
-            let byte_array = ByteArray::from(s);
+            let byte_array = ByteArray::from(&s);
             bbs_bls12381_verify_context_add_message(
                 handle as u64,
                 &byte_array,
@@ -346,7 +346,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1context_1set_1
                 2
             } else {
                 let mut error = ExternError::success();
-                let byte_array = ByteArray::from(s);
+                let byte_array = ByteArray::from(&s);
                 bbs_bls12381_verify_context_set_signature(
                     handle as u64,
                     &byte_array,
@@ -393,7 +393,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1derive_1proof_1context
                 2
             } else {
                 let mut error = ExternError::success();
-                let byte_array = ByteArray::from(s);
+                let byte_array = ByteArray::from(&s);
                 bbs_bls12381_derive_proof_context_set_public_key(
                     handle as u64,
                     &byte_array,
@@ -416,7 +416,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1derive_1proof_1context
         Err(_) => 1,
         Ok(s) => {
             let mut error = ExternError::success();
-            let byte_array = ByteArray::from(s);
+            let byte_array = ByteArray::from(&s);
             bbs_bls12381_derive_proof_context_set_header(
                 handle as u64,
                 &byte_array,
@@ -438,7 +438,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1derive_1proof_1context
         Err(_) => 1,
         Ok(s) => {
             let mut error = ExternError::success();
-            let byte_array = ByteArray::from(s);
+            let byte_array = ByteArray::from(&s);
             let res = bbs_bls12381_derive_proof_context_set_signature(
                 handle as u64,
                 &byte_array,
@@ -464,7 +464,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1derive_1proof_1context
         Err(_) => 1,
         Ok(s) => {
             let mut error = ExternError::success();
-            let byte_array = ByteArray::from(s);
+            let byte_array = ByteArray::from(&s);
             bbs_bls12381_derive_proof_context_set_presentation_message(
                 handle as u64,
                 &byte_array,
@@ -476,7 +476,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1derive_1proof_1context
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1derive_1proof_1context_1add_1proof_1message(
+pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1derive_1proof_1context_1add_1message(
     env: JNIEnv,
     _: JObject,
     handle: jlong,
@@ -487,7 +487,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1derive_1proof_1context
         Err(_) => 1,
         Ok(s) => {
             let mut error = ExternError::success();
-            let byte_array = ByteArray::from(s);
+            let byte_array = ByteArray::from(&s);
             bbs_bls12381_derive_proof_context_add_message(
                 handle as u64,
                 reveal != 0,
@@ -558,7 +558,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1proof_1context
                 2
             } else {
                 let mut error = ExternError::success();
-                let byte_array = ByteArray::from(s);
+                let byte_array = ByteArray::from(&s);
                 bbs_bls12381_verify_proof_context_set_public_key(
                     handle as u64,
                     &byte_array,
@@ -581,7 +581,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1proof_1context
         Err(_) => 1,
         Ok(s) => {
             let mut error = ExternError::success();
-            let byte_array = ByteArray::from(s);
+            let byte_array = ByteArray::from(&s);
             bbs_bls12381_verify_proof_context_set_header(
                 handle as u64,
                 &byte_array,
@@ -603,7 +603,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1proof_1context
         Err(_) => 1,
         Ok(s) => {
             let mut error = ExternError::success();
-            let byte_array = ByteArray::from_slice(s.as_slice());
+            let byte_array = ByteArray::from(&s);
             let res = bbs_bls12381_verify_proof_context_set_proof(
                 handle as u64,
                 &byte_array,
@@ -629,7 +629,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1proof_1context
         Err(_) => 1,
         Ok(s) => {
             let mut error = ExternError::success();
-            let byte_array = ByteArray::from(s);
+            let byte_array = ByteArray::from(&s);
             bbs_bls12381_verify_proof_context_set_presentation_message(
                 handle as u64,
                 &byte_array,
@@ -673,7 +673,7 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1verify_1proof_1context
         Err(_) => 1,
         Ok(s) => {
             let mut error = ExternError::success();
-            let byte_array = ByteArray::from(s);
+            let byte_array = ByteArray::from(&s);
             match usize::try_from(index) {
                 Err(_) => 1,
                 Ok(i) => bbs_bls12381_verify_proof_context_add_message(
