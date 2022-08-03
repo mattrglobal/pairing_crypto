@@ -106,8 +106,8 @@ pub extern "C" fn Java_pairing_1crypto_Bbs_bbs_1bls12381_1generate_1key_1pair(
     let mut sk = ByteBuffer::from_vec(vec![]);
     let mut pk = ByteBuffer::from_vec(vec![]);
     let result = bbs_bls12381_generate_key_pair(
-        ikm.into(),
-        key_info.into(),
+        ByteArray::from(&ikm),
+        ByteArray::from(&key_info),
         &mut sk,
         &mut pk,
         &mut error,
