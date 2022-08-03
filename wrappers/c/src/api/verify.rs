@@ -92,9 +92,7 @@ pub extern "C" fn bbs_bls12381_verify_context_finish(
                 header,
                 messages,
                 signature: &signature,
-            })
-            .unwrap()
-            {
+            })? {
                 true => Ok(0),
                 false => Ok(1),
             }
