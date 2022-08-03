@@ -115,7 +115,7 @@ public class Bbs {
         if (0 != bbs_bls12381_verify_context_set_public_key(handle, public_key)) {
             throw new Exception("Unable to set public key");
         }
-        if (0 != bbs_bls12381_sign_context_set_header(handle, header)) {
+        if (0 != bbs_bls12381_verify_context_set_header(handle, header)) {
             throw new Exception("Unable to set header");
         }
         if (0 != bbs_bls12381_verify_context_set_signature(handle, signature)) {
@@ -147,7 +147,7 @@ public class Bbs {
         if (0 != bbs_bls12381_derive_proof_context_set_public_key(handle, publicKey)) {
             throw new Exception("Unable to set public key");
         }
-        if (0 != bbs_bls12381_sign_context_set_header(handle, header)) {
+        if (0 != bbs_bls12381_derive_proof_context_set_header(handle, header)) {
             throw new Exception("Unable to set header");
         }
         if (0 != bbs_bls12381_derive_proof_context_set_presentation_message(handle, presentation_message)) {
@@ -188,10 +188,10 @@ public class Bbs {
         if (0 != bbs_bls12381_verify_proof_context_set_public_key(handle, public_key)) {
             throw new Exception("Unable to set public key");
         }
-        if (0 != bbs_bls12381_sign_context_set_header(handle, header)) {
+        if (0 != bbs_bls12381_verify_proof_context_set_header(handle, header)) {
             throw new Exception("Unable to set header");
         }
-        if (0 != bbs_bls12381_derive_proof_context_set_presentation_message(handle, presentation_message)) {
+        if (0 != bbs_bls12381_verify_proof_context_set_presentation_message(handle, presentation_message)) {
             throw new Exception("Unable to set presentation message");
         }
         if (0 != bbs_bls12381_verify_proof_context_set_proof(handle, proof)) {
