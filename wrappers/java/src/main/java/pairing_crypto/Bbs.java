@@ -161,13 +161,14 @@ public class Bbs {
             boolean reveal = false;
             if (disclosedIndices.contains(i)) {
                 reveal = true;
-                numberOfUndisclosedMessages++;
             } else {
+                numberOfUndisclosedMessages++;
                 reveal = false;
             }
             if (0 != bbs_bls12381_derive_proof_context_add_message(handle, reveal, message)) {
                 throw new Exception("Unable to add message");
             }
+            i++;
         }
         int proofSize = bbs_bls12381_proof_size(numberOfUndisclosedMessages);
         if (proofSize <= 0) {

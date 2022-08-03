@@ -121,30 +121,42 @@ public class BbsTest {
 
         assertTrue(isVerified);
 
+        // All disclosed messages
         byte[] presentation_message = "test-presentation-message".getBytes();
-        HashSet<Integer> disclosedIndices = new HashSet(Arrays.asList(0, 1, 2));
-
+        HashSet<Integer> allDisclosedIndices = new HashSet(Arrays.asList(0, 1, 2));
         byte[] proof = new byte[0];
-
         try {
-            proof = Bbs.createProof(publicKey, header, presentation_message, signature, disclosedIndices, messages);
+            proof = Bbs.createProof(publicKey, header, presentation_message, signature, allDisclosedIndices, messages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
-
         assertNotNull(proof);
-
-        HashMap<Integer, byte[]> disclosedMessages = new HashMap<Integer, byte[]>();
-        disclosedMessages.put(0, messages[0]);
-        disclosedMessages.put(1, messages[1]);
-        disclosedMessages.put(2, messages[2]);
-
+        HashMap<Integer, byte[]> allDisclosedMessages = new HashMap<Integer, byte[]>();
+        allDisclosedMessages.put(0, messages[0]);
+        allDisclosedMessages.put(1, messages[1]);
+        allDisclosedMessages.put(2, messages[2]);
         try {
-            isVerified = Bbs.verifyProof(publicKey, header, presentation_message, proof, disclosedMessages);
+            isVerified = Bbs.verifyProof(publicKey, header, presentation_message, proof, allDisclosedMessages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
+        assertTrue(isVerified);
 
+        // Few disclosed messages
+        HashSet<Integer> fewDisclosedIndices = new HashSet(Arrays.asList(1));
+        HashMap<Integer, byte[]> fewDisclosedMessages = new HashMap<Integer, byte[]>();
+        fewDisclosedMessages.put(1, messages[1]);
+        try {
+            proof = Bbs.createProof(publicKey, header, presentation_message, signature, fewDisclosedIndices, messages);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+        assertNotNull(proof);
+        try {
+            isVerified = Bbs.verifyProof(publicKey, header, presentation_message, proof, fewDisclosedMessages);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
         assertTrue(isVerified);
     }
 
