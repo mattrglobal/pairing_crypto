@@ -1,10 +1,10 @@
-# BBS Signatures for Java
+# Java Wrapper
 
-This is a Java wrapper for the C callable BBS Signatures package. The library depends on the native platform implementations of the BBS FFI C wrapper.
+The following directory contains an FFI based compilation of the "pairing crypto" crate for usage in the java ecosystem.
 
-# Build Rust Library
+# Build
 
-In order to build rust wrapper for the all available architectures, execute the following command:
+In order to build for the all available architectures, execute the following command:
 
 ```bash
 ./gradlew buildAndCopyJniLibraries
@@ -12,7 +12,7 @@ In order to build rust wrapper for the all available architectures, execute the 
 
 Gradle tasks will execute build scripts for rust compilation and then copy binaries to the specific jniLibs directories for Java wrapper to consume.
 
-In situation when Rust wrapper methods were updated, update Java native methods to match the rust method signatures and generate new headers by running
+In situation when wrapper methods were updated, update Java native methods to match the rust method signatures and generate new headers by running
 
 ```bash
 cd ./wrappers/java/src/main/java/pairing_crypto
