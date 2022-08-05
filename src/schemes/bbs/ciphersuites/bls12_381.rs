@@ -15,7 +15,7 @@ pub use crate::schemes::bbs::{
             BbsSignRequest,
             BbsVerifyRequest,
         },
-        proof::{proof_gen, proof_verify},
+        proof::{get_proof_size, proof_gen, proof_verify},
         signature::{sign, verify},
     },
     core::{

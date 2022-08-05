@@ -17,6 +17,7 @@ use super::{
 use crate::{
     bbs::{
         ciphersuites::bls12_381::{
+            get_proof_size,
             Message,
             ProofMessage,
             PublicKey,
@@ -204,6 +205,14 @@ fn gen_verify_serde_nominal() {
             .expect("roundtrip deserialized proof verification failed"),
         true
     );
+}
+
+#[test]
+fn proof_size() {
+    assert_eq!(304, get_proof_size(0));
+    assert_eq!(336, get_proof_size(1));
+    assert_eq!(368, get_proof_size(2));
+    assert_eq!(400, get_proof_size(3));
 }
 
 #[test]

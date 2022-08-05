@@ -38,7 +38,7 @@ set_byte_array_impl!(
 );
 
 add_byte_array_impl!(
-    bbs_bls12381_verify_context_set_message,
+    bbs_bls12381_verify_context_add_message,
     BBS_VERIFY_CONTEXT,
     messages
 );
@@ -92,9 +92,7 @@ pub extern "C" fn bbs_bls12381_verify_context_finish(
                 header,
                 messages,
                 signature: &signature,
-            })
-            .unwrap()
-            {
+            })? {
                 true => Ok(0),
                 false => Ok(1),
             }
