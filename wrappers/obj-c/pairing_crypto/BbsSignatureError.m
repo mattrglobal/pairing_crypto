@@ -6,7 +6,7 @@ static NSString *const BbsSignatureErrorDomain = @"BbsSignatureError";
 
 @implementation BbsSignatureError
 
-+ (NSError *)errorFromBbsSignatureError:(bbs_signature_error_t *)error {
++ (NSError *)errorFromBbsSignatureError:(pairing_crypto_error_t *)error {
     
     NSMutableDictionary *userInfo = [NSMutableDictionary new];
     
