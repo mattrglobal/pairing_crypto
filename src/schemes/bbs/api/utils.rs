@@ -13,6 +13,12 @@
 // limitations under the License.
 // ------------------------------------------------------------------------------
 
+#[cfg(feature = "alloc")]
+use alloc::collections::BTreeMap;
+
+#[cfg(not(feature = "alloc"))]
+use std::collections::BTreeMap;
+
 use super::dtos::BbsProofGenRevealMessageRequest;
 use crate::{
     error::Error,
@@ -25,8 +31,9 @@ use crate::{
 
 /// Digests the set of input messages and returns in the form of an internal
 /// structure
-pub(super) fn digest_messages(
-    messages: Option<&Vec<Vec<u8>>>,
+#[allow(clippy::useless_asref)]
+pub(super) fn digest_messages<T: AsRef<[u8]>>(
+    messages: Option<&[T]>,
 ) -> Result<Vec<Message>, Error> {
     if let Some(messages) = messages {
         return messages
@@ -43,15 +50,15 @@ pub(super) fn digest_messages(
 }
 
 /// Digests a set of supplied proof messages
-pub(super) fn digest_proof_messages(
-    messages: Option<&Vec<BbsProofGenRevealMessageRequest>>,
+pub(super) fn digest_proof_messages<T: AsRef<[u8]>>(
+    messages: Option<&[BbsProofGenRevealMessageRequest<T>]>,
 ) -> Result<Vec<ProofMessage>, Error> {
     if let Some(messages) = messages {
         return messages
             .iter()
             .map(|element| {
                 match Message::from_arbitrary_data(
-                    element.value.clone().as_ref(),
+                    element.value.as_ref(),
                     MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
                 ) {
                     Ok(digested_message) => {
@@ -69,19 +76,20 @@ pub(super) fn digest_proof_messages(
     Ok(vec![])
 }
 
-pub(super) fn digest_revealed_proof_messages(
-    messages: Option<&Vec<(usize, Vec<u8>)>>,
+#[allow(clippy::useless_asref)]
+pub(super) fn digest_revealed_proof_messages<T: AsRef<[u8]>>(
+    messages: Option<&[(usize, T)]>,
     total_message_count: usize,
-) -> Result<Vec<(usize, Message)>, Error> {
+) -> Result<BTreeMap<usize, Message>, Error> {
     if messages.is_none() {
-        return Ok(vec![]);
+        return Ok(BTreeMap::new());
     }
     let messages = messages.unwrap();
 
-    let revealed_message_indexes: Vec<usize> =
+    let revealed_message_indices: Vec<usize> =
         messages.iter().map(|item| item.0).collect();
 
-    if revealed_message_indexes
+    if revealed_message_indices
         .iter()
         .any(|r| *r >= total_message_count)
     {

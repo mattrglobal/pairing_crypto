@@ -13,8 +13,8 @@ use super::{
     },
 };
 use crate::{
-    common::util::vec_to_byte_array,
     curves::bls12_381::{
+        hash_to_curve::ExpandMsgXof,
         Bls12,
         G1Projective,
         G2Prepared,
@@ -36,6 +36,7 @@ use serde::{
     Serialize,
     Serializer,
 };
+use sha3::Shake256;
 use subtle::{Choice, ConditionallySelectable};
 
 /// A BBS+ signature
@@ -138,6 +139,8 @@ impl Signature {
     /// Generate a new `Signature` where all messages are known to the signer.
     /// This method follows `Sign` API as defined in BBS Signature spec
     /// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.4>
+    /// Security Warning: `SK` and `PK` paramters must be related key-pair
+    /// generated using `KeyPair` APIs.
     pub fn new<T, M>(
         SK: &SecretKey,
         PK: &PublicKey,
@@ -160,9 +163,9 @@ impl Signature {
             });
         }
         // Error out if length of messages and generators are not equal
-        if messages.len() != generators.message_blinding_points_length() {
+        if messages.len() != generators.message_generators_length() {
             return Err(Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: messages.len(),
             });
         }
@@ -176,22 +179,23 @@ impl Signature {
 
         // (e, s) = hash_to_scalar((SK  || domain || msg_1 || ... || msg_L), 2)
         let mut data_to_hash = vec![];
-        data_to_hash.extend(SK.to_bytes().as_ref());
+        data_to_hash.extend(SK.clone().to_bytes().as_ref());
         data_to_hash.extend(domain.to_bytes_be().as_ref());
         for m in messages {
             data_to_hash.extend(m.to_bytes().as_ref());
         }
-        let scalars = hash_to_scalar(data_to_hash, 2)?;
+        let scalars =
+            hash_to_scalar::<ExpandMsgXof<Shake256>>(&data_to_hash, 2)?;
         let (e, s) = (scalars[0], scalars[1]);
 
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
         let B = compute_B(&s, &domain, messages, generators)?;
-        let exp = (e + SK.0).invert();
+        let exp = (e + SK.as_scalar()).invert();
         let exp = if exp.is_some().unwrap_u8() == 1u8 {
             exp.unwrap()
         } else {
             return Err(Error::CryptoOps {
-                cause: "failed to generate `exp` for `a` component of \
+                cause: "failed to generate `exp` for `A` component of \
                         signature"
                     .to_owned(),
             });
@@ -215,7 +219,6 @@ impl Signature {
         T: AsRef<[u8]>,
         M: AsRef<[Message]>,
     {
-        let header = header.as_ref();
         let messages = messages.as_ref();
 
         // Input parameter checks
@@ -226,9 +229,9 @@ impl Signature {
             });
         }
         // Error out if length of messages and generators are not equal
-        if messages.len() != generators.message_blinding_points_length() {
+        if messages.len() != generators.message_generators_length() {
             return Err(Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: messages.len(),
             });
         }
@@ -289,14 +292,6 @@ impl Signature {
         bytes
     }
 
-    /// Convert a vector of bytes of big-endian representation of the public key
-    pub fn from_vec(bytes: Vec<u8>) -> Result<Self, Error> {
-        match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
-            Ok(result) => Self::from_octets(&result),
-            Err(e) => Err(e),
-        }
-    }
-
     /// Get the `Signature` from a sequence of bytes in big endian
     /// format. Each member of `Signature` is deserialized from
     /// big-endian bytes as defined in BBS spec <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.11>.
@@ -307,19 +302,7 @@ impl Signature {
     /// For BLS12-381 based implementation, G1_COMPRESSED_SIZE is 48 byes, and
     /// SCALAR_SIZE is 32 bytes, then bytes sequence will be treated as
     /// [48, 32, 32] to represent (A, e, s).    
-    pub fn from_octets<T: AsRef<[u8]>>(data: T) -> Result<Self, Error> {
-        let data = data.as_ref();
-        if data.len() < Self::SIZE_BYTES {
-            return Err(Error::MalformedSignature {
-                cause: format!(
-                    "not enough data, input buffer size: {} bytes, expected \
-                     data size: {}",
-                    data.len(),
-                    Self::SIZE_BYTES
-                ),
-            });
-        }
-
+    pub fn from_octets(data: &[u8; Self::SIZE_BYTES]) -> Result<Self, Error> {
         let mut offset = 0;
         let mut end = Self::G1_COMPRESSED_SIZE;
 

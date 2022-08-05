@@ -17,6 +17,12 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
+wasm_impl!(
+    KeyGenerationRequestDto,
+    ikm: Option<Vec<u8>>,
+    keyInfo: Option<Vec<u8>>
+);
+
 wasm_impl!(KeyPair, publicKey: Vec<u8>, secretKey: Option<Vec<u8>>);
 
 wasm_impl!(
@@ -34,6 +40,7 @@ wasm_impl!(
     messages: Option<Vec<Vec<u8>>>,
     signature: Vec<u8>
 );
+
 wasm_impl!(BbsVerifyResponse, verified: bool, error: Option<String>);
 
 wasm_impl!(

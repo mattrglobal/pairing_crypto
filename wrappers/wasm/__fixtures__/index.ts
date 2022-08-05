@@ -12,7 +12,7 @@ const isObject = (value: unknown) => value && typeof value === "object";
 // tslint:disable-next-line:no-var-requires
 const resolveFixtures = (subDirectory: string) =>
   require("require-all")({
-    dirname: `${__dirname}/${subDirectory}`,
+    dirname: `${__dirname}/../../../tests/fixtures/bbs/${subDirectory}`,
     filter: /.json$/,
     excludeDirs: [".github", "tests"],
     map: (__: unknown, path: unknown) => {

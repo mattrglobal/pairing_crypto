@@ -1,6 +1,12 @@
 use crate::dtos::{BbsSignRequestDto, ByteArray, PairingCryptoFfiError};
+use core::convert::TryFrom;
 use ffi_support::{ByteBuffer, ConcurrentHandleMap, ErrorCode, ExternError};
-use pairing_crypto::bbs::ciphersuites::bls12_381::{sign, BbsSignRequest};
+use pairing_crypto::bbs::ciphersuites::bls12_381::{
+    sign,
+    BbsSignRequest,
+    BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+    BBS_BLS12381G1_SECRET_KEY_LENGTH,
+};
 
 lazy_static! {
     pub static ref BBS_SIGN_CONTEXT: ConcurrentHandleMap<BbsSignRequestDto> =
@@ -8,7 +14,7 @@ lazy_static! {
 }
 
 #[no_mangle]
-pub extern "C" fn bls12381_bbs_sign_context_init(err: &mut ExternError) -> u64 {
+pub extern "C" fn bbs_bls12381_sign_context_init(err: &mut ExternError) -> u64 {
     BBS_SIGN_CONTEXT.insert_with_output(err, || BbsSignRequestDto {
         secret_key: Vec::new(),
         public_key: Vec::new(),
@@ -18,31 +24,31 @@ pub extern "C" fn bls12381_bbs_sign_context_init(err: &mut ExternError) -> u64 {
 }
 
 set_byte_array_impl!(
-    bls12381_bbs_sign_context_set_secret_key,
+    bbs_bls12381_sign_context_set_secret_key,
     BBS_SIGN_CONTEXT,
     secret_key
 );
 
 set_byte_array_impl!(
-    bls12381_bbs_sign_context_set_public_key,
+    bbs_bls12381_sign_context_set_public_key,
     BBS_SIGN_CONTEXT,
     public_key
 );
 
 set_byte_array_impl!(
-    bls12381_bbs_sign_context_set_header,
+    bbs_bls12381_sign_context_set_header,
     BBS_SIGN_CONTEXT,
     header
 );
 
 add_byte_array_impl!(
-    bls12381_bbs_sign_context_add_message,
+    bbs_bls12381_sign_context_add_message,
     BBS_SIGN_CONTEXT,
     messages
 );
 
 #[no_mangle]
-pub extern "C" fn bls12381_bbs_sign_context_finish(
+pub extern "C" fn bbs_bls12381_sign_context_finish(
     handle: u64,
     signature: &mut ByteBuffer,
     err: &mut ExternError,
@@ -51,32 +57,38 @@ pub extern "C" fn bls12381_bbs_sign_context_finish(
         err,
         handle,
         move |ctx| -> Result<ByteBuffer, PairingCryptoFfiError> {
-            if ctx.secret_key.is_empty() {
-                return Err(PairingCryptoFfiError::new(
-                    "Secret Key must be set",
-                ));
-            }
-            if ctx.public_key.is_empty() {
-                return Err(PairingCryptoFfiError::new(
-                    "Public Key must be set",
-                ));
-            }
+            let secret_key = get_array_value_from_context!(
+                ctx.secret_key,
+                BBS_BLS12381G1_SECRET_KEY_LENGTH,
+                "secret key"
+            );
+
+            let public_key = get_array_value_from_context!(
+                ctx.public_key,
+                BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+                "public key"
+            );
 
             let header = if ctx.header.is_empty() {
                 None
             } else {
-                Some(ctx.header.clone())
+                Some(ctx.header.as_slice())
             };
 
-            let messages = if ctx.messages.is_empty() {
+            let messages = ctx
+                .messages
+                .iter()
+                .map(|m| m.as_ref())
+                .collect::<Vec<&[u8]>>();
+            let messages = if messages.is_empty() {
                 None
             } else {
-                Some(ctx.messages.clone())
+                Some(messages.as_slice())
             };
 
-            let s = sign(BbsSignRequest {
-                secret_key: ctx.secret_key.clone(),
-                public_key: ctx.public_key.clone(),
+            let s = sign(&BbsSignRequest {
+                secret_key: &secret_key,
+                public_key: &public_key,
                 header,
                 messages,
             })?;
@@ -93,4 +105,4 @@ pub extern "C" fn bls12381_bbs_sign_context_finish(
     err.get_code().code()
 }
 
-define_handle_map_deleter!(BBS_SIGN_CONTEXT, bls12381_bbs_sign_free);
+define_handle_map_deleter!(BBS_SIGN_CONTEXT, bbs_bls12381_sign_free);

@@ -7,7 +7,7 @@ use pairing_crypto::bbs::ciphersuites::bls12_381::KeyPair;
 /// * ikm: UInt8Array with 32 elements
 /// * key_info: UInt8Array with 32 elements
 #[no_mangle]
-pub extern "C" fn bls12381_generate_key_pair(
+pub extern "C" fn bbs_bls12381_generate_key_pair(
     ikm: ByteArray,
     key_info: ByteArray,
     secret_key: &mut ByteBuffer,
@@ -15,12 +15,14 @@ pub extern "C" fn bls12381_generate_key_pair(
     err: &mut ExternError,
 ) -> i32 {
     // Derive secret key from supplied IKM and key information metadata.
-    if let Some(key_pair) = KeyPair::new(ikm.to_vec(), key_info.to_vec()) {
+    if let Some(key_pair) = KeyPair::new(
+        ikm.to_vec(),
+        key_info.to_opt_vec().as_ref().map(Vec::as_ref),
+    ) {
         *secret_key =
             ByteBuffer::from_vec(key_pair.secret_key.to_bytes().to_vec());
-        *public_key = ByteBuffer::from_vec(
-            key_pair.public_key.point_to_octets().to_vec(),
-        );
+        *public_key =
+            ByteBuffer::from_vec(key_pair.public_key.to_octets().to_vec());
         *err = ExternError::success();
         return 0;
     }

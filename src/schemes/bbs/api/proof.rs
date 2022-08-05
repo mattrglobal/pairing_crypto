@@ -15,37 +15,36 @@ use crate::{
         ProofMessage,
         PublicKey,
         Signature,
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
     },
 };
 
+#[cfg(feature = "alloc")]
+use alloc::collections::BTreeMap;
+
+#[cfg(not(feature = "alloc"))]
+use std::collections::BTreeMap;
+
 /// Generate a signature proof of knowledge.
-pub fn proof_gen(request: BbsProofGenRequest) -> Result<Vec<u8>, Error> {
+pub fn proof_gen<T: AsRef<[u8]>>(
+    request: &BbsProofGenRequest<'_, T>,
+) -> Result<Vec<u8>, Error> {
     // Parse public key from request
-    let pk = PublicKey::from_vec(request.public_key)?;
+    let pk = PublicKey::from_octets(request.public_key)?;
 
     let mut digested_messages = vec![];
-    if request.messages.is_some() {
-        let request_messages = request.messages.as_ref().unwrap();
+    if let Some(request_messages) = request.messages {
         let request_messages = request_messages
             .iter()
-            .map(|element| element.value.clone())
-            .collect::<Vec<Vec<u8>>>();
+            .map(|element| element.value.as_ref())
+            .collect::<Vec<_>>();
         // Digest the supplied messages
         digested_messages = digest_messages(Some(&request_messages))?;
     }
 
     // Derive generators
-    let generators = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        digested_messages.len(),
-    )?;
+    let generators = Generators::new(digested_messages.len())?;
     // Parse signature from request
-    let signature = Signature::from_vec(request.signature)?;
+    let signature = Signature::from_octets(request.signature)?;
 
     // Verify the signature to check the messages supplied are valid
     if !(signature.verify(
@@ -59,7 +58,7 @@ pub fn proof_gen(request: BbsProofGenRequest) -> Result<Vec<u8>, Error> {
 
     // Digest the supplied messages
     let messages: Vec<ProofMessage> =
-        match digest_proof_messages(request.messages.as_ref()) {
+        match digest_proof_messages(request.messages) {
             Ok(messages) => messages,
             Err(e) => return Err(e),
         };
@@ -78,23 +77,20 @@ pub fn proof_gen(request: BbsProofGenRequest) -> Result<Vec<u8>, Error> {
 }
 
 /// Verify a signature proof of knowledge.
-pub fn proof_verify(request: BbsProofVerifyRequest) -> Result<bool, Error> {
+pub fn proof_verify<T: AsRef<[u8]>>(
+    request: &BbsProofVerifyRequest<'_, T>,
+) -> Result<bool, Error> {
     // Parse public key from request
-    let public_key = PublicKey::from_vec(request.public_key)?;
+    let public_key = PublicKey::from_octets(request.public_key)?;
 
     // Digest the revealed proof messages
-    let messages: Vec<(usize, Message)> = digest_revealed_proof_messages(
-        request.messages.as_ref(),
+    let messages: BTreeMap<usize, Message> = digest_revealed_proof_messages(
+        request.messages,
         request.total_message_count,
     )?;
 
     // Derive generators
-    let generators = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        request.total_message_count,
-    )?;
+    let generators = Generators::new(request.total_message_count)?;
 
     let proof = Proof::from_octets(request.proof)?;
 

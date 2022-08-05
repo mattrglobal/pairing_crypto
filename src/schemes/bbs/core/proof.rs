@@ -3,6 +3,7 @@
 use super::{
     constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
     generator::Generators,
+    hash_utils::create_random_scalar,
     key_pair::PublicKey,
     signature::Signature,
     types::{Challenge, FiatShamirProof, Message, ProofMessage},
@@ -15,18 +16,30 @@ use super::{
     },
 };
 use crate::{
-    curves::bls12_381::{Bls12, G1Projective, G2Affine, G2Prepared, Scalar},
+    curves::bls12_381::{
+        hash_to_curve::ExpandMsgXof,
+        Bls12,
+        G1Projective,
+        G2Affine,
+        G2Prepared,
+        Scalar,
+    },
     error::Error,
     print_byte_array,
 };
 use core::{convert::TryFrom, fmt::Debug};
 use ff::Field;
 use group::{prime::PrimeCurveAffine, Curve, Group};
-use hashbrown::HashSet;
-use log::trace;
 use pairing::{MillerLoopResult as _, MultiMillerLoop};
 use rand::{CryptoRng, RngCore};
 use rand_core::OsRng;
+use sha3::Shake256;
+
+#[cfg(feature = "alloc")]
+use alloc::collections::BTreeMap;
+
+#[cfg(not(feature = "alloc"))]
+use std::collections::BTreeMap;
 
 // Convert slice to a fixed array
 macro_rules! slicer {
@@ -40,7 +53,7 @@ macro_rules! slicer {
 /// The `ProofGen` procedure is specified here <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofgen>
 /// proof = (A', Abar, D, c, e^, r2^, r3^, s^, (m^_1, ..., m^_U)), where `U` is
 /// number of unrevealed messages.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub(crate) struct Proof {
     /// A'
     pub(crate) A_prime: G1Projective,
@@ -72,7 +85,7 @@ impl core::fmt::Display for Proof {
         print_byte_array!(f, point_to_octets_g1(&self.D));
         write!(
             f,
-            ", c: {}, e^: {}, r2^: {}, r3^: {}, s^: {}, [",
+            ", c: {}, e^: {}, r2^: {}, r3^: {}, s^: {}, m^_i: [",
             self.c.0, self.e_hat.0, self.r2_hat.0, self.r3_hat.0, self.s_hat.0,
         )?;
         for (i, m_hat) in self.m_hat_list.iter().enumerate() {
@@ -141,10 +154,17 @@ impl Proof {
         trace!("input parameter: {generators:?}",);
         trace!("input parameter: messages {messages:?}");
 
+        // Input parameter checks
+        // Error out if there is no `header` and not any `ProofMessage`
+        if header.is_none() && messages.is_empty() {
+            return Err(Error::BadParams {
+                cause: "nothing to prove".to_owned(),
+            });
+        }
         // Error out if length of messages and generators are not equal
-        if messages.len() != generators.message_blinding_points_length() {
+        if messages.len() != generators.message_generators_length() {
             return Err(Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: messages.len(),
             });
         }
@@ -164,20 +184,25 @@ impl Proof {
         trace!("domain: {domain:?}");
 
         // (r1, r2, e~, r2~, r3~, s~) = hash_to_scalar(PRF(8*ceil(log2(r))), 6)
-        let r1 = Scalar::random(&mut rng);
-        let r2 = Scalar::random(&mut rng);
-        let e_tilde = Scalar::random(&mut rng);
-        let r2_tilde = Scalar::random(&mut rng);
-        let r3_tilde = Scalar::random(&mut rng);
-        let s_tilde = Scalar::random(&mut rng);
+        let r1 = create_random_scalar::<_, ExpandMsgXof<Shake256>>(&mut rng)?;
+        let r2 = create_random_scalar::<_, ExpandMsgXof<Shake256>>(&mut rng)?;
+        let e_tilde =
+            create_random_scalar::<_, ExpandMsgXof<Shake256>>(&mut rng)?;
+        let r2_tilde =
+            create_random_scalar::<_, ExpandMsgXof<Shake256>>(&mut rng)?;
+        let r3_tilde =
+            create_random_scalar::<_, ExpandMsgXof<Shake256>>(&mut rng)?;
+        let s_tilde =
+            create_random_scalar::<_, ExpandMsgXof<Shake256>>(&mut rng)?;
+
         trace!(
             "randoms r1: {r1:?}, r2: {r2:?}, e~: {e_tilde:?}, r2~: \
              {r2_tilde:?}, r3~: {r3_tilde:?}, s~: {s_tilde:?}"
         );
 
         // (m~_j1, ..., m~_jU) =  hash_to_scalar(PRF(8*ceil(log2(r))), U)
-        // these random scalars will be generated further below using
-        // ProofCommittedBuilder::commit_random(...) in `proof2` variable
+        // these random scalars will be generated further below during `C2`
+        // computation
 
         let msg: Vec<_> = messages.iter().map(|m| m.get_message()).collect();
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
@@ -202,44 +227,61 @@ impl Proof {
         let A_bar = G1Projective::multi_exp(&[A_prime, B], &[-signature.e, r1]);
         trace!("A_bar': {A_bar:?}");
 
-        // D = B * r1 + H_s * r2
-        let D = G1Projective::multi_exp(&[B, generators.H_s()], &[r1, r2]);
+        // D = B * r1 + Q_1 * r2
+        let D = G1Projective::multi_exp(&[B, generators.Q_1()], &[r1, r2]);
         trace!("D: {D:?}");
 
         // s' = s + r2 * r3
         let s_prime = signature.s + r2 * r3;
         trace!("s': {s_prime:?}");
 
-        // C1 = A' * e~ + H_s * r2~
+        // C1 = A' * e~ + Q_1 * r2~
         let C1 = G1Projective::multi_exp(
-            &[A_prime, generators.H_s()],
+            &[A_prime, generators.Q_1()],
             &[e_tilde, r2_tilde],
         );
         trace!("C1: {:?}", C1.to_affine());
 
-        //  C2 = D * (-r3~) + H_s * s~ + H_j1 * m~_j1 + ... + H_jU * m~_jU
+        //  C2 = D * (-r3~) + Q_1 * s~ + H_j1 * m~_j1 + ... + H_jU * m~_jU
         let mut H_points = Vec::new();
         let mut m_tilde_scalars = Vec::new();
         let mut hidden_messages = Vec::new();
-        for (i, generator) in
-            generators.message_blinding_points_iter().enumerate()
-        {
-            if let ProofMessage::Hidden(m) = messages[i] {
-                H_points.push(*generator);
-                m_tilde_scalars.push(Scalar::random(&mut rng));
-                hidden_messages.push(m.0);
+        let mut disclosed_messages = BTreeMap::new();
+        for (i, generator) in generators.message_generators_iter().enumerate() {
+            match messages[i] {
+                ProofMessage::Revealed(m) => {
+                    disclosed_messages.insert(i, m);
+                }
+                ProofMessage::Hidden(m) => {
+                    H_points.push(*generator);
+                    m_tilde_scalars.push(Scalar::random(&mut rng));
+                    hidden_messages.push(m.0);
+                }
             }
         }
         let C2 = G1Projective::multi_exp(
-            &[[D, generators.H_s()].to_vec(), H_points.clone()].concat(),
+            &[[D, generators.Q_1()].to_vec(), H_points].concat(),
             &[[-r3_tilde, s_tilde].to_vec(), m_tilde_scalars.clone()].concat(),
         );
         trace!("H_j1...H_jU: {H_points:?}");
         trace!("m~_j1...m~_jU: {m_tilde_scalars:?}");
         trace!("C2: {:?}", C2.to_affine());
 
-        // c = hash_to_scalar((PK || A' || Abar || D || C1 || C2 || ph), 1)
-        let c = compute_challenge(PK, &A_prime, &A_bar, &D, &C1, &C2, ph)?;
+        // c_array = (A', Abar, D, C1, C2, R, i1, ..., iR, msg_i1, ..., msg_iR,
+        //                domain, ph)
+        // c_for_hash = encode_for_hash(c_array)
+        // if c_for_hash is INVALID, return INVALID
+        // c = hash_to_scalar(c_for_hash, 1)
+        let c = compute_challenge(
+            &A_prime,
+            &A_bar,
+            &D,
+            &C1,
+            &C2,
+            &disclosed_messages,
+            &domain,
+            ph,
+        )?;
 
         // e^ = e~ + c * e
         let e_hat = FiatShamirProof(e_tilde + c.0 * signature.e);
@@ -287,7 +329,7 @@ impl Proof {
         header: Option<T>,
         ph: Option<T>,
         generators: &Generators,
-        revealed_msgs: &[(usize, Message)],
+        disclosed_messages: &BTreeMap<usize, Message>,
     ) -> Result<bool, Error>
     where
         T: AsRef<[u8]> + Debug,
@@ -313,25 +355,44 @@ impl Proof {
         trace!("input parameter: {generators:?}",);
         trace!("input parameters: revealed-messages {revealed_msgs:?}");
 
+        let total_no_of_messages =
+            self.m_hat_list.len() + disclosed_messages.len();
+
         // Input parameter checks
-        if self.m_hat_list.len() + revealed_msgs.len()
-            != generators.message_blinding_points_length()
-        {
+        // Error out if there is no `header` and not any `ProofMessage`
+        if header.is_none() && (total_no_of_messages == 0) {
+            return Err(Error::BadParams {
+                cause: "nothing to verify".to_owned(),
+            });
+        }
+        // Check if input proof data commitments matches no. of hidden messages
+        if total_no_of_messages != generators.message_generators_length() {
             return Err(Error::BadParams {
                 cause: format!(
                     "Incorrect number of messages and generators: \
                      [#generators: {}, #hidden_messages: {}, \
                      #revealed_messages: {}]",
-                    generators.message_blinding_points_length(),
+                    generators.message_generators_length(),
                     self.m_hat_list.len(),
-                    revealed_msgs.len()
+                    disclosed_messages.len()
                 ),
             });
         }
-
+        if disclosed_messages
+            .keys()
+            .any(|r| *r >= total_no_of_messages)
+        {
+            return Err(Error::BadParams {
+                cause: format!(
+                    "revealed message index value is invalid, maximum allowed \
+                     value is {}",
+                    total_no_of_messages - 1
+                ),
+            });
+        }
         // if KeyValidate(PK) is INVALID, return INVALID
         // `PK` should not be an identity and should belong to subgroup G2
-        if PK.is_valid().unwrap_u8() == 0 {
+        if PK.is_valid().unwrap_u8() == 0u8 {
             return Err(Error::InvalidPublicKey);
         }
 
@@ -349,19 +410,19 @@ impl Proof {
         let domain = compute_domain(
             PK,
             header,
-            generators.message_blinding_points_length(),
+            generators.message_generators_length(),
             generators,
         )?;
         trace!("domain: {domain:?}");
 
         // C1 = (Abar - D) * c + A' * e^ + H_s * r2^
-        let C1_points = [self.A_bar - self.D, self.A_prime, generators.H_s()];
+        let C1_points = [self.A_bar - self.D, self.A_prime, generators.Q_1()];
         let C1_scalars = [self.c.0, self.e_hat.0, self.r2_hat.0];
         let C1 = G1Projective::multi_exp(&C1_points, &C1_scalars);
         trace!("C1: {:?}", C1.to_affine());
 
-        // T = P1 + H_d * domain + H_i1 * msg_i1 + ... H_iR * msg_iR
-        let T_len = 1 + 1 + revealed_msgs.len();
+        // T = P1 + Q_2 * domain + H_i1 * msg_i1 + ... H_iR * msg_iR
+        let T_len = 1 + 1 + disclosed_messages.len();
         let mut T_points = Vec::with_capacity(T_len);
         let mut T_scalars = Vec::with_capacity(T_len);
         let P1 = G1Projective::generator();
@@ -369,13 +430,11 @@ impl Proof {
         T_points.push(P1);
         T_scalars.push(Scalar::one());
         // H_d * domain
-        T_points.push(generators.H_d());
+        T_points.push(generators.Q_2());
         T_scalars.push(domain);
         // H_i1 * msg_i1 + ... H_iR * msg_iR
-        let mut revealed = HashSet::new();
-        for (idx, msg) in revealed_msgs {
-            revealed.insert(*idx);
-            if let Some(g) = generators.get_message_blinding_point(*idx) {
+        for (idx, msg) in disclosed_messages {
+            if let Some(g) = generators.get_message_generators_at_index(*idx) {
                 T_points.push(g);
                 T_scalars.push(msg.0);
             } else {
@@ -400,15 +459,13 @@ impl Proof {
         // D * (-r3^)
         C2_points.push(self.D);
         C2_scalars.push(-self.r3_hat.0);
-        // H_s * s^
-        C2_points.push(generators.H_s());
+        // Q_1 * s^
+        C2_points.push(generators.Q_1());
         C2_scalars.push(self.s_hat.0);
         // H_j1 * m^_j1 + ... + H_jU * m^_jU
         let mut j = 0;
-        for (i, generator) in
-            generators.message_blinding_points_iter().enumerate()
-        {
-            if revealed.contains(&i) {
+        for (i, generator) in generators.message_generators_iter().enumerate() {
+            if disclosed_messages.contains_key(&i) {
                 continue;
             }
             C2_points.push(*generator);
@@ -418,14 +475,19 @@ impl Proof {
         let C2 = G1Projective::multi_exp(&C2_points, &C2_scalars);
         trace!("C2: {:?}", C2.to_affine());
 
-        // cv = hash_to_scalar((PK || A' || Abar || D || C1 || C2 || ph), 1)
+        // cv_array = (A', Abar, D, C1, C2, R, i1, ..., iR,  msg_i1, ...,
+        //                msg_iR, domain, ph)
+        // cv_for_hash = encode_for_hash(cv_array)
+        //  if cv_for_hash is INVALID, return INVALID
+        //  cv = hash_to_scalar(cv_for_hash, 1)
         let cv = compute_challenge(
-            PK,
             &self.A_prime,
             &self.A_bar,
             &self.D,
             &C1,
             &C2,
+            disclosed_messages,
+            &domain,
             ph,
         )?;
         trace!("cv: {cv:?}");
@@ -521,9 +583,9 @@ impl Proof {
         if (buffer.len() - PROOF_LEN_FLOOR) % OCTET_SCALAR_LENGTH != 0 {
             return Err(Error::MalformedProof {
                 cause: format!(
-                    "variable length proof data {} is not multiple of \
+                    "variable length proof data size {} is not multiple of \
                      `Scalar` size {} bytes",
-                    buffer.len() - OCTET_POINT_G1_LENGTH,
+                    buffer.len() - PROOF_LEN_FLOOR,
                     OCTET_SCALAR_LENGTH
                 ),
             });
@@ -552,7 +614,7 @@ impl Proof {
             end,
             OCTET_SCALAR_LENGTH
         ));
-        if c.is_none().unwrap_u8() == 1 {
+        if c.is_none().unwrap_u8() == 1u8 {
             return Err(Error::MalformedProof {
                 cause: "failure while deserializing `c`".to_owned(),
             });
@@ -560,6 +622,9 @@ impl Proof {
         offset = end;
         end = offset + OCTET_SCALAR_LENGTH;
         let c = c.unwrap();
+        if c.0.is_zero().unwrap_u8() == 1u8 {
+            return Err(Error::UnexpectedZeroValue);
+        }
 
         // Get e^, r2^, r3^, s^
         let e_hat = extract_scalar_value(&mut offset, &mut end, buffer)?;
@@ -620,12 +685,16 @@ fn extract_scalar_value(
         *end,
         OCTET_SCALAR_LENGTH
     ));
-    if value.is_none().unwrap_u8() == 1 {
+    if value.is_none().unwrap_u8() == 1u8 {
         return Err(Error::MalformedProof {
-            cause: "failure while deserializing a value".to_owned(),
+            cause: "failure while deserializing a `Scalar` value".to_owned(),
         });
+    }
+    let value = value.unwrap();
+    if value.0.is_zero().unwrap_u8() == 1u8 {
+        return Err(Error::UnexpectedZeroValue);
     }
     *offset = *end;
     *end = *offset + OCTET_SCALAR_LENGTH;
-    Ok(value.unwrap())
+    Ok(value)
 }

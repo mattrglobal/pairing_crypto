@@ -32,7 +32,7 @@ jobs:
           path: main # TODO remove once temp build step below is removed
 
       - name: Setup rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
         with:
           profile: minimal
           toolchain: stable
@@ -41,14 +41,74 @@ jobs:
       - name: Run yarn install
         run: yarn install --frozen-lockfile
 
-      - name: Run yarn build
-        run: yarn build
+      - name: Run yarn setup
+        run: yarn setup
 
       - name: Run yarn build
-        run: yarn generate-fixtures
+        run: yarn build
 
       - name: Run yarn test
         run: yarn test
 
       - name: Run yarn benchmark
         run: yarn benchmark
+
+  publish_unstable:
+    name: Publish unstable package release
+    needs: build_test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    defaults:
+      run:
+        working-directory: ./main/wrappers/wasm
+    steps:
+      # This is a temporary build step that clones another
+      # repository as a private un-published dependency 'blstrs'
+      # it uses a GH personal access token with read only permission
+      - name: Check out mattrglobal/blstrs
+        uses: actions/checkout@master
+        with:
+          repository: mattrglobal/blstrs
+          token: ${{ secrets.MATTR_BLSTRS_PAT }}
+          path: blstrs
+
+      - name: Checkout pairing_crypto
+        uses: actions/checkout@v2
+        with:
+          path: main # TODO remove once temp build step below is removed
+
+      - name: Setup rust toolchain
+        uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      # Required for publishing NPM package
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Run yarn install
+        run: yarn install --frozen-lockfile
+
+      - name: Run yarn setup
+        run: yarn setup
+
+      - name: Run yarn build
+        run: yarn build
+
+      - name: Configure NPM JS User
+        run: |
+          git config user.name "Mattr CI"
+          git config user.email "npmjs_ci_mattr_public@mattr.global"
+          npm whoami
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+
+      - name: Publish unstable build
+        run: yarn publish:unstable
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}

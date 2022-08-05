@@ -14,7 +14,7 @@
 // ------------------------------------------------------------------------------
 
 use crate::{dtos::*, utils::*};
-
+use core::convert::{TryFrom, TryInto};
 use pairing_crypto::bbs::ciphersuites::bls12_381::{
     proof_gen,
     proof_verify,
@@ -26,33 +26,51 @@ use pairing_crypto::bbs::ciphersuites::bls12_381::{
     BbsSignRequest,
     BbsVerifyRequest,
     KeyPair as PairingCryptoKeyPair,
+    BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+    BBS_BLS12381G1_SECRET_KEY_LENGTH,
+    BBS_BLS12381G1_SIGNATURE_LENGTH,
 };
-
-use core::convert::TryInto;
+use rand_core::OsRng;
 use wasm_bindgen::prelude::*;
 
 /// Generate a BBS key pair on BLS 12-381 curve.
 ///
-/// * seed: UIntArray with 32 elements
+/// * request: JSON encoded request optionally containing
+///             - IKM: Input Key Material (if not supplied a random value will
+///               be generated via RNG)
+///             - key_info: Key information
 ///
 /// Returned value is a byte array which is the concatenation of first the
 /// private key (32 bytes) followed by the public key (96) bytes.
-#[wasm_bindgen(js_name = bls12381_generate_key_pair)]
-pub async fn bls12381_generate_key_pair(
-    ikm: Vec<u8>,
-    key_info: Vec<u8>,
+#[wasm_bindgen(js_name = bbs_bls12381_generate_key_pair)]
+pub async fn bbs_bls12381_generate_key_pair(
+    request: JsValue,
 ) -> Result<JsValue, JsValue> {
     // Improves error output in JS based console.log() when built with debug
     // feature enabled
     set_panic_hook();
 
+    // Cast the supplied JSON request into a rust struct
+    let request: KeyGenerationRequestDto = request.try_into()?;
+
     // // Derive secret key from supplied IKM and key information metadata.
-    let key_pair = PairingCryptoKeyPair::new(&ikm, &key_info).unwrap();
+    let key_pair = match request.ikm {
+        Some(ikm) => PairingCryptoKeyPair::new(
+            &ikm,
+            request.keyInfo.as_ref().map(Vec::as_ref),
+        )
+        .unwrap(),
+        None => PairingCryptoKeyPair::random(
+            &mut OsRng::default(),
+            request.keyInfo.as_ref().map(Vec::as_ref),
+        )
+        .unwrap(),
+    };
 
     // Construct the JS DTO of the key pair to return
     let keypair = KeyPair {
         secretKey: Some(key_pair.secret_key.to_bytes().to_vec()),
-        publicKey: key_pair.public_key.point_to_octets().to_vec(),
+        publicKey: key_pair.public_key.to_octets().to_vec(),
     };
     Ok(serde_wasm_bindgen::to_value(&keypair).unwrap())
 }
@@ -64,8 +82,8 @@ pub async fn bls12381_generate_key_pair(
 ///   signed and a BLS12-381 key pair
 ///
 /// Returned value is a byte array which is the produced signature (112 bytes)
-#[wasm_bindgen(js_name = bls12381_bbs_sign)]
-pub async fn bls12381_bbs_sign(
+#[wasm_bindgen(js_name = bbs_bls12381_sign)]
+pub async fn bbs_bls12381_sign(
     request: JsValue,
 ) -> Result<JsValue, serde_wasm_bindgen::Error> {
     // Improves error output in JS based console.log() when built with debug
@@ -75,12 +93,41 @@ pub async fn bls12381_bbs_sign(
     // Cast the supplied JSON request into a rust struct
     let request: BbsSignRequestDto = request.try_into()?;
 
-    match sign(BbsSignRequest {
-        secret_key: request.secretKey,
-        public_key: request.publicKey,
-        header: request.header,
-        messages: request.messages,
-    }) {
+    let result = if let Some(messages) = request.messages {
+        sign(&BbsSignRequest::<&[u8]> {
+            secret_key: &vec_to_u8_sized_array!(
+                request.secretKey,
+                BBS_BLS12381G1_SECRET_KEY_LENGTH
+            ),
+            public_key: &vec_to_u8_sized_array!(
+                request.publicKey,
+                BBS_BLS12381G1_PUBLIC_KEY_LENGTH
+            ),
+            header: request.header.as_ref().map(|m| m.as_slice()),
+            messages: Some(
+                messages
+                    .iter()
+                    .map(Vec::as_ref)
+                    .collect::<Vec<&[u8]>>()
+                    .as_slice(),
+            ),
+        })
+    } else {
+        sign(&BbsSignRequest::<&[u8]> {
+            secret_key: &vec_to_u8_sized_array!(
+                request.secretKey,
+                BBS_BLS12381G1_SECRET_KEY_LENGTH
+            ),
+            public_key: &vec_to_u8_sized_array!(
+                request.publicKey,
+                BBS_BLS12381G1_PUBLIC_KEY_LENGTH
+            ),
+            header: request.header.as_ref().map(|m| m.as_slice()),
+            messages: None,
+        })
+    };
+
+    match result {
         Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig.to_vec()).unwrap()),
         Err(e) => Err(serde_wasm_bindgen::Error::new(e)),
     }
@@ -94,8 +141,8 @@ pub async fn bls12381_bbs_sign(
 ///
 /// Returned value is JSON structure with a boolean value indicating whether the
 /// signature was verified and if not any details on the error available
-#[wasm_bindgen(js_name = bls12381_bbs_verify)]
-pub async fn bls12381_bbs_verify(request: JsValue) -> Result<JsValue, JsValue> {
+#[wasm_bindgen(js_name = bbs_bls12381_verify)]
+pub async fn bbs_bls12381_verify(request: JsValue) -> Result<JsValue, JsValue> {
     // Improves error output in JS based console.log() when built with debug
     // feature enabled
     set_panic_hook();
@@ -113,12 +160,41 @@ pub async fn bls12381_bbs_verify(request: JsValue) -> Result<JsValue, JsValue> {
         }
     };
 
-    match verify(BbsVerifyRequest {
-        public_key: request.publicKey,
-        header: request.header,
-        messages: request.messages,
-        signature: request.signature,
-    }) {
+    let result = if let Some(messages) = request.messages {
+        verify(&BbsVerifyRequest::<&[u8]> {
+            public_key: &vec_to_u8_sized_array!(
+                request.publicKey,
+                BBS_BLS12381G1_PUBLIC_KEY_LENGTH
+            ),
+            header: request.header.as_ref().map(|m| m.as_slice()),
+            signature: &vec_to_u8_sized_array!(
+                request.signature,
+                BBS_BLS12381G1_SIGNATURE_LENGTH
+            ),
+            messages: Some(
+                messages
+                    .iter()
+                    .map(Vec::as_slice)
+                    .collect::<Vec<&[u8]>>()
+                    .as_slice(),
+            ),
+        })
+    } else {
+        verify(&BbsVerifyRequest::<&[u8]> {
+            public_key: &vec_to_u8_sized_array!(
+                request.publicKey,
+                BBS_BLS12381G1_PUBLIC_KEY_LENGTH
+            ),
+            header: request.header.as_ref().map(|m| m.as_slice()),
+            messages: None,
+            signature: &vec_to_u8_sized_array!(
+                request.signature,
+                BBS_BLS12381G1_SIGNATURE_LENGTH
+            ),
+        })
+    };
+
+    match result {
         Ok(result) => {
             return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
                 verified: result,
@@ -159,8 +235,8 @@ pub async fn bls12381_bbs_verify(request: JsValue) -> Result<JsValue, JsValue> {
 /// }
 ///
 /// Returned value is a byte array which is the produced proof (variable length)
-#[wasm_bindgen(js_name = bls12381_bbs_derive_proof)]
-pub async fn bls12381_bbs_derive_proof(
+#[wasm_bindgen(js_name = bbs_bls12381_derive_proof)]
+pub async fn bbs_bls12381_derive_proof(
     request: JsValue,
 ) -> Result<JsValue, serde_wasm_bindgen::Error> {
     // Improves error output in JS based console.log() when built with debug
@@ -170,23 +246,52 @@ pub async fn bls12381_bbs_derive_proof(
     // Cast the JSON request into a rust struct
     let request: BbsDeriveProofRequestDto = request.try_into()?;
 
-    match proof_gen(BbsProofGenRequest {
-        public_key: request.publicKey,
-        header: request.header,
-        messages: Some(
-            request
-                .messages
-                .unwrap()
-                .iter()
-                .map(|item| BbsProofGenRevealMessageRequest {
-                    reveal: item.reveal,
-                    value: item.value.clone(),
-                })
-                .collect(),
-        ),
-        signature: request.signature,
-        presentation_message: request.presentationMessage,
-    }) {
+    let result = if let Some(messages) = request.messages {
+        proof_gen(&BbsProofGenRequest {
+            public_key: &vec_to_u8_sized_array!(
+                request.publicKey,
+                BBS_BLS12381G1_PUBLIC_KEY_LENGTH
+            ),
+            header: request.header.as_ref().map(|m| m.as_slice()),
+            signature: &vec_to_u8_sized_array!(
+                request.signature,
+                BBS_BLS12381G1_SIGNATURE_LENGTH
+            ),
+            presentation_message: request
+                .presentationMessage
+                .as_ref()
+                .map(|pm| pm.as_slice()),
+            messages: Some(
+                messages
+                    .iter()
+                    .map(|item| BbsProofGenRevealMessageRequest {
+                        reveal: item.reveal,
+                        value: item.value.as_ref(),
+                    })
+                    .collect::<Vec<BbsProofGenRevealMessageRequest<_>>>()
+                    .as_slice(),
+            ),
+        })
+    } else {
+        proof_gen(&BbsProofGenRequest {
+            public_key: &vec_to_u8_sized_array!(
+                request.publicKey,
+                BBS_BLS12381G1_PUBLIC_KEY_LENGTH
+            ),
+            header: request.header.as_ref().map(|m| m.as_slice()),
+            signature: &vec_to_u8_sized_array!(
+                request.signature,
+                BBS_BLS12381G1_SIGNATURE_LENGTH
+            ),
+            presentation_message: request
+                .presentationMessage
+                .as_ref()
+                .map(|pm| pm.as_slice()),
+            messages: None,
+        })
+    };
+
+    match result {
         Ok(proof) => Ok(serde_wasm_bindgen::to_value(&proof).unwrap()),
         Err(e) => Err(serde_wasm_bindgen::Error::new(e)),
     }
@@ -210,8 +315,8 @@ pub async fn bls12381_bbs_derive_proof(
 /// }
 ///
 /// Returned value is a byte array which is the produced proof (variable length)
-#[wasm_bindgen(js_name = bls12381_bbs_verify_proof)]
-pub async fn bls12381_bbs_verify_proof(
+#[wasm_bindgen(js_name = bbs_bls12381_verify_proof)]
+pub async fn bbs_bls12381_verify_proof(
     request: JsValue,
 ) -> Result<JsValue, serde_wasm_bindgen::Error> {
     // Improves error output in JS based console.log() when built with debug
@@ -221,23 +326,47 @@ pub async fn bls12381_bbs_verify_proof(
     // Cast the JSON request into a rust struct
     let request: BbsVerifyProofRequestDto = request.try_into()?;
 
-    match proof_verify(BbsProofVerifyRequest {
-        public_key: request.publicKey,
-        header: request.header,
-        proof: request.proof,
-        presentation_message: request.presentationMessage,
-        total_message_count: request.totalMessageCount,
-        messages: Some(
-            request
-                .messages
-                .unwrap()
-                .iter()
-                .map(|(key, value)| {
-                    (key.parse::<usize>().unwrap(), value.clone())
-                })
-                .collect(),
-        ),
-    }) {
+    let result = if let Some(messages) = request.messages {
+        proof_verify(&BbsProofVerifyRequest {
+            public_key: &vec_to_u8_sized_array!(
+                request.publicKey,
+                BBS_BLS12381G1_PUBLIC_KEY_LENGTH
+            ),
+            header: request.header.as_ref().map(|m| m.as_slice()),
+            proof: &request.proof,
+            presentation_message: request
+                .presentationMessage
+                .as_ref()
+                .map(|pm| pm.as_slice()),
+            total_message_count: request.totalMessageCount,
+            messages: Some(
+                messages
+                    .iter()
+                    .map(|(key, value)| {
+                        (key.parse::<usize>().unwrap(), value.as_slice())
+                    })
+                    .collect::<Vec<(usize, &[u8])>>()
+                    .as_slice(),
+            ),
+        })
+    } else {
+        proof_verify(&BbsProofVerifyRequest {
+            public_key: &vec_to_u8_sized_array!(
+                request.publicKey,
+                BBS_BLS12381G1_PUBLIC_KEY_LENGTH
+            ),
+            header: request.header.as_ref().map(|m| m.as_slice()),
+            proof: &request.proof,
+            presentation_message: request
+                .presentationMessage
+                .as_ref()
+                .map(|pm| pm.as_slice()),
+            total_message_count: request.totalMessageCount,
+            messages: None,
+        })
+    };
+
+    match result {
         Ok(verified) => {
             return Ok(serde_wasm_bindgen::to_value(&BbsVerifyResponse {
                 verified, // TODO need to check test cases here

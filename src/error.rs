@@ -129,7 +129,7 @@ impl core::fmt::Debug for Error {
             } => {
                 write!(
                     f,
-                    "not enough generators, #generators: {}, #messages: {}.",
+                    "length mismatch, #message-generators: {}, #messages: {}.",
                     generators, messages
                 )
             }

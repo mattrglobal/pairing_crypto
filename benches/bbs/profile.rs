@@ -18,7 +18,8 @@ extern crate criterion;
 
 use criterion::{black_box, Criterion};
 use pprof::criterion::{Output, PProfProfiler};
-use rand::Rng;
+use rand::RngCore;
+use rand_core::OsRng;
 
 const KEY_GEN_SEED: &[u8; 32] = b"not_A_random_seed_at_Allllllllll";
 
@@ -31,17 +32,28 @@ const TEST_PRESENTATION_MESSAGE: &[u8; 25] = b"test-presentation-message";
 const NUM_MESSAGES: usize = 1;
 const NUM_REVEALED_MESSAGES: usize = 0;
 
+fn get_random_key_pair() -> ([u8; 32], [u8; 96]) {
+    KeyPair::random(&mut OsRng, Some(TEST_KEY_INFOS))
+        .map(|key_pair| {
+            (
+                key_pair.secret_key.to_bytes(),
+                key_pair.public_key.to_octets(),
+            )
+        })
+        .expect("key generation failed")
+}
+
 fn profile_key_gen(c: &mut Criterion) {
     c.bench_function(&format!("profile - key_gen"), |b| {
         b.iter(|| {
             KeyPair::new(
                 black_box(KEY_GEN_SEED.as_ref()),
-                black_box(TEST_KEY_INFOS.as_ref()),
+                black_box(Some(TEST_KEY_INFOS)),
             )
             .map(|key_pair| {
                 (
-                    key_pair.secret_key.to_bytes().to_vec(),
-                    key_pair.public_key.point_to_octets().to_vec(),
+                    key_pair.secret_key.to_bytes(),
+                    key_pair.public_key.to_octets(),
                 )
             })
             .expect("key generation failed");
@@ -50,32 +62,24 @@ fn profile_key_gen(c: &mut Criterion) {
 }
 
 fn profile_sign(c: &mut Criterion) {
-    // generating random 32 bytes messages
-    let messages: Vec<Vec<u8>> = (0..NUM_MESSAGES)
-        .map(|_| rand::thread_rng().gen::<[u8; 32]>().to_vec())
-        .collect();
-
-    let (secret_key, public_key) = KeyPair::new(
-        black_box(KEY_GEN_SEED.as_ref()),
-        black_box(TEST_KEY_INFOS.as_ref()),
-    )
-    .map(|key_pair| {
-        (
-            key_pair.secret_key.to_bytes().to_vec(),
-            key_pair.public_key.point_to_octets().to_vec(),
-        )
-    })
-    .expect("key generation failed");
+    let header = TEST_HEADER.as_ref();
+    let (secret_key, public_key) = get_random_key_pair();
+    // generating random 100 bytes messages
+    let mut messages = vec![[0u8; 100]; NUM_MESSAGES];
+    for m in messages.iter_mut() {
+        rand::thread_rng().fill_bytes(m);
+    }
+    let messages: Vec<&[u8]> = messages.iter().map(|m| m.as_ref()).collect();
 
     c.bench_function(
         &format!("profile - sign total messages {}", NUM_MESSAGES),
         |b| {
             b.iter(|| {
-                sign(BbsSignRequest {
-                    secret_key: secret_key.clone(),
-                    public_key: public_key.clone(),
-                    header: Some(TEST_HEADER.as_ref().to_vec()),
-                    messages: Some(messages.to_vec()),
+                sign(&BbsSignRequest {
+                    secret_key: black_box(&secret_key),
+                    public_key: black_box(&public_key),
+                    header: black_box(Some(header)),
+                    messages: black_box(Some(&messages[..])),
                 })
                 .unwrap();
             });
@@ -84,28 +88,20 @@ fn profile_sign(c: &mut Criterion) {
 }
 
 fn profile_verify(c: &mut Criterion) {
-    // generating random 32 bytes messages
-    let messages: Vec<Vec<u8>> = (0..NUM_MESSAGES)
-        .map(|_| rand::thread_rng().gen::<[u8; 32]>().to_vec())
-        .collect();
+    let header = TEST_HEADER.as_ref();
+    let (secret_key, public_key) = get_random_key_pair();
+    // generating random 100 bytes messages
+    let mut messages = vec![[0u8; 100]; NUM_MESSAGES];
+    for m in messages.iter_mut() {
+        rand::thread_rng().fill_bytes(m);
+    }
+    let messages: Vec<&[u8]> = messages.iter().map(|m| m.as_ref()).collect();
 
-    let (secret_key, public_key) = KeyPair::new(
-        black_box(KEY_GEN_SEED.as_ref()),
-        black_box(TEST_KEY_INFOS.as_ref()),
-    )
-    .map(|key_pair| {
-        (
-            key_pair.secret_key.to_bytes().to_vec(),
-            key_pair.public_key.point_to_octets().to_vec(),
-        )
-    })
-    .expect("key generation failed");
-
-    let signature = sign(BbsSignRequest {
-        secret_key: secret_key.clone(),
-        public_key: public_key.clone(),
-        header: Some(TEST_HEADER.as_ref().to_vec()),
-        messages: Some(messages.to_vec()),
+    let signature = sign(&BbsSignRequest {
+        secret_key: &secret_key,
+        public_key: &public_key,
+        header: Some(header),
+        messages: Some(messages.as_slice()),
     })
     .expect("signature generation failed");
 
@@ -113,56 +109,49 @@ fn profile_verify(c: &mut Criterion) {
         &format!("profile - verify total messages {}", NUM_MESSAGES),
         |b| {
             b.iter(|| {
-                assert!(verify(BbsVerifyRequest {
-                    public_key: public_key.clone(),
-                    header: Some(TEST_HEADER.as_ref().to_vec()),
-                    messages: Some(messages.to_vec()),
-                    signature: signature.to_vec(),
+                assert!(verify(&BbsVerifyRequest {
+                    public_key: black_box(&public_key),
+                    header: black_box(Some(header)),
+                    messages: black_box(Some(&messages[..])),
+                    signature: black_box(&signature),
                 })
-                .unwrap(),);
+                .unwrap());
             });
         },
     );
 }
 
 fn profile_proof_gen(c: &mut Criterion) {
-    // generating random 32 bytes messages
-    let messages: Vec<Vec<u8>> = (0..NUM_MESSAGES)
-        .map(|_| rand::thread_rng().gen::<[u8; 32]>().to_vec())
-        .collect();
+    let header = TEST_HEADER.as_ref();
+    let presentation_message = TEST_PRESENTATION_MESSAGE.as_ref();
+    let (secret_key, public_key) = get_random_key_pair();
+    // generating random 100 bytes messages
+    let mut messages = vec![[0u8; 100]; NUM_MESSAGES];
+    for m in messages.iter_mut() {
+        rand::thread_rng().fill_bytes(m);
+    }
+    let messages: Vec<&[u8]> = messages.iter().map(|m| m.as_ref()).collect();
 
-    let (secret_key, public_key) = KeyPair::new(
-        black_box(KEY_GEN_SEED.as_ref()),
-        black_box(TEST_KEY_INFOS.as_ref()),
-    )
-    .map(|key_pair| {
-        (
-            key_pair.secret_key.to_bytes().to_vec(),
-            key_pair.public_key.point_to_octets().to_vec(),
-        )
-    })
-    .expect("key generation failed");
-
-    let signature = sign(BbsSignRequest {
-        secret_key: secret_key.clone(),
-        public_key: public_key.clone(),
-        header: Some(TEST_HEADER.as_ref().to_vec()),
-        messages: Some(messages.to_vec()),
+    let signature = sign(&BbsSignRequest {
+        secret_key: &secret_key,
+        public_key: &public_key,
+        header: Some(header),
+        messages: Some(messages.as_slice()),
     })
     .expect("signature generation failed");
 
     assert_eq!(
-        verify(BbsVerifyRequest {
-            public_key: public_key.clone(),
-            header: Some(TEST_HEADER.as_ref().to_vec()),
-            messages: Some(messages.to_vec()),
-            signature: signature.to_vec(),
+        verify(&BbsVerifyRequest {
+            public_key: &public_key,
+            header: Some(header),
+            messages: Some(messages.as_slice()),
+            signature: &signature,
         })
         .expect("error during signature verification"),
         true
     );
 
-    let mut proof_messages: Vec<BbsProofGenRevealMessageRequest> = messages
+    let mut proof_messages: Vec<BbsProofGenRevealMessageRequest<_>> = messages
         .iter()
         .map(|value| BbsProofGenRevealMessageRequest {
             reveal: false,
@@ -181,14 +170,12 @@ fn profile_proof_gen(c: &mut Criterion) {
         ),
         |b| {
             b.iter(|| {
-                proof_gen(BbsProofGenRequest {
-                    public_key: public_key.clone(),
-                    header: Some(TEST_HEADER.to_vec()),
-                    messages: Some(proof_messages.clone()),
-                    signature: signature.to_vec(),
-                    presentation_message: Some(
-                        TEST_PRESENTATION_MESSAGE.to_vec(),
-                    ),
+                proof_gen(&BbsProofGenRequest {
+                    public_key: black_box(&public_key),
+                    header: Some(header),
+                    messages: black_box(Some(&proof_messages)),
+                    signature: black_box(&signature),
+                    presentation_message: black_box(Some(presentation_message)),
                 })
                 .unwrap();
             });
@@ -197,43 +184,36 @@ fn profile_proof_gen(c: &mut Criterion) {
 }
 
 fn profile_proof_verify(c: &mut Criterion) {
-    // generating random 32 bytes messages
-    let messages: Vec<Vec<u8>> = (0..NUM_MESSAGES)
-        .map(|_| rand::thread_rng().gen::<[u8; 32]>().to_vec())
-        .collect();
+    let header = TEST_HEADER.as_ref();
+    let presentation_message = TEST_PRESENTATION_MESSAGE.as_ref();
+    let (secret_key, public_key) = get_random_key_pair();
+    // generating random 100 bytes messages
+    let mut messages = vec![[0u8; 100]; NUM_MESSAGES];
+    for m in messages.iter_mut() {
+        rand::thread_rng().fill_bytes(m);
+    }
+    let messages: Vec<&[u8]> = messages.iter().map(|m| m.as_ref()).collect();
 
-    let (secret_key, public_key) = KeyPair::new(
-        black_box(KEY_GEN_SEED.as_ref()),
-        black_box(TEST_KEY_INFOS.as_ref()),
-    )
-    .map(|key_pair| {
-        (
-            key_pair.secret_key.to_bytes().to_vec(),
-            key_pair.public_key.point_to_octets().to_vec(),
-        )
-    })
-    .expect("key generation failed");
-
-    let signature = sign(BbsSignRequest {
-        secret_key: secret_key.clone(),
-        public_key: public_key.clone(),
-        header: Some(TEST_HEADER.as_ref().to_vec()),
-        messages: Some(messages.to_vec()),
+    let signature = sign(&BbsSignRequest {
+        secret_key: &secret_key,
+        public_key: &public_key,
+        header: Some(header),
+        messages: Some(messages.as_slice()),
     })
     .expect("signature generation failed");
 
     assert_eq!(
-        verify(BbsVerifyRequest {
-            public_key: public_key.clone(),
-            header: Some(TEST_HEADER.as_ref().to_vec()),
-            messages: Some(messages.to_vec()),
-            signature: signature.to_vec(),
+        verify(&BbsVerifyRequest {
+            public_key: &public_key,
+            header: Some(header),
+            messages: Some(messages.as_slice()),
+            signature: &signature,
         })
         .expect("error during signature verification"),
         true
     );
 
-    let mut proof_messages: Vec<BbsProofGenRevealMessageRequest> = messages
+    let mut proof_messages: Vec<BbsProofGenRevealMessageRequest<_>> = messages
         .iter()
         .map(|value| BbsProofGenRevealMessageRequest {
             reveal: false,
@@ -248,14 +228,14 @@ fn profile_proof_verify(c: &mut Criterion) {
         .iter()
         .enumerate()
         .map(|(k, m)| (k as usize, m.clone()))
-        .collect::<Vec<(usize, Vec<u8>)>>();
+        .collect::<Vec<(usize, &[u8])>>();
 
-    let proof = proof_gen(BbsProofGenRequest {
-        public_key: public_key.clone(),
-        header: Some(TEST_HEADER.to_vec()),
-        messages: Some(proof_messages.clone()),
-        signature: signature.to_vec(),
-        presentation_message: Some(TEST_PRESENTATION_MESSAGE.to_vec()),
+    let proof = proof_gen(&BbsProofGenRequest {
+        public_key: &public_key,
+        header: Some(header),
+        messages: Some(&proof_messages),
+        signature: &signature,
+        presentation_message: Some(presentation_message),
     })
     .expect("proof generation failed");
 
@@ -266,15 +246,13 @@ fn profile_proof_verify(c: &mut Criterion) {
         ),
         |b| {
             b.iter(|| {
-                assert!(proof_verify(BbsProofVerifyRequest {
-                    public_key: black_box(public_key.clone()),
-                    header: black_box(Some(TEST_HEADER.to_vec())),
-                    presentation_message: black_box(Some(
-                        TEST_PRESENTATION_MESSAGE.to_vec()
-                    )),
-                    proof: black_box(proof.clone()),
+                assert!(proof_verify(&BbsProofVerifyRequest {
+                    public_key: black_box(&public_key),
+                    header: Some(header),
+                    presentation_message: black_box(Some(presentation_message)),
+                    proof: black_box(&proof),
                     total_message_count: black_box(NUM_MESSAGES),
-                    messages: black_box(Some(revealed_messages.clone())),
+                    messages: black_box(Some(revealed_messages.as_slice())),
                 })
                 .unwrap());
             });

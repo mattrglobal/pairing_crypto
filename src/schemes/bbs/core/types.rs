@@ -57,7 +57,7 @@ scalar_wrapper!(
 
 impl Message {
     /// Generate a random `Message`.
-    #[allow(dead_code)]
+    #[cfg(test)]
     pub fn random<R: rand_core::RngCore>(rng: &mut R) -> Self {
         use ff::Field;
         Self(Scalar::random(rng))

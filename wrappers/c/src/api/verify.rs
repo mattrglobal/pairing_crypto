@@ -1,6 +1,12 @@
 use crate::dtos::{BbsVerifyRequestDto, ByteArray, PairingCryptoFfiError};
+use core::convert::TryFrom;
 use ffi_support::{ConcurrentHandleMap, ErrorCode, ExternError};
-use pairing_crypto::bbs::ciphersuites::bls12_381::{verify, BbsVerifyRequest};
+use pairing_crypto::bbs::ciphersuites::bls12_381::{
+    verify,
+    BbsVerifyRequest,
+    BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+    BBS_BLS12381G1_SIGNATURE_LENGTH,
+};
 
 lazy_static! {
     pub static ref BBS_VERIFY_CONTEXT: ConcurrentHandleMap<BbsVerifyRequestDto> =
@@ -8,7 +14,7 @@ lazy_static! {
 }
 
 #[no_mangle]
-pub extern "C" fn bls12381_bbs_verify_context_init(
+pub extern "C" fn bbs_bls12381_verify_context_init(
     err: &mut ExternError,
 ) -> u64 {
     BBS_VERIFY_CONTEXT.insert_with_output(err, || BbsVerifyRequestDto {
@@ -20,31 +26,31 @@ pub extern "C" fn bls12381_bbs_verify_context_init(
 }
 
 set_byte_array_impl!(
-    bls12381_bbs_verify_context_set_public_key,
+    bbs_bls12381_verify_context_set_public_key,
     BBS_VERIFY_CONTEXT,
     public_key
 );
 
 set_byte_array_impl!(
-    bls12381_bbs_verify_context_set_header,
+    bbs_bls12381_verify_context_set_header,
     BBS_VERIFY_CONTEXT,
     header
 );
 
 add_byte_array_impl!(
-    bls12381_bbs_verify_context_set_message,
+    bbs_bls12381_verify_context_set_message,
     BBS_VERIFY_CONTEXT,
     messages
 );
 
 set_byte_array_impl!(
-    bls12381_bbs_verify_context_set_signature,
+    bbs_bls12381_verify_context_set_signature,
     BBS_VERIFY_CONTEXT,
     signature
 );
 
 #[no_mangle]
-pub extern "C" fn bls12381_bbs_verify_context_finish(
+pub extern "C" fn bbs_bls12381_verify_context_finish(
     handle: u64,
     err: &mut ExternError,
 ) -> i32 {
@@ -52,34 +58,40 @@ pub extern "C" fn bls12381_bbs_verify_context_finish(
         err,
         handle,
         move |ctx| -> Result<i32, PairingCryptoFfiError> {
-            if ctx.public_key.is_empty() {
-                return Err(PairingCryptoFfiError::new(
-                    "public_key must be set",
-                ));
-            }
-            if ctx.signature.is_empty() {
-                return Err(PairingCryptoFfiError::new(
-                    "signature must be set",
-                ));
-            }
+            let public_key = get_array_value_from_context!(
+                ctx.public_key,
+                BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+                "public key"
+            );
 
             let header = if ctx.header.is_empty() {
                 None
             } else {
-                Some(ctx.header.clone())
+                Some(ctx.header.as_slice())
             };
 
-            let messages = if ctx.messages.is_empty() {
+            let signature = get_array_value_from_context!(
+                ctx.signature,
+                BBS_BLS12381G1_SIGNATURE_LENGTH,
+                "signature"
+            );
+
+            let messages = ctx
+                .messages
+                .iter()
+                .map(|m| m.as_ref())
+                .collect::<Vec<&[u8]>>();
+            let messages = if messages.is_empty() {
                 None
             } else {
-                Some(ctx.messages.clone())
+                Some(messages.as_slice())
             };
 
-            match verify(BbsVerifyRequest {
-                public_key: ctx.public_key.clone(),
+            match verify(&BbsVerifyRequest {
+                public_key: &public_key,
                 header,
                 messages,
-                signature: ctx.signature.clone(),
+                signature: &signature,
             })
             .unwrap()
             {
@@ -90,4 +102,4 @@ pub extern "C" fn bls12381_bbs_verify_context_finish(
     )
 }
 
-define_handle_map_deleter!(BBS_VERIFY_CONTEXT, bls12381_bbs_verify_free);
+define_handle_map_deleter!(BBS_VERIFY_CONTEXT, bbs_bls12381_verify_free);

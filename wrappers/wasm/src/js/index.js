@@ -53,10 +53,10 @@ const initialize = async () => {
     }
 }
 
-const bls12381_generate_key_pair = async (ikm, keyInfo) => {
+const bbs_bls12381_generate_key_pair = async (request) => {
     await initialize();
     var result = await throwErrorOnRejectedPromise(
-        wasm.bls12381_generate_key_pair(ikm, keyInfo)
+        wasm.bbs_bls12381_generate_key_pair(request ?? {})
     );
     return {
         secretKey: new Uint8Array(result.secretKey),
@@ -64,24 +64,24 @@ const bls12381_generate_key_pair = async (ikm, keyInfo) => {
     };
 };
 
-const bls12381_bbs_sign = async (request) => {
+const bbs_bls12381_sign = async (request) => {
     await initialize();
-    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bls12381_bbs_sign(request)));
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bls12381_sign(request)));
 };
 
-const bls12381_bbs_verify = async (request) => {
+const bbs_bls12381_verify = async (request) => {
     await initialize();
-    return await throwErrorOnRejectedPromise(wasm.bls12381_bbs_verify(request));
+    return await throwErrorOnRejectedPromise(wasm.bbs_bls12381_verify(request));
 };
 
-const bls12381_bbs_derive_proof = async (request) => {
+const bbs_bls12381_derive_proof = async (request) => {
     await initialize();
-    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bls12381_bbs_derive_proof(request)));
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bls12381_derive_proof(request)));
 }
 
-const bls12381_bbs_verify_proof = async (request) => {
+const bbs_bls12381_verify_proof = async (request) => {
     await initialize();
-    return await throwErrorOnRejectedPromise(wasm.bls12381_bbs_verify_proof(request));
+    return await throwErrorOnRejectedPromise(wasm.bbs_bls12381_verify_proof(request));
 }
 
 const convertToRevealMessageArray = (messages, revealedIndicies) => {
@@ -113,17 +113,17 @@ const convertRevealMessageArrayToRevealMap = (messages) => {
     );
 }
 
-module.exports.bls12381 = {
-    bbs: {
+module.exports.bbs = {
+    bls12381: {
         PRIVATE_KEY_LENGTH: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
         PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_PUBLIC_KEY_LENGTH,
         SIGNATURE_LENGTH: BBS_SIGNATURE_LENGTH,
 
-        generateKeyPair: bls12381_generate_key_pair,
-        sign: bls12381_bbs_sign,
-        verify: bls12381_bbs_verify,
-        deriveProof: bls12381_bbs_derive_proof,
-        verifyProof: bls12381_bbs_verify_proof
+        generateKeyPair: bbs_bls12381_generate_key_pair,
+        sign: bbs_bls12381_sign,
+        verify: bbs_bls12381_verify,
+        deriveProof: bbs_bls12381_derive_proof,
+        verifyProof: bbs_bls12381_verify_proof
     }
 }
 
