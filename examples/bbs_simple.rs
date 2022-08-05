@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use pairing_crypto::bbs::{
     ciphersuites::bls12_381::{
         proof_gen,
@@ -13,7 +15,6 @@ use pairing_crypto::bbs::{
     core::key_pair::KeyPair,
 };
 
-use rand::Rng;
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
@@ -23,85 +24,105 @@ const EXAMPLE_KEY_GEN_IKM: &[u8; 49] =
 const EXAMPLE_KEY_INFO: &[u8; 16] = b"example-key-info";
 const EXAMPLE_HEADER: &[u8; 22] = b"example-header-message";
 const EXAMPLE_PRESENTATION_MESSAGE: &[u8; 28] = b"example-presentation-message";
+const EXAMPLE_MESSAGES: [&[u8]; 2] =
+    [b"example-message-1", b"example-message-2"];
 const NUM_MESSAGES: usize = 2;
-const NUM_REVEALED_MESSAGES: usize = 1;
 
 fn main() {
     pretty_env_logger::init();
 
     info!("BBS signature example application");
-    info!(
-        "total-messages: {NUM_MESSAGES}, revealed-messages: \
-         {NUM_REVEALED_MESSAGES}"
-    );
 
     // generating random 32 bytes messages
-    let messages: Vec<Vec<u8>> = (0..NUM_MESSAGES)
-        .map(|_| rand::thread_rng().gen::<[u8; 32]>().to_vec())
-        .collect();
+    let messages = &EXAMPLE_MESSAGES;
 
-    let (secret_key, public_key) =
-        KeyPair::new(EXAMPLE_KEY_GEN_IKM.as_ref(), EXAMPLE_KEY_INFO.as_ref())
-            .map(|key_pair| {
-                (
-                    key_pair.secret_key.to_bytes().to_vec(),
-                    key_pair.public_key.point_to_octets().to_vec(),
-                )
-            })
-            .expect("key generation failed");
+    let (secret_key, public_key) = KeyPair::new(
+        EXAMPLE_KEY_GEN_IKM.as_ref(),
+        Some(EXAMPLE_KEY_INFO.as_ref()),
+    )
+    .map(|key_pair| {
+        (
+            key_pair.secret_key.to_bytes(),
+            key_pair.public_key.to_octets(),
+        )
+    })
+    .expect("key generation failed");
 
-    let signature = sign(BbsSignRequest {
-        secret_key: secret_key.clone(),
-        public_key: public_key.clone(),
-        header: Some(EXAMPLE_HEADER.as_ref().to_vec()),
-        messages: Some(messages.to_vec()),
+    let signature = sign(&BbsSignRequest {
+        secret_key: &secret_key,
+        public_key: &public_key,
+        header: Some(EXAMPLE_HEADER.as_ref()),
+        messages: Some(messages),
     })
     .expect("signature generation failed");
 
     assert_eq!(
-        verify(BbsVerifyRequest {
-            public_key: public_key.clone(),
-            header: Some(EXAMPLE_HEADER.as_ref().to_vec()),
-            messages: Some(messages.to_vec()),
-            signature: signature.to_vec(),
+        verify(&BbsVerifyRequest {
+            public_key: &public_key,
+            header: Some(EXAMPLE_HEADER.as_ref()),
+            messages: Some(messages),
+            signature: &signature,
         })
         .expect("error during signature verification"),
         true
     );
 
-    let mut proof_messages: Vec<BbsProofGenRevealMessageRequest> = messages
-        .iter()
-        .map(|value| BbsProofGenRevealMessageRequest {
-            reveal: false,
-            value: value.clone(),
+    let indices: Vec<usize> = (0..NUM_MESSAGES).collect();
+    let indices_all_hidden = BTreeSet::<usize>::new();
+    let indices_all_disclosed =
+        indices.iter().cloned().collect::<BTreeSet<usize>>();
+    let indices_first_disclosed = BTreeSet::<usize>::from([0]);
+    let indices_last_disclosed = BTreeSet::<usize>::from([NUM_MESSAGES - 1]);
+
+    let disclosed_indices_vector = [
+        (indices_all_hidden, "all hidden indices"),
+        (indices_all_disclosed, "all disclosed indices"),
+        (indices_first_disclosed, "only first index disclosed"),
+        (indices_last_disclosed, "only last index disclosed"),
+    ];
+
+    for (disclosed_indices, debug_info) in disclosed_indices_vector {
+        info!("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        info!("proof scenario - {:?}", debug_info);
+        let proof_messages: Vec<BbsProofGenRevealMessageRequest<_>> = messages
+            .iter()
+            .enumerate()
+            .map(|(index, message)| {
+                let mut reveal = false;
+                if disclosed_indices.contains(&index) {
+                    reveal = true;
+                }
+                BbsProofGenRevealMessageRequest {
+                    reveal,
+                    value: message.clone(),
+                }
+            })
+            .collect();
+
+        let disclosed_messages = proof_messages
+            .iter()
+            .enumerate()
+            .filter(|(_, m)| m.reveal == true)
+            .map(|(k, m)| (k as usize, m.value.clone()))
+            .collect::<Vec<(usize, &[u8])>>();
+
+        let proof = proof_gen(&BbsProofGenRequest {
+            public_key: &public_key,
+            header: Some(EXAMPLE_HEADER.as_ref()),
+            messages: Some(&proof_messages),
+            signature: &signature,
+            presentation_message: Some(EXAMPLE_PRESENTATION_MESSAGE.as_ref()),
         })
-        .collect();
+        .expect("proof generation failed");
 
-    for i in 0..NUM_REVEALED_MESSAGES {
-        proof_messages[i].reveal = true;
+        assert!(proof_verify(&BbsProofVerifyRequest {
+            public_key: &public_key,
+            header: Some(EXAMPLE_HEADER.as_ref()),
+            presentation_message: Some(EXAMPLE_PRESENTATION_MESSAGE.as_ref()),
+            proof: &proof,
+            total_message_count: NUM_MESSAGES,
+            messages: Some(&disclosed_messages),
+        })
+        .unwrap());
     }
-    let revealed_messages = messages[0..NUM_REVEALED_MESSAGES]
-        .iter()
-        .enumerate()
-        .map(|(k, m)| (k as usize, m.clone()))
-        .collect::<Vec<(usize, Vec<u8>)>>();
-
-    let proof = proof_gen(BbsProofGenRequest {
-        public_key: public_key.clone(),
-        header: Some(EXAMPLE_HEADER.to_vec()),
-        messages: Some(proof_messages.clone()),
-        signature: signature.to_vec(),
-        presentation_message: Some(EXAMPLE_PRESENTATION_MESSAGE.to_vec()),
-    })
-    .expect("proof generation failed");
-
-    assert!(proof_verify(BbsProofVerifyRequest {
-        public_key: public_key.clone(),
-        header: Some(EXAMPLE_HEADER.to_vec()),
-        presentation_message: Some(EXAMPLE_PRESENTATION_MESSAGE.to_vec()),
-        proof: proof.clone(),
-        total_message_count: NUM_MESSAGES,
-        messages: Some(revealed_messages.clone()),
-    })
-    .unwrap());
 }

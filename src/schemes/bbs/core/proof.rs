@@ -30,6 +30,7 @@ use crate::{
 use core::{convert::TryFrom, fmt::Debug};
 use ff::Field;
 use group::{prime::PrimeCurveAffine, Curve, Group};
+use log::trace;
 use pairing::{MillerLoopResult as _, MultiMillerLoop};
 use rand::{CryptoRng, RngCore};
 use rand_core::OsRng;
@@ -107,7 +108,7 @@ impl Proof {
         messages: &[ProofMessage],
     ) -> Result<Self, Error>
     where
-        T: AsRef<[u8]> + Debug,
+        T: AsRef<[u8]>,
     {
         Self::new_with_rng(
             PK,
@@ -131,7 +132,7 @@ impl Proof {
         mut rng: impl RngCore + CryptoRng,
     ) -> Result<Self, Error>
     where
-        T: AsRef<[u8]> + Debug,
+        T: AsRef<[u8]>,
     {
         trace!("proof_gen enter +++");
         trace!("input parameter: {PK:?}");
@@ -259,11 +260,11 @@ impl Proof {
                 }
             }
         }
+        trace!("H_j1...H_jU: {H_points:?}");
         let C2 = G1Projective::multi_exp(
             &[[D, generators.Q_1()].to_vec(), H_points].concat(),
             &[[-r3_tilde, s_tilde].to_vec(), m_tilde_scalars.clone()].concat(),
         );
-        trace!("H_j1...H_jU: {H_points:?}");
         trace!("m~_j1...m~_jU: {m_tilde_scalars:?}");
         trace!("C2: {:?}", C2.to_affine());
 
@@ -332,7 +333,7 @@ impl Proof {
         disclosed_messages: &BTreeMap<usize, Message>,
     ) -> Result<bool, Error>
     where
-        T: AsRef<[u8]> + Debug,
+        T: AsRef<[u8]>,
     {
         trace!("proof_verify enter +++");
         trace!("input parameter: Self(proof) {self:?}");
@@ -353,7 +354,7 @@ impl Proof {
             None => trace!("input parameter presentation-header: None"),
         }
         trace!("input parameter: {generators:?}",);
-        trace!("input parameters: revealed-messages {revealed_msgs:?}");
+        trace!("input parameters: revealed-messages {disclosed_messages:?}");
 
         let total_no_of_messages =
             self.m_hat_list.len() + disclosed_messages.len();
