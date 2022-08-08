@@ -7,7 +7,7 @@ _LD_FLAGS = -L. $(_GNUSTEP_LIBS)
 
 
 LIB_NAME = libpairing_crypto_obj_c.so
-LIB_SRCS = bbs_key_pair.m bbs_signature.m BbsSignatureError.m
+LIB_SRCS = bbs_key_pair.m bbs_signature.m bbs_proof.m BbsSignatureError.m
 
 OBJ_EXT=o
 LIB_OBJ_FILES=$(addsuffix .$(OBJ_EXT),$(notdir $(basename $(LIB_SRCS))))

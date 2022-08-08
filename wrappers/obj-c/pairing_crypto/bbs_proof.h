@@ -19,20 +19,23 @@
 /**
  * @brief Creates a BBS signature proof
  */
-- (nullable instancetype)createProof:(BbsSignature *_Nonnull)signature
-                             keyPair:(BbsKeyPair *_Nonnull)keyPair
-                               nonce:(NSData *_Nonnull)nonce
-                            messages:(NSArray *_Nonnull)messages
-                            revealed:(NSArray *_Nonnull)revealed
+- (nullable instancetype)createProof:(NSData *_Nonnull)publicKey
+                              header:(NSData *)header
+                 presentationMessage:(NSData *)presentationMessage
+                           signature:(NSData *_Nonnull)signature
+                    disclosedIndices:(NSSet *)disclosedIndices
+                            messages:(NSArray *)messages
                            withError:(NSError *_Nullable *_Nullable)errorPtr;
 
 /**
  * @Verifies the BBS signature proof
  */
-- (bool)verifyProof:(BbsKeyPair *_Nonnull)keyPair
-           messages:(NSArray *_Nonnull)messages
-              nonce:(NSData *_Nonnull)nonce
-          withError:(NSError *_Nullable *_Nullable)errorPtr;
+- (bool)verifyProof:(NSData *_Nonnull)publicKey
+                 header:(NSData *)header
+    presentationMessage:(NSData *)presentationMessage
+                  proof:(NSData *_Nonnull)proof
+               messages:(NSDictionary *)messages
+              withError:(NSError *_Nullable *_Nullable)errorPtr;
 
 @end
 
