@@ -155,7 +155,7 @@
     headerBuffer.len = header.length;
     headerBuffer.data = (uint8_t *)header.bytes;
 
-    if (bbs_bls12381_sign_context_set_header(verifySignatureHandle, headerBuffer, err) > 0) {
+    if (bbs_bls12381_verify_context_set_header(verifySignatureHandle, headerBuffer, err) > 0) {
         *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
         return;
     }
