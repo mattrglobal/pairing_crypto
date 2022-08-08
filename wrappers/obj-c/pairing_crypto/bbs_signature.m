@@ -1,5 +1,6 @@
 #import <Foundation/Foundation.h>
 
+#import "bbs_signature.h"
 #import "pairing_crypto.h"
 #import "BbsSignatureError.h"
 
@@ -154,7 +155,7 @@
     headerBuffer.len = header.length;
     headerBuffer.data = (uint8_t *)header.bytes;
 
-    if (bbs_bls12381_sign_context_set_header(createSignatureHandle, headerBuffer, err) > 0) {
+    if (bbs_bls12381_sign_context_set_header(verifySignatureHandle, headerBuffer, err) > 0) {
         *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
         return;
     }
@@ -173,7 +174,7 @@
         messageBuffer.len = message.length;
         messageBuffer.data = (uint8_t *)message.bytes;
         
-        if (bbs_bls12381_verify_context_add_message_bytes(verifySignatureHandle, messageBuffer, err) != 0) {
+        if (bbs_bls12381_verify_context_add_message(verifySignatureHandle, messageBuffer, err) != 0) {
             *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
             return false;
         }

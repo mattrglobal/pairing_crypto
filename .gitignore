@@ -16,6 +16,12 @@ Cargo.lock
 **/target
 
 
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+**/build/*
+
 # Added by cargo
 #
 # already existing elements were commented out
@@ -28,3 +34,7 @@ Cargo.lock
 
 # Code coverage artifacts
 *.profraw
+
+# C/Obj-C build artifacts
+*.d
+*.o

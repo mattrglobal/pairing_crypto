@@ -2,6 +2,7 @@
 
 #import "bbs_key_pair.h"
 #import "pairing_crypto.h"
+#import "BbsSignatureError.h"
 
 /** @brief BBS key pair */
 @interface BbsKeyPair ()
@@ -19,7 +20,7 @@
 - (nullable instancetype)initWithIkm:(NSData *_Nonnull)ikm
                              keyInfo:(NSData *_Nullable)keyInfo
                            withError:(NSError *_Nullable *_Nullable)errorPtr {
-    [self generateKeyPair: ikm keyInfo withError:errorPtr];
+    [self generateKeyPair:ikm keyInfo:keyInfo withError:errorPtr];
     return self;
 }
 
@@ -28,12 +29,12 @@
                            withError:(NSError *_Nullable *_Nullable)errorPtr {
     
     pairing_crypto_byte_buffer_t ikmBuffer;
-    ikmBuffer.length = ikm.length;
+    ikmBuffer.len = ikm.length;
     ikmBuffer.data = (uint8_t *)ikm.bytes;
 
     pairing_crypto_byte_buffer_t keyInfoBuffer;
     if (keyInfo != nil) {
-        keyInfoBuffer.length = keyInfo.length;
+        keyInfoBuffer.len = keyInfo.length;
         keyInfoBuffer.data = (uint8_t *)keyInfo.bytes;
     }
     else {
