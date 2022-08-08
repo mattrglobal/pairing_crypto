@@ -7,6 +7,9 @@ pub mod sign;
 /// BBS Verify API
 pub mod verify;
 
+/// BBS Get Proof Size API
+pub mod get_proof_size;
+
 /// BBS Derive Proof API
 pub mod derive_proof;
 

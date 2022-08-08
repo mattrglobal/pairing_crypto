@@ -61,8 +61,8 @@ set_byte_array_impl!(
 #[no_mangle]
 pub extern "C" fn bbs_bls12381_derive_proof_context_add_message(
     handle: u64,
-    message: &mut ByteArray,
     reveal: bool,
+    message: &ByteArray,
     err: &mut ExternError,
 ) -> i32 {
     let message = message.to_vec();

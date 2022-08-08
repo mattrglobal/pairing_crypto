@@ -59,5 +59,6 @@ harness = false
 members = [
     "tools/bbs-fixtures-generator",
     "wrappers/c",
+    "wrappers/java/jni",
     "wrappers/wasm"
 ]

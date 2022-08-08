@@ -24,6 +24,11 @@ use alloc::collections::BTreeMap;
 #[cfg(not(feature = "alloc"))]
 use std::collections::BTreeMap;
 
+/// Return the size of proof in bytes for `num_undisclosed_messages`.
+pub fn get_proof_size(num_undisclosed_messages: usize) -> usize {
+    Proof::get_size(num_undisclosed_messages)
+}
+
 /// Generate a signature proof of knowledge.
 pub fn proof_gen<T: AsRef<[u8]>>(
     request: &BbsProofGenRequest<'_, T>,

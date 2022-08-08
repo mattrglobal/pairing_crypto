@@ -30,3 +30,10 @@ pub mod api;
 
 /// Domain Transfer Objects used over the FFI interface exposed by this crate
 pub mod dtos;
+
+// Re-export constants.
+pub use pairing_crypto::bbs::ciphersuites::bls12_381::{
+    BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+    BBS_BLS12381G1_SECRET_KEY_LENGTH,
+    BBS_BLS12381G1_SIGNATURE_LENGTH,
+};

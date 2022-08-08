@@ -1,0 +1,18 @@
+[package]
+name = "pairing-crypto-jni"
+authors = ["MATTR Global Team"]
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "pairing_crypto_jni"
+crate-type = ["staticlib", "cdylib"]
+
+[profile.release]
+lto = true
+opt-level = 3
+
+[dependencies]
+pairing_crypto_c = { path = "../../c"}
+jni = "0.19"
+ffi-support = "0.4.4"

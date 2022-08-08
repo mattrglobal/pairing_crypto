@@ -1,0 +1,52 @@
+import org.gradle.internal.os.OperatingSystem
+
+plugins {
+    // Apply the java-library plugin for API and implementation separation.
+    id 'java-library'
+}
+
+apply plugin : "java-library" 
+
+repositories {
+    // Use Maven Central for resolving dependencies.
+    mavenCentral()
+}
+
+dependencies {
+    // Use JUnit test framework.
+    testImplementation 'junit:junit:4.13.2'
+
+    // This dependency is exported to consumers, that is to say found on their compile classpath.
+    api 'org.apache.commons:commons-math3:3.6.1'
+
+    // This dependency is used internally, and not exposed to consumers on their own compile classpath.
+    implementation 'com.google.guava:guava:31.0.1-jre'
+}
+
+// Copy the JNI libraries
+task buildAndCopyJniLibrariesLinux(type:Exec) {
+    commandLine './scripts/build_all.sh', 'LINUX', 'src/main/resources/META-INF/native'
+}
+
+// Build and copy the JNI libraries
+task buildAndCopyJniLibraries {
+    dependsOn ':buildAndCopyJniLibrariesLinux'
+}
+
+tasks.named('test') {
+    dependsOn buildAndCopyJniLibraries
+
+    def system = OperatingSystem.current()
+
+    if (system.isLinux()) {
+        systemProperty("java.library.path", file("src/main/resources/META-INF/native/linux").absolutePath)
+    }
+
+    // Use JUnit Platform for unit tests.
+    useJUnit()
+
+    maxHeapSize = '1G'
+    
+    // Enable logging output to stderr
+    testLogging.showStandardStreams = true
+}

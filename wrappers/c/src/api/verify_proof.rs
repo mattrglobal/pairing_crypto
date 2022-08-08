@@ -67,8 +67,8 @@ pub extern "C" fn bbs_bls12381_verify_proof_context_set_total_message_count(
 #[no_mangle]
 pub extern "C" fn bbs_bls12381_verify_proof_context_add_message(
     handle: u64,
-    message: &mut ByteArray,
     index: usize,
+    message: &ByteArray,
     err: &mut ExternError,
 ) -> i32 {
     let message = message.to_vec();
