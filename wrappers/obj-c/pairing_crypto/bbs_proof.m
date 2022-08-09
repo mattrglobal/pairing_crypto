@@ -46,12 +46,14 @@
 - (bool)verifyProof:(NSData *_Nonnull)publicKey
              header:(NSData *_Nullable)header
 presentationMessage:(NSData *_Nullable)presentationMessage
+total_message_count:(NSUInteger)total_message_count
            messages:(NSDictionary *_Nullable)messages
           withError:(NSError *_Nullable *_Nullable)errorPtr {
     
     return [self verifySignatureProof:publicKey
                                header:header
                   presentationMessage:presentationMessage
+                  total_message_count:total_message_count
                              messages:messages
                             withError:errorPtr];
 }
@@ -87,7 +89,7 @@ presentationMessage:(NSData *_Nullable)presentationMessage
 
     if (bbs_bls12381_derive_proof_context_set_public_key(deriveProofHandle, publicKeyBuffer, err) != 0) {
         *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-        return false;
+        return;
     }
 
     if (header) {
@@ -118,7 +120,7 @@ presentationMessage:(NSData *_Nullable)presentationMessage
 
     if (bbs_bls12381_derive_proof_context_set_signature(deriveProofHandle, signatureBuffer, err) != 0) {
         *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-        return false;
+        return;
     }
 
     if (disclosedIndices && messages && [messages count] != 0) {
@@ -157,6 +159,7 @@ presentationMessage:(NSData *_Nullable)presentationMessage
 - (bool)verifySignatureProof:(NSData *_Nonnull)publicKey
                       header:(NSData *_Nullable)header
          presentationMessage:(NSData *_Nullable)presentationMessage
+         total_message_count:(NSUInteger)total_message_count
                     messages:(NSDictionary *_Nullable)messages
                    withError:(NSError *_Nullable *_Nullable)errorPtr  {
     
@@ -185,7 +188,7 @@ presentationMessage:(NSData *_Nullable)presentationMessage
 
         if (bbs_bls12381_verify_proof_context_set_header(verifyProofHandle, headerBuffer, err) > 0) {
             *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-            return;
+            return false;
         }
     }
 
@@ -196,8 +199,13 @@ presentationMessage:(NSData *_Nullable)presentationMessage
 
         if (bbs_bls12381_verify_proof_context_set_presentation_message(verifyProofHandle, presentationMessageBuffer, err) > 0) {
             *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-            return;
+            return false;
         }
+    }
+
+    if (bbs_bls12381_verify_proof_context_set_total_message_count(verifyProofHandle, total_message_count, err) != 0) {
+        *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
+        return false;
     }
     
     pairing_crypto_byte_buffer_t proofBuffer;
@@ -222,13 +230,13 @@ presentationMessage:(NSData *_Nullable)presentationMessage
             }
         }
     }
-    
-    
+
     if (bbs_bls12381_verify_proof_context_finish(verifyProofHandle, err) != 0) {
         *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
         return false;
     }
     
+    free(err);
     return true;
 }
 

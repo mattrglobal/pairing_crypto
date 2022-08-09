@@ -34,6 +34,7 @@
                  header:(NSData *_Nullable)header
     presentationMessage:(NSData *_Nullable)presentationMessage
                   proof:(NSData *_Nonnull)proof
+    total_message_count:(NSUInteger)total_message_count
                messages:(NSDictionary *_Nullable)messages
               withError:(NSError *_Nullable *_Nullable)errorPtr;
 
