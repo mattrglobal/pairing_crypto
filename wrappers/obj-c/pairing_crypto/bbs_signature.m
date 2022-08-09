@@ -162,7 +162,7 @@
 
         if (bbs_bls12381_verify_context_set_header(verifySignatureHandle, headerBuffer, err) > 0) {
             *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-            return;
+            return false;
         }
     }
     
