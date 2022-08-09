@@ -6,6 +6,15 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+/** BBS BLS12-381 Secret Key Size */
+#define BBS_BLS12381_SECRET_KEY_SIZE (32)
+
+/** BBS BLS12-381 Public Key Size */
+#define BBS_BLS12381_PUBLIC_KEY_SIZE (96)
+
+/** BBS BLS12-381 Signature Size */
+#define BBS_BLS12381_SIGNATURE_SIZE (112)
+
 /* Used for receiving a pairing_crypto_byte_buffer_t from C that was allocated by either C or Rust.
  *  If Rust allocated, then the outgoing struct is `ffi_support::pairing_crypto_byte_buffer_t`
  *  Caller is responsible for calling free where applicable.
