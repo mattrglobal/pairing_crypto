@@ -19,16 +19,16 @@
  * @brief Creates a BBS signature
  */
 - (nullable instancetype)sign:(BbsKeyPair *_Nonnull)keyPair
-                       header:(NSData *_Nonnull)header
-                     messages:(NSArray *_Nonnull)messages
+                       header:(NSData *)header
+                     messages:(NSArray *)messages
                     withError:(NSError *_Nullable *_Nullable)errorPtr;
 
 /**
  * @Verifies the BBS signature
  */
 - (bool)verify:(NSData *_Nonnull)publicKey
-        header:(NSData *_Nonnull)header
-      messages:(NSArray *_Nonnull)messages
+        header:(NSData *)header
+      messages:(NSArray *)messages
      withError:(NSError *_Nullable *_Nullable)errorPtr;
 
 @end
