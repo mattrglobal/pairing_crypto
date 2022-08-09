@@ -384,8 +384,11 @@ fn proof_gen_verify_valid_cases() {
         );
 
         for i in 0..messages.len() {
-            let revealed_indices =
-                [0, i].iter().cloned().collect::<BTreeSet<usize>>();
+            let revealed_indices = (0..i)
+                .collect::<Vec<usize>>()
+                .iter()
+                .cloned()
+                .collect::<BTreeSet<usize>>();
             let (proof, revealed_messages) = test_helper::proof_gen(
                 &key_pair.public_key,
                 &signature,

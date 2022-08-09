@@ -90,7 +90,7 @@ pub extern "C" fn bbs_bls12381_verify_proof_context_finish(
     handle: u64,
     err: &mut ExternError,
 ) -> i32 {
-    BBS_VERIFY_PROOF_CONTEXT.call_with_result(
+    let _ = BBS_VERIFY_PROOF_CONTEXT.call_with_result(
         err,
         handle,
         move |ctx| -> Result<i32, PairingCryptoFfiError> {
@@ -140,7 +140,14 @@ pub extern "C" fn bbs_bls12381_verify_proof_context_finish(
                 false => Ok(1),
             }
         },
-    )
+    );
+    if err.get_code().is_success() {
+        if let Err(e) = BBS_VERIFY_PROOF_CONTEXT.remove_u64(handle) {
+            *err = ExternError::from(e)
+        }
+    }
+
+    err.get_code().code()
 }
 
 define_handle_map_deleter!(

@@ -136,7 +136,7 @@ public class BbsTest {
         allDisclosedMessages.put(1, messages[1]);
         allDisclosedMessages.put(2, messages[2]);
         try {
-            isVerified = Bbs.verifyProof(publicKey, header, presentation_message, proof, allDisclosedMessages);
+            isVerified = Bbs.verifyProof(publicKey, header, presentation_message, proof, messages.length, allDisclosedMessages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -153,7 +153,7 @@ public class BbsTest {
         }
         assertNotNull(proof);
         try {
-            isVerified = Bbs.verifyProof(publicKey, header, presentation_message, proof, fewDisclosedMessages);
+            isVerified = Bbs.verifyProof(publicKey, header, presentation_message, proof, messages.length, fewDisclosedMessages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
