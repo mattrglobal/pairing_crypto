@@ -20,21 +20,21 @@
  * @brief Creates a BBS signature proof
  */
 - (nullable instancetype)createProof:(NSData *_Nonnull)publicKey
-                              header:(NSData *)header
-                 presentationMessage:(NSData *)presentationMessage
+                              header:(NSData *_Nullable)header
+                 presentationMessage:(NSData *_Nullable)presentationMessage
                            signature:(NSData *_Nonnull)signature
-                    disclosedIndices:(NSSet *)disclosedIndices
-                            messages:(NSArray *)messages
+                    disclosedIndices:(NSSet *_Nullable)disclosedIndices
+                            messages:(NSArray *_Nullable)messages
                            withError:(NSError *_Nullable *_Nullable)errorPtr;
 
 /**
  * @Verifies the BBS signature proof
  */
 - (bool)verifyProof:(NSData *_Nonnull)publicKey
-                 header:(NSData *)header
-    presentationMessage:(NSData *)presentationMessage
+                 header:(NSData *_Nullable)header
+    presentationMessage:(NSData *_Nullable)presentationMessage
                   proof:(NSData *_Nonnull)proof
-               messages:(NSDictionary *)messages
+               messages:(NSDictionary *_Nullable)messages
               withError:(NSError *_Nullable *_Nullable)errorPtr;
 
 @end

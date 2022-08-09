@@ -25,11 +25,11 @@
 
 /** @brief Creates a BBS signature proof */
 - (nullable instancetype)createProof:(NSData *_Nonnull)publicKey
-                              header:(NSData *)header
-                 presentationMessage:(NSData *)presentationMessage
+                              header:(NSData *_Nullable)header
+                 presentationMessage:(NSData *_Nullable)presentationMessage
                            signature:(NSData *_Nonnull)signature
-                    disclosedIndices:(NSSet *)disclosedIndices
-                            messages:(NSArray *)messages
+                    disclosedIndices:(NSSet *_Nullable)disclosedIndices
+                            messages:(NSArray *_Nullable)messages
                            withError:(NSError *_Nullable *_Nullable)errorPtr {
     
     [self createSignatureProof:publicKey
@@ -44,9 +44,9 @@
 
 /** @brief Initializes a key pair */
 - (bool)verifyProof:(NSData *_Nonnull)publicKey
-             header:(NSData *)header
-presentationMessage:(NSData *)presentationMessage
-           messages:(NSDictionary *)messages
+             header:(NSData *_Nullable)header
+presentationMessage:(NSData *_Nullable)presentationMessage
+           messages:(NSDictionary *_Nullable)messages
           withError:(NSError *_Nullable *_Nullable)errorPtr {
     
     return [self verifySignatureProof:publicKey
@@ -65,11 +65,11 @@ presentationMessage:(NSData *)presentationMessage
 }
 
 - (void) createSignatureProof:(NSData *_Nonnull)publicKey
-                       header:(NSData *)header
-          presentationMessage:(NSData *)presentationMessage
+                       header:(NSData *_Nullable)header
+          presentationMessage:(NSData *_Nullable)presentationMessage
                     signature:(NSData *_Nonnull)signature
-             disclosedIndices:(NSSet *)disclosedIndices
-                     messages:(NSArray *)messages
+             disclosedIndices:(NSSet *_Nullable)disclosedIndices
+                     messages:(NSArray *_Nullable)messages
                     withError:(NSError *_Nullable *_Nullable)errorPtr {
     
     pairing_crypto_error_t *err = (pairing_crypto_error_t*) malloc(sizeof(pairing_crypto_error_t));
@@ -155,9 +155,9 @@ presentationMessage:(NSData *)presentationMessage
 
 /** @brief Initializes a key pair */
 - (bool)verifySignatureProof:(NSData *_Nonnull)publicKey
-                      header:(NSData *)header
-         presentationMessage:(NSData *)presentationMessage
-                    messages:(NSDictionary *)messages
+                      header:(NSData *_Nullable)header
+         presentationMessage:(NSData *_Nullable)presentationMessage
+                    messages:(NSDictionary *_Nullable)messages
                    withError:(NSError *_Nullable *_Nullable)errorPtr  {
     
     pairing_crypto_error_t *err = (pairing_crypto_error_t*) malloc(sizeof(pairing_crypto_error_t));
