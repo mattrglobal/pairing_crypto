@@ -25,8 +25,8 @@
 }
 
 - (void) generateKeyPair:(NSData *_Nonnull)ikm
-                             keyInfo:(NSData *_Nullable)keyInfo
-                           withError:(NSError *_Nullable *_Nullable)errorPtr {
+                 keyInfo:(NSData *_Nullable)keyInfo
+                withError:(NSError *_Nullable *_Nullable)errorPtr {
     
     pairing_crypto_byte_buffer_t ikmBuffer;
     ikmBuffer.len = ikm.length;
