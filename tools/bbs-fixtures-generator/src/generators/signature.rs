@@ -1,12 +1,15 @@
-use pairing_crypto::bbs::{
-    ciphersuites::bls12_381::{
-        sign,
-        verify,
-        BbsSignRequest,
-        BbsVerifyRequest,
-        BBS_BLS12381G1_SIGNATURE_LENGTH,
+use pairing_crypto::{
+    bbs::{
+        ciphersuites::bls12_381::{
+            sign,
+            verify,
+            BbsSignRequest,
+            BbsVerifyRequest,
+            BBS_BLS12381G1_SIGNATURE_LENGTH,
+        },
+        core::key_pair::KeyPair,
     },
-    core::key_pair::KeyPair,
+    ExpandMessage,
 };
 use rand::{prelude::SliceRandom, thread_rng};
 use std::path::PathBuf;
@@ -16,8 +19,11 @@ use crate::{
     util::save_test_vector,
 };
 
-pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
-    let signature_single_message = sign(&BbsSignRequest {
+pub fn generate<X: ExpandMessage>(
+    fixture_gen_input: &FixtureGenInput,
+    output_dir: &PathBuf,
+) {
+    let signature_single_message = sign::<_, X>(&BbsSignRequest {
         secret_key: &fixture_gen_input.key_pair.secret_key.to_bytes(),
         public_key: &fixture_gen_input.key_pair.public_key.to_octets(),
         header: Some(fixture_gen_input.header.clone()),
@@ -25,7 +31,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
     })
     .unwrap();
 
-    let signature_multi_message = sign(&BbsSignRequest {
+    let signature_multi_message = sign::<_, X>(&BbsSignRequest {
         secret_key: &fixture_gen_input.key_pair.secret_key.to_bytes(),
         public_key: &fixture_gen_input.key_pair.public_key.to_octets(),
         header: Some(fixture_gen_input.header.clone()),
@@ -46,7 +52,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_scratch.clone()
     };
-    validate_fixture(&fixture);
+    validate_fixture::<X>(&fixture);
     save_test_vector(&fixture, &output_dir.join("signature001.json"));
 
     // single message - modified message
@@ -62,7 +68,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_scratch.clone()
     };
-    validate_fixture(&fixture);
+    validate_fixture::<X>(&fixture);
     save_test_vector(&fixture, &output_dir.join("signature002.json"));
 
     // single message - extra unsigned message
@@ -76,7 +82,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_scratch.clone()
     };
-    validate_fixture(&fixture);
+    validate_fixture::<X>(&fixture);
     save_test_vector(&fixture, &output_dir.join("signature003.json"));
 
     // multi message - valid case
@@ -90,7 +96,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_scratch.clone()
     };
-    validate_fixture(&fixture);
+    validate_fixture::<X>(&fixture);
     save_test_vector(&fixture, &output_dir.join("signature004.json"));
 
     // multi message - missing messages
@@ -104,7 +110,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_scratch.clone()
     };
-    validate_fixture(&fixture);
+    validate_fixture::<X>(&fixture);
     save_test_vector(&fixture, &output_dir.join("signature005.json"));
 
     // multi message - re-ordered messages
@@ -121,7 +127,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_scratch.clone()
     };
-    validate_fixture(&fixture);
+    validate_fixture::<X>(&fixture);
     save_test_vector(&fixture, &output_dir.join("signature006.json"));
 
     // multi message - wrong public key
@@ -140,7 +146,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_scratch.clone()
     };
-    validate_fixture(&fixture);
+    validate_fixture::<X>(&fixture);
     save_test_vector(&fixture, &output_dir.join("signature007.json"));
 
     // multi message - different header
@@ -157,7 +163,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_scratch.clone()
     };
-    validate_fixture(&fixture);
+    validate_fixture::<X>(&fixture);
     save_test_vector(&fixture, &output_dir.join("signature008.json"));
 
     // multi message - randomly shuffled messages
@@ -174,13 +180,13 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_scratch.clone()
     };
-    validate_fixture(&fixture);
+    validate_fixture::<X>(&fixture);
     save_test_vector(&fixture, &output_dir.join("signature009.json"));
 }
 
 // Validate fixture if `api::verify` returns expected result.
-pub fn validate_fixture(fixture: &FixtureSignature) {
-    let result = verify(&BbsVerifyRequest {
+pub fn validate_fixture<X: ExpandMessage>(fixture: &FixtureSignature) {
+    let result = verify::<_, X>(&BbsVerifyRequest {
         public_key: &fixture.key_pair.public_key.to_octets(),
         header: Some(fixture.header.clone()),
         messages: Some(&fixture.messages),

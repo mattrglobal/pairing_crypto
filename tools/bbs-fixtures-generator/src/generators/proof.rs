@@ -1,15 +1,18 @@
-use pairing_crypto::bbs::ciphersuites::bls12_381::{
-    proof_gen,
-    proof_verify,
-    sign,
-    verify,
-    BbsProofGenRequest,
-    BbsProofGenRevealMessageRequest,
-    BbsProofVerifyRequest,
-    BbsSignRequest,
-    BbsVerifyRequest,
-    BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
-    BBS_BLS12381G1_SECRET_KEY_LENGTH,
+use pairing_crypto::{
+    bbs::ciphersuites::bls12_381::{
+        proof_gen,
+        proof_verify,
+        sign,
+        verify,
+        BbsProofGenRequest,
+        BbsProofGenRevealMessageRequest,
+        BbsProofVerifyRequest,
+        BbsSignRequest,
+        BbsVerifyRequest,
+        BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+        BBS_BLS12381G1_SECRET_KEY_LENGTH,
+    },
+    ExpandMessage,
 };
 use rand::RngCore;
 use std::{collections::BTreeSet, path::PathBuf};
@@ -19,7 +22,10 @@ use crate::{
     util::save_test_vector,
 };
 
-pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
+pub fn generate<X: ExpandMessage>(
+    fixture_gen_input: &FixtureGenInput,
+    output_dir: &PathBuf,
+) {
     let secret_key = &fixture_gen_input.key_pair.secret_key.to_bytes();
     let public_key = &fixture_gen_input.key_pair.public_key.to_octets();
     let header = &fixture_gen_input.header.clone();
@@ -70,7 +76,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         result,
     ) in fixture_data
     {
-        let (proof, disclosed_messages) = proof_gen_helper(
+        let (proof, disclosed_messages) = proof_gen_helper::<X>(
             secret_key,
             public_key,
             header,
@@ -86,7 +92,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
             result,
             ..fixture_scratch.clone()
         };
-        validate_fixture(&fixture);
+        validate_fixture::<X>(&fixture);
         save_test_vector(&fixture, &output_dir.join(test_vector_file_name));
     }
 
@@ -94,7 +100,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
     // multi-message signature, multiple messages revealed proof
     let messages = &fixture_gen_input.messages;
     let disclosed_indices = BTreeSet::<usize>::from([0, 2, 4, 6]);
-    let (proof, disclosed_messages) = proof_gen_helper(
+    let (proof, disclosed_messages) = proof_gen_helper::<X>(
         secret_key,
         public_key,
         header,
@@ -126,7 +132,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_negative.clone()
     };
-    validate_fixture(&fixture);
+    validate_fixture::<X>(&fixture);
     save_test_vector(&fixture, &output_dir.join("proof004.json"));
 
     let fixture = FixtureProof {
@@ -137,7 +143,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_negative.clone()
     };
-    validate_fixture(&fixture);
+    validate_fixture::<X>(&fixture);
     save_test_vector(&fixture, &output_dir.join("proof005.json"));
 
     let mut modified_disclosed_messages = disclosed_messages.clone();
@@ -152,7 +158,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_negative.clone()
     };
-    validate_fixture(&fixture);
+    validate_fixture::<X>(&fixture);
     save_test_vector(&fixture, &output_dir.join("proof006.json"));
 
     let mut invalid_disclosed_messages = disclosed_messages.clone();
@@ -165,7 +171,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_negative.clone()
     };
-    validate_fixture(&fixture);
+    validate_fixture::<X>(&fixture);
     save_test_vector(&fixture, &output_dir.join("proof007.json"));
 
     let mut invalid_disclosed_messages = disclosed_messages.clone();
@@ -180,7 +186,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_negative.clone()
     };
-    validate_fixture(&fixture);
+    validate_fixture::<X>(&fixture);
     save_test_vector(&fixture, &output_dir.join("proof008.json"));
 
     let mut missing_disclosed_messages = disclosed_messages.clone();
@@ -193,7 +199,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_negative.clone()
     };
-    validate_fixture(&fixture);
+    validate_fixture::<X>(&fixture);
     save_test_vector(&fixture, &output_dir.join("proof009.json"));
 
     let mut swapped_disclosed_messages = disclosed_messages.clone();
@@ -207,7 +213,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_negative.clone()
     };
-    validate_fixture(&fixture);
+    validate_fixture::<X>(&fixture);
     save_test_vector(&fixture, &output_dir.join("proof010.json"));
 
     let mut extra_disclosed_messages = disclosed_messages.clone();
@@ -223,7 +229,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_negative.clone()
     };
-    validate_fixture(&fixture);
+    validate_fixture::<X>(&fixture);
     save_test_vector(&fixture, &output_dir.join("proof011.json"));
 
     let fixture = FixtureProof {
@@ -236,7 +242,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_negative.clone()
     };
-    validate_fixture(&fixture);
+    validate_fixture::<X>(&fixture);
     save_test_vector(&fixture, &output_dir.join("proof012.json"));
 
     let mut header = fixture_gen_input.header.clone();
@@ -249,11 +255,11 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         },
         ..fixture_negative.clone()
     };
-    validate_fixture(&fixture);
+    validate_fixture::<X>(&fixture);
     save_test_vector(&fixture, &output_dir.join("proof013.json"));
 }
 
-fn proof_gen_helper(
+fn proof_gen_helper<X: ExpandMessage>(
     secret_key: &[u8; BBS_BLS12381G1_SECRET_KEY_LENGTH],
     public_key: &[u8; BBS_BLS12381G1_PUBLIC_KEY_LENGTH],
     header: &Vec<u8>,
@@ -271,7 +277,7 @@ fn proof_gen_helper(
     }
 
     // Generate the signature
-    let signature = sign(&BbsSignRequest {
+    let signature = sign::<_, X>(&BbsSignRequest {
         secret_key,
         public_key,
         header: Some(header.clone()),
@@ -281,7 +287,7 @@ fn proof_gen_helper(
 
     // Verify the generated signature - just for validation
     assert_eq!(
-        verify(&BbsVerifyRequest {
+        verify::<_, X>(&BbsVerifyRequest {
             public_key,
             header: Some(header.clone()),
             messages: Some(messages.as_slice()),
@@ -311,7 +317,7 @@ fn proof_gen_helper(
     }
 
     // Generate the proof
-    let proof = proof_gen(&BbsProofGenRequest {
+    let proof = proof_gen::<_, X>(&BbsProofGenRequest {
         public_key,
         header: Some(header.clone()),
         presentation_message: Some(presentation_message.clone()),
@@ -322,7 +328,7 @@ fn proof_gen_helper(
 
     // Verify the generated proof - just for validation
     assert_eq!(
-        proof_verify(&BbsProofVerifyRequest {
+        proof_verify::<_, X>(&BbsProofVerifyRequest {
             public_key,
             header: Some(header.clone()),
             presentation_message: Some(presentation_message.clone()),
@@ -337,8 +343,8 @@ fn proof_gen_helper(
 }
 
 /// Validate fixture if `api::proof_verify` returns expected result.
-pub fn validate_fixture(fixture: &FixtureProof) {
-    let result = proof_verify(&BbsProofVerifyRequest {
+pub fn validate_fixture<X: ExpandMessage>(fixture: &FixtureProof) {
+    let result = proof_verify::<_, X>(&BbsProofVerifyRequest {
         public_key: &fixture.signer_public_key.to_octets(),
         header: Some(fixture.header.clone()),
         presentation_message: Some(fixture.presentation_message.clone()),

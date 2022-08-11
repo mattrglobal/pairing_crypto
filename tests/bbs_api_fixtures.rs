@@ -4,12 +4,16 @@ use bbs_fixtures_generator::{
     FixtureProof,
     FixtureSignature,
 };
-use pairing_crypto::bbs::ciphersuites::bls12_381::{
-    proof_gen,
-    BbsProofGenRequest,
-    BbsProofGenRevealMessageRequest,
-    BBS_BLS12381G1_SIGNATURE_LENGTH,
+use pairing_crypto::{
+    bbs::ciphersuites::bls12_381::{
+        proof_gen,
+        BbsProofGenRequest,
+        BbsProofGenRevealMessageRequest,
+        BBS_BLS12381G1_SIGNATURE_LENGTH,
+    },
+    ExpandMsgXof,
 };
+use sha3::Shake256;
 use std::convert::TryFrom;
 
 static SIGNATURE_FIXTURES_DIR: &'static str = concat!(
@@ -34,7 +38,7 @@ fn signature_verify_fixtures() {
             serde_json::from_str::<FixtureSignature>(&text).unwrap()
         };
 
-        validate_signature_fixture(&fixture);
+        validate_signature_fixture::<ExpandMsgXof<Shake256>>(&fixture);
     }
 }
 
@@ -98,37 +102,41 @@ fn derive_proof_fixtures() {
             }
 
             for test in test_vector {
-                let _proof = proof_gen(&BbsProofGenRequest {
-                    public_key: &fixture.key_pair.public_key.to_octets(),
-                    header: Some(fixture.header.clone()),
-                    presentation_message: Some(
-                        (&TEST_PRESENTATION_MESSAGE).to_vec(),
-                    ),
-                    messages: Some(&test.0),
-                    signature:
-                        &<[u8; BBS_BLS12381G1_SIGNATURE_LENGTH]>::try_from(
-                            fixture.signature.clone(),
-                        )
-                        .unwrap(),
-                })
+                let _proof = proof_gen::<_, ExpandMsgXof<Shake256>>(
+                    &BbsProofGenRequest {
+                        public_key: &fixture.key_pair.public_key.to_octets(),
+                        header: Some(fixture.header.clone()),
+                        presentation_message: Some(
+                            (&TEST_PRESENTATION_MESSAGE).to_vec(),
+                        ),
+                        messages: Some(&test.0),
+                        signature:
+                            &<[u8; BBS_BLS12381G1_SIGNATURE_LENGTH]>::try_from(
+                                fixture.signature.clone(),
+                            )
+                            .unwrap(),
+                    },
+                )
                 .expect(&format!(
                     "proof-generation should not fail, case: {}, - {}",
                     fixture.case_name, test.1
                 ));
             }
         } else {
-            let result = proof_gen(&BbsProofGenRequest {
-                public_key: &fixture.key_pair.public_key.to_octets(),
-                header: Some(fixture.header.clone()),
-                presentation_message: Some(
-                    (&TEST_PRESENTATION_MESSAGE).to_vec(),
-                ),
-                messages: Some(&all_revealed_messages),
-                signature: &<[u8; BBS_BLS12381G1_SIGNATURE_LENGTH]>::try_from(
-                    fixture.signature.clone(),
-                )
-                .unwrap(),
-            });
+            let result =
+                proof_gen::<_, ExpandMsgXof<Shake256>>(&BbsProofGenRequest {
+                    public_key: &fixture.key_pair.public_key.to_octets(),
+                    header: Some(fixture.header.clone()),
+                    presentation_message: Some(
+                        (&TEST_PRESENTATION_MESSAGE).to_vec(),
+                    ),
+                    messages: Some(&all_revealed_messages),
+                    signature:
+                        &<[u8; BBS_BLS12381G1_SIGNATURE_LENGTH]>::try_from(
+                            fixture.signature.clone(),
+                        )
+                        .unwrap(),
+                });
 
             assert!(
                 result.is_err(),
@@ -151,6 +159,6 @@ fn proof_verify_fixtures() {
             serde_json::from_str::<FixtureProof>(&text).unwrap()
         };
 
-        validate_proof_fixture(&fixture);
+        validate_proof_fixture::<ExpandMsgXof<Shake256>>(&fixture);
     }
 }

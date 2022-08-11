@@ -12,8 +12,10 @@ use pairing_crypto::{
         KeyPair,
     },
     Error,
+    ExpandMsgXof,
 };
 use rand_core::OsRng;
+use sha3::Shake256;
 
 const KEY_GEN_SEED: &[u8; 32] = b"not_A_random_seed_at_Allllllllll";
 
@@ -65,7 +67,7 @@ fn sign_verify_e2e_nominal() {
                 })
                 .expect("key generation failed");
 
-        let signature = sign(&BbsSignRequest {
+        let signature = sign::<_, ExpandMsgXof<Shake256>>(&BbsSignRequest {
             secret_key: &secret_key,
             public_key: &public_key,
             header: Some(header),
@@ -78,7 +80,7 @@ fn sign_verify_e2e_nominal() {
         assert_eq!(signature.to_vec(), expected_signature);
 
         assert_eq!(
-            verify(&BbsVerifyRequest {
+            verify::<_, ExpandMsgXof<Shake256>>(&BbsVerifyRequest {
                 public_key: &public_key,
                 header: Some(header),
                 messages: Some(messages),
@@ -107,7 +109,7 @@ fn proof_gen_verify_e2e_nominal() {
                 })
                 .expect("key generation failed");
 
-        let signature = sign(&BbsSignRequest {
+        let signature = sign::<_, ExpandMsgXof<Shake256>>(&BbsSignRequest {
             secret_key: &secret_key,
             public_key: &public_key,
             header: Some(header),
@@ -116,7 +118,7 @@ fn proof_gen_verify_e2e_nominal() {
         .expect("signature generation failed");
 
         assert_eq!(
-            verify(&BbsVerifyRequest {
+            verify::<_, ExpandMsgXof<Shake256>>(&BbsVerifyRequest {
                 public_key: &public_key,
                 header: Some(header),
                 messages: Some(messages),
@@ -138,14 +140,15 @@ fn proof_gen_verify_e2e_nominal() {
 
         // Reveal 1 message at a time
         for j in 0..proof_messages.len() {
-            let proof = &proof_gen(&BbsProofGenRequest {
-                public_key: &public_key,
-                header: Some(header),
-                messages: Some(&proof_messages),
-                signature: &signature,
-                presentation_message: Some(presentation_message),
-            })
-            .expect("proof generation failed");
+            let proof =
+                &proof_gen::<_, ExpandMsgXof<Shake256>>(&BbsProofGenRequest {
+                    public_key: &public_key,
+                    header: Some(header),
+                    messages: Some(&proof_messages),
+                    signature: &signature,
+                    presentation_message: Some(presentation_message),
+                })
+                .expect("proof generation failed");
 
             let mut revealed_msgs = Vec::new();
             for k in 0..j {
@@ -153,14 +156,16 @@ fn proof_gen_verify_e2e_nominal() {
             }
 
             assert_eq!(
-                proof_verify(&BbsProofVerifyRequest {
-                    public_key: &public_key,
-                    header: Some(header),
-                    presentation_message: Some(presentation_message),
-                    proof: &proof,
-                    total_message_count: messages.len(),
-                    messages: Some(revealed_msgs.as_slice()),
-                })
+                proof_verify::<_, ExpandMsgXof<Shake256>>(
+                    &BbsProofVerifyRequest {
+                        public_key: &public_key,
+                        header: Some(header),
+                        presentation_message: Some(presentation_message),
+                        proof: &proof,
+                        total_message_count: messages.len(),
+                        messages: Some(revealed_msgs.as_slice()),
+                    }
+                )
                 .expect("proof verification failed"),
                 true
             );
@@ -185,7 +190,7 @@ fn proof_gen_failure_message_modified() {
         })
         .expect("key generation failed");
 
-    let signature = sign(&BbsSignRequest {
+    let signature = sign::<_, ExpandMsgXof<Shake256>>(&BbsSignRequest {
         secret_key: &secret_key,
         public_key: &public_key,
         header: Some(header),
@@ -194,7 +199,7 @@ fn proof_gen_failure_message_modified() {
     .expect("signature generation failed");
 
     assert_eq!(
-        verify(&BbsVerifyRequest {
+        verify::<_, ExpandMsgXof<Shake256>>(&BbsVerifyRequest {
             public_key: &public_key,
             header: Some(header),
             messages: Some(messages),
@@ -222,7 +227,7 @@ fn proof_gen_failure_message_modified() {
     // Modify one of the messages
     proof_messages[1].value = &[0xA; 50];
 
-    let result = proof_gen(&BbsProofGenRequest {
+    let result = proof_gen::<_, ExpandMsgXof<Shake256>>(&BbsProofGenRequest {
         public_key: &public_key,
         header: Some(header),
         messages: Some(&proof_messages),
