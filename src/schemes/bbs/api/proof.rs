@@ -7,6 +7,7 @@ use super::{
     },
 };
 use crate::{
+    curves::bls12_381::hash_to_curve::ExpandMessage,
     error::Error,
     schemes::bbs::ciphersuites::bls12_381::{
         Generators,
@@ -30,9 +31,13 @@ pub fn get_proof_size(num_undisclosed_messages: usize) -> usize {
 }
 
 /// Generate a signature proof of knowledge.
-pub fn proof_gen<T: AsRef<[u8]>>(
+pub fn proof_gen<T, X>(
     request: &BbsProofGenRequest<'_, T>,
-) -> Result<Vec<u8>, Error> {
+) -> Result<Vec<u8>, Error>
+where
+    T: AsRef<[u8]>,
+    X: ExpandMessage,
+{
     // Parse public key from request
     let pk = PublicKey::from_octets(request.public_key)?;
 
@@ -43,16 +48,16 @@ pub fn proof_gen<T: AsRef<[u8]>>(
             .map(|element| element.value.as_ref())
             .collect::<Vec<_>>();
         // Digest the supplied messages
-        digested_messages = digest_messages(Some(&request_messages))?;
+        digested_messages = digest_messages::<_, X>(Some(&request_messages))?;
     }
 
     // Derive generators
-    let generators = Generators::new(digested_messages.len())?;
+    let generators = Generators::new::<X>(digested_messages.len())?;
     // Parse signature from request
     let signature = Signature::from_octets(request.signature)?;
 
     // Verify the signature to check the messages supplied are valid
-    if !(signature.verify(
+    if !(signature.verify::<_, _, X>(
         &pk,
         request.header.as_ref(),
         &generators,
@@ -63,13 +68,13 @@ pub fn proof_gen<T: AsRef<[u8]>>(
 
     // Digest the supplied messages
     let messages: Vec<ProofMessage> =
-        match digest_proof_messages(request.messages) {
+        match digest_proof_messages::<_, X>(request.messages) {
             Ok(messages) => messages,
             Err(e) => return Err(e),
         };
 
     // Generate the proof
-    let proof = Proof::new(
+    let proof = Proof::new::<_, X>(
         &pk,
         &signature,
         request.header.as_ref(),
@@ -82,24 +87,29 @@ pub fn proof_gen<T: AsRef<[u8]>>(
 }
 
 /// Verify a signature proof of knowledge.
-pub fn proof_verify<T: AsRef<[u8]>>(
+pub fn proof_verify<T, X>(
     request: &BbsProofVerifyRequest<'_, T>,
-) -> Result<bool, Error> {
+) -> Result<bool, Error>
+where
+    T: AsRef<[u8]>,
+    X: ExpandMessage,
+{
     // Parse public key from request
     let public_key = PublicKey::from_octets(request.public_key)?;
 
     // Digest the revealed proof messages
-    let messages: BTreeMap<usize, Message> = digest_revealed_proof_messages(
-        request.messages,
-        request.total_message_count,
-    )?;
+    let messages: BTreeMap<usize, Message> =
+        digest_revealed_proof_messages::<_, X>(
+            request.messages,
+            request.total_message_count,
+        )?;
 
     // Derive generators
-    let generators = Generators::new(request.total_message_count)?;
+    let generators = Generators::new::<X>(request.total_message_count)?;
 
     let proof = Proof::from_octets(request.proof)?;
 
-    proof.verify(
+    proof.verify::<_, X>(
         &public_key,
         request.header.as_ref(),
         request.presentation_message.as_ref(),

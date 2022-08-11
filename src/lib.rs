@@ -33,8 +33,12 @@ mod curves;
 mod schemes;
 
 pub use error::Error;
+
 /// Supported constructs for the BLS12-381 curve.
 pub use schemes::*;
+
+/// Export `ExpandMessage` for downstream dependencies.
+pub use blstrs::hash_to_curve::{ExpandMessage, ExpandMsgXmd, ExpandMsgXof};
 
 // Unit test cases
 #[cfg(test)]

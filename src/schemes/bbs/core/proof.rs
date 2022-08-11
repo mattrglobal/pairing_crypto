@@ -17,7 +17,7 @@ use super::{
 };
 use crate::{
     curves::bls12_381::{
-        hash_to_curve::ExpandMsgXof,
+        hash_to_curve::ExpandMessage,
         Bls12,
         G1Projective,
         G2Affine,
@@ -33,7 +33,6 @@ use group::{prime::PrimeCurveAffine, Curve, Group};
 use pairing::{MillerLoopResult as _, MultiMillerLoop};
 use rand::{CryptoRng, RngCore};
 use rand_core::OsRng;
-use sha3::Shake256;
 
 #[cfg(feature = "alloc")]
 use alloc::collections::BTreeMap;
@@ -98,7 +97,7 @@ impl core::fmt::Display for Proof {
 impl Proof {
     /// Generates the zero-knowledge proof-of-knowledge of a signature, while
     /// optionally selectively disclosing from the original set of signed messages as defined in `ProofGen` API in BBS Signature specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofgen>.
-    pub fn new<T>(
+    pub fn new<T, X>(
         PK: &PublicKey,
         signature: &Signature,
         header: Option<T>,
@@ -108,8 +107,9 @@ impl Proof {
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
+        X: ExpandMessage,
     {
-        Self::new_with_rng(
+        Self::new_with_rng::<_, _, X>(
             PK,
             signature,
             header,
@@ -121,17 +121,19 @@ impl Proof {
     }
     /// Generates the zero-knowledge proof-of-knowledge of a signature, while
     /// optionally selectively disclosing from the original set of signed messages as defined in `ProofGen` API in BBS Signature specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofgen> using an externally supplied random number generator.
-    pub fn new_with_rng<T>(
+    pub fn new_with_rng<T, R, X>(
         PK: &PublicKey,
         signature: &Signature,
         header: Option<T>,
         ph: Option<T>,
         generators: &Generators,
         messages: &[ProofMessage],
-        mut rng: impl RngCore + CryptoRng,
+        mut rng: R,
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
+        X: ExpandMessage,
+        R: RngCore + CryptoRng,
     {
         // Input parameter checks
         // Error out if there is no `header` and not any `ProofMessage`
@@ -159,19 +161,16 @@ impl Proof {
 
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
-        let domain = compute_domain(PK, header, messages.len(), generators)?;
+        let domain =
+            compute_domain::<_, X>(PK, header, messages.len(), generators)?;
 
         // (r1, r2, e~, r2~, r3~, s~) = hash_to_scalar(PRF(8*ceil(log2(r))), 6)
-        let r1 = create_random_scalar::<_, ExpandMsgXof<Shake256>>(&mut rng)?;
-        let r2 = create_random_scalar::<_, ExpandMsgXof<Shake256>>(&mut rng)?;
-        let e_tilde =
-            create_random_scalar::<_, ExpandMsgXof<Shake256>>(&mut rng)?;
-        let r2_tilde =
-            create_random_scalar::<_, ExpandMsgXof<Shake256>>(&mut rng)?;
-        let r3_tilde =
-            create_random_scalar::<_, ExpandMsgXof<Shake256>>(&mut rng)?;
-        let s_tilde =
-            create_random_scalar::<_, ExpandMsgXof<Shake256>>(&mut rng)?;
+        let r1 = create_random_scalar::<_, X>(&mut rng)?;
+        let r2 = create_random_scalar::<_, X>(&mut rng)?;
+        let e_tilde = create_random_scalar::<_, X>(&mut rng)?;
+        let r2_tilde = create_random_scalar::<_, X>(&mut rng)?;
+        let r3_tilde = create_random_scalar::<_, X>(&mut rng)?;
+        let s_tilde = create_random_scalar::<_, X>(&mut rng)?;
 
         // (m~_j1, ..., m~_jU) =  hash_to_scalar(PRF(8*ceil(log2(r))), U)
         // these random scalars will be generated further below during `C2`
@@ -235,7 +234,7 @@ impl Proof {
         // c_for_hash = encode_for_hash(c_array)
         // if c_for_hash is INVALID, return INVALID
         // c = hash_to_scalar(c_for_hash, 1)
-        let c = compute_challenge(
+        let c = compute_challenge::<_, X>(
             &A_prime,
             &A_bar,
             &D,
@@ -283,7 +282,7 @@ impl Proof {
 
     /// Verify the zero-knowledge proof-of-knowledge of a signature with
     /// optionally selectively disclosed messages from the original set of signed messages as defined in `ProofGen` API in BBS Signature specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofverify>.
-    pub fn verify<T>(
+    pub fn verify<T, X>(
         &self,
         PK: &PublicKey,
         header: Option<T>,
@@ -293,6 +292,7 @@ impl Proof {
     ) -> Result<bool, Error>
     where
         T: AsRef<[u8]>,
+        X: ExpandMessage,
     {
         let total_no_of_messages =
             self.m_hat_list.len() + disclosed_messages.len();
@@ -346,7 +346,7 @@ impl Proof {
 
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
-        let domain = compute_domain(
+        let domain = compute_domain::<_, X>(
             PK,
             header,
             generators.message_generators_length(),
@@ -415,7 +415,7 @@ impl Proof {
         // cv_for_hash = encode_for_hash(cv_array)
         //  if cv_for_hash is INVALID, return INVALID
         //  cv = hash_to_scalar(cv_for_hash, 1)
-        let cv = compute_challenge(
+        let cv = compute_challenge::<_, X>(
             &self.A_prime,
             &self.A_bar,
             &self.D,
