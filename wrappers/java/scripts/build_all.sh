@@ -104,39 +104,39 @@ case $PLATFORM in
 
       mkdir -p $OUTPUT_LOCATION/android
 
-        # Check for needed cargo utils
-        if ! command -v cargo-ndk &>/dev/null; then
-            echo "Installing Cargo-NDK"
-            cargo install cargo-ndk
-        else
-            echo "Cargo-NDK found"
-        fi
+      # Check for needed cargo utils
+      if ! command -v cargo-ndk &>/dev/null; then
+           echo "Installing Cargo-NDK"
+           cargo install cargo-ndk
+      else
+           echo "Cargo-NDK found"
+      fi
 
-        # Android targets
-        rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
+      # Android targets
+      rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
 
-        # Build the android aar releases
-        cargo ndk --target aarch64-linux-android --android-platform ${MIN_VERSION} -- build --target-dir target --release
-        cargo ndk --target armv7-linux-androideabi --android-platform ${MIN_VERSION} -- build --target-dir target --release
-        cargo ndk --target i686-linux-android --android-platform ${MIN_VERSION} -- build --target-dir target --release
-        cargo ndk --target x86_64-linux-android --android-platform ${MIN_VERSION} -- build --target-dir target --release
+      # Build the android aar releases
+      cargo ndk --target aarch64-linux-android --platform ${MIN_VERSION} -- build -p $PROJECT_NAME --target-dir target --release
+      cargo ndk --target armv7-linux-androideabi --platform ${MIN_VERSION} -- build -p $PROJECT_NAME --target-dir target --release 
+      cargo ndk --target i686-linux-android --platform ${MIN_VERSION} -- build -p $PROJECT_NAME --target-dir target --release
+      cargo ndk --target x86_64-linux-android --platform ${MIN_VERSION} -- build -p $PROJECT_NAME --target-dir target --release
 
-        # Move results into native module directory to be used
-        ANDROID_JNI_ROOT=$OUTPUT_LOCATION/android
+      # Move results into native module directory to be used
+      ANDROID_JNI_ROOT=$OUTPUT_LOCATION/android
 
-        rm -rf "${ANDROID_JNI_ROOT}"
+      rm -rf "${ANDROID_JNI_ROOT}"
 
-        mkdir "${ANDROID_JNI_ROOT}"
-        mkdir "${ANDROID_JNI_ROOT}"/arm64-v8a
-        mkdir "${ANDROID_JNI_ROOT}"/armeabi-v7a
-        mkdir "${ANDROID_JNI_ROOT}"/x86
-        mkdir "${ANDROID_JNI_ROOT}"/x86_64
+      mkdir "${ANDROID_JNI_ROOT}"
+      mkdir "${ANDROID_JNI_ROOT}"/arm64-v8a
+      mkdir "${ANDROID_JNI_ROOT}"/armeabi-v7a
+      mkdir "${ANDROID_JNI_ROOT}"/x86
+      mkdir "${ANDROID_JNI_ROOT}"/x86_64
 
-        cp ./target/aarch64-linux-android/release/${LIB_NAME} "${ANDROID_JNI_ROOT}"/arm64-v8a/${LIB_NAME}
-        cp ./target/armv7-linux-androideabi/release/${LIB_NAME} "${ANDROID_JNI_ROOT}"/armeabi-v7a/${LIB_NAME}
-        cp ./target/i686-linux-android/release/${LIB_NAME} "${ANDROID_JNI_ROOT}"/x86/${LIB_NAME}
-        cp ./target/x86_64-linux-android/release/${LIB_NAME} "${ANDROID_JNI_ROOT}"/x86_64/${LIB_NAME}
-      ;;
+      cp ./target/aarch64-linux-android/release/lib${LIB_NAME}.so "${ANDROID_JNI_ROOT}"/arm64-v8a/lib${LIB_NAME}.so
+      cp ./target/armv7-linux-androideabi/release/lib${LIB_NAME}.so "${ANDROID_JNI_ROOT}"/armeabi-v7a/lib${LIB_NAME}.so
+      cp ./target/i686-linux-android/release/lib${LIB_NAME}.so "${ANDROID_JNI_ROOT}"/x86/lib${LIB_NAME}.so
+      cp ./target/x86_64-linux-android/release/lib${LIB_NAME}.so "${ANDROID_JNI_ROOT}"/x86_64/lib${LIB_NAME}.so
+    ;;
   *)
     echo "ERROR: PLATFORM unknown: $PLATFORM"
     exit 1
