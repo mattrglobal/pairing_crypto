@@ -41,12 +41,14 @@ use crate::{
         mock_rng::MockRng,
     },
     Error,
+    ExpandMsgXof,
 };
 use core::convert::TryFrom;
 use ff::Field;
 use group::{Curve, Group};
 use rand::{prelude::SliceRandom, thread_rng};
 use rand_core::OsRng;
+use sha3::Shake256;
 use std::collections::{BTreeMap, BTreeSet};
 
 pub(crate) mod test_helper {
@@ -98,7 +100,7 @@ pub(crate) mod test_helper {
         let (proof_messages, revealed_messages) =
             to_proof_revealed_messages(messages, revealed_indices);
 
-        let proof = Proof::new_with_rng(
+        let proof = Proof::new_with_rng::<_, _, ExpandMsgXof<Shake256>>(
             pk,
             signature,
             header,
@@ -146,7 +148,7 @@ fn gen_verify_serde_nominal() {
     let first_and_last_indices_revealed =
         &[0, NUM_MESSAGES - 1].iter().cloned().collect();
 
-    let signature = Signature::new(
+    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
         &key_pair.secret_key,
         &key_pair.public_key,
         header,
@@ -156,7 +158,12 @@ fn gen_verify_serde_nominal() {
     .expect("signing failed");
     assert_eq!(
         signature
-            .verify(&key_pair.public_key, header, &generators, &messages)
+            .verify::<_, _, ExpandMsgXof<Shake256>>(
+                &key_pair.public_key,
+                header,
+                &generators,
+                &messages
+            )
             .expect("verification failed"),
         true
     );
@@ -174,7 +181,7 @@ fn gen_verify_serde_nominal() {
     );
     assert_eq!(
         proof
-            .verify(
+            .verify::<_, ExpandMsgXof<Shake256>>(
                 &key_pair.public_key,
                 header,
                 ph,
@@ -195,7 +202,7 @@ fn gen_verify_serde_nominal() {
 
     assert_eq!(
         proof_deserialized
-            .verify(
+            .verify::<_, ExpandMsgXof<Shake256>>(
                 &key_pair.public_key,
                 header,
                 ph,
@@ -255,7 +262,12 @@ fn gen_verify_different_key_pairs() {
         .expect("signature deserialization failed");
         assert_eq!(
             signature
-                .verify(&pk, header, &generators, &messages)
+                .verify::<_, _, ExpandMsgXof<Shake256>>(
+                    &pk,
+                    header,
+                    &generators,
+                    &messages
+                )
                 .unwrap(),
             true
         );
@@ -264,7 +276,7 @@ fn gen_verify_different_key_pairs() {
 
         // Reveal 1 message at a time
         for j in 0..proof_msgs.len() {
-            let proof = Proof::new_with_rng(
+            let proof = Proof::new_with_rng::<_, _, ExpandMsgXof<Shake256>>(
                 &pk,
                 &signature,
                 header,
@@ -288,7 +300,13 @@ fn gen_verify_different_key_pairs() {
 
             assert_eq!(
                 proof
-                    .verify(&pk, header, ph, &generators, &revealed_msgs)
+                    .verify::<_, ExpandMsgXof<Shake256>>(
+                        &pk,
+                        header,
+                        ph,
+                        &generators,
+                        &revealed_msgs
+                    )
                     .expect("proof verification failed"),
                 true
             );
@@ -346,7 +364,7 @@ fn proof_gen_verify_valid_cases() {
         test_data_proof_gen_verify_valid_cases()
     {
         // Signature to be used in proof_gen
-        let signature = Signature::new(
+        let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
@@ -370,7 +388,7 @@ fn proof_gen_verify_valid_cases() {
         );
         assert_eq!(
             proof
-                .verify(
+                .verify::<_, ExpandMsgXof<Shake256>>(
                     &key_pair.public_key,
                     header,
                     ph,
@@ -399,7 +417,7 @@ fn proof_gen_verify_valid_cases() {
             );
             assert_eq!(
                 proof
-                    .verify(
+                    .verify::<_, ExpandMsgXof<Shake256>>(
                         &key_pair.public_key,
                         header,
                         ph,
@@ -430,7 +448,7 @@ fn proof_gen_verify_all_revealed_shuffled_indices() {
     let generators = create_generators_helper(messages.len());
 
     // Signature to be used in proof_gen
-    let signature = Signature::new(
+    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
         &key_pair.secret_key,
         &key_pair.public_key,
         header,
@@ -470,7 +488,7 @@ fn proof_gen_verify_all_revealed_shuffled_indices() {
 
     assert_eq!(
         proof_all_revealed_messages
-            .verify(
+            .verify::<_, ExpandMsgXof<Shake256>>(
                 &key_pair.public_key,
                 header,
                 ph,
@@ -493,7 +511,7 @@ fn proof_gen_with_invalid_public_key() {
     let messages = get_random_test_messages(NUM_MESSAGES);
     let generators = create_generators_helper(messages.len());
     let indices_all_hidden = BTreeSet::<usize>::new();
-    let signature = Signature::new(
+    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
         &key_pair.secret_key,
         &key_pair.public_key,
         header,
@@ -519,7 +537,7 @@ fn proof_gen_with_invalid_public_key() {
     // signing
     assert_eq!(
         proof
-            .verify(
+            .verify::<_, ExpandMsgXof<Shake256>>(
                 &key_pair.public_key,
                 header,
                 ph,
@@ -533,7 +551,7 @@ fn proof_gen_with_invalid_public_key() {
     // Proof verification also fails if same(or any) invalid PublicKey is
     // provided
     assert_eq!(
-        proof.verify(
+        proof.verify::<_, ExpandMsgXof<Shake256>>(
             &PublicKey::default(),
             header,
             ph,
@@ -559,7 +577,7 @@ fn proof_gen_invalid_parameters() {
             &revealed_indices,
         );
 
-        let result = Proof::new(
+        let result = Proof::new::<_, ExpandMsgXof<Shake256>>(
             &pk,
             &signature,
             header,
@@ -587,7 +605,13 @@ fn proof_verify_invalid_parameters() {
     ) in test_data_proof_verify_invalid_parameters()
     {
         assert_eq!(
-            proof.verify(&pk, header, ph, &generators, &revealed_messages),
+            proof.verify::<_, ExpandMsgXof<Shake256>>(
+                &pk,
+                header,
+                ph,
+                &generators,
+                &revealed_messages
+            ),
             Err(error),
             "proof-verification should return error - {}",
             failure_debug_message
@@ -615,7 +639,13 @@ fn verify_proof_helper<const N: usize>(
     {
         assert_eq!(
             proof
-                .verify(&pk, header, ph, &generators, &revealed_messages)
+                .verify::<_, ExpandMsgXof<Shake256>>(
+                    &pk,
+                    header,
+                    ph,
+                    &generators,
+                    &revealed_messages
+                )
                 .expect(&format!(
                     "proof-verification should not return error - {}",
                     failure_debug_message

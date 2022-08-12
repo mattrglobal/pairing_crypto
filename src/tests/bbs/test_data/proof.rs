@@ -22,10 +22,12 @@ use crate::{
         TEST_PRESENTATION_HEADER_2,
     },
     Error,
+    ExpandMsgXof,
 };
 use ff::Field;
 use group::{Curve, Group};
 use rand_core::OsRng;
+use sha3::Shake256;
 use std::collections::{BTreeMap, BTreeSet};
 
 pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
@@ -113,7 +115,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
     let messages = get_random_test_messages(NUM_MESSAGES);
     let generators = create_generators_helper(messages.len());
     let indices_all_hidden = BTreeSet::<usize>::new();
-    let signature = Signature::new(
+    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
         &key_pair.secret_key,
         &key_pair.public_key,
         header,
@@ -454,7 +456,7 @@ pub(crate) fn test_data_proof_uniqueness() -> [(
         .iter()
         .cloned()
         .collect::<BTreeSet<usize>>();
-    let signature = Signature::new(
+    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
         &key_pair.secret_key,
         &key_pair.public_key,
         header,
@@ -462,14 +464,15 @@ pub(crate) fn test_data_proof_uniqueness() -> [(
         messages.clone(),
     )
     .expect("signing failed");
-    let signature_with_different_key_pair = Signature::new(
-        &key_pair2.secret_key,
-        &key_pair2.public_key,
-        header,
-        &generators,
-        messages.clone(),
-    )
-    .expect("signing failed");
+    let signature_with_different_key_pair =
+        Signature::new::<_, _, ExpandMsgXof<Shake256>>(
+            &key_pair2.secret_key,
+            &key_pair2.public_key,
+            header,
+            &generators,
+            messages.clone(),
+        )
+        .expect("signing failed");
 
     // The test data for a pairs of proofs generation, values vary in a single
     // input parameter of `Proof::new(..)` which has 6 input paramters.
@@ -685,7 +688,7 @@ pub(crate) fn test_data_proof_verify_invalid_parameters() -> [(
     let messages = get_random_test_messages(NUM_MESSAGES);
     let generators = create_generators_helper(messages.len());
     let indices_all_hidden = BTreeSet::<usize>::new();
-    let signature = Signature::new(
+    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
         &key_pair.secret_key,
         &key_pair.public_key,
         header,
@@ -905,7 +908,7 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
     let messages = get_random_test_messages(NUM_MESSAGES);
     let generators = create_generators_helper(messages.len());
     let indices_all_hidden = BTreeSet::<usize>::new();
-    let signature = Signature::new(
+    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
         &key_pair.secret_key,
         &key_pair.public_key,
         header,
@@ -931,7 +934,7 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
     // works
     assert_eq!(
         proof
-            .verify(
+            .verify::<_, ExpandMsgXof<Shake256>>(
                 &key_pair.public_key,
                 header,
                 ph,
@@ -1147,7 +1150,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
 
     let indices_all_hidden = BTreeSet::<usize>::new();
 
-    let signature = Signature::new(
+    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
         &key_pair.secret_key,
         &key_pair.public_key,
         header,
@@ -1174,7 +1177,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     // works
     assert_eq!(
         proof_all_hidden_messages
-            .verify(
+            .verify::<_, ExpandMsgXof<Shake256>>(
                 &key_pair.public_key,
                 header,
                 ph,
@@ -1185,14 +1188,15 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
         true
     );
 
-    let no_header_signature = Signature::new::<&[u8], _>(
-        &key_pair.secret_key,
-        &key_pair.public_key,
-        None,
-        &generators,
-        messages.clone(),
-    )
-    .expect("signing failed");
+    let no_header_signature =
+        Signature::new::<&[u8], _, ExpandMsgXof<Shake256>>(
+            &key_pair.secret_key,
+            &key_pair.public_key,
+            None,
+            &generators,
+            messages.clone(),
+        )
+        .expect("signing failed");
 
     // Generate a valid proof
     let (no_header_proof, revealed_messages) = test_helper::proof_gen(
@@ -1211,7 +1215,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     // works
     assert_eq!(
         no_header_proof
-            .verify(
+            .verify::<_, ExpandMsgXof<Shake256>>(
                 &key_pair.public_key,
                 None,
                 ph,
@@ -1239,7 +1243,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     // works
     assert_eq!(
         no_ph_proof
-            .verify(
+            .verify::<_, ExpandMsgXof<Shake256>>(
                 &key_pair.public_key,
                 header,
                 None,
@@ -1268,7 +1272,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     // works
     assert_eq!(
         no_header_no_ph_proof
-            .verify::<&[u8]>(
+            .verify::<&[u8], ExpandMsgXof<Shake256>>(
                 &key_pair.public_key,
                 None,
                 None,
@@ -1317,7 +1321,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     // works
     assert_eq!(
         proof_all_revealed_messages
-            .verify(
+            .verify::<_, ExpandMsgXof<Shake256>>(
                 &key_pair.public_key,
                 header,
                 ph,
