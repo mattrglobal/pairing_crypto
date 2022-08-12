@@ -73,23 +73,23 @@ public class Bbs {
     private static native String get_last_error();
 
     public static KeyPair generateBls12381KeyPair (byte[] ikm, byte[] keyInfo) throws Exception {
-        byte[] public_key = new byte[KeyPair.BBS_BLS12381_PUBLIC_KEY_SIZE];
-        byte[] secret_key = new byte[KeyPair.BBS_BLS12381_SECRET_KEY_SIZE];
-        if (0 != bbs_bls12381_generate_key_pair(ikm, keyInfo, public_key, secret_key)) {
+        byte[] publicKey = new byte[KeyPair.BBS_BLS12381_PUBLIC_KEY_SIZE];
+        byte[] secretKey = new byte[KeyPair.BBS_BLS12381_SECRET_KEY_SIZE];
+        if (0 != bbs_bls12381_generate_key_pair(ikm, keyInfo, publicKey, secretKey)) {
             throw new Exception("Unable to generate keys");
         }
-        return new KeyPair(public_key, secret_key);
+        return new KeyPair(publicKey, secretKey);
     }
     
-    public static byte[] sign(byte[] secret_key, byte[] public_key, byte[] header, byte[][] messages) throws Exception {
+    public static byte[] sign(byte[] secretKey, byte[] publicKey, byte[] header, byte[][] messages) throws Exception {
         long handle = bbs_bls12381_sign_context_init();
         if (0 == handle) {
             throw new Exception("Unable to create signing context");
         }
-        if (0 != bbs_bls12381_sign_context_set_secret_key(handle, secret_key)) {
+        if (0 != bbs_bls12381_sign_context_set_secret_key(handle, secretKey)) {
             throw new Exception("Unable to set secret key");
         }
-        if (0 != bbs_bls12381_sign_context_set_public_key(handle, public_key)) {
+        if (0 != bbs_bls12381_sign_context_set_public_key(handle, publicKey)) {
             throw new Exception("Unable to set public key");
         }
         if (0 != bbs_bls12381_sign_context_set_header(handle, header)) {
@@ -107,12 +107,12 @@ public class Bbs {
         return signature;
     }
 
-    public static boolean verify(byte[] public_key, byte[] header, byte[] signature, byte[][] messages) throws Exception {
+    public static boolean verify(byte[] publicKey, byte[] header, byte[] signature, byte[][] messages) throws Exception {
         long handle = bbs_bls12381_verify_context_init();
         if (0 == handle) {
             throw new Exception("Unable to create verify signature context");
         }
-        if (0 != bbs_bls12381_verify_context_set_public_key(handle, public_key)) {
+        if (0 != bbs_bls12381_verify_context_set_public_key(handle, publicKey)) {
             throw new Exception("Unable to set public key");
         }
         if (0 != bbs_bls12381_verify_context_set_header(handle, header)) {
@@ -138,7 +138,7 @@ public class Bbs {
         }
     }
 
-    public static byte[] createProof(byte[] publicKey, byte[] header, byte[] presentation_message, byte[] signature, HashSet<Integer> disclosedIndices, byte[][] messages) throws Exception {
+    public static byte[] createProof(byte[] publicKey, byte[] header, byte[] presentationMessage, byte[] signature, HashSet<Integer> disclosedIndices, byte[][] messages) throws Exception {
         int numberOfUndisclosedMessages = 0;
         long handle = bbs_bls12381_derive_proof_context_init();
         if (0 == handle) {
@@ -150,14 +150,14 @@ public class Bbs {
         if (0 != bbs_bls12381_derive_proof_context_set_header(handle, header)) {
             throw new Exception("Unable to set header");
         }
-        if (0 != bbs_bls12381_derive_proof_context_set_presentation_message(handle, presentation_message)) {
+        if (0 != bbs_bls12381_derive_proof_context_set_presentation_message(handle, presentationMessage)) {
             throw new Exception("Unable to set presentation message");
         }
         if (0 != bbs_bls12381_derive_proof_context_set_signature(handle, signature)) {
             throw new Exception("Unable to set signature: " + get_last_error());
         }
+        int i = 0;
         for (byte[] message : messages) {
-            int i = 0;
             boolean reveal = false;
             if (disclosedIndices.contains(i)) {
                 reveal = true;
@@ -181,22 +181,25 @@ public class Bbs {
         return proof;
     }
 
-    public static boolean verifyProof(byte[] public_key, byte[] header, byte[] presentation_message, byte[] proof, HashMap<Integer, byte[]> messages) throws Exception {
+    public static boolean verifyProof(byte[] publicKey, byte[] header, byte[] presentationMessage, byte[] proof, Integer totalMessageCount, HashMap<Integer, byte[]> messages) throws Exception {
         long handle = bbs_bls12381_verify_proof_context_init();
         if (0 == handle) {
             throw new Exception("Unable to create verify signature context");
         }
-        if (0 != bbs_bls12381_verify_proof_context_set_public_key(handle, public_key)) {
+        if (0 != bbs_bls12381_verify_proof_context_set_public_key(handle, publicKey)) {
             throw new Exception("Unable to set public key");
         }
         if (0 != bbs_bls12381_verify_proof_context_set_header(handle, header)) {
             throw new Exception("Unable to set header");
         }
-        if (0 != bbs_bls12381_verify_proof_context_set_presentation_message(handle, presentation_message)) {
+        if (0 != bbs_bls12381_verify_proof_context_set_presentation_message(handle, presentationMessage)) {
             throw new Exception("Unable to set presentation message");
         }
         if (0 != bbs_bls12381_verify_proof_context_set_proof(handle, proof)) {
             throw new Exception("Unable to set proof");
+        }
+        if (0 != bbs_bls12381_verify_proof_context_set_total_message_count(handle, totalMessageCount)) {
+            throw new Exception("Unable to set total-message-count");
         }
         for (Map.Entry<Integer, byte[]> message : messages.entrySet()) {
             if (0 != bbs_bls12381_verify_proof_context_add_message(handle, message.getKey(), message.getValue())) {
@@ -205,6 +208,13 @@ public class Bbs {
         }
         int res = bbs_bls12381_verify_proof_context_finish(handle);
 
-        return res <= 0;
+        switch (res) {
+            case 0:
+                return true;
+            case 1:
+                return false;
+            default:
+                throw new Exception("Unable to verify proof");
+        }
     }
 }
