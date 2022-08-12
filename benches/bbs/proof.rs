@@ -1,25 +1,28 @@
-use std::time::Duration;
-
-use pairing_crypto::bbs::{
-    ciphersuites::bls12_381::{
-        proof_gen,
-        proof_verify,
-        sign,
-        verify,
-        BbsProofGenRequest,
-        BbsProofGenRevealMessageRequest,
-        BbsProofVerifyRequest,
-        BbsSignRequest,
-        BbsVerifyRequest,
+use pairing_crypto::{
+    bbs::{
+        ciphersuites::bls12_381::{
+            proof_gen,
+            proof_verify,
+            sign,
+            verify,
+            BbsProofGenRequest,
+            BbsProofGenRevealMessageRequest,
+            BbsProofVerifyRequest,
+            BbsSignRequest,
+            BbsVerifyRequest,
+        },
+        core::key_pair::KeyPair,
     },
-    core::key_pair::KeyPair,
+    ExpandMsgXof,
 };
+use rand::{rngs::OsRng, RngCore};
+use sha3::Shake256;
+use std::time::Duration;
 
 #[macro_use]
 extern crate criterion;
 
 use criterion::{black_box, Criterion};
-use rand::{rngs::OsRng, RngCore};
 
 const TEST_HEADER: &[u8; 16] = b"some_app_context";
 const TEST_PRESENTATION_MESSAGE: &[u8; 25] = b"test-presentation-message";
@@ -52,7 +55,7 @@ fn proof_all_hidden_benchmark(c: &mut Criterion) {
         let messages: Vec<&[u8]> =
             messages.iter().map(|m| m.as_ref()).collect();
 
-        let signature = sign(&BbsSignRequest {
+        let signature = sign::<_, ExpandMsgXof<Shake256>>(&BbsSignRequest {
             secret_key: &secret_key,
             public_key: &public_key,
             header: Some(header),
@@ -61,7 +64,7 @@ fn proof_all_hidden_benchmark(c: &mut Criterion) {
         .expect("signature generation failed");
 
         assert_eq!(
-            verify(&BbsVerifyRequest {
+            verify::<_, ExpandMsgXof<Shake256>>(&BbsVerifyRequest {
                 public_key: &public_key,
                 header: Some(header),
                 messages: Some(messages.as_slice()),
@@ -84,28 +87,31 @@ fn proof_all_hidden_benchmark(c: &mut Criterion) {
             &format!("proof_gen all hidden - total messages {}", num_messages),
             |b| {
                 b.iter(|| {
-                    proof_gen(&BbsProofGenRequest {
-                        public_key: black_box(&public_key),
-                        header: black_box(Some(header)),
-                        messages: black_box(Some(&proof_messages)),
-                        signature: black_box(&signature),
-                        presentation_message: black_box(Some(
-                            presentation_message,
-                        )),
-                    })
+                    proof_gen::<_, ExpandMsgXof<Shake256>>(
+                        &BbsProofGenRequest {
+                            public_key: black_box(&public_key),
+                            header: black_box(Some(header)),
+                            messages: black_box(Some(&proof_messages)),
+                            signature: black_box(&signature),
+                            presentation_message: black_box(Some(
+                                presentation_message,
+                            )),
+                        },
+                    )
                     .unwrap();
                 });
             },
         );
 
-        let proof = proof_gen(&BbsProofGenRequest {
-            public_key: &public_key,
-            header: Some(header),
-            messages: Some(&proof_messages),
-            signature: &signature,
-            presentation_message: Some(presentation_message),
-        })
-        .expect("proof generation failed");
+        let proof =
+            proof_gen::<_, ExpandMsgXof<Shake256>>(&BbsProofGenRequest {
+                public_key: &public_key,
+                header: Some(header),
+                messages: Some(&proof_messages),
+                signature: &signature,
+                presentation_message: Some(presentation_message),
+            })
+            .expect("proof generation failed");
 
         c.bench_function(
             &format!(
@@ -114,16 +120,18 @@ fn proof_all_hidden_benchmark(c: &mut Criterion) {
             ),
             |b| {
                 b.iter(|| {
-                    assert!(proof_verify(&BbsProofVerifyRequest {
-                        public_key: black_box(&public_key),
-                        header: Some(header),
-                        presentation_message: black_box(Some(
-                            presentation_message
-                        )),
-                        proof: black_box(&proof),
-                        total_message_count: black_box(num_messages),
-                        messages: black_box(Some(&vec![])),
-                    })
+                    assert!(proof_verify::<_, ExpandMsgXof<Shake256>>(
+                        &BbsProofVerifyRequest {
+                            public_key: black_box(&public_key),
+                            header: Some(header),
+                            presentation_message: black_box(Some(
+                                presentation_message
+                            )),
+                            proof: black_box(&proof),
+                            total_message_count: black_box(num_messages),
+                            messages: black_box(Some(&vec![])),
+                        }
+                    )
                     .unwrap());
                 });
             },
@@ -146,7 +154,7 @@ fn proof_50_percent_revealed_benchmark(c: &mut Criterion) {
         let messages: Vec<&[u8]> =
             messages.iter().map(|m| m.as_ref()).collect();
 
-        let signature = sign(&BbsSignRequest {
+        let signature = sign::<_, ExpandMsgXof<Shake256>>(&BbsSignRequest {
             secret_key: &secret_key,
             public_key: &public_key,
             header: Some(header),
@@ -155,7 +163,7 @@ fn proof_50_percent_revealed_benchmark(c: &mut Criterion) {
         .expect("signature generation failed");
 
         assert_eq!(
-            verify(&BbsVerifyRequest {
+            verify::<_, ExpandMsgXof<Shake256>>(&BbsVerifyRequest {
                 public_key: &public_key,
                 header: Some(header),
                 messages: Some(messages.as_slice()),
@@ -192,28 +200,31 @@ fn proof_50_percent_revealed_benchmark(c: &mut Criterion) {
             ),
             |b| {
                 b.iter(|| {
-                    proof_gen(&BbsProofGenRequest {
-                        public_key: black_box(&public_key),
-                        header: Some(header),
-                        messages: black_box(Some(&proof_messages)),
-                        signature: black_box(&signature),
-                        presentation_message: black_box(Some(
-                            presentation_message,
-                        )),
-                    })
+                    proof_gen::<_, ExpandMsgXof<Shake256>>(
+                        &BbsProofGenRequest {
+                            public_key: black_box(&public_key),
+                            header: Some(header),
+                            messages: black_box(Some(&proof_messages)),
+                            signature: black_box(&signature),
+                            presentation_message: black_box(Some(
+                                presentation_message,
+                            )),
+                        },
+                    )
                     .unwrap();
                 });
             },
         );
 
-        let proof = proof_gen(&BbsProofGenRequest {
-            public_key: &public_key,
-            header: Some(header),
-            messages: Some(&proof_messages),
-            signature: &signature,
-            presentation_message: black_box(Some(presentation_message)),
-        })
-        .expect("proof generation failed");
+        let proof =
+            proof_gen::<_, ExpandMsgXof<Shake256>>(&BbsProofGenRequest {
+                public_key: &public_key,
+                header: Some(header),
+                messages: Some(&proof_messages),
+                signature: &signature,
+                presentation_message: black_box(Some(presentation_message)),
+            })
+            .expect("proof generation failed");
 
         c.bench_function(
             &format!(
@@ -222,16 +233,20 @@ fn proof_50_percent_revealed_benchmark(c: &mut Criterion) {
             ),
             |b| {
                 b.iter(|| {
-                    assert!(proof_verify(&BbsProofVerifyRequest {
-                        public_key: black_box(&public_key),
-                        header: Some(header),
-                        presentation_message: black_box(Some(
-                            presentation_message
-                        )),
-                        proof: black_box(&proof),
-                        total_message_count: black_box(num_messages),
-                        messages: black_box(Some(revealed_messages.as_slice())),
-                    })
+                    assert!(proof_verify::<_, ExpandMsgXof<Shake256>>(
+                        &BbsProofVerifyRequest {
+                            public_key: black_box(&public_key),
+                            header: Some(header),
+                            presentation_message: black_box(Some(
+                                presentation_message
+                            )),
+                            proof: black_box(&proof),
+                            total_message_count: black_box(num_messages),
+                            messages: black_box(Some(
+                                revealed_messages.as_slice()
+                            )),
+                        }
+                    )
                     .unwrap());
                 });
             },

@@ -1,11 +1,15 @@
-use pairing_crypto::bbs::ciphersuites::bls12_381::{
-    sign,
-    verify,
-    BbsSignRequest,
-    BbsVerifyRequest,
-    KeyPair,
+use pairing_crypto::{
+    bbs::ciphersuites::bls12_381::{
+        sign,
+        verify,
+        BbsSignRequest,
+        BbsVerifyRequest,
+        KeyPair,
+    },
+    ExpandMsgXof,
 };
 use rand::{rngs::OsRng, RngCore};
+use sha3::Shake256;
 use std::time::Duration;
 
 #[macro_use]
@@ -43,7 +47,7 @@ fn sign_benchmark(c: &mut Criterion) {
             &format!("sign - total messages {}", num_messages),
             |b| {
                 b.iter(|| {
-                    sign(&BbsSignRequest {
+                    sign::<_, ExpandMsgXof<Shake256>>(&BbsSignRequest {
                         secret_key: black_box(&secret_key),
                         public_key: black_box(&public_key),
                         header: black_box(Some(header)),
@@ -54,7 +58,7 @@ fn sign_benchmark(c: &mut Criterion) {
             },
         );
 
-        let signature = sign(&BbsSignRequest {
+        let signature = sign::<_, ExpandMsgXof<Shake256>>(&BbsSignRequest {
             secret_key: &secret_key,
             public_key: &public_key,
             header: Some(header),
@@ -66,12 +70,14 @@ fn sign_benchmark(c: &mut Criterion) {
             &format!("sign_verify - total messages {}", num_messages),
             |b| {
                 b.iter(|| {
-                    assert!(verify(&BbsVerifyRequest {
-                        public_key: black_box(&public_key),
-                        header: black_box(Some(header)),
-                        messages: black_box(Some(&messages[..])),
-                        signature: black_box(&signature),
-                    })
+                    assert!(verify::<_, ExpandMsgXof<Shake256>>(
+                        &BbsVerifyRequest {
+                            public_key: black_box(&public_key),
+                            header: black_box(Some(header)),
+                            messages: black_box(Some(&messages[..])),
+                            signature: black_box(&signature),
+                        }
+                    )
                     .unwrap());
                 });
             },
