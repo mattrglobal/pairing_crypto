@@ -1,12 +1,16 @@
 use crate::dtos::{BbsSignRequestDto, ByteArray, PairingCryptoFfiError};
 use core::convert::TryFrom;
 use ffi_support::{ByteBuffer, ConcurrentHandleMap, ErrorCode, ExternError};
-use pairing_crypto::bbs::ciphersuites::bls12_381::{
-    sign,
-    BbsSignRequest,
-    BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
-    BBS_BLS12381G1_SECRET_KEY_LENGTH,
+use pairing_crypto::{
+    bbs::ciphersuites::bls12_381::{
+        sign,
+        BbsSignRequest,
+        BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+        BBS_BLS12381G1_SECRET_KEY_LENGTH,
+    },
+    ExpandMsgXof,
 };
+use sha3::Shake256;
 
 lazy_static! {
     pub static ref BBS_SIGN_CONTEXT: ConcurrentHandleMap<BbsSignRequestDto> =
@@ -86,7 +90,7 @@ pub extern "C" fn bbs_bls12381_sign_context_finish(
                 Some(messages.as_slice())
             };
 
-            let s = sign(&BbsSignRequest {
+            let s = sign::<_, ExpandMsgXof<Shake256>>(&BbsSignRequest {
                 secret_key: &secret_key,
                 public_key: &public_key,
                 header,

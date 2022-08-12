@@ -15,22 +15,26 @@
 
 use crate::{dtos::*, utils::*};
 use core::convert::{TryFrom, TryInto};
-use pairing_crypto::bbs::ciphersuites::bls12_381::{
-    proof_gen,
-    proof_verify,
-    sign,
-    verify,
-    BbsProofGenRequest,
-    BbsProofGenRevealMessageRequest,
-    BbsProofVerifyRequest,
-    BbsSignRequest,
-    BbsVerifyRequest,
-    KeyPair as PairingCryptoKeyPair,
-    BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
-    BBS_BLS12381G1_SECRET_KEY_LENGTH,
-    BBS_BLS12381G1_SIGNATURE_LENGTH,
+use pairing_crypto::{
+    bbs::ciphersuites::bls12_381::{
+        proof_gen,
+        proof_verify,
+        sign,
+        verify,
+        BbsProofGenRequest,
+        BbsProofGenRevealMessageRequest,
+        BbsProofVerifyRequest,
+        BbsSignRequest,
+        BbsVerifyRequest,
+        KeyPair as PairingCryptoKeyPair,
+        BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+        BBS_BLS12381G1_SECRET_KEY_LENGTH,
+        BBS_BLS12381G1_SIGNATURE_LENGTH,
+    },
+    ExpandMsgXof,
 };
 use rand_core::OsRng;
+use sha3::Shake256;
 use wasm_bindgen::prelude::*;
 
 /// Generate a BBS key pair on BLS 12-381 curve.
@@ -94,7 +98,7 @@ pub async fn bbs_bls12381_sign(
     let request: BbsSignRequestDto = request.try_into()?;
 
     let result = if let Some(messages) = request.messages {
-        sign(&BbsSignRequest::<&[u8]> {
+        sign::<_, ExpandMsgXof<Shake256>>(&BbsSignRequest::<&[u8]> {
             secret_key: &vec_to_u8_sized_array!(
                 request.secretKey,
                 BBS_BLS12381G1_SECRET_KEY_LENGTH
@@ -113,7 +117,7 @@ pub async fn bbs_bls12381_sign(
             ),
         })
     } else {
-        sign(&BbsSignRequest::<&[u8]> {
+        sign::<_, ExpandMsgXof<Shake256>>(&BbsSignRequest::<&[u8]> {
             secret_key: &vec_to_u8_sized_array!(
                 request.secretKey,
                 BBS_BLS12381G1_SECRET_KEY_LENGTH
@@ -161,7 +165,7 @@ pub async fn bbs_bls12381_verify(request: JsValue) -> Result<JsValue, JsValue> {
     };
 
     let result = if let Some(messages) = request.messages {
-        verify(&BbsVerifyRequest::<&[u8]> {
+        verify::<_, ExpandMsgXof<Shake256>>(&BbsVerifyRequest::<&[u8]> {
             public_key: &vec_to_u8_sized_array!(
                 request.publicKey,
                 BBS_BLS12381G1_PUBLIC_KEY_LENGTH
@@ -180,7 +184,7 @@ pub async fn bbs_bls12381_verify(request: JsValue) -> Result<JsValue, JsValue> {
             ),
         })
     } else {
-        verify(&BbsVerifyRequest::<&[u8]> {
+        verify::<_, ExpandMsgXof<Shake256>>(&BbsVerifyRequest::<&[u8]> {
             public_key: &vec_to_u8_sized_array!(
                 request.publicKey,
                 BBS_BLS12381G1_PUBLIC_KEY_LENGTH
@@ -247,7 +251,7 @@ pub async fn bbs_bls12381_derive_proof(
     let request: BbsDeriveProofRequestDto = request.try_into()?;
 
     let result = if let Some(messages) = request.messages {
-        proof_gen(&BbsProofGenRequest {
+        proof_gen::<_, ExpandMsgXof<Shake256>>(&BbsProofGenRequest {
             public_key: &vec_to_u8_sized_array!(
                 request.publicKey,
                 BBS_BLS12381G1_PUBLIC_KEY_LENGTH
@@ -273,7 +277,7 @@ pub async fn bbs_bls12381_derive_proof(
             ),
         })
     } else {
-        proof_gen(&BbsProofGenRequest {
+        proof_gen::<_, ExpandMsgXof<Shake256>>(&BbsProofGenRequest {
             public_key: &vec_to_u8_sized_array!(
                 request.publicKey,
                 BBS_BLS12381G1_PUBLIC_KEY_LENGTH
@@ -327,7 +331,7 @@ pub async fn bbs_bls12381_verify_proof(
     let request: BbsVerifyProofRequestDto = request.try_into()?;
 
     let result = if let Some(messages) = request.messages {
-        proof_verify(&BbsProofVerifyRequest {
+        proof_verify::<_, ExpandMsgXof<Shake256>>(&BbsProofVerifyRequest {
             public_key: &vec_to_u8_sized_array!(
                 request.publicKey,
                 BBS_BLS12381G1_PUBLIC_KEY_LENGTH
@@ -350,7 +354,7 @@ pub async fn bbs_bls12381_verify_proof(
             ),
         })
     } else {
-        proof_verify(&BbsProofVerifyRequest {
+        proof_verify::<_, ExpandMsgXof<Shake256>>(&BbsProofVerifyRequest {
             public_key: &vec_to_u8_sized_array!(
                 request.publicKey,
                 BBS_BLS12381G1_PUBLIC_KEY_LENGTH
