@@ -150,7 +150,7 @@ impl Signature {
     where
         T: AsRef<[u8]>,
         M: AsRef<[Message]>,
-        X: ExpandMessage, 
+        X: ExpandMessage,
     {
         let header = header.as_ref();
         let messages = messages.as_ref();
