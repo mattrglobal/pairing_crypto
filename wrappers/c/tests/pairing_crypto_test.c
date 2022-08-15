@@ -253,7 +253,7 @@ int main(int argc, char **argv)
     }
     printf("pass\n");
 
-    printf("Create new verify proof context...");
+    printf("Create new verify-proof context...");
     fflush(stdout);
     handle = bbs_bls12381_verify_proof_context_init(err);
     if (handle == 0)
@@ -263,7 +263,7 @@ int main(int argc, char **argv)
     }
     printf("pass\n");
 
-    printf("Set header in proof context...");
+    printf("Set header in verify-proof context...");
     fflush(stdout);
     if (bbs_bls12381_verify_proof_context_set_header(handle, header, err) != 0)
     {
@@ -272,7 +272,8 @@ int main(int argc, char **argv)
     }
     printf("pass\n");
 
-    printf("Adding messages to proof context...");
+    printf("Adding messages to verify-proof context...");
+    // All revealed messages
     fflush(stdout);
     for (i = 0; i < message_count; i++)
     {
@@ -284,7 +285,7 @@ int main(int argc, char **argv)
     }
     printf("pass\n");
 
-    printf("Setting proof in proof context...");
+    printf("Setting proof in verify-proof context...");
     fflush(stdout);
     if (bbs_bls12381_verify_proof_context_set_proof(handle, proof, err) != 0)
     {
@@ -293,7 +294,7 @@ int main(int argc, char **argv)
     }
     printf("pass\n");
 
-    printf("Set public key in proof context...");
+    printf("Set public key in verify-proof context...");
     fflush(stdout);
     if (bbs_bls12381_verify_proof_context_set_public_key(handle, public_key, err) != 0)
     {
@@ -302,9 +303,18 @@ int main(int argc, char **argv)
     }
     printf("pass\n");
 
-    printf("Set presentation message in proof context...");
+    printf("Set presentation message in verify-proof context...");
     fflush(stdout);
     if (bbs_bls12381_verify_proof_context_set_presentation_message(handle, presentation_message, err) != 0)
+    {
+        printf("fail\n");
+        goto Fail;
+    }
+    printf("pass\n");
+
+    printf("Set total message count in verify-proof context...");
+    fflush(stdout);
+    if (bbs_bls12381_verify_proof_context_set_total_message_count(handle, message_count, err) != 0)
     {
         printf("fail\n");
         goto Fail;
