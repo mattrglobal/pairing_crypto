@@ -1,6 +1,3 @@
-use pairing_crypto::{ExpandMsgXmd, ExpandMsgXof};
-use sha2::Sha256;
-use sha3::Shake256;
 use std::path::PathBuf;
 
 use crate::model::FixtureGenInput;
@@ -15,16 +12,12 @@ pub fn generate_fixtures(
     fixture_gen_input: &FixtureGenInput,
     fixture_output_dir: &PathBuf,
 ) {
-    signature::generate::<ExpandMsgXmd<Sha256>>(
-        &fixture_gen_input,
-        &fixture_output_dir.join(SIGNATURE_FIXTURES_SUBDIR),
-    );
-    signature::generate::<ExpandMsgXof<Shake256>>(
+    signature::generate(
         &fixture_gen_input,
         &fixture_output_dir.join(SIGNATURE_FIXTURES_SUBDIR),
     );
 
-    proof::generate::<ExpandMsgXof<Shake256>>(
+    proof::generate(
         &fixture_gen_input,
         &fixture_output_dir.join(PROOF_FIXTURES_SUBDIR),
     );
