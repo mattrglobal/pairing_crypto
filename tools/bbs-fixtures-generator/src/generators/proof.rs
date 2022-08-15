@@ -25,10 +25,16 @@ use std::{collections::BTreeSet, path::PathBuf};
 use crate::{
     model::{ExpectedResult, FixtureGenInput, FixtureProof},
     util::save_test_vector,
+    PROOF_FIXTURES_SUBDIR,
 };
 
 macro_rules! generate_proof_fixture {
-    ($sign_fn:ident, $verify_fn:ident, $proof_gen_fn:ident, $proof_verify_fn:ident, $fixture_gen_input:ident, $output_dir:ident) => {
+    ($sign_fn:ident,
+     $verify_fn:ident,
+     $proof_gen_fn:ident,
+     $proof_verify_fn:ident,
+     $fixture_gen_input:ident,
+     $output_dir:expr) => {
         let secret_key = &$fixture_gen_input.key_pair.secret_key.to_bytes();
         let public_key = &$fixture_gen_input.key_pair.public_key.to_octets();
         let header = &$fixture_gen_input.header.clone();
@@ -406,23 +412,25 @@ macro_rules! validate_proof_fixture {
 }
 
 pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
-    let ciphersuite_output_dir = output_dir.join("bls12_381_sha_256");
     generate_proof_fixture!(
         bls12_381_sha_256_sign,
         bls12_381_sha_256_verify,
         bls12_381_sha_256_proof_gen,
         bls12_381_sha_256_proof_verify,
         fixture_gen_input,
-        ciphersuite_output_dir
+        output_dir
+            .join("bls12_381_sha_256")
+            .join(PROOF_FIXTURES_SUBDIR)
     );
 
-    let ciphersuite_output_dir = output_dir.join("bls12_381_shake_256");
     generate_proof_fixture!(
         bls12_381_shake_256_sign,
         bls12_381_shake_256_verify,
         bls12_381_shake_256_proof_gen,
         bls12_381_shake_256_proof_verify,
         fixture_gen_input,
-        ciphersuite_output_dir
+        output_dir
+            .join("bls12_381_shake_256")
+            .join(PROOF_FIXTURES_SUBDIR)
     );
 }

@@ -19,10 +19,11 @@ use std::path::PathBuf;
 use crate::{
     model::{ExpectedResult, FixtureGenInput, FixtureSignature},
     util::save_test_vector,
+    SIGNATURE_FIXTURES_SUBDIR,
 };
 
 macro_rules! generate_signature_fixture {
-    ($sign_fn:ident, $verify_fn:ident, $fixture_gen_input:ident, $output_dir:ident) => {
+    ($sign_fn:ident, $verify_fn:ident, $fixture_gen_input:ident, $output_dir:expr) => {
         let signature_single_message = $sign_fn(&BbsSignRequest {
             secret_key: &$fixture_gen_input.key_pair.secret_key.to_bytes(),
             public_key: &$fixture_gen_input.key_pair.public_key.to_octets(),
@@ -215,19 +216,21 @@ macro_rules! validate_signature_fixture {
 }
 
 pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
-    let ciphersuite_output_dir = output_dir.join("bls12_381_sha_256");
     generate_signature_fixture!(
         bls12_381_sha_256_sign,
         bls12_381_sha_256_verify,
         fixture_gen_input,
-        ciphersuite_output_dir
+        output_dir
+            .join("bls12_381_sha_256")
+            .join(SIGNATURE_FIXTURES_SUBDIR)
     );
 
-    let ciphersuite_output_dir = output_dir.join("bls12_381_shake_256");
     generate_signature_fixture!(
         bls12_381_shake_256_sign,
         bls12_381_shake_256_verify,
         fixture_gen_input,
-        ciphersuite_output_dir
+        output_dir
+            .join("bls12_381_shake_256")
+            .join(SIGNATURE_FIXTURES_SUBDIR)
     );
 }

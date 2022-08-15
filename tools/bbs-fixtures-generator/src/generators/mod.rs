@@ -12,13 +12,7 @@ pub fn generate_fixtures(
     fixture_gen_input: &FixtureGenInput,
     fixture_output_dir: &PathBuf,
 ) {
-    signature::generate(
-        &fixture_gen_input,
-        &fixture_output_dir.join(SIGNATURE_FIXTURES_SUBDIR),
-    );
+    signature::generate(&fixture_gen_input, &fixture_output_dir);
 
-    proof::generate(
-        &fixture_gen_input,
-        &fixture_output_dir.join(PROOF_FIXTURES_SUBDIR),
-    );
+    proof::generate(&fixture_gen_input, &fixture_output_dir);
 }
