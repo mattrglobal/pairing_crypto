@@ -26,3 +26,5 @@ Cargo.lock
 
 # Ignore Gradle build output directory
 **/build/*
+
+*.so *.a *.dll
