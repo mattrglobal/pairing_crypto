@@ -9,14 +9,16 @@ use super::{
 };
 use crate::{
     bbs::{
-        ciphersuites::bls12_381::{Message, PublicKey, SecretKey, Signature},
+        ciphersuites::bls12_381::{PublicKey, SecretKey},
         core::{
             constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
             key_pair::KeyPair,
+            signature::Signature,
+            types::Message,
         },
     },
     common::util::vec_to_byte_array,
-    curves::bls12_381::{G1Projective, Scalar},
+    curves::bls12_381::{hash_to_curve::ExpandMsgXof, G1Projective, Scalar},
     tests::bbs::{
         get_random_test_key_pair,
         get_test_messages,
@@ -26,7 +28,6 @@ use crate::{
         EXPECTED_SIGNATURE,
     },
     Error,
-    ExpandMsgXof,
 };
 use core::convert::TryFrom;
 use ff::Field;

@@ -16,21 +16,15 @@ use super::{
 };
 use crate::{
     bbs::{
-        ciphersuites::bls12_381::{
-            get_proof_size,
-            Message,
-            ProofMessage,
-            PublicKey,
-            SecretKey,
-            Signature,
-        },
+        ciphersuites::bls12_381::{get_proof_size, PublicKey, SecretKey},
         core::{
             generator::Generators,
             proof::Proof,
-            types::{Challenge, FiatShamirProof},
+            signature::Signature,
+            types::{Challenge, FiatShamirProof, Message, ProofMessage},
         },
     },
-    curves::bls12_381::{G1Projective, Scalar},
+    curves::bls12_381::{hash_to_curve::ExpandMsgXof, G1Projective, Scalar},
     tests::{
         bbs::{
             get_random_test_key_pair,
@@ -41,7 +35,6 @@ use crate::{
         mock_rng::MockRng,
     },
     Error,
-    ExpandMsgXof,
 };
 use core::convert::TryFrom;
 use ff::Field;
@@ -52,6 +45,8 @@ use sha3::Shake256;
 use std::collections::{BTreeMap, BTreeSet};
 
 pub(crate) mod test_helper {
+    use crate::bbs::core::types::{Message, ProofMessage};
+
     use super::*;
     use rand::{CryptoRng, RngCore};
 

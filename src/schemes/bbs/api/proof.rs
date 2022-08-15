@@ -7,17 +7,22 @@ use super::{
     },
 };
 use crate::{
-    curves::bls12_381::hash_to_curve::ExpandMessage,
+    curves::bls12_381::hash_to_curve::{
+        ExpandMessage,
+        ExpandMsgXmd,
+        ExpandMsgXof,
+    },
     error::Error,
-    schemes::bbs::ciphersuites::bls12_381::{
-        Generators,
-        Message,
-        Proof,
-        ProofMessage,
-        PublicKey,
-        Signature,
+    schemes::bbs::core::{
+        generator::Generators,
+        key_pair::PublicKey,
+        proof::Proof,
+        signature::Signature,
+        types::{Message, ProofMessage},
     },
 };
+use sha2::Sha256;
+use sha3::Shake256;
 
 #[cfg(feature = "alloc")]
 use alloc::collections::BTreeMap;
@@ -30,8 +35,48 @@ pub fn get_proof_size(num_undisclosed_messages: usize) -> usize {
     Proof::get_size(num_undisclosed_messages)
 }
 
-/// Generate a signature proof of knowledge.
-pub fn proof_gen<T, X>(
+/// Generate a BLS12-381-Shake-256 signature proof of knowledge.
+pub fn proof_gen_shake_256<T>(
+    request: &BbsProofGenRequest<'_, T>,
+) -> Result<Vec<u8>, Error>
+where
+    T: AsRef<[u8]>,
+{
+    proof_gen::<_, ExpandMsgXof<Shake256>>(request)
+}
+
+/// Generate a BLS12-381-Sha-256 signature proof of knowledge.
+pub fn proof_gen_sha_256<T>(
+    request: &BbsProofGenRequest<'_, T>,
+) -> Result<Vec<u8>, Error>
+where
+    T: AsRef<[u8]>,
+{
+    proof_gen::<_, ExpandMsgXmd<Sha256>>(request)
+}
+
+/// Verify a BLS12-381-Shake-256 signature proof of knowledge.
+pub fn proof_verify_shake_256<T>(
+    request: &BbsProofVerifyRequest<'_, T>,
+) -> Result<bool, Error>
+where
+    T: AsRef<[u8]>,
+{
+    proof_verify::<_, ExpandMsgXof<Shake256>>(request)
+}
+
+/// Verify a BLS12-381-Sha-256 signature proof of knowledge.
+pub fn proof_verify_sha_256<T>(
+    request: &BbsProofVerifyRequest<'_, T>,
+) -> Result<bool, Error>
+where
+    T: AsRef<[u8]>,
+{
+    proof_verify::<_, ExpandMsgXmd<Sha256>>(request)
+}
+
+// Generate a signature proof of knowledge.
+fn proof_gen<T, X>(
     request: &BbsProofGenRequest<'_, T>,
 ) -> Result<Vec<u8>, Error>
 where
@@ -86,7 +131,7 @@ where
     Ok(proof.to_octets())
 }
 
-/// Verify a signature proof of knowledge.
+// Verify a signature proof of knowledge.
 pub fn proof_verify<T, X>(
     request: &BbsProofVerifyRequest<'_, T>,
 ) -> Result<bool, Error>

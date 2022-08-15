@@ -7,7 +7,7 @@ use crate::{
         signature::Signature,
         types::{Challenge, FiatShamirProof, Message},
     },
-    curves::bls12_381::{G1Projective, Scalar},
+    curves::bls12_381::{hash_to_curve::ExpandMsgXof, G1Projective, Scalar},
     tests::bbs::{
         create_generators_helper,
         get_random_test_key_pair,
@@ -22,7 +22,6 @@ use crate::{
         TEST_PRESENTATION_HEADER_2,
     },
     Error,
-    ExpandMsgXof,
 };
 use ff::Field;
 use group::{Curve, Group};

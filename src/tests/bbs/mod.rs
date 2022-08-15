@@ -5,8 +5,7 @@ use crate::{
         key_pair::KeyPair,
         types::Message,
     },
-    curves::bls12_381::G1Projective,
-    ExpandMsgXof,
+    curves::bls12_381::{hash_to_curve::ExpandMsgXof, G1Projective},
 };
 use group::Group;
 use rand_core::OsRng;

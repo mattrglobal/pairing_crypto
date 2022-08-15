@@ -21,13 +21,12 @@ use std::collections::BTreeMap;
 
 use super::dtos::BbsProofGenRevealMessageRequest;
 use crate::{
+    bbs::core::{
+        constants::MAP_MESSAGE_TO_SCALAR_DST,
+        types::{Message, ProofMessage},
+    },
     curves::bls12_381::hash_to_curve::ExpandMessage,
     error::Error,
-    schemes::bbs::ciphersuites::bls12_381::{
-        Message,
-        ProofMessage,
-        MAP_MESSAGE_TO_SCALAR_DST,
-    },
 };
 
 /// Digests the set of input messages and returns in the form of an internal

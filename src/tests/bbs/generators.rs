@@ -1,6 +1,9 @@
 use sha3::Shake256;
 
-use crate::{bbs::core::generator::Generators, ExpandMsgXof};
+use crate::{
+    bbs::core::generator::Generators,
+    curves::bls12_381::hash_to_curve::ExpandMsgXof,
+};
 
 #[test]
 fn nominal() {
