@@ -1,16 +1,16 @@
 use crate::dtos::{BbsVerifyRequestDto, ByteArray, PairingCryptoFfiError};
 use core::convert::TryFrom;
 use ffi_support::{ConcurrentHandleMap, ErrorCode, ExternError};
-use pairing_crypto::{
-    bbs::ciphersuites::bls12_381::{
-        verify,
-        BbsVerifyRequest,
-        BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
-        BBS_BLS12381G1_SIGNATURE_LENGTH,
+use pairing_crypto::bbs::{
+    ciphersuites::{
+        bls12_381::{
+            BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+            BBS_BLS12381G1_SIGNATURE_LENGTH,
+        },
+        bls12_381_shake_256::verify as bls12_381_shake_256_verify,
     },
-    ExpandMsgXof,
+    BbsVerifyRequest,
 };
-use sha3::Shake256;
 
 lazy_static! {
     pub static ref BBS_VERIFY_CONTEXT: ConcurrentHandleMap<BbsVerifyRequestDto> =
@@ -91,7 +91,7 @@ pub extern "C" fn bbs_bls12381_verify_context_finish(
                 Some(messages.as_slice())
             };
 
-            match verify::<_, ExpandMsgXof<Shake256>>(&BbsVerifyRequest {
+            match bls12_381_shake_256_verify(&BbsVerifyRequest {
                 public_key: &public_key,
                 header,
                 messages,

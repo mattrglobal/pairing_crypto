@@ -15,26 +15,28 @@
 
 use crate::{dtos::*, utils::*};
 use core::convert::{TryFrom, TryInto};
-use pairing_crypto::{
-    bbs::ciphersuites::bls12_381::{
-        proof_gen,
-        proof_verify,
-        sign,
-        verify,
-        BbsProofGenRequest,
-        BbsProofGenRevealMessageRequest,
-        BbsProofVerifyRequest,
-        BbsSignRequest,
-        BbsVerifyRequest,
-        KeyPair as PairingCryptoKeyPair,
-        BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
-        BBS_BLS12381G1_SECRET_KEY_LENGTH,
-        BBS_BLS12381G1_SIGNATURE_LENGTH,
+use pairing_crypto::bbs::{
+    ciphersuites::{
+        bls12_381::{
+            KeyPair as Bls12381BbsKeyPair,
+            BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+            BBS_BLS12381G1_SECRET_KEY_LENGTH,
+            BBS_BLS12381G1_SIGNATURE_LENGTH,
+        },
+        bls12_381_shake_256::{
+            proof_gen as bls12_381_shake_256_proof_gen,
+            proof_verify as bls12_381_shake_256_proof_verify,
+            sign as bls12_381_shake_256_sign,
+            verify as bls12_381_shake_256_verify,
+        },
     },
-    ExpandMsgXof,
+    BbsProofGenRequest,
+    BbsProofGenRevealMessageRequest,
+    BbsProofVerifyRequest,
+    BbsSignRequest,
+    BbsVerifyRequest,
 };
 use rand_core::OsRng;
-use sha3::Shake256;
 use wasm_bindgen::prelude::*;
 
 /// Generate a BBS key pair on BLS 12-381 curve.
@@ -59,12 +61,12 @@ pub async fn bbs_bls12381_generate_key_pair(
 
     // // Derive secret key from supplied IKM and key information metadata.
     let key_pair = match request.ikm {
-        Some(ikm) => PairingCryptoKeyPair::new(
+        Some(ikm) => Bls12381BbsKeyPair::new(
             &ikm,
             request.keyInfo.as_ref().map(Vec::as_ref),
         )
         .unwrap(),
-        None => PairingCryptoKeyPair::random(
+        None => Bls12381BbsKeyPair::random(
             &mut OsRng::default(),
             request.keyInfo.as_ref().map(Vec::as_ref),
         )
@@ -98,7 +100,7 @@ pub async fn bbs_bls12381_sign(
     let request: BbsSignRequestDto = request.try_into()?;
 
     let result = if let Some(messages) = request.messages {
-        sign::<_, ExpandMsgXof<Shake256>>(&BbsSignRequest::<&[u8]> {
+        bls12_381_shake_256_sign(&BbsSignRequest::<&[u8]> {
             secret_key: &vec_to_u8_sized_array!(
                 request.secretKey,
                 BBS_BLS12381G1_SECRET_KEY_LENGTH
@@ -117,7 +119,7 @@ pub async fn bbs_bls12381_sign(
             ),
         })
     } else {
-        sign::<_, ExpandMsgXof<Shake256>>(&BbsSignRequest::<&[u8]> {
+        bls12_381_shake_256_sign(&BbsSignRequest::<&[u8]> {
             secret_key: &vec_to_u8_sized_array!(
                 request.secretKey,
                 BBS_BLS12381G1_SECRET_KEY_LENGTH
@@ -165,7 +167,7 @@ pub async fn bbs_bls12381_verify(request: JsValue) -> Result<JsValue, JsValue> {
     };
 
     let result = if let Some(messages) = request.messages {
-        verify::<_, ExpandMsgXof<Shake256>>(&BbsVerifyRequest::<&[u8]> {
+        bls12_381_shake_256_verify(&BbsVerifyRequest::<&[u8]> {
             public_key: &vec_to_u8_sized_array!(
                 request.publicKey,
                 BBS_BLS12381G1_PUBLIC_KEY_LENGTH
@@ -184,7 +186,7 @@ pub async fn bbs_bls12381_verify(request: JsValue) -> Result<JsValue, JsValue> {
             ),
         })
     } else {
-        verify::<_, ExpandMsgXof<Shake256>>(&BbsVerifyRequest::<&[u8]> {
+        bls12_381_shake_256_verify(&BbsVerifyRequest::<&[u8]> {
             public_key: &vec_to_u8_sized_array!(
                 request.publicKey,
                 BBS_BLS12381G1_PUBLIC_KEY_LENGTH
@@ -251,7 +253,7 @@ pub async fn bbs_bls12381_derive_proof(
     let request: BbsDeriveProofRequestDto = request.try_into()?;
 
     let result = if let Some(messages) = request.messages {
-        proof_gen::<_, ExpandMsgXof<Shake256>>(&BbsProofGenRequest {
+        bls12_381_shake_256_proof_gen(&BbsProofGenRequest {
             public_key: &vec_to_u8_sized_array!(
                 request.publicKey,
                 BBS_BLS12381G1_PUBLIC_KEY_LENGTH
@@ -277,7 +279,7 @@ pub async fn bbs_bls12381_derive_proof(
             ),
         })
     } else {
-        proof_gen::<_, ExpandMsgXof<Shake256>>(&BbsProofGenRequest {
+        bls12_381_shake_256_proof_gen(&BbsProofGenRequest {
             public_key: &vec_to_u8_sized_array!(
                 request.publicKey,
                 BBS_BLS12381G1_PUBLIC_KEY_LENGTH
@@ -331,7 +333,7 @@ pub async fn bbs_bls12381_verify_proof(
     let request: BbsVerifyProofRequestDto = request.try_into()?;
 
     let result = if let Some(messages) = request.messages {
-        proof_verify::<_, ExpandMsgXof<Shake256>>(&BbsProofVerifyRequest {
+        bls12_381_shake_256_proof_verify(&BbsProofVerifyRequest {
             public_key: &vec_to_u8_sized_array!(
                 request.publicKey,
                 BBS_BLS12381G1_PUBLIC_KEY_LENGTH
@@ -354,7 +356,7 @@ pub async fn bbs_bls12381_verify_proof(
             ),
         })
     } else {
-        proof_verify::<_, ExpandMsgXof<Shake256>>(&BbsProofVerifyRequest {
+        bls12_381_shake_256_proof_verify(&BbsProofVerifyRequest {
             public_key: &vec_to_u8_sized_array!(
                 request.publicKey,
                 BBS_BLS12381G1_PUBLIC_KEY_LENGTH

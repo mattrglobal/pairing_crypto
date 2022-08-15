@@ -1,15 +1,13 @@
 use crate::dtos::{BbsVerifyProofRequestDto, ByteArray, PairingCryptoFfiError};
 use core::convert::TryFrom;
 use ffi_support::{ConcurrentHandleMap, ErrorCode, ExternError};
-use pairing_crypto::{
-    bbs::ciphersuites::bls12_381::{
-        proof_verify,
-        BbsProofVerifyRequest,
-        BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+use pairing_crypto::bbs::{
+    ciphersuites::{
+        bls12_381::BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+        bls12_381_shake_256::proof_verify as bls12_381_shake_256_proof_verify,
     },
-    ExpandMsgXof,
+    BbsProofVerifyRequest,
 };
-use sha3::Shake256;
 
 lazy_static! {
     pub static ref BBS_VERIFY_PROOF_CONTEXT: ConcurrentHandleMap<BbsVerifyProofRequestDto> =
@@ -132,16 +130,14 @@ pub extern "C" fn bbs_bls12381_verify_proof_context_finish(
                 return Err(PairingCryptoFfiError::new("proof must be set"));
             }
 
-            match proof_verify::<_, ExpandMsgXof<Shake256>>(
-                &BbsProofVerifyRequest {
-                    public_key: &public_key,
-                    header,
-                    proof: &ctx.proof,
-                    presentation_message,
-                    messages,
-                    total_message_count: ctx.total_message_count,
-                },
-            )? {
+            match bls12_381_shake_256_proof_verify(&BbsProofVerifyRequest {
+                public_key: &public_key,
+                header,
+                proof: &ctx.proof,
+                presentation_message,
+                messages,
+                total_message_count: ctx.total_message_count,
+            })? {
                 true => Ok(0),
                 false => Ok(1),
             }

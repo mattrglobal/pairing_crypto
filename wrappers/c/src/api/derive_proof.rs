@@ -6,17 +6,17 @@ use crate::dtos::{
 };
 use core::convert::TryFrom;
 use ffi_support::{ByteBuffer, ConcurrentHandleMap, ErrorCode, ExternError};
-use pairing_crypto::{
-    bbs::ciphersuites::bls12_381::{
-        proof_gen,
-        BbsProofGenRequest,
-        BbsProofGenRevealMessageRequest,
-        BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
-        BBS_BLS12381G1_SIGNATURE_LENGTH,
+use pairing_crypto::bbs::{
+    ciphersuites::{
+        bls12_381::{
+            BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+            BBS_BLS12381G1_SIGNATURE_LENGTH,
+        },
+        bls12_381_shake_256::proof_gen as bls12_381_shake_256_proof_gen,
     },
-    ExpandMsgXof,
+    BbsProofGenRequest,
+    BbsProofGenRevealMessageRequest,
 };
-use sha3::Shake256;
 
 lazy_static! {
     pub static ref BBS_DERIVE_PROOF_CONTEXT: ConcurrentHandleMap<BbsDeriveProofRequestDto> =
@@ -131,14 +131,13 @@ pub extern "C" fn bbs_bls12381_derive_proof_context_finish(
                 Some(ctx.presentation_message.as_slice())
             };
 
-            let proof =
-                proof_gen::<_, ExpandMsgXof<Shake256>>(&BbsProofGenRequest {
-                    public_key: &public_key,
-                    header,
-                    messages,
-                    signature: &signature,
-                    presentation_message,
-                })?;
+            let proof = bls12_381_shake_256_proof_gen(&BbsProofGenRequest {
+                public_key: &public_key,
+                header,
+                messages,
+                signature: &signature,
+                presentation_message,
+            })?;
 
             Ok(ByteBuffer::from_vec(proof.to_vec()))
         },
