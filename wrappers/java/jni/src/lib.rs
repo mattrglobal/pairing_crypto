@@ -16,8 +16,8 @@ use jni::objects::{JObject, JString};
 use jni::sys::{jboolean, jbyte, jbyteArray, jint, jlong};
 
 use pairing_crypto_c::{
-    api::{
-        derive_proof::{
+    bbs::{
+        proof_gen::{
             bbs_bls12381_derive_proof_context_add_message,
             bbs_bls12381_derive_proof_context_finish,
             bbs_bls12381_derive_proof_context_init,
@@ -44,7 +44,7 @@ use pairing_crypto_c::{
             bbs_bls12381_verify_context_set_public_key,
             bbs_bls12381_verify_context_set_signature,
         },
-        verify_proof::{
+        proof_verify::{
             bbs_bls12381_verify_proof_context_add_message,
             bbs_bls12381_verify_proof_context_finish,
             bbs_bls12381_verify_proof_context_init,

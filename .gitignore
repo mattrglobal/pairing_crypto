@@ -28,3 +28,6 @@ Cargo.lock
 **/build/*
 
 *.so *.a *.dll
+
+// Test executable generated in c-wrapper
+bbs_api_test
