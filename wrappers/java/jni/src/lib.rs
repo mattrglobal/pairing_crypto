@@ -17,6 +17,8 @@ use jni::sys::{jboolean, jbyte, jbyteArray, jint, jlong};
 
 use pairing_crypto_c::{
     bbs::{
+        get_proof_size::bbs_bls12381_get_proof_size,
+        key_gen::bbs_bls12381_generate_key_pair,
         proof_gen::{
             bbs_bls12381_derive_proof_context_add_message,
             bbs_bls12381_derive_proof_context_finish,
@@ -26,8 +28,16 @@ use pairing_crypto_c::{
             bbs_bls12381_derive_proof_context_set_public_key,
             bbs_bls12381_derive_proof_context_set_signature,
         },
-        get_proof_size::bbs_bls12381_get_proof_size,
-        key_gen::bbs_bls12381_generate_key_pair,
+        proof_verify::{
+            bbs_bls12381_verify_proof_context_add_message,
+            bbs_bls12381_verify_proof_context_finish,
+            bbs_bls12381_verify_proof_context_init,
+            bbs_bls12381_verify_proof_context_set_header,
+            bbs_bls12381_verify_proof_context_set_presentation_message,
+            bbs_bls12381_verify_proof_context_set_proof,
+            bbs_bls12381_verify_proof_context_set_public_key,
+            bbs_bls12381_verify_proof_context_set_total_message_count,
+        },
         sign::{
             bbs_bls12381_sign_context_add_message,
             bbs_bls12381_sign_context_finish,
@@ -43,16 +53,6 @@ use pairing_crypto_c::{
             bbs_bls12381_verify_context_set_header,
             bbs_bls12381_verify_context_set_public_key,
             bbs_bls12381_verify_context_set_signature,
-        },
-        proof_verify::{
-            bbs_bls12381_verify_proof_context_add_message,
-            bbs_bls12381_verify_proof_context_finish,
-            bbs_bls12381_verify_proof_context_init,
-            bbs_bls12381_verify_proof_context_set_header,
-            bbs_bls12381_verify_proof_context_set_presentation_message,
-            bbs_bls12381_verify_proof_context_set_proof,
-            bbs_bls12381_verify_proof_context_set_public_key,
-            bbs_bls12381_verify_proof_context_set_total_message_count,
         },
     },
     dtos::ByteArray,
