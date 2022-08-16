@@ -10,62 +10,12 @@ use crate::{
         signature::Signature,
         types::Message,
     },
-    curves::bls12_381::hash_to_curve::{
-        ExpandMessage,
-        ExpandMsgXmd,
-        ExpandMsgXof,
-    },
+    curves::bls12_381::hash_to_curve::ExpandMessage,
     error::Error,
 };
-use sha2::Sha256;
-use sha3::Shake256;
-
-/// Create a BLS12-381-Shake-256 BBS signature.
-/// Security Warning: `secret_key` and `public_key` in `request` must be related
-/// key-pair generated using `KeyPair` APIs.
-pub fn sign_shake_256<T>(
-    request: &BbsSignRequest<'_, T>,
-) -> Result<[u8; BBS_BLS12381G1_SIGNATURE_LENGTH], Error>
-where
-    T: AsRef<[u8]>,
-{
-    sign::<_, ExpandMsgXof<Shake256>>(request)
-}
-
-/// Create a BLS12-381-Sha-256 BBS signature.
-/// Security Warning: `secret_key` and `public_key` in `request` must be related
-/// key-pair generated using `KeyPair` APIs.
-pub fn sign_sha_256<T>(
-    request: &BbsSignRequest<'_, T>,
-) -> Result<[u8; BBS_BLS12381G1_SIGNATURE_LENGTH], Error>
-where
-    T: AsRef<[u8]>,
-{
-    sign::<_, ExpandMsgXmd<Sha256>>(request)
-}
-
-/// Verify a BLS12-381-Shake-256 BBS signature.
-pub fn verify_shake_256<T>(
-    request: &BbsVerifyRequest<'_, T>,
-) -> Result<bool, Error>
-where
-    T: AsRef<[u8]>,
-{
-    verify::<_, ExpandMsgXof<Shake256>>(request)
-}
-
-/// Verify a BLS12-381-Sha-256 BBS signature.
-pub fn verify_sha_256<T>(
-    request: &BbsVerifyRequest<'_, T>,
-) -> Result<bool, Error>
-where
-    T: AsRef<[u8]>,
-{
-    verify::<_, ExpandMsgXmd<Sha256>>(request)
-}
 
 // Create a BLS12-381 signature.
-fn sign<T, X>(
+pub(crate) fn sign<T, X>(
     request: &BbsSignRequest<'_, T>,
 ) -> Result<[u8; BBS_BLS12381G1_SIGNATURE_LENGTH], Error>
 where
@@ -96,7 +46,9 @@ where
 }
 
 // Verify a BLS12-381 signature.
-fn verify<T, X>(request: &BbsVerifyRequest<'_, T>) -> Result<bool, Error>
+pub(crate) fn verify<T, X>(
+    request: &BbsVerifyRequest<'_, T>,
+) -> Result<bool, Error>
 where
     T: AsRef<[u8]>,
     X: ExpandMessage,
