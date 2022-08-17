@@ -34,8 +34,8 @@ public class BbsTest {
         }
 
         assertNotNull(keyPair);
-        assertEquals(KeyPair.BBS_BLS12381_PUBLIC_KEY_SIZE, keyPair.publicKey.length);
-        assertEquals(KeyPair.BBS_BLS12381_SECRET_KEY_SIZE, keyPair.secretKey.length);
+        assertEquals(Bbs.BBS_BLS12381_PUBLIC_KEY_SIZE, keyPair.publicKey.length);
+        assertEquals(Bbs.BBS_BLS12381_SECRET_KEY_SIZE, keyPair.secretKey.length);
     }
 
     @Test public void canSignVerifyMessage() {
