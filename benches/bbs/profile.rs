@@ -1,21 +1,19 @@
-use pairing_crypto::{
-    bbs::{
-        ciphersuites::bls12_381::{
-            proof_gen,
-            proof_verify,
-            sign,
-            verify,
-            BbsProofGenRequest,
-            BbsProofGenRevealMessageRequest,
-            BbsProofVerifyRequest,
-            BbsSignRequest,
-            BbsVerifyRequest,
+use pairing_crypto::bbs::{
+    ciphersuites::{
+        bls12_381::KeyPair,
+        bls12_381_shake_256::{
+            proof_gen as bls12_381_shake_256_proof_gen,
+            proof_verify as bls12_381_shake_256_proof_verify,
+            sign as bls12_381_shake_256_sign,
+            verify as bls12_381_shake_256_verify,
         },
-        core::key_pair::KeyPair,
     },
-    ExpandMsgXof,
+    BbsProofGenRequest,
+    BbsProofGenRevealMessageRequest,
+    BbsProofVerifyRequest,
+    BbsSignRequest,
+    BbsVerifyRequest,
 };
-use sha3::Shake256;
 
 #[macro_use]
 extern crate criterion;
@@ -79,7 +77,7 @@ fn profile_sign(c: &mut Criterion) {
         &format!("profile - sign total messages {}", NUM_MESSAGES),
         |b| {
             b.iter(|| {
-                sign::<_, ExpandMsgXof<Shake256>>(&BbsSignRequest {
+                bls12_381_shake_256_sign(&BbsSignRequest {
                     secret_key: black_box(&secret_key),
                     public_key: black_box(&public_key),
                     header: black_box(Some(header)),
@@ -101,7 +99,7 @@ fn profile_verify(c: &mut Criterion) {
     }
     let messages: Vec<&[u8]> = messages.iter().map(|m| m.as_ref()).collect();
 
-    let signature = sign::<_, ExpandMsgXof<Shake256>>(&BbsSignRequest {
+    let signature = bls12_381_shake_256_sign(&BbsSignRequest {
         secret_key: &secret_key,
         public_key: &public_key,
         header: Some(header),
@@ -113,14 +111,12 @@ fn profile_verify(c: &mut Criterion) {
         &format!("profile - verify total messages {}", NUM_MESSAGES),
         |b| {
             b.iter(|| {
-                assert!(verify::<_, ExpandMsgXof<Shake256>>(
-                    &BbsVerifyRequest {
-                        public_key: black_box(&public_key),
-                        header: black_box(Some(header)),
-                        messages: black_box(Some(&messages[..])),
-                        signature: black_box(&signature),
-                    }
-                )
+                assert!(bls12_381_shake_256_verify(&BbsVerifyRequest {
+                    public_key: black_box(&public_key),
+                    header: black_box(Some(header)),
+                    messages: black_box(Some(&messages[..])),
+                    signature: black_box(&signature),
+                })
                 .unwrap());
             });
         },
@@ -138,7 +134,7 @@ fn profile_proof_gen(c: &mut Criterion) {
     }
     let messages: Vec<&[u8]> = messages.iter().map(|m| m.as_ref()).collect();
 
-    let signature = sign::<_, ExpandMsgXof<Shake256>>(&BbsSignRequest {
+    let signature = bls12_381_shake_256_sign(&BbsSignRequest {
         secret_key: &secret_key,
         public_key: &public_key,
         header: Some(header),
@@ -147,7 +143,7 @@ fn profile_proof_gen(c: &mut Criterion) {
     .expect("signature generation failed");
 
     assert_eq!(
-        verify::<_, ExpandMsgXof<Shake256>>(&BbsVerifyRequest {
+        bls12_381_shake_256_verify(&BbsVerifyRequest {
             public_key: &public_key,
             header: Some(header),
             messages: Some(messages.as_slice()),
@@ -176,7 +172,7 @@ fn profile_proof_gen(c: &mut Criterion) {
         ),
         |b| {
             b.iter(|| {
-                proof_gen::<_, ExpandMsgXof<Shake256>>(&BbsProofGenRequest {
+                bls12_381_shake_256_proof_gen(&BbsProofGenRequest {
                     public_key: black_box(&public_key),
                     header: Some(header),
                     messages: black_box(Some(&proof_messages)),
@@ -200,7 +196,7 @@ fn profile_proof_verify(c: &mut Criterion) {
     }
     let messages: Vec<&[u8]> = messages.iter().map(|m| m.as_ref()).collect();
 
-    let signature = sign::<_, ExpandMsgXof<Shake256>>(&BbsSignRequest {
+    let signature = bls12_381_shake_256_sign(&BbsSignRequest {
         secret_key: &secret_key,
         public_key: &public_key,
         header: Some(header),
@@ -209,7 +205,7 @@ fn profile_proof_verify(c: &mut Criterion) {
     .expect("signature generation failed");
 
     assert_eq!(
-        verify::<_, ExpandMsgXof<Shake256>>(&BbsVerifyRequest {
+        bls12_381_shake_256_verify(&BbsVerifyRequest {
             public_key: &public_key,
             header: Some(header),
             messages: Some(messages.as_slice()),
@@ -236,7 +232,7 @@ fn profile_proof_verify(c: &mut Criterion) {
         .map(|(k, m)| (k as usize, m.clone()))
         .collect::<Vec<(usize, &[u8])>>();
 
-    let proof = proof_gen::<_, ExpandMsgXof<Shake256>>(&BbsProofGenRequest {
+    let proof = bls12_381_shake_256_proof_gen(&BbsProofGenRequest {
         public_key: &public_key,
         header: Some(header),
         messages: Some(&proof_messages),
@@ -252,7 +248,7 @@ fn profile_proof_verify(c: &mut Criterion) {
         ),
         |b| {
             b.iter(|| {
-                assert!(proof_verify::<_, ExpandMsgXof<Shake256>>(
+                assert!(bls12_381_shake_256_proof_verify(
                     &BbsProofVerifyRequest {
                         public_key: black_box(&public_key),
                         header: Some(header),

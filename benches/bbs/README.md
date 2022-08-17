@@ -11,7 +11,7 @@ cargo bench
 2. Run a single benchmark.
 
 ```shell
-cargo bench --bench bbs_sign
+cargo bench --bench bbs_api
 ```
 
 ## Html Report

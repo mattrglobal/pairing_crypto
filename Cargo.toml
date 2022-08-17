@@ -42,23 +42,13 @@ path = "benches/bbs/profile.rs"
 harness = false
 
 [[bench]]
-name = "bbs_profile_sha256"
-path = "benches/bbs/profile_sha256.rs"
-harness = false
-
-[[bench]]
 name = "bbs_key_gen"
 path = "benches/bbs/key_gen.rs"
 harness = false
 
 [[bench]]
-name = "bbs_sign"
-path = "benches/bbs/sign.rs"
-harness = false
-
-[[bench]]
-name = "bbs_proof"
-path = "benches/bbs/proof.rs"
+name = "bbs_api"
+path = "benches/bbs/api.rs"
 harness = false
 
 [workspace]
