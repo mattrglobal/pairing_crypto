@@ -154,31 +154,31 @@ macro_rules! bbs_verify_api_wrapper_generator {
 }
 
 bbs_verify_api_wrapper_generator!(
-    Java_pairing_1crypto_Bbs_bbs_1bls12381_1sha256_1verify_1context_1init,
+    Java_pairing_1crypto_Bls12381Sha256_verify_1context_1init,
     bbs_bls12_381_sha_256_verify_context_init,
-    Java_pairing_1crypto_Bbs_bbs_1bls12381_1sha256_1verify_1context_1set_1public_1key,
+    Java_pairing_1crypto_Bls12381Sha256_verify_1context_1set_1public_1key,
     bbs_bls12_381_sha_256_verify_context_set_public_key,
-    Java_pairing_1crypto_Bbs_bbs_1bls12381_1sha256_1verify_1context_1set_1header,
+    Java_pairing_1crypto_Bls12381Sha256_verify_1context_1set_1header,
     bbs_bls12_381_sha_256_verify_context_set_header,
-    Java_pairing_1crypto_Bbs_bbs_1bls12381_1sha256_1verify_1context_1add_1message,
+    Java_pairing_1crypto_Bls12381Sha256_verify_1context_1add_1message,
     bbs_bls12_381_sha_256_verify_context_add_message,
-    Java_pairing_1crypto_Bbs_bbs_1bls12381_1sha256_1verify_1context_1set_1signature,
+    Java_pairing_1crypto_Bls12381Sha256_verify_1context_1set_1signature,
     bbs_bls12_381_sha_256_verify_context_set_signature,
-    Java_pairing_1crypto_Bbs_bbs_1bls12381_1sha256_1verify_1context_1finish,
+    Java_pairing_1crypto_Bls12381Sha256_verify_1context_1finish,
     bbs_bls12_381_sha_256_verify_context_finish
 );
 
 bbs_verify_api_wrapper_generator!(
-    Java_pairing_1crypto_Bbs_bbs_1bls12381_1shake256_1verify_1context_1init,
+    Java_pairing_1crypto_Bls12381Shake256_verify_1context_1init,
     bbs_bls12_381_shake_256_verify_context_init,
-    Java_pairing_1crypto_Bbs_bbs_1bls12381_1shake256_1verify_1context_1set_1public_1key,
+    Java_pairing_1crypto_Bls12381Shake256_verify_1context_1set_1public_1key,
     bbs_bls12_381_shake_256_verify_context_set_public_key,
-    Java_pairing_1crypto_Bbs_bbs_1bls12381_1shake256_1verify_1context_1set_1header,
+    Java_pairing_1crypto_Bls12381Shake256_verify_1context_1set_1header,
     bbs_bls12_381_shake_256_verify_context_set_header,
-    Java_pairing_1crypto_Bbs_bbs_1bls12381_1shake256_1verify_1context_1add_1message,
+    Java_pairing_1crypto_Bls12381Shake256_verify_1context_1add_1message,
     bbs_bls12_381_shake_256_verify_context_add_message,
-    Java_pairing_1crypto_Bbs_bbs_1bls12381_1shake256_1verify_1context_1set_1signature,
+    Java_pairing_1crypto_Bls12381Shake256_verify_1context_1set_1signature,
     bbs_bls12_381_shake_256_verify_context_set_signature,
-    Java_pairing_1crypto_Bbs_bbs_1bls12381_1shake256_1verify_1context_1finish,
+    Java_pairing_1crypto_Bls12381Shake256_verify_1context_1finish,
     bbs_bls12_381_shake_256_verify_context_finish
 );

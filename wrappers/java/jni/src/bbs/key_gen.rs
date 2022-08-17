@@ -69,10 +69,10 @@ macro_rules! bbs_key_gen_api_wrapper_generator {
 }
 
 bbs_key_gen_api_wrapper_generator!(
-    Java_pairing_1crypto_Bbs_bbs_1bls12381_1sha256_1generate_1key_1pair,
+    Java_pairing_1crypto_Bls12381Sha256_generate_1key_1pair,
     bbs_bls12_381_sha_256_generate_key_pair
 );
 bbs_key_gen_api_wrapper_generator!(
-    Java_pairing_1crypto_Bbs_bbs_1bls12381_1shake256_1generate_1key_1pair,
+    Java_pairing_1crypto_Bls12381Shake256_generate_1key_1pair,
     bbs_bls12_381_shake_256_generate_key_pair
 );

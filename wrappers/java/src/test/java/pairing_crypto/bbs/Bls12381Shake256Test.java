@@ -7,44 +7,43 @@ import java.util.HashMap;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-public class BbsTest {
+public class Bls12381Shake256Test {
        
-    @Test public void shouldThrowExceptionMessageWhenFailToGenerateBbsBls12381KeyPair() {
+    private void shouldThrowExceptionMessageWhenFailToGenerateKeyPairHelper(Bbs bbs) {
         byte[] ikm = null;
         byte[] keyInfo = null;
 
         try {
-            Bbs.generateBls12381KeyPair(ikm, keyInfo);
+            bbs.generateKeyPair(ikm, keyInfo);
             fail("Expected an exception to be thrown");
         } catch (Exception exception) {
             assertEquals("Unable to generate keys", exception.getMessage());
         }
     }
 
-    @Test public void canGenerateBbsBls12381KeyPair() {
+    private void canGenerateKeyPairHelper(Bbs bbs) {
         byte[] ikm = new byte[32];
         byte[] keyInfo = new byte[10];
         KeyPair keyPair = null;
 
-
         try {
-            keyPair = Bbs.generateBls12381KeyPair(ikm, keyInfo);
+            keyPair = bbs.generateKeyPair(ikm, keyInfo);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
 
         assertNotNull(keyPair);
-        assertEquals(Bbs.BBS_BLS12381_PUBLIC_KEY_SIZE, keyPair.publicKey.length);
-        assertEquals(Bbs.BBS_BLS12381_SECRET_KEY_SIZE, keyPair.secretKey.length);
+        assertEquals(Bls12381Shake256.PUBLIC_KEY_SIZE, keyPair.publicKey.length);
+        assertEquals(Bls12381Shake256.SECRET_KEY_SIZE, keyPair.secretKey.length);
     }
 
-    @Test public void canSignVerifyMessage() {
+    private void canSignVerifyMessageHelper(Bbs bbs) {
         byte[] ikm = new byte[32];
         byte[] keyInfo = new byte[10];
         KeyPair keyPair = null;
 
         try {
-            keyPair = Bbs.generateBls12381KeyPair(ikm, keyInfo);
+            keyPair = bbs.generateKeyPair(ikm, keyInfo);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -59,10 +58,10 @@ public class BbsTest {
         byte[] secretKey = keyPair.secretKey;
         byte[] publicKey = keyPair.publicKey;
 
-        byte[] signature = new byte[Bbs.BBS_BLS12381_SIGNATURE_SIZE];
+        byte[] signature = new byte[Bls12381Shake256.SIGNATURE_SIZE];
 
         try {
-            signature = Bbs.sign(keyPair.secretKey, keyPair.publicKey, header, messages);
+            signature = bbs.sign(keyPair.secretKey, keyPair.publicKey, header, messages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -72,7 +71,7 @@ public class BbsTest {
         boolean isVerified = false;
 
         try {
-            isVerified = Bbs.verify(publicKey, header, signature, messages);
+            isVerified = bbs.verify(publicKey, header, signature, messages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -80,13 +79,13 @@ public class BbsTest {
         assertTrue(isVerified);
     }
 
-    @Test public void canCreateVerifyProof() {
+    private void canCreateVerifyProofHelper(Bbs bbs) {
         byte[] ikm = new byte[32];
         byte[] keyInfo = new byte[10];
         KeyPair keyPair = null;
 
         try {
-            keyPair = Bbs.generateBls12381KeyPair(ikm, keyInfo);
+            keyPair = bbs.generateKeyPair(ikm, keyInfo);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -101,10 +100,10 @@ public class BbsTest {
         byte[] secretKey = keyPair.secretKey;
         byte[] publicKey = keyPair.publicKey;
 
-        byte[] signature = new byte[Bbs.BBS_BLS12381_SIGNATURE_SIZE];
+        byte[] signature = new byte[Bls12381Shake256.SIGNATURE_SIZE];
 
         try {
-            signature = Bbs.sign(secretKey, publicKey, header, messages);
+            signature = bbs.sign(secretKey, publicKey, header, messages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -114,7 +113,7 @@ public class BbsTest {
         boolean isVerified = false;
 
         try {
-            isVerified = Bbs.verify(publicKey, header, signature, messages);
+            isVerified = bbs.verify(publicKey, header, signature, messages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -126,7 +125,7 @@ public class BbsTest {
         HashSet<Integer> allDisclosedIndices = new HashSet(Arrays.asList(0, 1, 2));
         byte[] proof = new byte[0];
         try {
-            proof = Bbs.createProof(publicKey, header, presentation_message, signature, allDisclosedIndices, messages);
+            proof = bbs.createProof(publicKey, header, presentation_message, signature, allDisclosedIndices, messages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -136,7 +135,7 @@ public class BbsTest {
         allDisclosedMessages.put(1, messages[1]);
         allDisclosedMessages.put(2, messages[2]);
         try {
-            isVerified = Bbs.verifyProof(publicKey, header, presentation_message, proof, messages.length, allDisclosedMessages);
+            isVerified = bbs.verifyProof(publicKey, header, presentation_message, proof, messages.length, allDisclosedMessages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -147,17 +146,40 @@ public class BbsTest {
         HashMap<Integer, byte[]> fewDisclosedMessages = new HashMap<Integer, byte[]>();
         fewDisclosedMessages.put(1, messages[1]);
         try {
-            proof = Bbs.createProof(publicKey, header, presentation_message, signature, fewDisclosedIndices, messages);
+            proof = bbs.createProof(publicKey, header, presentation_message, signature, fewDisclosedIndices, messages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
         assertNotNull(proof);
         try {
-            isVerified = Bbs.verifyProof(publicKey, header, presentation_message, proof, messages.length, fewDisclosedMessages);
+            isVerified = bbs.verifyProof(publicKey, header, presentation_message, proof, messages.length, fewDisclosedMessages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
         assertTrue(isVerified);
     }
 
+    @Test
+    public void shouldThrowExceptionMessageWhenFailToGenerateKeyPair() {
+        shouldThrowExceptionMessageWhenFailToGenerateKeyPairHelper(new Bls12381Sha256());
+        shouldThrowExceptionMessageWhenFailToGenerateKeyPairHelper(new Bls12381Shake256());
+    }
+
+    @Test
+    public void canGenerateKeyPair() {
+        canGenerateKeyPairHelper(new Bls12381Sha256());
+        canGenerateKeyPairHelper(new Bls12381Shake256());
+    }
+
+    @Test
+    public void canSignVerifyMessage() {
+        canSignVerifyMessageHelper(new Bls12381Sha256());
+        canSignVerifyMessageHelper(new Bls12381Shake256());
+    }
+
+    @Test
+    public void canCreateVerifyProof() {
+        canCreateVerifyProofHelper(new Bls12381Sha256());
+        canCreateVerifyProofHelper(new Bls12381Shake256());
+    }
 }

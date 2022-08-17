@@ -36,11 +36,11 @@ macro_rules! bbs_get_proof_size_api_wrapper_generator {
 }
 
 bbs_get_proof_size_api_wrapper_generator!(
-    Java_pairing_1crypto_Bbs_bbs_1bls12381_1sha256_1get_1proof_1size,
+    Java_pairing_1crypto_Bls12381Sha256_get_1proof_1size,
     bbs_bls12_381_sha_256_get_proof_size
 );
 
 bbs_get_proof_size_api_wrapper_generator!(
-    Java_pairing_1crypto_Bbs_bbs_1bls12381_1shake256_1get_1proof_1size,
+    Java_pairing_1crypto_Bls12381Shake256_get_1proof_1size,
     bbs_bls12_381_shake_256_get_proof_size
 );
