@@ -27,7 +27,25 @@ Cargo.lock
 # Ignore Gradle build output directory
 **/build/*
 
-*.so *.a *.dll
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
 
 // Test executable generated in c-wrapper
 bbs_api_test
