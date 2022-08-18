@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
 
 #import "bbs_key_pair.h"
-#import "pairing_crypto.h"
+#import "pairing_crypto_bbs.h"
 #import "BbsSignatureError.h"
 
 /** @brief BBS key pair */

@@ -1,10 +1,16 @@
-#ifndef __pairing__crypto__included__
-#define __pairing__crypto__included__
+#ifndef __pairing__crypto__bbs__included__
+#define __pairing__crypto__bbs__included__
 
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+
+#include <pairing_crypto_common.h>
+
+#define _Nonnull
+#define _Nullable
+#define nullable
 
 /** BBS BLS12-381 Secret Key Size */
 #define BBS_BLS12381_SECRET_KEY_SIZE (32)
@@ -24,12 +30,6 @@ typedef struct
   int64_t len;
   uint8_t *_Nonnull data;
 } pairing_crypto_byte_buffer_t;
-
-typedef struct
-{
-  int32_t code;
-  char *_Nullable message; /* note: nullable */
-} pairing_crypto_error_t;
 
 #ifdef __cplusplus
 extern "C"
@@ -168,4 +168,4 @@ extern "C"
 } // extern "C"
 #endif
 
-#endif /* __pairing__crypto__included__ */
+#endif /* __pairing__crypto__bbs__included__ */

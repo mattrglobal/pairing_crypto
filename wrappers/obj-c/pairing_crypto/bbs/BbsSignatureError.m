@@ -1,6 +1,6 @@
 #import <Foundation/Foundation.h>
 #import "BbsSignatureError.h"
-#import "pairing_crypto.h"
+
 
 static NSString *const BbsSignatureErrorDomain = @"BbsSignatureError";
 

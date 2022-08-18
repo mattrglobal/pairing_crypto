@@ -1,6 +1,6 @@
 #import <Foundation/Foundation.h>
 
-#import "pairing_crypto.h"
+#import "pairing_crypto_bbs.h"
 #import "bbs_proof.h"
 #import "BbsSignatureError.h"
 

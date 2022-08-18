@@ -2,7 +2,7 @@
 #define NSError_BbsSignatureError_h
 
 #import <Foundation/Foundation.h>
-#include "pairing_crypto.h"
+#include "pairing_crypto_common.h"
 
 @interface BbsSignatureError : NSObject
 

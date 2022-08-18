@@ -1,8 +1,8 @@
-_CC = clang
+_CC = gcc
 _GNUSTEP_LIBS = $(shell gnustep-config --base-libs)
 _GNUSTEP_CFLAGS = $(shell gnustep-config --objc-flags)
 
-_CC_FLAGS = $(_GNUSTEP_CFLAGS)
+_CC_FLAGS = -I. -I../include -I../include/bbs $(_GNUSTEP_CFLAGS)
 _LD_FLAGS = -L. $(_GNUSTEP_LIBS)
 
 

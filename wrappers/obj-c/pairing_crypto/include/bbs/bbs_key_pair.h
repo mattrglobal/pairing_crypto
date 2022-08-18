@@ -1,6 +1,10 @@
 #ifndef bbs_key_pair_h
 #define bbs_key_pair_h
 
+#define _Nonnull
+#define _Nullable
+#define nullable
+
 /** @brief BBS key pair */
 @interface BbsKeyPair : NSObject
 
