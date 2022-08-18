@@ -56,32 +56,34 @@ where
 /// Digests a set of supplied proof messages
 pub(super) fn digest_proof_messages<T, X>(
     messages: Option<&[BbsProofGenRevealMessageRequest<T>]>,
-) -> Result<Vec<ProofMessage>, Error>
+) -> Result<(Vec<Message>, Vec<ProofMessage>), Error>
 where
     T: AsRef<[u8]>,
     X: ExpandMessage,
 {
+    let mut digested_messages = vec![];
+    let mut proof_messages = vec![];
     if let Some(messages) = messages {
-        return messages
-            .iter()
-            .map(|element| {
-                match Message::from_arbitrary_data::<_, X>(
-                    element.value.as_ref(),
-                    MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
-                ) {
-                    Ok(digested_message) => {
-                        if element.reveal {
-                            Ok(ProofMessage::Revealed(digested_message))
-                        } else {
-                            Ok(ProofMessage::Hidden(digested_message))
-                        }
+        for m in messages {
+            match Message::from_arbitrary_data::<_, X>(
+                m.value.as_ref(),
+                MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
+            ) {
+                Ok(digested_message) => {
+                    digested_messages.push(digested_message);
+                    if m.reveal {
+                        proof_messages
+                            .push(ProofMessage::Revealed(digested_message))
+                    } else {
+                        proof_messages
+                            .push(ProofMessage::Hidden(digested_message))
                     }
-                    Err(e) => Err(e),
                 }
-            })
-            .collect();
+                Err(e) => return Err(e),
+            }
+        }
     }
-    Ok(vec![])
+    Ok((digested_messages, proof_messages))
 }
 
 #[allow(clippy::useless_asref)]

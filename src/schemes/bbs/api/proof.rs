@@ -1,10 +1,6 @@
 use super::{
     dtos::{BbsProofGenRequest, BbsProofVerifyRequest},
-    utils::{
-        digest_messages,
-        digest_proof_messages,
-        digest_revealed_proof_messages,
-    },
+    utils::{digest_proof_messages, digest_revealed_proof_messages},
 };
 use crate::{
     curves::bls12_381::hash_to_curve::ExpandMessage,
@@ -14,7 +10,7 @@ use crate::{
         key_pair::PublicKey,
         proof::Proof,
         signature::Signature,
-        types::{Message, ProofMessage},
+        types::Message,
     },
 };
 
@@ -40,15 +36,8 @@ where
     // Parse public key from request
     let pk = PublicKey::from_octets(request.public_key)?;
 
-    let mut digested_messages = vec![];
-    if let Some(request_messages) = request.messages {
-        let request_messages = request_messages
-            .iter()
-            .map(|element| element.value.as_ref())
-            .collect::<Vec<_>>();
-        // Digest the supplied messages
-        digested_messages = digest_messages::<_, X>(Some(&request_messages))?;
-    }
+    let (digested_messages, proof_messages) =
+        digest_proof_messages::<_, X>(request.messages)?;
 
     // Derive generators
     let generators = Generators::new::<X>(digested_messages.len())?;
@@ -65,13 +54,6 @@ where
         return Err(Error::SignatureVerification);
     }
 
-    // Digest the supplied messages
-    let messages: Vec<ProofMessage> =
-        match digest_proof_messages::<_, X>(request.messages) {
-            Ok(messages) => messages,
-            Err(e) => return Err(e),
-        };
-
     // Generate the proof
     let proof = Proof::new::<_, X>(
         &pk,
@@ -79,7 +61,7 @@ where
         request.header.as_ref(),
         request.presentation_message.as_ref(),
         &generators,
-        &messages,
+        &proof_messages,
     )?;
 
     Ok(proof.to_octets())
