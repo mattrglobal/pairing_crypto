@@ -4,11 +4,11 @@
 #import "../pairing_crypto/bbs_signature.h"
 #import "../pairing_crypto/bbs_proof.h"
 
-@interface BbsSignatureProofTests : XCTestCase
+@interface BbsProofTests : XCTestCase
 
 @end
 
-@implementation BbsSignatureProofTests
+@implementation BbsProofTests
 
 - (void) testProof {
     NSError *error = nil;
@@ -40,7 +40,7 @@
     NSMutableSet *disclosedIndices = [[NSMutableSet alloc] init];
 
     for (int i = 0; i < [messages count]; i++ ) {
-        BbsSignatureProof *proof = [[BbsSignatureProof alloc] createProof:keyPair.publicKey
+        BbsProof *proof = [[BbsProof alloc] createProof:keyPair.publicKey
                                                                header:header
                                                   presentationMessage:presentationMessage
                                                             signature:signature
@@ -53,7 +53,7 @@
             [disclosedMessages setObject:[messages objectAtIndex:j] forKey:j];
         }
 
-        BbsSignatureProof *proofCheck = [[BbsSignatureProof alloc] initWithBytes:proof.value
+        BbsProof *proofCheck = [[BbsProof alloc] initWithBytes:proof.value
                                                                    withError:&error];
     
         isVerified = false;
@@ -68,7 +68,7 @@
         XCTAssertTrue(isVerified);
 
         // Disclose another message
-        [disclosedIndices addObject:i]
+        [disclosedIndices addObject:i];
     }
 }
 

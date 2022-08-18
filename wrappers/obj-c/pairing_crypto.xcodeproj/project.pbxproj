@@ -1,0 +1,457 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 55;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		93CFA5BF28AE0E3F004EA861 /* pairing_crypto.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 93CFA5BC28AE0E3F004EA861 /* pairing_crypto.h */; };
+		93CFA5CD28AE0F4E004EA861 /* bbs_proof.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5C528AE0F4E004EA861 /* bbs_proof.m */; };
+		93CFA5CE28AE0F4E004EA861 /* bbs_signature.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5C728AE0F4E004EA861 /* bbs_signature.m */; };
+		93CFA5CF28AE0F4E004EA861 /* bbs_key_pair.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5C828AE0F4E004EA861 /* bbs_key_pair.m */; };
+		93CFA5D028AE0F4E004EA861 /* BbsSignatureError.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5CB28AE0F4E004EA861 /* BbsSignatureError.m */; };
+		93CFA5E428AE12FD004EA861 /* libpairing_crypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 93CFA5B928AE0E3F004EA861 /* libpairing_crypto.a */; };
+		93CFA5ED28AE1329004EA861 /* bbs_signature.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5EA28AE1329004EA861 /* bbs_signature.m */; };
+		93CFA5EE28AE1329004EA861 /* bbs_key_pair.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5EB28AE1329004EA861 /* bbs_key_pair.m */; };
+		93CFA5EF28AE1329004EA861 /* bbs_proof.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5EC28AE1329004EA861 /* bbs_proof.m */; };
+		93CFA5F128AEABC9004EA861 /* pairing_crypto.h in Headers */ = {isa = PBXBuildFile; fileRef = 93CFA5BC28AE0E3F004EA861 /* pairing_crypto.h */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		93CFA5E528AE12FD004EA861 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 93CFA5B128AE0E3F004EA861 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 93CFA5B828AE0E3F004EA861;
+			remoteInfo = pairing_crypto;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		93CFA5B728AE0E3F004EA861 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+				93CFA5BF28AE0E3F004EA861 /* pairing_crypto.h in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		93CFA5B928AE0E3F004EA861 /* libpairing_crypto.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libpairing_crypto.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		93CFA5BC28AE0E3F004EA861 /* pairing_crypto.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pairing_crypto.h; sourceTree = "<group>"; };
+		93CFA5C528AE0F4E004EA861 /* bbs_proof.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = bbs_proof.m; sourceTree = "<group>"; };
+		93CFA5C628AE0F4E004EA861 /* bbs_signature.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bbs_signature.h; sourceTree = "<group>"; };
+		93CFA5C728AE0F4E004EA861 /* bbs_signature.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = bbs_signature.m; sourceTree = "<group>"; };
+		93CFA5C828AE0F4E004EA861 /* bbs_key_pair.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = bbs_key_pair.m; sourceTree = "<group>"; };
+		93CFA5C928AE0F4E004EA861 /* bbs_key_pair.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bbs_key_pair.h; sourceTree = "<group>"; };
+		93CFA5CA28AE0F4E004EA861 /* bbs_proof.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bbs_proof.h; sourceTree = "<group>"; };
+		93CFA5CB28AE0F4E004EA861 /* BbsSignatureError.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BbsSignatureError.m; sourceTree = "<group>"; };
+		93CFA5CC28AE0F4E004EA861 /* BbsSignatureError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BbsSignatureError.h; sourceTree = "<group>"; };
+		93CFA5DA28AE1286004EA861 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/iPhoneOS.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		93CFA5E028AE12FD004EA861 /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		93CFA5EA28AE1329004EA861 /* bbs_signature.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = bbs_signature.m; path = tests/bbs_signature.m; sourceTree = SOURCE_ROOT; };
+		93CFA5EB28AE1329004EA861 /* bbs_key_pair.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = bbs_key_pair.m; path = tests/bbs_key_pair.m; sourceTree = SOURCE_ROOT; };
+		93CFA5EC28AE1329004EA861 /* bbs_proof.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = bbs_proof.m; path = tests/bbs_proof.m; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		93CFA5DD28AE12FD004EA861 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				93CFA5E428AE12FD004EA861 /* libpairing_crypto.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		93CFA5F228AEABED004EA861 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		93CFA5B028AE0E3F004EA861 = {
+			isa = PBXGroup;
+			children = (
+				93CFA5BB28AE0E3F004EA861 /* pairing_crypto */,
+				93CFA5E128AE12FD004EA861 /* Tests */,
+				93CFA5BA28AE0E3F004EA861 /* Products */,
+				93CFA5D928AE1286004EA861 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		93CFA5BA28AE0E3F004EA861 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				93CFA5B928AE0E3F004EA861 /* libpairing_crypto.a */,
+				93CFA5E028AE12FD004EA861 /* Tests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		93CFA5BB28AE0E3F004EA861 /* pairing_crypto */ = {
+			isa = PBXGroup;
+			children = (
+				93CFA5C928AE0F4E004EA861 /* bbs_key_pair.h */,
+				93CFA5C828AE0F4E004EA861 /* bbs_key_pair.m */,
+				93CFA5CA28AE0F4E004EA861 /* bbs_proof.h */,
+				93CFA5C528AE0F4E004EA861 /* bbs_proof.m */,
+				93CFA5C628AE0F4E004EA861 /* bbs_signature.h */,
+				93CFA5C728AE0F4E004EA861 /* bbs_signature.m */,
+				93CFA5CC28AE0F4E004EA861 /* BbsSignatureError.h */,
+				93CFA5CB28AE0F4E004EA861 /* BbsSignatureError.m */,
+				93CFA5BC28AE0E3F004EA861 /* pairing_crypto.h */,
+			);
+			path = pairing_crypto;
+			sourceTree = "<group>";
+		};
+		93CFA5D928AE1286004EA861 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				93CFA5DA28AE1286004EA861 /* XCTest.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		93CFA5E128AE12FD004EA861 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				93CFA5EB28AE1329004EA861 /* bbs_key_pair.m */,
+				93CFA5EC28AE1329004EA861 /* bbs_proof.m */,
+				93CFA5EA28AE1329004EA861 /* bbs_signature.m */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		93CFA5F028AEA9E5004EA861 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				93CFA5F128AEABC9004EA861 /* pairing_crypto.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		93CFA5B828AE0E3F004EA861 /* pairing_crypto */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 93CFA5C228AE0E3F004EA861 /* Build configuration list for PBXNativeTarget "pairing_crypto" */;
+			buildPhases = (
+				93CFA5F028AEA9E5004EA861 /* Headers */,
+				93CFA5B528AE0E3F004EA861 /* Sources */,
+				93CFA5F228AEABED004EA861 /* Frameworks */,
+				93CFA5B728AE0E3F004EA861 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = pairing_crypto;
+			productName = pairing_crypto;
+			productReference = 93CFA5B928AE0E3F004EA861 /* libpairing_crypto.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		93CFA5DF28AE12FD004EA861 /* Tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 93CFA5E728AE12FD004EA861 /* Build configuration list for PBXNativeTarget "Tests" */;
+			buildPhases = (
+				93CFA5DC28AE12FD004EA861 /* Sources */,
+				93CFA5DD28AE12FD004EA861 /* Frameworks */,
+				93CFA5DE28AE12FD004EA861 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				93CFA5E628AE12FD004EA861 /* PBXTargetDependency */,
+			);
+			name = Tests;
+			productName = Tests;
+			productReference = 93CFA5E028AE12FD004EA861 /* Tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		93CFA5B128AE0E3F004EA861 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1340;
+				TargetAttributes = {
+					93CFA5B828AE0E3F004EA861 = {
+						CreatedOnToolsVersion = 13.4.1;
+					};
+					93CFA5DF28AE12FD004EA861 = {
+						CreatedOnToolsVersion = 13.4.1;
+					};
+				};
+			};
+			buildConfigurationList = 93CFA5B428AE0E3F004EA861 /* Build configuration list for PBXProject "pairing_crypto" */;
+			compatibilityVersion = "Xcode 13.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 93CFA5B028AE0E3F004EA861;
+			productRefGroup = 93CFA5BA28AE0E3F004EA861 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				93CFA5B828AE0E3F004EA861 /* pairing_crypto */,
+				93CFA5DF28AE12FD004EA861 /* Tests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		93CFA5DE28AE12FD004EA861 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		93CFA5B528AE0E3F004EA861 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				93CFA5CF28AE0F4E004EA861 /* bbs_key_pair.m in Sources */,
+				93CFA5D028AE0F4E004EA861 /* BbsSignatureError.m in Sources */,
+				93CFA5CE28AE0F4E004EA861 /* bbs_signature.m in Sources */,
+				93CFA5CD28AE0F4E004EA861 /* bbs_proof.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		93CFA5DC28AE12FD004EA861 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				93CFA5EF28AE1329004EA861 /* bbs_proof.m in Sources */,
+				93CFA5ED28AE1329004EA861 /* bbs_signature.m in Sources */,
+				93CFA5EE28AE1329004EA861 /* bbs_key_pair.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		93CFA5E628AE12FD004EA861 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 93CFA5B828AE0E3F004EA861 /* pairing_crypto */;
+			targetProxy = 93CFA5E528AE12FD004EA861 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		93CFA5C028AE0E3F004EA861 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		93CFA5C128AE0E3F004EA861 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		93CFA5C328AE0E3F004EA861 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		93CFA5C428AE0E3F004EA861 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		93CFA5E828AE12FD004EA861 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = mattr.Tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		93CFA5E928AE12FD004EA861 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = mattr.Tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		93CFA5B428AE0E3F004EA861 /* Build configuration list for PBXProject "pairing_crypto" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				93CFA5C028AE0E3F004EA861 /* Debug */,
+				93CFA5C128AE0E3F004EA861 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		93CFA5C228AE0E3F004EA861 /* Build configuration list for PBXNativeTarget "pairing_crypto" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				93CFA5C328AE0E3F004EA861 /* Debug */,
+				93CFA5C428AE0E3F004EA861 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		93CFA5E728AE12FD004EA861 /* Build configuration list for PBXNativeTarget "Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				93CFA5E828AE12FD004EA861 /* Debug */,
+				93CFA5E928AE12FD004EA861 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 93CFA5B128AE0E3F004EA861 /* Project object */;
+}
