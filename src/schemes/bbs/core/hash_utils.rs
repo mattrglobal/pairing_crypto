@@ -13,7 +13,7 @@ use super::constants::{
 use crate::{
     common::serialization::{i2osp, i2osp_with_data},
     curves::bls12_381::{
-        hash_to_curve::{ExpandMessage, ExpandMessageState, ExpandMsgXof},
+        hash_to_curve::{ExpandMessage, ExpandMessageState},
         G1Projective,
         Scalar,
     },
@@ -22,15 +22,15 @@ use crate::{
 use ff::Field;
 use group::Group;
 use rand::RngCore;
-use sha3::Shake256;
 
 /// Hash arbitrary data to a scalar as specified in [3.3.9.1 Hash to scalar](https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-mapmessagetoscalarashash).
-pub(crate) fn map_message_to_scalar_as_hash<T>(
+pub(crate) fn map_message_to_scalar_as_hash<T, X>(
     msg: T,
     dst: T,
 ) -> Result<Scalar, Error>
 where
     T: AsRef<[u8]>,
+    X: ExpandMessage,
 {
     let msg = msg.as_ref();
     let dst = dst.as_ref();
@@ -49,10 +49,7 @@ where
     let dst_prime = i2osp_with_data(dst, DST_LENGTH_ENCODING_LENGTH)?;
 
     // hash_to_scalar(msg_prime || dst_prime, 1)
-    Ok(hash_to_scalar::<ExpandMsgXof<Shake256>>(
-        &[msg_prime, dst_prime].concat(),
-        1,
-    )?[0])
+    Ok(hash_to_scalar::<X>(&[msg_prime, dst_prime].concat(), 1)?[0])
 }
 
 /// Hash arbitrary data to `n` number of scalars as specified in BBS specification [section Hash to scalar](https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-hash-to-scalar).

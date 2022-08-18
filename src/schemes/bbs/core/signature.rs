@@ -14,7 +14,7 @@ use super::{
 };
 use crate::{
     curves::bls12_381::{
-        hash_to_curve::ExpandMsgXof,
+        hash_to_curve::ExpandMessage,
         Bls12,
         G1Projective,
         G2Prepared,
@@ -36,7 +36,6 @@ use serde::{
     Serialize,
     Serializer,
 };
-use sha3::Shake256;
 use subtle::{Choice, ConditionallySelectable};
 
 /// A BBS+ signature
@@ -141,7 +140,7 @@ impl Signature {
     /// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.4>
     /// Security Warning: `SK` and `PK` paramters must be related key-pair
     /// generated using `KeyPair` APIs.
-    pub fn new<T, M>(
+    pub fn new<T, M, X>(
         SK: &SecretKey,
         PK: &PublicKey,
         header: Option<T>,
@@ -151,6 +150,7 @@ impl Signature {
     where
         T: AsRef<[u8]>,
         M: AsRef<[Message]>,
+        X: ExpandMessage,
     {
         let header = header.as_ref();
         let messages = messages.as_ref();
@@ -175,7 +175,8 @@ impl Signature {
 
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
-        let domain = compute_domain(PK, header, messages.len(), generators)?;
+        let domain =
+            compute_domain::<_, X>(PK, header, messages.len(), generators)?;
 
         // (e, s) = hash_to_scalar((SK  || domain || msg_1 || ... || msg_L), 2)
         let mut data_to_hash = vec![];
@@ -184,8 +185,7 @@ impl Signature {
         for m in messages {
             data_to_hash.extend(m.to_bytes().as_ref());
         }
-        let scalars =
-            hash_to_scalar::<ExpandMsgXof<Shake256>>(&data_to_hash, 2)?;
+        let scalars = hash_to_scalar::<X>(&data_to_hash, 2)?;
         let (e, s) = (scalars[0], scalars[1]);
 
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
@@ -208,7 +208,7 @@ impl Signature {
     /// Verify a signature.
     /// This method follows `Verify` API as defined in BBS Signature spec
     /// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.5>
-    pub fn verify<T, M>(
+    pub fn verify<T, M, X>(
         &self,
         PK: &PublicKey,
         header: Option<T>,
@@ -218,6 +218,7 @@ impl Signature {
     where
         T: AsRef<[u8]>,
         M: AsRef<[Message]>,
+        X: ExpandMessage,
     {
         let messages = messages.as_ref();
 
@@ -245,7 +246,8 @@ impl Signature {
 
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
-        let domain = compute_domain(PK, header, messages.len(), generators)?;
+        let domain =
+            compute_domain::<_, X>(PK, header, messages.len(), generators)?;
 
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
         let B = compute_B(&self.s, &domain, messages, generators)?;

@@ -14,7 +14,7 @@ use super::{
 use crate::{
     common::serialization::{i2osp, i2osp_with_data},
     curves::bls12_381::{
-        hash_to_curve::ExpandMsgXof,
+        hash_to_curve::ExpandMessage,
         G1Affine,
         G1Projective,
         Scalar,
@@ -23,7 +23,6 @@ use crate::{
 };
 use ff::Field;
 use group::{Curve, Group};
-use sha3::Shake256;
 
 #[cfg(feature = "alloc")]
 use alloc::collections::BTreeMap;
@@ -55,7 +54,7 @@ pub(crate) fn octets_to_point_g1(
 /// Computes `domain` value.
 /// domain =
 ///    hash_to_scalar((PK || L || generators || Ciphersuite_ID || header), 1)
-pub(crate) fn compute_domain<T>(
+pub(crate) fn compute_domain<T, X>(
     PK: &PublicKey,
     header: Option<T>,
     L: usize,
@@ -63,6 +62,7 @@ pub(crate) fn compute_domain<T>(
 ) -> Result<Scalar, Error>
 where
     T: AsRef<[u8]>,
+    X: ExpandMessage,
 {
     // Error out if length of messages and generators are not equal
     if L != generators.message_generators_length() {
@@ -97,7 +97,7 @@ where
         )?);
     }
 
-    Ok(hash_to_scalar::<ExpandMsgXof<Shake256>>(&data_to_hash, 1)?[0])
+    Ok(hash_to_scalar::<X>(&data_to_hash, 1)?[0])
 }
 
 /// Computes `B` value.
@@ -135,7 +135,7 @@ pub(crate) fn compute_B(
 
 /// Compute Fiat Shamir heuristic challenge.
 #[allow(clippy::too_many_arguments)]
-pub(crate) fn compute_challenge<T>(
+pub(crate) fn compute_challenge<T, X>(
     A_prime: &G1Projective,
     A_bar: &G1Projective,
     D: &G1Projective,
@@ -147,6 +147,7 @@ pub(crate) fn compute_challenge<T>(
 ) -> Result<Challenge, Error>
 where
     T: AsRef<[u8]>,
+    X: ExpandMessage,
 {
     // c_array = (A', Abar, D, C1, C2, R, i1, ..., iR, msg_i1, ..., msg_iR,
     //              domain, ph)
@@ -178,7 +179,5 @@ where
     }
 
     // c = hash_to_scalar(c_for_hash, 1)
-    Ok(Challenge(
-        hash_to_scalar::<ExpandMsgXof<Shake256>>(&data_to_hash, 1)?[0],
-    ))
+    Ok(Challenge(hash_to_scalar::<X>(&data_to_hash, 1)?[0]))
 }

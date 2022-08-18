@@ -13,16 +13,16 @@
 
 import { bbs } from "../../../lib/index";
 
-import { ProofFixture, proofFixtures } from "../../../__fixtures__";
+import { ProofFixture, bls12381Shake256ProofFixtures } from "../../../__fixtures__";
 
-proofFixtures.forEach((item: ProofFixture) => {
+bls12381Shake256ProofFixtures.forEach((item: ProofFixture) => {
   describe("bbs", () => {
-    describe("bls12381", () => {
+    describe("bls12381_shake256", () => {
       describe("verifyProof - test fixtures", () => {
         if (item.value.result.valid) {
           it(`should verify case: ${item.value.caseName}`, async () => {
             expect(
-              await bbs.bls12381.verifyProof({
+              await bbs.bls12381_shake256.verifyProof({
                 publicKey: new Uint8Array(
                   Buffer.from(item.value.signerPublicKey, "hex")
                 ),
@@ -50,7 +50,7 @@ proofFixtures.forEach((item: ProofFixture) => {
           it(`should fail to verify case: ${item.value.caseName} because ${item.value.result["reason"]}`, async () => {
             expect(
               (
-                await bbs.bls12381.verifyProof({
+                await bbs.bls12381_shake256.verifyProof({
                   publicKey: new Uint8Array(
                     Buffer.from(item.value.signerPublicKey, "hex")
                   ),

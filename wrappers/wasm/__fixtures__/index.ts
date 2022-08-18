@@ -67,14 +67,24 @@ const fetchNestedFixtures = <T>(name: string, input: any): ReadonlyArray<T> => {
   return Array.prototype.concat.apply([], extractedFixtures);
 };
 
-export const signatureFixtures = fetchNestedFixtures<SignatureFixture>(
+export const bls12381Sha256SignatureFixtures = fetchNestedFixtures<SignatureFixture>(
   "",
-  resolveFixtures("signature")
+  resolveFixtures("bls12_381_sha_256/signature")
 );
 
-export const proofFixtures = fetchNestedFixtures<ProofFixture>(
+export const bls12381Shake256SignatureFixtures = fetchNestedFixtures<SignatureFixture>(
   "",
-  resolveFixtures("proof")
+  resolveFixtures("bls12_381_shake_256/signature")
+);
+
+export const bls12381Sha256ProofFixtures = fetchNestedFixtures<ProofFixture>(
+  "",
+  resolveFixtures("bls12_381_sha_256/proof")
+);
+
+export const bls12381Shake256ProofFixtures = fetchNestedFixtures<ProofFixture>(
+  "",
+  resolveFixtures("bls12_381_shake_256/proof")
 );
 
 export { keyPair };
