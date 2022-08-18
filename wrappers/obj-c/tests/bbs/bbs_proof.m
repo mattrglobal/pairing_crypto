@@ -50,7 +50,7 @@
 
         NSMutableDictionary *disclosedMessages = [[NSMutableDictionary alloc] init];
         for (int j = 0; j < i; j++) {
-            [disclosedMessages setObject:[messages objectAtIndex:j] forKey:j];
+            [disclosedMessages setObject:[messages objectAtIndex:j] forKey:[NSNumber numberWithInt:j]];
         }
 
         BbsProof *proofCheck = [[BbsProof alloc] initWithBytes:proof.value
@@ -61,14 +61,11 @@
                                   header:header
                      presentationMessage:presentationMessage
                                    proof:proof
-                     total_message_count:total_message_count
+                     total_message_count:messages.count
                                 messages:disclosedMessages
                                withError:&error];
     
         XCTAssertTrue(isVerified);
-
-        // Disclose another message
-        [disclosedIndices addObject:i];
     }
 }
 

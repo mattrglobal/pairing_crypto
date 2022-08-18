@@ -7,16 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		93CFA5BF28AE0E3F004EA861 /* pairing_crypto.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 93CFA5BC28AE0E3F004EA861 /* pairing_crypto.h */; };
-		93CFA5CD28AE0F4E004EA861 /* bbs_proof.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5C528AE0F4E004EA861 /* bbs_proof.m */; };
-		93CFA5CE28AE0F4E004EA861 /* bbs_signature.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5C728AE0F4E004EA861 /* bbs_signature.m */; };
-		93CFA5CF28AE0F4E004EA861 /* bbs_key_pair.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5C828AE0F4E004EA861 /* bbs_key_pair.m */; };
-		93CFA5D028AE0F4E004EA861 /* BbsSignatureError.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5CB28AE0F4E004EA861 /* BbsSignatureError.m */; };
 		93CFA5E428AE12FD004EA861 /* libpairing_crypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 93CFA5B928AE0E3F004EA861 /* libpairing_crypto.a */; };
-		93CFA5ED28AE1329004EA861 /* bbs_signature.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5EA28AE1329004EA861 /* bbs_signature.m */; };
-		93CFA5EE28AE1329004EA861 /* bbs_key_pair.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5EB28AE1329004EA861 /* bbs_key_pair.m */; };
-		93CFA5EF28AE1329004EA861 /* bbs_proof.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5EC28AE1329004EA861 /* bbs_proof.m */; };
-		93CFA5F128AEABC9004EA861 /* pairing_crypto.h in Headers */ = {isa = PBXBuildFile; fileRef = 93CFA5BC28AE0E3F004EA861 /* pairing_crypto.h */; };
+		93CFA5F428AEF471004EA861 /* libpairing_crypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 93CFA5F328AEF471004EA861 /* libpairing_crypto.a */; };
+		93CFA5FB28AF0406004EA861 /* bbs_key_pair.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5F828AF0406004EA861 /* bbs_key_pair.m */; };
+		93CFA5FC28AF0406004EA861 /* bbs_proof.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5F928AF0406004EA861 /* bbs_proof.m */; };
+		93CFA5FD28AF0406004EA861 /* bbs_signature.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5FA28AF0406004EA861 /* bbs_signature.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,7 +31,6 @@
 			dstPath = "include/$(PRODUCT_NAME)";
 			dstSubfolderSpec = 16;
 			files = (
-				93CFA5BF28AE0E3F004EA861 /* pairing_crypto.h in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -44,20 +38,13 @@
 
 /* Begin PBXFileReference section */
 		93CFA5B928AE0E3F004EA861 /* libpairing_crypto.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libpairing_crypto.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		93CFA5BC28AE0E3F004EA861 /* pairing_crypto.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pairing_crypto.h; sourceTree = "<group>"; };
-		93CFA5C528AE0F4E004EA861 /* bbs_proof.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = bbs_proof.m; sourceTree = "<group>"; };
-		93CFA5C628AE0F4E004EA861 /* bbs_signature.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bbs_signature.h; sourceTree = "<group>"; };
-		93CFA5C728AE0F4E004EA861 /* bbs_signature.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = bbs_signature.m; sourceTree = "<group>"; };
-		93CFA5C828AE0F4E004EA861 /* bbs_key_pair.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = bbs_key_pair.m; sourceTree = "<group>"; };
-		93CFA5C928AE0F4E004EA861 /* bbs_key_pair.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bbs_key_pair.h; sourceTree = "<group>"; };
-		93CFA5CA28AE0F4E004EA861 /* bbs_proof.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bbs_proof.h; sourceTree = "<group>"; };
-		93CFA5CB28AE0F4E004EA861 /* BbsSignatureError.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BbsSignatureError.m; sourceTree = "<group>"; };
-		93CFA5CC28AE0F4E004EA861 /* BbsSignatureError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BbsSignatureError.h; sourceTree = "<group>"; };
 		93CFA5DA28AE1286004EA861 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/iPhoneOS.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		93CFA5E028AE12FD004EA861 /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		93CFA5EA28AE1329004EA861 /* bbs_signature.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = bbs_signature.m; path = tests/bbs_signature.m; sourceTree = SOURCE_ROOT; };
-		93CFA5EB28AE1329004EA861 /* bbs_key_pair.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = bbs_key_pair.m; path = tests/bbs_key_pair.m; sourceTree = SOURCE_ROOT; };
-		93CFA5EC28AE1329004EA861 /* bbs_proof.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = bbs_proof.m; path = tests/bbs_proof.m; sourceTree = SOURCE_ROOT; };
+		93CFA5F328AEF471004EA861 /* libpairing_crypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpairing_crypto.a; path = libraries/libpairing_crypto.a; sourceTree = "<group>"; };
+		93CFA5F728AF03E2004EA861 /* bbs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = bbs; sourceTree = "<group>"; };
+		93CFA5F828AF0406004EA861 /* bbs_key_pair.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = bbs_key_pair.m; path = tests/bbs/bbs_key_pair.m; sourceTree = SOURCE_ROOT; };
+		93CFA5F928AF0406004EA861 /* bbs_proof.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = bbs_proof.m; path = tests/bbs/bbs_proof.m; sourceTree = SOURCE_ROOT; };
+		93CFA5FA28AF0406004EA861 /* bbs_signature.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = bbs_signature.m; path = tests/bbs/bbs_signature.m; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +60,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				93CFA5F428AEF471004EA861 /* libpairing_crypto.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -101,15 +89,7 @@
 		93CFA5BB28AE0E3F004EA861 /* pairing_crypto */ = {
 			isa = PBXGroup;
 			children = (
-				93CFA5C928AE0F4E004EA861 /* bbs_key_pair.h */,
-				93CFA5C828AE0F4E004EA861 /* bbs_key_pair.m */,
-				93CFA5CA28AE0F4E004EA861 /* bbs_proof.h */,
-				93CFA5C528AE0F4E004EA861 /* bbs_proof.m */,
-				93CFA5C628AE0F4E004EA861 /* bbs_signature.h */,
-				93CFA5C728AE0F4E004EA861 /* bbs_signature.m */,
-				93CFA5CC28AE0F4E004EA861 /* BbsSignatureError.h */,
-				93CFA5CB28AE0F4E004EA861 /* BbsSignatureError.m */,
-				93CFA5BC28AE0E3F004EA861 /* pairing_crypto.h */,
+				93CFA5F728AF03E2004EA861 /* bbs */,
 			);
 			path = pairing_crypto;
 			sourceTree = "<group>";
@@ -117,6 +97,7 @@
 		93CFA5D928AE1286004EA861 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				93CFA5F328AEF471004EA861 /* libpairing_crypto.a */,
 				93CFA5DA28AE1286004EA861 /* XCTest.framework */,
 			);
 			name = Frameworks;
@@ -125,9 +106,9 @@
 		93CFA5E128AE12FD004EA861 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
-				93CFA5EB28AE1329004EA861 /* bbs_key_pair.m */,
-				93CFA5EC28AE1329004EA861 /* bbs_proof.m */,
-				93CFA5EA28AE1329004EA861 /* bbs_signature.m */,
+				93CFA5F828AF0406004EA861 /* bbs_key_pair.m */,
+				93CFA5F928AF0406004EA861 /* bbs_proof.m */,
+				93CFA5FA28AF0406004EA861 /* bbs_signature.m */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -135,11 +116,10 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
-		93CFA5F028AEA9E5004EA861 /* Headers */ = {
+		93CFA5F528AEFA4E004EA861 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				93CFA5F128AEABC9004EA861 /* pairing_crypto.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -150,7 +130,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 93CFA5C228AE0E3F004EA861 /* Build configuration list for PBXNativeTarget "pairing_crypto" */;
 			buildPhases = (
-				93CFA5F028AEA9E5004EA861 /* Headers */,
+				93CFA5F528AEFA4E004EA861 /* Headers */,
 				93CFA5B528AE0E3F004EA861 /* Sources */,
 				93CFA5F228AEABED004EA861 /* Frameworks */,
 				93CFA5B728AE0E3F004EA861 /* CopyFiles */,
@@ -233,10 +213,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				93CFA5CF28AE0F4E004EA861 /* bbs_key_pair.m in Sources */,
-				93CFA5D028AE0F4E004EA861 /* BbsSignatureError.m in Sources */,
-				93CFA5CE28AE0F4E004EA861 /* bbs_signature.m in Sources */,
-				93CFA5CD28AE0F4E004EA861 /* bbs_proof.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -244,9 +220,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				93CFA5EF28AE1329004EA861 /* bbs_proof.m in Sources */,
-				93CFA5ED28AE1329004EA861 /* bbs_signature.m in Sources */,
-				93CFA5EE28AE1329004EA861 /* bbs_key_pair.m in Sources */,
+				93CFA5FD28AF0406004EA861 /* bbs_signature.m in Sources */,
+				93CFA5FC28AF0406004EA861 /* bbs_proof.m in Sources */,
+				93CFA5FB28AF0406004EA861 /* bbs_key_pair.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -267,7 +243,8 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -311,11 +288,16 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				"HEADER_SEARCH_PATHS[arch=*]" = (
+					libraries,
+					pairing_crypto,
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				VALID_ARCHS = "arm64 arm64e x86_64";
 			};
 			name = Debug;
 		};
@@ -325,7 +307,8 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -363,11 +346,13 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				"HEADER_SEARCH_PATHS[arch=*]" = libraries;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
+				VALID_ARCHS = "arm64 arm64e x86_64";
 			};
 			name = Release;
 		};
@@ -375,6 +360,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/libraries",
+				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -386,6 +375,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/libraries",
+				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -399,6 +392,11 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = mattr.Tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -413,6 +411,11 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = mattr.Tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";

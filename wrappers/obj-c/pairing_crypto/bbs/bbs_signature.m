@@ -69,7 +69,7 @@
     
     pairing_crypto_error_t *err = (pairing_crypto_error_t*) malloc(sizeof(pairing_crypto_error_t));
     
-    uint64_t createSignatureHandle = bbs_bls12381_sign_context_init(err);
+    uint64_t createSignatureHandle = bbs_bls12_381_shake_256_sign_context_init(err);
     
     if (createSignatureHandle == 0) {
         *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
@@ -80,7 +80,7 @@
     secretKeyBuffer.len = keyPair.secretKey.length;
     secretKeyBuffer.data = (uint8_t *)keyPair.secretKey.bytes;
 
-    if (bbs_bls12381_sign_context_set_secret_key(createSignatureHandle, secretKeyBuffer, err) > 0) {
+    if (bbs_bls12_381_shake_256_sign_context_set_secret_key(createSignatureHandle, secretKeyBuffer, err) > 0) {
         *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
         return;
     }
@@ -89,7 +89,7 @@
     publicKeyBuffer.len = keyPair.publicKey.length;
     publicKeyBuffer.data = (uint8_t *)keyPair.publicKey.bytes;
 
-    if (bbs_bls12381_sign_context_set_public_key(createSignatureHandle, publicKeyBuffer, err) > 0) {
+    if (bbs_bls12_381_shake_256_sign_context_set_public_key(createSignatureHandle, publicKeyBuffer, err) > 0) {
         *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
         return;
     }
@@ -99,7 +99,7 @@
         headerBuffer.len = header.length;
         headerBuffer.data = (uint8_t *)header.bytes;
 
-        if (bbs_bls12381_sign_context_set_header(createSignatureHandle, headerBuffer, err) > 0) {
+        if (bbs_bls12_381_shake_256_sign_context_set_header(createSignatureHandle, headerBuffer, err) > 0) {
             *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
             return;
         }
@@ -111,7 +111,7 @@
             messageBuffer.len = message.length;
             messageBuffer.data = (uint8_t *)message.bytes;
         
-            if (bbs_bls12381_sign_context_add_message(createSignatureHandle, messageBuffer, err) > 0) {
+            if (bbs_bls12_381_shake_256_sign_context_add_message(createSignatureHandle, messageBuffer, err) > 0) {
                 *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
                 return;
                 }
@@ -120,7 +120,7 @@
     
     pairing_crypto_byte_buffer_t *signature = (pairing_crypto_byte_buffer_t*) malloc(sizeof(pairing_crypto_byte_buffer_t));
     
-    if (bbs_bls12381_sign_context_finish(createSignatureHandle, signature, err) > 0) {
+    if (bbs_bls12_381_shake_256_sign_context_finish(createSignatureHandle, signature, err) > 0) {
         *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
         return;
     }
@@ -138,7 +138,7 @@
     
     pairing_crypto_error_t *err = (pairing_crypto_error_t*) malloc(sizeof(pairing_crypto_error_t));
     
-    uint64_t verifySignatureHandle = bbs_bls12381_verify_context_init(err);
+    uint64_t verifySignatureHandle = bbs_bls12_381_shake_256_verify_context_init(err);
     
     if (verifySignatureHandle == 0) {
         *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
@@ -150,7 +150,7 @@
     publicKeyBuffer.len = publicKey.length;
     publicKeyBuffer.data = (uint8_t *)publicKey.bytes;
 
-    if (bbs_bls12381_verify_context_set_public_key(verifySignatureHandle, publicKeyBuffer, err) != 0) {
+    if (bbs_bls12_381_shake_256_verify_context_set_public_key(verifySignatureHandle, publicKeyBuffer, err) != 0) {
         *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
         return false;
     }
@@ -160,7 +160,7 @@
         headerBuffer.len = header.length;
         headerBuffer.data = (uint8_t *)header.bytes;
 
-        if (bbs_bls12381_verify_context_set_header(verifySignatureHandle, headerBuffer, err) > 0) {
+        if (bbs_bls12_381_shake_256_verify_context_set_header(verifySignatureHandle, headerBuffer, err) > 0) {
             *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
             return false;
         }
@@ -170,7 +170,7 @@
     signatureBuffer.len = self.value.length;
     signatureBuffer.data = (uint8_t *)self.value.bytes;
 
-    if (bbs_bls12381_verify_context_set_signature(verifySignatureHandle, signatureBuffer, err) != 0) {
+    if (bbs_bls12_381_shake_256_verify_context_set_signature(verifySignatureHandle, signatureBuffer, err) != 0) {
         *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
         return false;
     }
@@ -181,14 +181,14 @@
             messageBuffer.len = message.length;
             messageBuffer.data = (uint8_t *)message.bytes;
         
-            if (bbs_bls12381_verify_context_add_message(verifySignatureHandle, messageBuffer, err) != 0) {
+            if (bbs_bls12_381_shake_256_verify_context_add_message(verifySignatureHandle, messageBuffer, err) != 0) {
                 *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
                 return false;
             }
         }
     }
     
-    if (bbs_bls12381_verify_context_finish(verifySignatureHandle, err) != 0) {
+    if (bbs_bls12_381_shake_256_verify_context_finish(verifySignatureHandle, err) != 0) {
         *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
         return false;
     }

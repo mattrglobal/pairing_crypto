@@ -42,57 +42,57 @@ extern "C"
    * * ikm: UInt8Array with 32 elements
    * * key_info: UInt8Array with 32 elements
    */
-  int32_t bbs_bls12381_generate_key_pair(pairing_crypto_byte_buffer_t ikm,
+  int32_t bbs_bls12_381_shake_256_generate_key_pair(pairing_crypto_byte_buffer_t ikm,
                                          pairing_crypto_byte_buffer_t key_info,
                                          pairing_crypto_byte_buffer_t *_Nullable secret_key,
                                          pairing_crypto_byte_buffer_t *_Nullable public_key,
                                          pairing_crypto_error_t *_Nullable err);
 
-  uint64_t bbs_bls12381_sign_context_init(pairing_crypto_error_t *_Nullable err);
+  uint64_t bbs_bls12_381_shake_256_sign_context_init(pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_sign_context_set_secret_key(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_sign_context_set_secret_key(uint64_t handle,
                                                    pairing_crypto_byte_buffer_t value,
                                                    pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_sign_context_set_public_key(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_sign_context_set_public_key(uint64_t handle,
                                                    pairing_crypto_byte_buffer_t value,
                                                    pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_sign_context_set_header(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_sign_context_set_header(uint64_t handle,
                                                pairing_crypto_byte_buffer_t value,
                                                pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_sign_context_add_message(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_sign_context_add_message(uint64_t handle,
                                                 pairing_crypto_byte_buffer_t value,
                                                 pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_sign_context_finish(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_sign_context_finish(uint64_t handle,
                                            pairing_crypto_byte_buffer_t *_Nullable signature,
                                            pairing_crypto_error_t *_Nullable err);
 
-  void bbs_bls12381_sign_free(uint64_t v, pairing_crypto_error_t *_Nullable err);
+  void bbs_bls12_381_shake_256_sign_free(uint64_t v, pairing_crypto_error_t *_Nullable err);
 
-  uint64_t bbs_bls12381_verify_context_init(pairing_crypto_error_t *_Nullable err);
+  uint64_t bbs_bls12_381_shake_256_verify_context_init(pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_verify_context_set_public_key(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_verify_context_set_public_key(uint64_t handle,
                                                      pairing_crypto_byte_buffer_t value,
                                                      pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_verify_context_set_header(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_verify_context_set_header(uint64_t handle,
                                                  pairing_crypto_byte_buffer_t value,
                                                  pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_verify_context_add_message(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_verify_context_add_message(uint64_t handle,
                                                   pairing_crypto_byte_buffer_t value,
                                                   pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_verify_context_set_signature(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_verify_context_set_signature(uint64_t handle,
                                                     pairing_crypto_byte_buffer_t value,
                                                     pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_verify_context_finish(uint64_t handle, pairing_crypto_error_t *_Nullable err);
+  int32_t bbs_bls12_381_shake_256_verify_context_finish(uint64_t handle, pairing_crypto_error_t *_Nullable err);
 
-  void bbs_bls12381_verify_free(uint64_t v, pairing_crypto_error_t *_Nullable err);
+  void bbs_bls12_381_shake_256_verify_free(uint64_t v, pairing_crypto_error_t *_Nullable err);
 
   /**
    * Return the size of proof in bytes.
@@ -100,67 +100,67 @@ extern "C"
    * * num_undisclosed_messages: number of undisclosed messages from orginal
    *   message set
    */
-  int32_t bbs_bls12381_get_proof_size(uintptr_t num_undisclosed_messages);
+  int32_t bbs_bls12_381_shake_256_get_proof_size(uintptr_t num_undisclosed_messages);
 
-  uint64_t bbs_bls12381_derive_proof_context_init(pairing_crypto_error_t *_Nullable err);
+  uint64_t bbs_bls12_381_shake_256_derive_proof_context_init(pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_derive_proof_context_set_public_key(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_derive_proof_context_set_public_key(uint64_t handle,
                                                            pairing_crypto_byte_buffer_t value,
                                                            pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_derive_proof_context_set_header(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_derive_proof_context_set_header(uint64_t handle,
                                                        pairing_crypto_byte_buffer_t value,
                                                        pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_derive_proof_context_set_signature(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_derive_proof_context_set_signature(uint64_t handle,
                                                           pairing_crypto_byte_buffer_t value,
                                                           pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_derive_proof_context_set_presentation_message(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_derive_proof_context_set_presentation_message(uint64_t handle,
                                                                      pairing_crypto_byte_buffer_t value,
                                                                      pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_derive_proof_context_add_message(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_derive_proof_context_add_message(uint64_t handle,
                                                         bool reveal,
                                                         pairing_crypto_byte_buffer_t message,
                                                         pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_derive_proof_context_finish(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_derive_proof_context_finish(uint64_t handle,
                                                    pairing_crypto_byte_buffer_t *_Nullable proof,
                                                    pairing_crypto_error_t *_Nullable err);
 
-  void bbs_bls12381_derive_proof_free(uint64_t v, pairing_crypto_error_t *_Nullable err);
+  void bbs_bls12_381_shake_256_derive_proof_free(uint64_t v, pairing_crypto_error_t *_Nullable err);
 
-  uint64_t bbs_bls12381_verify_proof_context_init(pairing_crypto_error_t *_Nullable err);
+  uint64_t bbs_bls12_381_shake_256_verify_proof_context_init(pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_verify_proof_context_set_public_key(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_verify_proof_context_set_public_key(uint64_t handle,
                                                            pairing_crypto_byte_buffer_t value,
                                                            pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_verify_proof_context_set_header(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_verify_proof_context_set_header(uint64_t handle,
                                                        pairing_crypto_byte_buffer_t value,
                                                        pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_verify_proof_context_set_proof(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_verify_proof_context_set_proof(uint64_t handle,
                                                       pairing_crypto_byte_buffer_t value,
                                                       pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_verify_proof_context_set_presentation_message(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_verify_proof_context_set_presentation_message(uint64_t handle,
                                                                      pairing_crypto_byte_buffer_t value,
                                                                      pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_verify_proof_context_set_total_message_count(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_verify_proof_context_set_total_message_count(uint64_t handle,
                                                                     uintptr_t value,
                                                                     pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_verify_proof_context_add_message(uint64_t handle,
+  int32_t bbs_bls12_381_shake_256_verify_proof_context_add_message(uint64_t handle,
                                                         uintptr_t index,
                                                         pairing_crypto_byte_buffer_t message,
                                                         pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12381_verify_proof_context_finish(uint64_t handle, pairing_crypto_error_t *_Nullable err);
+  int32_t bbs_bls12_381_shake_256_verify_proof_context_finish(uint64_t handle, pairing_crypto_error_t *_Nullable err);
 
-  void bbs_bls12381_verify_proof_free(uint64_t v, pairing_crypto_error_t *_Nullable err);
+  void bbs_bls12_381_shake_256_verify_proof_free(uint64_t v, pairing_crypto_error_t *_Nullable err);
 
   void pairing_crypto_byte_buffer_free(pairing_crypto_byte_buffer_t v);
 

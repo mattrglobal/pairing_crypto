@@ -45,7 +45,7 @@
     pairing_crypto_byte_buffer_t *secretKey = (pairing_crypto_byte_buffer_t*) malloc(sizeof(pairing_crypto_byte_buffer_t));
     pairing_crypto_error_t *err = (pairing_crypto_error_t*) malloc(sizeof(pairing_crypto_error_t));
 
-    int32_t ret = bbs_bls12381_generate_key_pair(ikmBuffer, keyInfoBuffer, secretKey, publicKey, err);
+    int32_t ret = bbs_bls12_381_shake_256_generate_key_pair(ikmBuffer, keyInfoBuffer, secretKey, publicKey, err);
     
     if (ret > 0) {
         *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
