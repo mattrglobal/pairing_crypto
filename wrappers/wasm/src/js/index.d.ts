@@ -24,7 +24,23 @@ import {
 export * from "./types";
 
 export namespace bbs {
-  namespace bls12381 {
+  namespace bls12381_sha256 {
+    const PRIVATE_KEY_LENGTH = 32;
+    const PUBLIC_KEY_LENGTH = 96;
+    const SIGNATURE_LENGTH = 112;
+
+    function generateKeyPair(
+      request?: KeyGenerationRequest
+    ): Promise<Required<KeyPair>>;
+    function sign(request: BbsSignRequest): Promise<Uint8Array>;
+    function verify(request: BbsVerifyRequest): Promise<BbsVerifyResult>;
+    function deriveProof(request: BbsDeriveProofRequest): Promise<Uint8Array>;
+    function verifyProof(
+      request: BbsVerifyProofRequest
+    ): Promise<BbsVerifyResult>;
+  }
+
+  namespace bls12381_shake256 {
     const PRIVATE_KEY_LENGTH = 32;
     const PUBLIC_KEY_LENGTH = 96;
     const SIGNATURE_LENGTH = 112;

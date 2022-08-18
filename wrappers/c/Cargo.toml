@@ -13,6 +13,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 ffi-support = "0.4"
 lazy_static = "1.4"
 pairing_crypto = { path = '../../' }
+sha3 = "0.9"
 
 [profile.release]
 lto = true

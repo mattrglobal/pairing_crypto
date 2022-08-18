@@ -30,7 +30,7 @@ const runBbsBenchmark = async (
   messageSizeInBytes: number,
   numberRevealed: number
 ): Promise<void> => {
-  const keyPair = await bbs.bls12381.generateKeyPair({
+  const keyPair = await bbs.bls12381_shake256.generateKeyPair({
     ikm: randomBytes(32),
     keyInfo: randomBytes(32),
   });
@@ -44,7 +44,7 @@ const runBbsBenchmark = async (
     messages,
   };
 
-  const messageSignature = await bbs.bls12381.sign(messageSignRequest);
+  const messageSignature = await bbs.bls12381_shake256.sign(messageSignRequest);
 
   const messageVerifyRequest = {
     signature: messageSignature,
@@ -68,7 +68,7 @@ const runBbsBenchmark = async (
     presentationMessage,
   };
 
-  const proof = await bbs.bls12381.deriveProof(messageDeriveProof);
+  const proof = await bbs.bls12381_shake256.deriveProof(messageDeriveProof);
 
   const verifyProofRequest: BbsVerifyProofRequest = {
     proof,
@@ -80,31 +80,31 @@ const runBbsBenchmark = async (
   };
 
   report(
-    `BBS Sign ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
-    await benchmarkPromise(() => bbs.bls12381.sign(messageSignRequest))
+    `BBS-BLS12381-Shake256 Sign ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
+    await benchmarkPromise(() => bbs.bls12381_shake256.sign(messageSignRequest))
   );
 
   report(
-    `BBS Verify ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
-    await benchmarkPromise(() => bbs.bls12381.verify(messageVerifyRequest))
+    `BBS-BLS12381-Shake256 Verify ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
+    await benchmarkPromise(() => bbs.bls12381_shake256.verify(messageVerifyRequest))
   );
 
   report(
-    `BBS Derive Proof ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
-    await benchmarkPromise(() => bbs.bls12381.deriveProof(messageDeriveProof))
+    `BBS-BLS12381-Shake256 Derive Proof ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
+    await benchmarkPromise(() => bbs.bls12381_shake256.deriveProof(messageDeriveProof))
   );
 
   report(
-    `BBS Verify Proof ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
-    await benchmarkPromise(() => bbs.bls12381.verifyProof(verifyProofRequest))
+    `BBS-BLS12381-Shake256 Verify Proof ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
+    await benchmarkPromise(() => bbs.bls12381_shake256.verifyProof(verifyProofRequest))
   );
 };
 
 (async () => {
   report(
-    "BBS Key Generation",
+    "BBS-BLS12381-Shake256 Key Generation",
     await benchmarkPromise(() =>
-      bbs.bls12381.generateKeyPair({
+      bbs.bls12381_shake256.generateKeyPair({
         ikm: randomBytes(32),
         keyInfo: randomBytes(32),
       })

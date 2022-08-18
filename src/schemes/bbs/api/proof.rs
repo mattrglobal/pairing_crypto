@@ -1,20 +1,16 @@
 use super::{
     dtos::{BbsProofGenRequest, BbsProofVerifyRequest},
-    utils::{
-        digest_messages,
-        digest_proof_messages,
-        digest_revealed_proof_messages,
-    },
+    utils::{digest_proof_messages, digest_revealed_proof_messages},
 };
 use crate::{
+    curves::bls12_381::hash_to_curve::ExpandMessage,
     error::Error,
-    schemes::bbs::ciphersuites::bls12_381::{
-        Generators,
-        Message,
-        Proof,
-        ProofMessage,
-        PublicKey,
-        Signature,
+    schemes::bbs::core::{
+        generator::Generators,
+        key_pair::PublicKey,
+        proof::Proof,
+        signature::Signature,
+        types::Message,
     },
 };
 
@@ -29,30 +25,27 @@ pub fn get_proof_size(num_undisclosed_messages: usize) -> usize {
     Proof::get_size(num_undisclosed_messages)
 }
 
-/// Generate a signature proof of knowledge.
-pub fn proof_gen<T: AsRef<[u8]>>(
+// Generate a signature proof of knowledge.
+pub(crate) fn proof_gen<T, X>(
     request: &BbsProofGenRequest<'_, T>,
-) -> Result<Vec<u8>, Error> {
+) -> Result<Vec<u8>, Error>
+where
+    T: AsRef<[u8]>,
+    X: ExpandMessage,
+{
     // Parse public key from request
     let pk = PublicKey::from_octets(request.public_key)?;
 
-    let mut digested_messages = vec![];
-    if let Some(request_messages) = request.messages {
-        let request_messages = request_messages
-            .iter()
-            .map(|element| element.value.as_ref())
-            .collect::<Vec<_>>();
-        // Digest the supplied messages
-        digested_messages = digest_messages(Some(&request_messages))?;
-    }
+    let (digested_messages, proof_messages) =
+        digest_proof_messages::<_, X>(request.messages)?;
 
     // Derive generators
-    let generators = Generators::new(digested_messages.len())?;
+    let generators = Generators::new::<X>(digested_messages.len())?;
     // Parse signature from request
     let signature = Signature::from_octets(request.signature)?;
 
     // Verify the signature to check the messages supplied are valid
-    if !(signature.verify(
+    if !(signature.verify::<_, _, X>(
         &pk,
         request.header.as_ref(),
         &generators,
@@ -61,45 +54,43 @@ pub fn proof_gen<T: AsRef<[u8]>>(
         return Err(Error::SignatureVerification);
     }
 
-    // Digest the supplied messages
-    let messages: Vec<ProofMessage> =
-        match digest_proof_messages(request.messages) {
-            Ok(messages) => messages,
-            Err(e) => return Err(e),
-        };
-
     // Generate the proof
-    let proof = Proof::new(
+    let proof = Proof::new::<_, X>(
         &pk,
         &signature,
         request.header.as_ref(),
         request.presentation_message.as_ref(),
         &generators,
-        &messages,
+        &proof_messages,
     )?;
 
     Ok(proof.to_octets())
 }
 
-/// Verify a signature proof of knowledge.
-pub fn proof_verify<T: AsRef<[u8]>>(
+// Verify a signature proof of knowledge.
+pub(crate) fn proof_verify<T, X>(
     request: &BbsProofVerifyRequest<'_, T>,
-) -> Result<bool, Error> {
+) -> Result<bool, Error>
+where
+    T: AsRef<[u8]>,
+    X: ExpandMessage,
+{
     // Parse public key from request
     let public_key = PublicKey::from_octets(request.public_key)?;
 
     // Digest the revealed proof messages
-    let messages: BTreeMap<usize, Message> = digest_revealed_proof_messages(
-        request.messages,
-        request.total_message_count,
-    )?;
+    let messages: BTreeMap<usize, Message> =
+        digest_revealed_proof_messages::<_, X>(
+            request.messages,
+            request.total_message_count,
+        )?;
 
     // Derive generators
-    let generators = Generators::new(request.total_message_count)?;
+    let generators = Generators::new::<X>(request.total_message_count)?;
 
     let proof = Proof::from_octets(request.proof)?;
 
-    proof.verify(
+    proof.verify::<_, X>(
         &public_key,
         request.header.as_ref(),
         request.presentation_message.as_ref(),

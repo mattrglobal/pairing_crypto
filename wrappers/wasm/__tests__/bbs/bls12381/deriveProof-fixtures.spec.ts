@@ -13,11 +13,11 @@
 
 import { BbsDeriveProofRequest, bbs } from "../../../lib";
 import { stringToBytes } from "../../utilities";
-import { SignatureFixture, signatureFixtures } from "../../../__fixtures__";
+import { SignatureFixture, bls12381Shake256SignatureFixtures } from "../../../__fixtures__";
 
-signatureFixtures.forEach((item: SignatureFixture) => {
+bls12381Shake256SignatureFixtures.forEach((item: SignatureFixture) => {
   describe("bbs", () => {
-    describe("bls12381", () => {
+    describe("bls12381_shake256", () => {
       describe("deriveProof - test fixtures", () => {
         if (item.value.result.valid) {
           it(`should deriveProof revealing all messages for case: ${item.value.caseName}`, async () => {
@@ -40,7 +40,7 @@ signatureFixtures.forEach((item: SignatureFixture) => {
               presentationMessage: stringToBytes("0123456789"),
             };
 
-            const proof = await bbs.bls12381.deriveProof(request);
+            const proof = await bbs.bls12381_shake256.deriveProof(request);
             expect(proof).toBeInstanceOf(Uint8Array);
           });
 
@@ -64,7 +64,7 @@ signatureFixtures.forEach((item: SignatureFixture) => {
               presentationMessage: stringToBytes("0123456789"),
             };
 
-            const proof = await bbs.bls12381.deriveProof(request);
+            const proof = await bbs.bls12381_shake256.deriveProof(request);
             expect(proof).toBeInstanceOf(Uint8Array);
           });
 
@@ -90,7 +90,7 @@ signatureFixtures.forEach((item: SignatureFixture) => {
                 presentationMessage: stringToBytes("0123456789"),
               };
 
-              const proof = await bbs.bls12381.deriveProof(request);
+              const proof = await bbs.bls12381_shake256.deriveProof(request);
               expect(proof).toBeInstanceOf(Uint8Array);
             });
           }
@@ -116,7 +116,7 @@ signatureFixtures.forEach((item: SignatureFixture) => {
             };
 
             await expect(
-              bbs.bls12381.deriveProof(request)
+              bbs.bls12381_shake256.deriveProof(request)
             ).rejects.toThrowError(
               "Error: signature verification failed."
             );

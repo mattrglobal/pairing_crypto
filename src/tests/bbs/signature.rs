@@ -9,14 +9,16 @@ use super::{
 };
 use crate::{
     bbs::{
-        ciphersuites::bls12_381::{Message, PublicKey, SecretKey, Signature},
+        ciphersuites::bls12_381::{PublicKey, SecretKey},
         core::{
             constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
             key_pair::KeyPair,
+            signature::Signature,
+            types::Message,
         },
     },
     common::util::vec_to_byte_array,
-    curves::bls12_381::{G1Projective, Scalar},
+    curves::bls12_381::{hash_to_curve::ExpandMsgXof, G1Projective, Scalar},
     tests::bbs::{
         get_random_test_key_pair,
         get_test_messages,
@@ -31,6 +33,7 @@ use core::convert::TryFrom;
 use ff::Field;
 use group::{Curve, Group};
 use rand_core::OsRng;
+use sha3::Shake256;
 use std::vec;
 use subtle::{Choice, ConditionallySelectable};
 
@@ -52,7 +55,7 @@ fn sign_verify_serde_nominal() {
     let messages = get_test_messages();
     let generators = create_generators_helper(messages.len());
 
-    let signature = Signature::new(
+    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
         &key_pair.secret_key,
         &key_pair.public_key,
         header,
@@ -63,7 +66,12 @@ fn sign_verify_serde_nominal() {
 
     assert_eq!(
         signature
-            .verify(&key_pair.public_key, header, &generators, &messages)
+            .verify::<_, _, ExpandMsgXof<Shake256>>(
+                &key_pair.public_key,
+                header,
+                &generators,
+                &messages
+            )
             .expect("verification failed"),
         true
     );
@@ -79,7 +87,12 @@ fn sign_verify_serde_nominal() {
 
     assert_eq!(
         signature_from_deserialization
-            .verify(&key_pair.public_key, header, &generators, &messages)
+            .verify::<_, _, ExpandMsgXof<Shake256>>(
+                &key_pair.public_key,
+                header,
+                &generators,
+                &messages
+            )
             .expect("signature verification failed after serde"),
         true
     );
@@ -95,7 +108,7 @@ fn sign_verify_different_key_infos() {
                 .expect("secret key generation failed");
         let pk = PublicKey::from(&sk);
         let generators = create_generators_helper(messages.len());
-        let signature = Signature::new(
+        let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
             &sk,
             &pk,
             Some(&TEST_HEADER),
@@ -107,7 +120,12 @@ fn sign_verify_different_key_infos() {
 
         assert_eq!(
             signature
-                .verify(&pk, Some(&TEST_HEADER), &generators, &messages)
+                .verify::<_, _, ExpandMsgXof<Shake256>>(
+                    &pk,
+                    Some(&TEST_HEADER),
+                    &generators,
+                    &messages
+                )
                 .unwrap(),
             true
         );
@@ -130,7 +148,7 @@ fn signature_equality() {
     let messages = get_test_messages();
     let generators = create_generators_helper(messages.len());
 
-    let signature1 = Signature::new(
+    let signature1 = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
         &key_pair.secret_key,
         &key_pair.public_key,
         header,
@@ -139,7 +157,7 @@ fn signature_equality() {
     )
     .expect("signing failed");
 
-    let signature2 = Signature::new(
+    let signature2 = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
         &key_pair.secret_key,
         &key_pair.public_key,
         header,
@@ -160,7 +178,7 @@ fn signature_equality() {
     signature4.conditional_assign(&signature1, Choice::from(0u8));
     assert_ne!(signature4, signature1);
 
-    let signature5 = Signature::new(
+    let signature5 = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
         &key_pair.secret_key,
         &key_pair.public_key,
         header,
@@ -259,11 +277,15 @@ fn signature_uniqueness() {
         failure_debug_message,
     ) in test_data
     {
-        let signature1 = Signature::new(sk1, pk1, h1, gen1, msg1)
-            .expect("signature1 creation failed");
+        let signature1 = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
+            sk1, pk1, h1, gen1, msg1,
+        )
+        .expect("signature1 creation failed");
 
-        let signature2 = Signature::new(sk2, pk2, h2, gen2, msg2)
-            .expect("signature2 creation failed");
+        let signature2 = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
+            sk2, pk2, h2, gen2, msg2,
+        )
+        .expect("signature2 creation failed");
 
         assert_ne!(
             signature1, signature2,
@@ -306,11 +328,22 @@ fn sign_verify_valid_cases() {
     for (sk, pk, header, generators, messages, failure_debug_message) in
         test_data
     {
-        let signature = Signature::new(sk, &pk, header, &generators, &messages)
-            .expect(&format!("signing should pass - {failure_debug_message}"));
+        let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
+            sk,
+            &pk,
+            header,
+            &generators,
+            &messages,
+        )
+        .expect(&format!("signing should pass - {failure_debug_message}"));
         assert_eq!(
             signature
-                .verify(&pk, header, &generators, &messages)
+                .verify::<_, _, ExpandMsgXof<Shake256>>(
+                    &pk,
+                    header,
+                    &generators,
+                    &messages
+                )
                 .expect(&format!(
                     "verification should pass - {failure_debug_message}"
                 )),
@@ -319,16 +352,22 @@ fn sign_verify_valid_cases() {
     }
 
     // Public key validity is not checked during signing
-    Signature::new(&sk, &PublicKey::default(), header, &generators, &messages)
-        .expect(&format!(
-            "signing should pass - public key validity is not checked during \
-             signing"
-        ));
+    Signature::new::<_, _, ExpandMsgXof<Shake256>>(
+        &sk,
+        &PublicKey::default(),
+        header,
+        &generators,
+        &messages,
+    )
+    .expect(&format!(
+        "signing should pass - public key validity is not checked during \
+         signing"
+    ));
 }
 
 #[test]
-// Test `Signature::new(...)` implementation's returned errors by passing
-// invalid paramter values.
+// Test `Signature::new::<_, _, ExpandMsgXof<Shake256>>(...)` implementation's
+// returned errors by passing invalid paramter values.
 fn signature_new_invalid_parameters() {
     let sk = SecretKey::random(&mut OsRng, Some(TEST_KEY_INFO))
         .expect("secret key generation failed");
@@ -337,11 +376,22 @@ fn signature_new_invalid_parameters() {
     let messages = get_test_messages();
     let generators = create_generators_helper(messages.len());
     // Just to make sure sign-verify succeeds with above valid values
-    let signature = Signature::new(&sk, &pk, header, &generators, &messages)
-        .expect("signing failed");
+    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
+        &sk,
+        &pk,
+        header,
+        &generators,
+        &messages,
+    )
+    .expect("signing failed");
     assert_eq!(
         signature
-            .verify(&pk, header, &generators, &messages)
+            .verify::<_, _, ExpandMsgXof<Shake256>>(
+                &pk,
+                header,
+                &generators,
+                &messages
+            )
             .expect("verification failed"),
         true
     );
@@ -468,7 +518,13 @@ fn signature_new_invalid_parameters() {
     for (sk, pk, header, generators, messages, error, failure_debug_message) in
         test_data
     {
-        let result = Signature::new(sk, &pk, header, &generators, &messages);
+        let result = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
+            sk,
+            &pk,
+            header,
+            &generators,
+            &messages,
+        );
         assert_eq!(
             result,
             Err(error),
@@ -487,7 +543,7 @@ fn verify_tampered_signature() {
     let generators = create_generators_helper(messages.len());
 
     // Just to make sure sign-verify succeeds with above valid values
-    let signature = Signature::new(
+    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
         &key_pair.secret_key,
         &key_pair.public_key,
         header,
@@ -497,7 +553,12 @@ fn verify_tampered_signature() {
     .expect("signing failed");
     assert_eq!(
         signature
-            .verify(&key_pair.public_key, header, &generators, &messages)
+            .verify::<_, _, ExpandMsgXof<Shake256>>(
+                &key_pair.public_key,
+                header,
+                &generators,
+                &messages
+            )
             .expect("verification failed"),
         true
     );
@@ -506,7 +567,12 @@ fn verify_tampered_signature() {
     tampered_signature.A = G1Projective::random(&mut OsRng);
     assert_eq!(
         tampered_signature
-            .verify(&key_pair.public_key, header, &generators, &messages)
+            .verify::<_, _, ExpandMsgXof<Shake256>>(
+                &key_pair.public_key,
+                header,
+                &generators,
+                &messages
+            )
             .expect("verification should not fail with error"),
         false,
         "verification should fail with tampered `A` value"
@@ -516,7 +582,12 @@ fn verify_tampered_signature() {
     tampered_signature.e = Scalar::random(&mut OsRng);
     assert_eq!(
         tampered_signature
-            .verify(&key_pair.public_key, header, &generators, &messages)
+            .verify::<_, _, ExpandMsgXof<Shake256>>(
+                &key_pair.public_key,
+                header,
+                &generators,
+                &messages
+            )
             .expect("verification should not fail with error"),
         false,
         "verification should fail with tampered `e` value"
@@ -526,7 +597,12 @@ fn verify_tampered_signature() {
     tampered_signature.s = Scalar::random(&mut OsRng);
     assert_eq!(
         tampered_signature
-            .verify(&key_pair.public_key, header, &generators, &messages)
+            .verify::<_, _, ExpandMsgXof<Shake256>>(
+                &key_pair.public_key,
+                header,
+                &generators,
+                &messages
+            )
             .expect("verification should not fail with error"),
         false,
         "verification should fail with tampered `s` value"
@@ -560,7 +636,7 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
     let generators = create_generators_helper(messages.len());
 
     // Just to make sure sign-verify succeeds with above valid values
-    let signature = Signature::new(
+    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
         &key_pair.secret_key,
         &key_pair.public_key,
         header,
@@ -570,7 +646,12 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
     .expect("signing failed");
     assert_eq!(
         signature
-            .verify(&key_pair.public_key, header, &generators, &messages)
+            .verify::<_, _, ExpandMsgXof<Shake256>>(
+                &key_pair.public_key,
+                header,
+                &generators,
+                &messages
+            )
             .expect("verification failed"),
         true
     );
@@ -702,7 +783,12 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
 
     for (pk, header, generators, messages, failure_debug_message) in test_data {
         let result = signature
-            .verify(&pk, header, &generators, &messages)
+            .verify::<_, _, ExpandMsgXof<Shake256>>(
+                &pk,
+                header,
+                &generators,
+                &messages,
+            )
             .expect("verify should return a true/false value, not error");
         assert_eq!(
             result, false,
@@ -745,7 +831,12 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
             test_data
         {
             let result = signature
-                .verify(&pk, header, &generators, &messages)
+                .verify::<_, _, ExpandMsgXof<Shake256>>(
+                    &pk,
+                    header,
+                    &generators,
+                    &messages,
+                )
                 .expect("verify should return a true/false value, not error");
             assert_eq!(
                 result, false,
@@ -784,7 +875,7 @@ fn verify_tampered_signature_parameters_no_header_signature() {
     let generators = create_generators_helper(messages.len());
 
     // Just to make sure sign-verify succeeds with above valid values
-    let signature = Signature::new(
+    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
         &key_pair.secret_key,
         &key_pair.public_key,
         header,
@@ -794,7 +885,12 @@ fn verify_tampered_signature_parameters_no_header_signature() {
     .expect("signing failed");
     assert_eq!(
         signature
-            .verify(&key_pair.public_key, header, &generators, &messages)
+            .verify::<_, _, ExpandMsgXof<Shake256>>(
+                &key_pair.public_key,
+                header,
+                &generators,
+                &messages
+            )
             .expect("verification failed"),
         true
     );
@@ -880,7 +976,12 @@ fn verify_tampered_signature_parameters_no_header_signature() {
 
     for (pk, header, generators, messages, failure_debug_message) in test_data {
         let result = signature
-            .verify(&pk, header, &generators, &messages)
+            .verify::<_, _, ExpandMsgXof<Shake256>>(
+                &pk,
+                header,
+                &generators,
+                &messages,
+            )
             .expect("verify should return a true/false value, not error");
         assert_eq!(
             result, false,
@@ -900,7 +1001,7 @@ fn verify_tampered_signature_parameters_no_messages_signature() {
     let generators = create_generators_helper(messages.len());
 
     // Just to make sure sign-verify succeeds with above valid values
-    let signature = Signature::new(
+    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
         &key_pair.secret_key,
         &key_pair.public_key,
         header,
@@ -910,7 +1011,12 @@ fn verify_tampered_signature_parameters_no_messages_signature() {
     .expect("signing failed");
     assert_eq!(
         signature
-            .verify(&key_pair.public_key, header, &generators, &messages)
+            .verify::<_, _, ExpandMsgXof<Shake256>>(
+                &key_pair.public_key,
+                header,
+                &generators,
+                &messages
+            )
             .expect("verification failed"),
         true
     );
@@ -955,7 +1061,12 @@ fn verify_tampered_signature_parameters_no_messages_signature() {
 
     for (pk, header, generators, messages, failure_debug_message) in test_data {
         let result = signature
-            .verify(&pk, header, &generators, &messages)
+            .verify::<_, _, ExpandMsgXof<Shake256>>(
+                &pk,
+                header,
+                &generators,
+                &messages,
+            )
             .expect("verify should return a true/false value, not error");
         assert_eq!(
             result, false,
@@ -974,11 +1085,22 @@ fn verify_invalid_parameters() {
     let messages = get_test_messages();
     let generators = create_generators_helper(messages.len());
     // Just to make sure sign-verify succeeds with above valid values
-    let signature = Signature::new(&sk, &pk, header, &generators, &messages)
-        .expect("signing failed");
+    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
+        &sk,
+        &pk,
+        header,
+        &generators,
+        &messages,
+    )
+    .expect("signing failed");
     assert_eq!(
         signature
-            .verify(&pk, header, &generators, &messages)
+            .verify::<_, _, ExpandMsgXof<Shake256>>(
+                &pk,
+                header,
+                &generators,
+                &messages
+            )
             .expect("verification failed"),
         true
     );
@@ -1052,7 +1174,12 @@ fn verify_invalid_parameters() {
     for (pk, header, generators, messages, error, failure_debug_message) in
         test_data
     {
-        let result = signature.verify(&pk, header, &generators, &messages);
+        let result = signature.verify::<_, _, ExpandMsgXof<Shake256>>(
+            &pk,
+            header,
+            &generators,
+            &messages,
+        );
         assert_eq!(
             result,
             Err(error),
@@ -1085,7 +1212,7 @@ fn to_octets() {
     let messages = get_test_messages();
     let generators = create_generators_helper(messages.len());
 
-    let mut signature = Signature::new(
+    let mut signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
         &key_pair.secret_key,
         &key_pair.public_key,
         header,

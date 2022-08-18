@@ -21,25 +21,29 @@ use std::collections::BTreeMap;
 
 use super::dtos::BbsProofGenRevealMessageRequest;
 use crate::{
-    error::Error,
-    schemes::bbs::ciphersuites::bls12_381::{
-        Message,
-        ProofMessage,
-        MAP_MESSAGE_TO_SCALAR_DST,
+    bbs::core::{
+        constants::MAP_MESSAGE_TO_SCALAR_DST,
+        types::{Message, ProofMessage},
     },
+    curves::bls12_381::hash_to_curve::ExpandMessage,
+    error::Error,
 };
 
 /// Digests the set of input messages and returns in the form of an internal
 /// structure
 #[allow(clippy::useless_asref)]
-pub(super) fn digest_messages<T: AsRef<[u8]>>(
+pub(super) fn digest_messages<T, X>(
     messages: Option<&[T]>,
-) -> Result<Vec<Message>, Error> {
+) -> Result<Vec<Message>, Error>
+where
+    T: AsRef<[u8]>,
+    X: ExpandMessage,
+{
     if let Some(messages) = messages {
         return messages
             .iter()
             .map(|msg| {
-                Message::from_arbitrary_data(
+                Message::from_arbitrary_data::<_, X>(
                     msg.as_ref(),
                     MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
                 )
@@ -50,37 +54,47 @@ pub(super) fn digest_messages<T: AsRef<[u8]>>(
 }
 
 /// Digests a set of supplied proof messages
-pub(super) fn digest_proof_messages<T: AsRef<[u8]>>(
+pub(super) fn digest_proof_messages<T, X>(
     messages: Option<&[BbsProofGenRevealMessageRequest<T>]>,
-) -> Result<Vec<ProofMessage>, Error> {
+) -> Result<(Vec<Message>, Vec<ProofMessage>), Error>
+where
+    T: AsRef<[u8]>,
+    X: ExpandMessage,
+{
+    let mut digested_messages = vec![];
+    let mut proof_messages = vec![];
     if let Some(messages) = messages {
-        return messages
-            .iter()
-            .map(|element| {
-                match Message::from_arbitrary_data(
-                    element.value.as_ref(),
-                    MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
-                ) {
-                    Ok(digested_message) => {
-                        if element.reveal {
-                            Ok(ProofMessage::Revealed(digested_message))
-                        } else {
-                            Ok(ProofMessage::Hidden(digested_message))
-                        }
+        for m in messages {
+            match Message::from_arbitrary_data::<_, X>(
+                m.value.as_ref(),
+                MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
+            ) {
+                Ok(digested_message) => {
+                    digested_messages.push(digested_message);
+                    if m.reveal {
+                        proof_messages
+                            .push(ProofMessage::Revealed(digested_message))
+                    } else {
+                        proof_messages
+                            .push(ProofMessage::Hidden(digested_message))
                     }
-                    Err(e) => Err(e),
                 }
-            })
-            .collect();
+                Err(e) => return Err(e),
+            }
+        }
     }
-    Ok(vec![])
+    Ok((digested_messages, proof_messages))
 }
 
 #[allow(clippy::useless_asref)]
-pub(super) fn digest_revealed_proof_messages<T: AsRef<[u8]>>(
+pub(super) fn digest_revealed_proof_messages<T, X>(
     messages: Option<&[(usize, T)]>,
     total_message_count: usize,
-) -> Result<BTreeMap<usize, Message>, Error> {
+) -> Result<BTreeMap<usize, Message>, Error>
+where
+    T: AsRef<[u8]>,
+    X: ExpandMessage,
+{
     if messages.is_none() {
         return Ok(BTreeMap::new());
     }
@@ -105,7 +119,7 @@ pub(super) fn digest_revealed_proof_messages<T: AsRef<[u8]>>(
     messages
         .iter()
         .map(|(i, m)| {
-            match Message::from_arbitrary_data(
+            match Message::from_arbitrary_data::<_, X>(
                 m.as_ref(),
                 MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
             ) {

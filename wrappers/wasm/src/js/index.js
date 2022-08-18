@@ -17,7 +17,7 @@ const wasm = require('./wasm_module.js');
 // TODO should be able to remove this duplicate definition syntax by using ESM over index.web.js
 // in future
 
-const BBS_SIGNATURE_LENGTH = 112;
+const DEFAULT_BLS12381_BBS_SIGNATURE_LENGTH = 112;
 
 const DEFAULT_BLS12381_PRIVATE_KEY_LENGTH = 32;
 
@@ -53,10 +53,10 @@ const initialize = async () => {
     }
 }
 
-const bbs_bls12381_generate_key_pair = async (request) => {
+const bbs_bls12_381_generate_key_pair = async (request) => {
     await initialize();
     var result = await throwErrorOnRejectedPromise(
-        wasm.bbs_bls12381_generate_key_pair(request ?? {})
+        wasm.bbs_bls12_381_generate_key_pair(request ?? {})
     );
     return {
         secretKey: new Uint8Array(result.secretKey),
@@ -64,24 +64,44 @@ const bbs_bls12381_generate_key_pair = async (request) => {
     };
 };
 
-const bbs_bls12381_sign = async (request) => {
+const bbs_bls12_381_sha_256_sign = async (request) => {
     await initialize();
-    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bls12381_sign(request)));
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bls12_381_sha_256_sign(request)));
 };
 
-const bbs_bls12381_verify = async (request) => {
+const bbs_bls12_381_sha_256_verify = async (request) => {
     await initialize();
-    return await throwErrorOnRejectedPromise(wasm.bbs_bls12381_verify(request));
+    return await throwErrorOnRejectedPromise(wasm.bbs_bls12_381_sha_256_verify(request));
 };
 
-const bbs_bls12381_derive_proof = async (request) => {
+const bbs_bls12_381_sha_256_proof_gen = async (request) => {
     await initialize();
-    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bls12381_derive_proof(request)));
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bls12_381_sha_256_proof_gen(request)));
 }
 
-const bbs_bls12381_verify_proof = async (request) => {
+const bbs_bls12_381_sha_256_proof_verify = async (request) => {
     await initialize();
-    return await throwErrorOnRejectedPromise(wasm.bbs_bls12381_verify_proof(request));
+    return await throwErrorOnRejectedPromise(wasm.bbs_bls12_381_sha_256_proof_verify(request));
+}
+
+const bbs_bls12_381_shake_256_sign = async (request) => {
+    await initialize();
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bls12_381_shake_256_sign(request)));
+};
+
+const bbs_bls12_381_shake_256_verify = async (request) => {
+    await initialize();
+    return await throwErrorOnRejectedPromise(wasm.bbs_bls12_381_shake_256_verify(request));
+};
+
+const bbs_bls12_381_shake_256_proof_gen = async (request) => {
+    await initialize();
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bls12_381_shake_256_proof_gen(request)));
+}
+
+const bbs_bls12_381_shake_256_proof_verify = async (request) => {
+    await initialize();
+    return await throwErrorOnRejectedPromise(wasm.bbs_bls12_381_shake_256_proof_verify(request));
 }
 
 const convertToRevealMessageArray = (messages, revealedIndicies) => {
@@ -114,16 +134,27 @@ const convertRevealMessageArrayToRevealMap = (messages) => {
 }
 
 module.exports.bbs = {
-    bls12381: {
+    bls12381_sha256: {
         PRIVATE_KEY_LENGTH: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
         PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_PUBLIC_KEY_LENGTH,
-        SIGNATURE_LENGTH: BBS_SIGNATURE_LENGTH,
+        SIGNATURE_LENGTH: DEFAULT_BLS12381_BBS_SIGNATURE_LENGTH,
 
-        generateKeyPair: bbs_bls12381_generate_key_pair,
-        sign: bbs_bls12381_sign,
-        verify: bbs_bls12381_verify,
-        deriveProof: bbs_bls12381_derive_proof,
-        verifyProof: bbs_bls12381_verify_proof
+        generateKeyPair: bbs_bls12_381_generate_key_pair,
+        sign: bbs_bls12_381_sha_256_sign,
+        verify: bbs_bls12_381_sha_256_verify,
+        deriveProof: bbs_bls12_381_sha_256_proof_gen,
+        verifyProof: bbs_bls12_381_sha_256_proof_verify
+    },
+    bls12381_shake256: {
+        PRIVATE_KEY_LENGTH: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
+        PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_PUBLIC_KEY_LENGTH,
+        SIGNATURE_LENGTH: DEFAULT_BLS12381_BBS_SIGNATURE_LENGTH,
+
+        generateKeyPair: bbs_bls12_381_generate_key_pair,
+        sign: bbs_bls12_381_shake_256_sign,
+        verify: bbs_bls12_381_shake_256_verify,
+        deriveProof: bbs_bls12_381_shake_256_proof_gen,
+        verifyProof: bbs_bls12_381_shake_256_proof_verify
     }
 }
 

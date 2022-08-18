@@ -110,44 +110,6 @@ impl From<ByteBuffer> for ByteArray {
 
 define_bytebuffer_destructor!(pairing_crypto_byte_buffer_free);
 
-// TODO would be nice to drop the option here?
-
-pub struct BbsSignRequestDto {
-    pub secret_key: Vec<u8>,
-    pub public_key: Vec<u8>,
-    pub header: Vec<u8>,
-    pub messages: Vec<Vec<u8>>,
-}
-
-pub struct BbsVerifyRequestDto {
-    pub public_key: Vec<u8>,
-    pub header: Vec<u8>,
-    pub messages: Vec<Vec<u8>>,
-    pub signature: Vec<u8>,
-}
-
-pub struct BbsDeriveProofRevealMessageRequestDto {
-    pub reveal: bool,
-    pub value: Vec<u8>,
-}
-
-pub struct BbsDeriveProofRequestDto {
-    pub public_key: Vec<u8>,
-    pub header: Vec<u8>,
-    pub messages: Vec<BbsDeriveProofRevealMessageRequestDto>,
-    pub signature: Vec<u8>,
-    pub presentation_message: Vec<u8>,
-}
-
-pub struct BbsVerifyProofRequestDto {
-    pub public_key: Vec<u8>,
-    pub header: Vec<u8>,
-    pub proof: Vec<u8>,
-    pub presentation_message: Vec<u8>,
-    pub total_message_count: usize,
-    pub messages: Vec<(usize, Vec<u8>)>,
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

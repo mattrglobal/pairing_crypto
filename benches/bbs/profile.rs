@@ -1,16 +1,18 @@
 use pairing_crypto::bbs::{
-    ciphersuites::bls12_381::{
-        proof_gen,
-        proof_verify,
-        sign,
-        verify,
-        BbsProofGenRequest,
-        BbsProofGenRevealMessageRequest,
-        BbsProofVerifyRequest,
-        BbsSignRequest,
-        BbsVerifyRequest,
+    ciphersuites::{
+        bls12_381::KeyPair,
+        bls12_381_shake_256::{
+            proof_gen as bls12_381_shake_256_proof_gen,
+            proof_verify as bls12_381_shake_256_proof_verify,
+            sign as bls12_381_shake_256_sign,
+            verify as bls12_381_shake_256_verify,
+        },
     },
-    core::key_pair::KeyPair,
+    BbsProofGenRequest,
+    BbsProofGenRevealMessageRequest,
+    BbsProofVerifyRequest,
+    BbsSignRequest,
+    BbsVerifyRequest,
 };
 
 #[macro_use]
@@ -29,8 +31,8 @@ const TEST_KEY_INFOS: &[u8; 50] =
 const TEST_HEADER: &[u8; 16] = b"some_app_context";
 const TEST_PRESENTATION_MESSAGE: &[u8; 25] = b"test-presentation-message";
 
-const NUM_MESSAGES: usize = 1;
-const NUM_REVEALED_MESSAGES: usize = 0;
+const NUM_MESSAGES: usize = 10;
+const NUM_REVEALED_MESSAGES: usize = 5;
 
 fn get_random_key_pair() -> ([u8; 32], [u8; 96]) {
     KeyPair::random(&mut OsRng, Some(TEST_KEY_INFOS))
@@ -75,7 +77,7 @@ fn profile_sign(c: &mut Criterion) {
         &format!("profile - sign total messages {}", NUM_MESSAGES),
         |b| {
             b.iter(|| {
-                sign(&BbsSignRequest {
+                bls12_381_shake_256_sign(&BbsSignRequest {
                     secret_key: black_box(&secret_key),
                     public_key: black_box(&public_key),
                     header: black_box(Some(header)),
@@ -97,7 +99,7 @@ fn profile_verify(c: &mut Criterion) {
     }
     let messages: Vec<&[u8]> = messages.iter().map(|m| m.as_ref()).collect();
 
-    let signature = sign(&BbsSignRequest {
+    let signature = bls12_381_shake_256_sign(&BbsSignRequest {
         secret_key: &secret_key,
         public_key: &public_key,
         header: Some(header),
@@ -109,7 +111,7 @@ fn profile_verify(c: &mut Criterion) {
         &format!("profile - verify total messages {}", NUM_MESSAGES),
         |b| {
             b.iter(|| {
-                assert!(verify(&BbsVerifyRequest {
+                assert!(bls12_381_shake_256_verify(&BbsVerifyRequest {
                     public_key: black_box(&public_key),
                     header: black_box(Some(header)),
                     messages: black_box(Some(&messages[..])),
@@ -132,7 +134,7 @@ fn profile_proof_gen(c: &mut Criterion) {
     }
     let messages: Vec<&[u8]> = messages.iter().map(|m| m.as_ref()).collect();
 
-    let signature = sign(&BbsSignRequest {
+    let signature = bls12_381_shake_256_sign(&BbsSignRequest {
         secret_key: &secret_key,
         public_key: &public_key,
         header: Some(header),
@@ -141,7 +143,7 @@ fn profile_proof_gen(c: &mut Criterion) {
     .expect("signature generation failed");
 
     assert_eq!(
-        verify(&BbsVerifyRequest {
+        bls12_381_shake_256_verify(&BbsVerifyRequest {
             public_key: &public_key,
             header: Some(header),
             messages: Some(messages.as_slice()),
@@ -170,7 +172,7 @@ fn profile_proof_gen(c: &mut Criterion) {
         ),
         |b| {
             b.iter(|| {
-                proof_gen(&BbsProofGenRequest {
+                bls12_381_shake_256_proof_gen(&BbsProofGenRequest {
                     public_key: black_box(&public_key),
                     header: Some(header),
                     messages: black_box(Some(&proof_messages)),
@@ -194,7 +196,7 @@ fn profile_proof_verify(c: &mut Criterion) {
     }
     let messages: Vec<&[u8]> = messages.iter().map(|m| m.as_ref()).collect();
 
-    let signature = sign(&BbsSignRequest {
+    let signature = bls12_381_shake_256_sign(&BbsSignRequest {
         secret_key: &secret_key,
         public_key: &public_key,
         header: Some(header),
@@ -203,7 +205,7 @@ fn profile_proof_verify(c: &mut Criterion) {
     .expect("signature generation failed");
 
     assert_eq!(
-        verify(&BbsVerifyRequest {
+        bls12_381_shake_256_verify(&BbsVerifyRequest {
             public_key: &public_key,
             header: Some(header),
             messages: Some(messages.as_slice()),
@@ -230,7 +232,7 @@ fn profile_proof_verify(c: &mut Criterion) {
         .map(|(k, m)| (k as usize, m.clone()))
         .collect::<Vec<(usize, &[u8])>>();
 
-    let proof = proof_gen(&BbsProofGenRequest {
+    let proof = bls12_381_shake_256_proof_gen(&BbsProofGenRequest {
         public_key: &public_key,
         header: Some(header),
         messages: Some(&proof_messages),
@@ -246,14 +248,18 @@ fn profile_proof_verify(c: &mut Criterion) {
         ),
         |b| {
             b.iter(|| {
-                assert!(proof_verify(&BbsProofVerifyRequest {
-                    public_key: black_box(&public_key),
-                    header: Some(header),
-                    presentation_message: black_box(Some(presentation_message)),
-                    proof: black_box(&proof),
-                    total_message_count: black_box(NUM_MESSAGES),
-                    messages: black_box(Some(revealed_messages.as_slice())),
-                })
+                assert!(bls12_381_shake_256_proof_verify(
+                    &BbsProofVerifyRequest {
+                        public_key: black_box(&public_key),
+                        header: Some(header),
+                        presentation_message: black_box(Some(
+                            presentation_message
+                        )),
+                        proof: black_box(&proof),
+                        total_message_count: black_box(NUM_MESSAGES),
+                        messages: black_box(Some(revealed_messages.as_slice())),
+                    }
+                )
                 .unwrap());
             });
         },
