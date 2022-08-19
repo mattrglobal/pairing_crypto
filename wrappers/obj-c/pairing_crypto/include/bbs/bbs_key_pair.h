@@ -1,10 +1,6 @@
 #ifndef bbs_key_pair_h
 #define bbs_key_pair_h
 
-#define _Nonnull
-#define _Nullable
-#define nullable
-
 /** @brief BBS key pair */
 @interface BbsKeyPair : NSObject
 
@@ -20,6 +16,10 @@
 - (nullable instancetype)initWithIkm:(NSData *_Nonnull)ikm
                              keyInfo:(NSData *_Nullable)keyInfo
                            withError:(NSError *_Nullable *_Nullable)errorPtr;
+
+- (void)generateKeyPair:(NSData *_Nonnull)ikm
+                keyInfo:(NSData *_Nullable)keyInfo
+              withError:(NSError *_Nullable *_Nullable)errorPtr;
 
 @end
 

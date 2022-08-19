@@ -6,10 +6,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define _Nonnull
-#define _Nullable
-#define nullable
-
 typedef struct
 {
   int32_t code;

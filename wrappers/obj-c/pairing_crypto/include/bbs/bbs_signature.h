@@ -31,6 +31,16 @@
       messages:(NSArray *_Nullable)messages
      withError:(NSError *_Nullable *_Nullable)errorPtr;
 
+- (void)createSignature:(BbsKeyPair *_Nonnull)keyPair
+                 header:(NSData *_Nullable)header
+               messages:(NSArray *_Nullable)messages
+              withError:(NSError *_Nullable *_Nullable)errorPtr;
+
+- (bool)verifySignature:(NSData *_Nonnull)publicKey
+                 header:(NSData *_Nullable)header
+               messages:(NSArray *_Nullable)messages
+              withError:(NSError *_Nullable *_Nullable)errorPtr;
+
 @end
 
 #endif /* bbs_signature_h */

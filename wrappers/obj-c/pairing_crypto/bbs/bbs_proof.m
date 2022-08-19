@@ -2,19 +2,19 @@
 
 #import "pairing_crypto_bbs.h"
 #import "bbs_proof.h"
-#import "BbsSignatureError.h"
+#import "PairingCryptoError.h"
 
 @interface BbsProof ()
 
-/** @brief A BBS Signature Proof */
+/** @brief A BBS Proof */
 @property(nonatomic, readwrite) NSData *value;
 
 @end
 
-/** @brief A BBS Signature Proof */
+/** @brief A BBS Proof */
 @implementation BbsProof
 
-/** @brief Creates a BBS signature proof from the raw bytes  */
+/** @brief Create a BBS proof from the raw bytes. */
 - (nullable instancetype)initWithBytes:(NSData* _Nonnull)bytes
                              withError:(NSError *_Nullable*_Nullable)errorPtr {
     
@@ -23,7 +23,7 @@
     return self;
 }
 
-/** @brief Creates a BBS signature proof */
+/** @brief Create a BBS proof. */
 - (nullable instancetype)createProof:(NSData *_Nonnull)publicKey
                               header:(NSData *_Nullable)header
                  presentationMessage:(NSData *_Nullable)presentationMessage
@@ -42,7 +42,7 @@
     return self;
 }
 
-/** @brief Initializes a key pair */
+/** @brief Verify a BBS proof. */
 - (bool)verifyProof:(NSData *_Nonnull)publicKey
              header:(NSData *_Nullable)header
 presentationMessage:(NSData *_Nullable)presentationMessage
@@ -58,7 +58,7 @@ total_message_count:(NSUInteger)total_message_count
                             withError:errorPtr];
 }
 
-/** @brief Initializes a key pair */
+/** @brief Create a BBS proof from the raw bytes. */
 - (nullable instancetype)createFromBytes:(NSData* _Nonnull)bytes
                                withError:(NSError *_Nullable*_Nullable)errorPtr {
     
@@ -66,7 +66,8 @@ total_message_count:(NSUInteger)total_message_count
     return self;
 }
 
-- (void) createSignatureProof:(NSData *_Nonnull)publicKey
+/** @brief Create a BBS proof. */
+- (void) doCreateProof:(NSData *_Nonnull)publicKey
                        header:(NSData *_Nullable)header
           presentationMessage:(NSData *_Nullable)presentationMessage
                     signature:(NSData *_Nonnull)signature
@@ -74,170 +75,18 @@ total_message_count:(NSUInteger)total_message_count
                      messages:(NSArray *_Nullable)messages
                     withError:(NSError *_Nullable *_Nullable)errorPtr {
     
-    pairing_crypto_error_t *err = (pairing_crypto_error_t*) malloc(sizeof(pairing_crypto_error_t));
-    
-    uint64_t deriveProofHandle = bbs_bls12_381_shake_256_derive_proof_context_init(err);
-    
-    if (deriveProofHandle == 0) {
-        *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-        return;
-    }
-    
-    pairing_crypto_byte_buffer_t publicKeyBuffer;
-    publicKeyBuffer.len = publicKey.length;
-    publicKeyBuffer.data = (uint8_t *)publicKey.bytes;
-
-    if (bbs_bls12_381_shake_256_derive_proof_context_set_public_key(deriveProofHandle, publicKeyBuffer, err) != 0) {
-        *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-        return;
-    }
-
-    if (header) {
-        pairing_crypto_byte_buffer_t headerBuffer;
-        headerBuffer.len = header.length;
-        headerBuffer.data = (uint8_t *)header.bytes;
-
-        if (bbs_bls12_381_shake_256_derive_proof_context_set_header(deriveProofHandle, headerBuffer, err) > 0) {
-            *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-            return;
-        }
-    }
-
-    if (presentationMessage) {
-        pairing_crypto_byte_buffer_t presentationMessageBuffer;
-        presentationMessageBuffer.len = presentationMessage.length;
-        presentationMessageBuffer.data = (uint8_t *)presentationMessage.bytes;
-
-        if (bbs_bls12_381_shake_256_derive_proof_context_set_presentation_message(deriveProofHandle, presentationMessageBuffer, err) > 0) {
-            *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-            return;
-        }
-    }
-    
-    pairing_crypto_byte_buffer_t signatureBuffer;
-    signatureBuffer.len = signature.length;
-    signatureBuffer.data = (uint8_t *)signature.bytes;
-
-    if (bbs_bls12_381_shake_256_derive_proof_context_set_signature(deriveProofHandle, signatureBuffer, err) != 0) {
-        *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-        return;
-    }
-
-    if (disclosedIndices && messages && [messages count] != 0) {
-        int i = 0;
-        for (NSData *message in messages) {
-            pairing_crypto_byte_buffer_t messageBuffer;
-            messageBuffer.len = message.length;
-            messageBuffer.data = (uint8_t *)message.bytes;
-        
-            BOOL isDisclosed = [disclosedIndices containsObject:[[NSNumber alloc] initWithInt:i]];
-        
-            if (bbs_bls12_381_shake_256_derive_proof_context_add_message(deriveProofHandle, isDisclosed, messageBuffer, err) > 0) {
-                *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-                return;
-            }
-        
-            i++;
-        }
-    }
-    
-    pairing_crypto_byte_buffer_t *proof = (pairing_crypto_byte_buffer_t*) malloc(sizeof(pairing_crypto_byte_buffer_t));
-    
-    if (bbs_bls12_381_shake_256_derive_proof_context_finish(deriveProofHandle, proof, err) != 0) {
-        *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-        return;
-    }
-    
-    self.value = [[NSData alloc] initWithBytesNoCopy:proof->data
-                                              length:(NSUInteger)proof->len
-                                        freeWhenDone:true];
-    
-    free(err);
+                [self doesNotRecognizeSelector:_cmd];
 }
 
-/** @brief Initializes a key pair */
-- (bool)verifySignatureProof:(NSData *_Nonnull)publicKey
+/** @brief Verify a BBS proof. */
+- (bool)doVerifyProof:(NSData *_Nonnull)publicKey
                       header:(NSData *_Nullable)header
          presentationMessage:(NSData *_Nullable)presentationMessage
          total_message_count:(NSUInteger)total_message_count
                     messages:(NSDictionary *_Nullable)messages
                    withError:(NSError *_Nullable *_Nullable)errorPtr  {
-    
-    pairing_crypto_error_t *err = (pairing_crypto_error_t*) malloc(sizeof(pairing_crypto_error_t));
-    
-    uint64_t verifyProofHandle = bbs_bls12_381_shake_256_verify_proof_context_init(err);
-    
-    if (verifyProofHandle == 0) {
-        *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-        return false;
-    }
-    
-    pairing_crypto_byte_buffer_t publicKeyBuffer;
-    publicKeyBuffer.len = publicKey.length;
-    publicKeyBuffer.data = (uint8_t *)publicKey.bytes;
 
-    if (bbs_bls12_381_shake_256_verify_proof_context_set_public_key(verifyProofHandle, publicKeyBuffer, err) != 0) {
-        *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-        return false;
-    }
-
-    if (header) {
-        pairing_crypto_byte_buffer_t headerBuffer;
-        headerBuffer.len = header.length;
-        headerBuffer.data = (uint8_t *)header.bytes;
-
-        if (bbs_bls12_381_shake_256_verify_proof_context_set_header(verifyProofHandle, headerBuffer, err) > 0) {
-            *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-            return false;
-        }
-    }
-
-    if (presentationMessage) {
-        pairing_crypto_byte_buffer_t presentationMessageBuffer;
-        presentationMessageBuffer.len = presentationMessage.length;
-        presentationMessageBuffer.data = (uint8_t *)presentationMessage.bytes;
-
-        if (bbs_bls12_381_shake_256_verify_proof_context_set_presentation_message(verifyProofHandle, presentationMessageBuffer, err) > 0) {
-            *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-            return false;
-        }
-    }
-
-    if (bbs_bls12_381_shake_256_verify_proof_context_set_total_message_count(verifyProofHandle, total_message_count, err) != 0) {
-        *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-        return false;
-    }
-    
-    pairing_crypto_byte_buffer_t proofBuffer;
-    proofBuffer.len = self.value.length;
-    proofBuffer.data = (uint8_t *)self.value.bytes;
-
-    if (bbs_bls12_381_shake_256_verify_proof_context_set_proof(verifyProofHandle, proofBuffer, err) != 0) {
-        *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-        return false;
-    }
-
-    if (messages && [messages count] != 0) {
-        for (id index in messages) {
-            NSData* message = [messages objectForKey: index];
-            pairing_crypto_byte_buffer_t messageBuffer;
-            messageBuffer.len = message.length;
-            messageBuffer.data = (uint8_t *)message.bytes;
-                
-            if (bbs_bls12_381_shake_256_verify_proof_context_add_message(verifyProofHandle, [index intValue], messageBuffer, err) > 0) {
-                *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-                return false;
-            }
-        }
-    }
-
-    if (bbs_bls12_381_shake_256_verify_proof_context_finish(verifyProofHandle, err) != 0) {
-        *errorPtr = [BbsSignatureError errorFromBbsSignatureError:err];
-        return false;
-    }
-    
-    free(err);
-    return true;
+                   [self doesNotRecognizeSelector:_cmd];
 }
 
 @end
