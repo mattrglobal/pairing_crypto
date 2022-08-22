@@ -45,7 +45,7 @@ const TEST_CLAIMS: [&[u8]; 6] = [
     b"credential_id",
 ];
 
-const TEST_PRESENTATION_HEADER: &[u8; 25] = b"test-presentation-header";
+const TEST_PRESENTATION_HEADER: &[u8; 24] = b"test-presentation-header";
 
 const EXPECTED_SIGNATURES_SHAKE_256: [&str; 7] = [
     "b9bc5ddb6bdbd3b7b60c7e7e57b2dad9c2c0677f94f51e7d9f0df5d446633188058e060b621924cc4393fd63924705815baf10e9234dd953306a295b958902f62052e6a8cf6e6bea9a21781cc37158471504db298ce7e326ce05aa4cb5374c3c74f74f209c8ad7607595c74bc15c9426",

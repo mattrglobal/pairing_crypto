@@ -29,7 +29,7 @@ use std::{convert::TryFrom, path::Path};
 static FIXTURES_DIR: &'static str =
     concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/bbs");
 
-const TEST_PRESENTATION_HEADER: &[u8; 25] = b"test-presentation-header";
+const TEST_PRESENTATION_HEADER: &[u8; 24] = b"test-presentation-header";
 
 macro_rules! sign_verify_fixtures {
     ($verify_fn:ident, $signature_fixtures_dir:expr) => {
