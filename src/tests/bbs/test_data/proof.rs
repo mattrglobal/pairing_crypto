@@ -55,7 +55,7 @@ pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
                 generators.clone(),
                 messages.clone(),
             ),
-            "no header, no presentation-message, and equal no. of messages \
+            "no header, no presentation-header, and equal no. of messages \
              and message-generators are provided",
         ),
         (
@@ -66,7 +66,7 @@ pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
                 generators.clone(),
                 messages.clone(),
             ),
-            "valid header, no presentation-message, no messages and no \
+            "valid header, no presentation-header, no messages and no \
              message-generators are provided",
         ),
         (
@@ -77,7 +77,7 @@ pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
                 generators.clone(),
                 messages.clone(),
             ),
-            "no header, valid presentation-message, and equal no. of messages \
+            "no header, valid presentation-header, and equal no. of messages \
              and message-generators are provided",
         ),
         (
@@ -88,7 +88,7 @@ pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
                 generators.clone(),
                 messages.clone(),
             ),
-            "valid header, valid presentation-message, no messages and no \
+            "valid header, valid presentation-header, no messages and no \
              message-generators are provided",
         ),
     ]
@@ -137,7 +137,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
             Error::BadParams {
                 cause: "nothing to prove".to_owned(),
             },
-            "no header, no presentation-message, no messages, no \
+            "no header, no presentation-header, no messages, no \
              message-generators",
         ),
         (
@@ -153,7 +153,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
             Error::BadParams {
                 cause: "nothing to prove".to_owned(),
             },
-            "no header, no presentation-message, no messages but \
+            "no header, no presentation-header, no messages but \
              message-generators are provided",
         ),
         (
@@ -170,7 +170,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: 0,
                 messages: messages.len(),
             },
-            "no header, no presentation-message, no message-generators but \
+            "no header, no presentation-header, no message-generators but \
              messages are provided",
         ),
         (
@@ -187,7 +187,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: generators.message_generators_length(),
                 messages: 2,
             },
-            "no header, no presentation-message, more message-generators than \
+            "no header, no presentation-header, more message-generators than \
              messages",
         ),
         (
@@ -204,7 +204,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: 4,
                 messages: messages.len(),
             },
-            "no header, no presentation-message, more messages than \
+            "no header, no presentation-header, more messages than \
              message-generators",
         ),
         (
@@ -220,7 +220,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
             Error::BadParams {
                 cause: "nothing to prove".to_owned(),
             },
-            "no header, valid presentation-message, no messages but \
+            "no header, valid presentation-header, no messages but \
              message-generators are provided",
         ),
         (
@@ -237,7 +237,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: 0,
                 messages: messages.len(),
             },
-            "no header, valid presentation-message, no message-generators but \
+            "no header, valid presentation-header, no message-generators but \
              messages are provided",
         ),
         (
@@ -254,7 +254,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: generators.message_generators_length(),
                 messages: 2,
             },
-            "no header, valid presentation-message, more message-generators \
+            "no header, valid presentation-header, more message-generators \
              than messages",
         ),
         (
@@ -271,7 +271,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: 4,
                 messages: messages.len(),
             },
-            "no header, valid presentation-message, more messages than \
+            "no header, valid presentation-header, more messages than \
              message-generators",
         ),
         (
@@ -288,7 +288,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: 0,
                 messages: messages.len(),
             },
-            "valid header, no presentation-message, no message-generators but \
+            "valid header, no presentation-header, no message-generators but \
              messages are provided",
         ),
         (
@@ -305,7 +305,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: generators.message_generators_length(),
                 messages: 0,
             },
-            "valid header, no presentation-message, no messages but \
+            "valid header, no presentation-header, no messages but \
              message-generators are provided",
         ),
         (
@@ -322,7 +322,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: generators.message_generators_length(),
                 messages: 2,
             },
-            "valid header, no presentation-message, more message-generators \
+            "valid header, no presentation-header, more message-generators \
              than messages",
         ),
         (
@@ -339,7 +339,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: 4,
                 messages: messages.len(),
             },
-            "valid header, no presentation-message, more messages than \
+            "valid header, no presentation-header, more messages than \
              message-generators",
         ),
         (
@@ -356,7 +356,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: 0,
                 messages: messages.len(),
             },
-            "valid header, valid presentation-message, no message-generators \
+            "valid header, valid presentation-header, no message-generators \
              but messages are provided",
         ),
         (
@@ -373,7 +373,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: generators.message_generators_length(),
                 messages: 0,
             },
-            "valid header, valid presentation-message, no messages but \
+            "valid header, valid presentation-header, no messages but \
              message-generators are provided",
         ),
         (
@@ -390,7 +390,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: generators.message_generators_length(),
                 messages: 2,
             },
-            "valid header, valid presentation-message, more \
+            "valid header, valid presentation-header, more \
              message-generators than messages",
         ),
         (
@@ -407,7 +407,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: 4,
                 messages: messages.len(),
             },
-            "valid header, valid presentation-message, more messages than \
+            "valid header, valid presentation-header, more messages than \
              message-generators",
         ),
     ]

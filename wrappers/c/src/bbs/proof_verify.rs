@@ -29,7 +29,7 @@ macro_rules! bbs_proof_verify_api_generator {
         $set_public_key_wrapper_fn:ident,
         $set_header_wrapper_fn:ident,
         $set_proof_fn:ident,
-        $set_presentation_message:ident,
+        $set_presentation_header:ident,
         $set_total_message_count:ident,
         $add_message_wrapper_fn:ident,
         $finish_wrapper_fn:ident,
@@ -42,7 +42,7 @@ macro_rules! bbs_proof_verify_api_generator {
                     public_key: Vec::new(),
                     header: Vec::new(),
                     proof: Vec::new(),
-                    presentation_message: Vec::new(),
+                    presentation_header: Vec::new(),
                     messages: Vec::new(),
                     total_message_count: 0,
                 }
@@ -64,9 +64,9 @@ macro_rules! bbs_proof_verify_api_generator {
         set_byte_array_impl!($set_proof_fn, BBS_VERIFY_PROOF_CONTEXT, proof);
 
         set_byte_array_impl!(
-            $set_presentation_message,
+            $set_presentation_header,
             BBS_VERIFY_PROOF_CONTEXT,
-            presentation_message
+            presentation_header
         );
 
         #[no_mangle]
@@ -123,11 +123,11 @@ macro_rules! bbs_proof_verify_api_generator {
                         Some(ctx.header.as_slice())
                     };
 
-                    let presentation_message =
-                        if ctx.presentation_message.is_empty() {
+                    let presentation_header =
+                        if ctx.presentation_header.is_empty() {
                             None
                         } else {
-                            Some(ctx.presentation_message.as_slice())
+                            Some(ctx.presentation_header.as_slice())
                         };
 
                     let messages = ctx
@@ -152,7 +152,7 @@ macro_rules! bbs_proof_verify_api_generator {
                         public_key: &public_key,
                         header,
                         proof: &ctx.proof,
-                        presentation_message,
+                        presentation_header,
                         messages,
                         total_message_count: ctx.total_message_count,
                     })? {
@@ -177,7 +177,7 @@ bbs_proof_verify_api_generator!(
     bbs_bls12_381_sha_256_proof_verify_context_set_public_key,
     bbs_bls12_381_sha_256_proof_verify_context_set_header,
     bbs_bls12_381_sha_256_proof_verify_context_set_proof,
-    bbs_bls12_381_sha_256_proof_verify_context_set_presentation_message,
+    bbs_bls12_381_sha_256_proof_verify_context_set_presentation_header,
     bbs_bls12_381_sha_256_proof_verify_context_set_total_message_count,
     bbs_bls12_381_sha_256_proof_verify_context_add_message,
     bbs_bls12_381_sha_256_proof_verify_context_finish,
@@ -189,7 +189,7 @@ bbs_proof_verify_api_generator!(
     bbs_bls12_381_shake_256_proof_verify_context_set_public_key,
     bbs_bls12_381_shake_256_proof_verify_context_set_header,
     bbs_bls12_381_shake_256_proof_verify_context_set_proof,
-    bbs_bls12_381_shake_256_proof_verify_context_set_presentation_message,
+    bbs_bls12_381_shake_256_proof_verify_context_set_presentation_header,
     bbs_bls12_381_shake_256_proof_verify_context_set_total_message_count,
     bbs_bls12_381_shake_256_proof_verify_context_add_message,
     bbs_bls12_381_shake_256_proof_verify_context_finish,

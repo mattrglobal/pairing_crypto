@@ -59,7 +59,7 @@ where
         &pk,
         &signature,
         request.header.as_ref(),
-        request.presentation_message.as_ref(),
+        request.presentation_header.as_ref(),
         &generators,
         &proof_messages,
     )?;
@@ -93,7 +93,7 @@ where
     proof.verify::<_, X>(
         &public_key,
         request.header.as_ref(),
-        request.presentation_message.as_ref(),
+        request.presentation_header.as_ref(),
         &generators,
         &messages,
     )

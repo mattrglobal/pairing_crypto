@@ -45,7 +45,7 @@ const TEST_CLAIMS: [&[u8]; 6] = [
     b"credential_id",
 ];
 
-const TEST_PRESENTATION_MESSAGE: &[u8; 25] = b"test-presentation-message";
+const TEST_PRESENTATION_HEADER: &[u8; 25] = b"test-presentation-header";
 
 const EXPECTED_SIGNATURES_SHAKE_256: [&str; 7] = [
     "b9bc5ddb6bdbd3b7b60c7e7e57b2dad9c2c0677f94f51e7d9f0df5d446633188058e060b621924cc4393fd63924705815baf10e9234dd953306a295b958902f62052e6a8cf6e6bea9a21781cc37158471504db298ce7e326ce05aa4cb5374c3c74f74f209c8ad7607595c74bc15c9426",
@@ -129,7 +129,7 @@ fn sign_verify_e2e_nominal() {
 macro_rules! proof_gen_verify_e2e_nominal {
     ($sign_fn:ident, $verify_fn:ident, $proof_gen_fn:ident, $proof_verify_fn:ident) => {
         let header = TEST_HEADER.as_ref();
-        let presentation_message = TEST_PRESENTATION_MESSAGE.as_ref();
+        let presentation_header = TEST_PRESENTATION_HEADER.as_ref();
         let messages = &TEST_CLAIMS;
 
         for i in 0..TEST_KEY_INFOS.len() {
@@ -179,7 +179,7 @@ macro_rules! proof_gen_verify_e2e_nominal {
                     header: Some(header),
                     messages: Some(&proof_messages),
                     signature: &signature,
-                    presentation_message: Some(presentation_message),
+                    presentation_header: Some(presentation_header),
                 })
                 .expect("proof generation failed");
 
@@ -192,7 +192,7 @@ macro_rules! proof_gen_verify_e2e_nominal {
                     $proof_verify_fn(&BbsProofVerifyRequest {
                         public_key: &public_key,
                         header: Some(header),
-                        presentation_message: Some(presentation_message),
+                        presentation_header: Some(presentation_header),
                         proof: &proof,
                         total_message_count: messages.len(),
                         messages: Some(revealed_msgs.as_slice()),
@@ -227,7 +227,7 @@ macro_rules! proof_gen_failure_message_modified {
     ($sign_fn:ident, $verify_fn:ident, $proof_gen_fn:ident) => {
         let num_disclosed_messages = 4;
         let header = TEST_HEADER.as_ref();
-        let presentation_message = TEST_PRESENTATION_MESSAGE.as_ref();
+        let presentation_header = TEST_PRESENTATION_HEADER.as_ref();
         let messages = &TEST_CLAIMS;
 
         let (secret_key, public_key) = KeyPair::random(&mut OsRng, None)
@@ -282,7 +282,7 @@ macro_rules! proof_gen_failure_message_modified {
             header: Some(header),
             messages: Some(&proof_messages),
             signature: &signature,
-            presentation_message: Some(presentation_message),
+            presentation_header: Some(presentation_header),
         });
         assert_eq!(result, Err(Error::SignatureVerification));
     };

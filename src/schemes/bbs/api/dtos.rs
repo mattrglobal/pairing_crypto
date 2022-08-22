@@ -74,8 +74,8 @@ pub struct BbsProofGenRequest<'a, T: AsRef<[u8]>> {
     pub messages: Option<&'a [BbsProofGenRevealMessageRequest<T>]>,
     /// Signature to derive the signature proof of knowledge from
     pub signature: &'a [u8; BBS_BLS12381G1_SIGNATURE_LENGTH],
-    /// Presentation message to be bound to the signature proof of knowledge
-    pub presentation_message: Option<T>,
+    /// Presentation header to be bound to the signature proof of knowledge
+    pub presentation_header: Option<T>,
 }
 
 impl<'a, T: AsRef<[u8]>> Default for BbsProofGenRequest<'a, T> {
@@ -85,7 +85,7 @@ impl<'a, T: AsRef<[u8]>> Default for BbsProofGenRequest<'a, T> {
             header: Default::default(),
             messages: Default::default(),
             signature: &[0u8; BBS_BLS12381G1_SIGNATURE_LENGTH],
-            presentation_message: Default::default(),
+            presentation_header: Default::default(),
         }
     }
 }
@@ -98,8 +98,8 @@ pub struct BbsProofVerifyRequest<'a, T: AsRef<[u8]>> {
     pub public_key: &'a [u8; BBS_BLS12381G1_PUBLIC_KEY_LENGTH],
     /// Header containing context and application specific information
     pub header: Option<T>,
-    /// Presentation message associated to the signature proof of knowledge
-    pub presentation_message: Option<T>,
+    /// Presentation header associated to the signature proof of knowledge
+    pub presentation_header: Option<T>,
     /// Proof to verify
     pub proof: &'a [u8],
     /// Total message count of the messages signed in the original signature
@@ -115,7 +115,7 @@ impl<'a, T: AsRef<[u8]>> Default for BbsProofVerifyRequest<'a, T> {
             public_key: &[0u8; BBS_BLS12381G1_PUBLIC_KEY_LENGTH],
             header: Default::default(),
             messages: Default::default(),
-            presentation_message: Default::default(),
+            presentation_header: Default::default(),
             proof: &[0u8; 0],
             total_message_count: Default::default(),
         }

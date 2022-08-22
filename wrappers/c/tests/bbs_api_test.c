@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     ByteArray **messages = (ByteArray **)malloc(message_count * sizeof(ByteArray *));
     ByteArray *signature = (ByteArray *)malloc(sizeof(ByteArray));
 
-    ByteArray *presentation_message = (ByteArray *)malloc(sizeof(ByteArray));
+    ByteArray *presentation_header = (ByteArray *)malloc(sizeof(ByteArray));
     ByteArray *proof = (ByteArray *)malloc(sizeof(ByteArray));
 
     ExternError *err = (ExternError *)malloc(sizeof(ExternError));
@@ -37,9 +37,9 @@ int main(int argc, char **argv)
     header->data = (uint8_t *)malloc(60);
     memset((uint8_t *)header->data, 0xA, 16);
 
-    presentation_message->length = 16;
-    presentation_message->data = (uint8_t *)malloc(60);
-    memset((uint8_t *)presentation_message->data, 15, 16);
+    presentation_header->length = 16;
+    presentation_header->data = (uint8_t *)malloc(60);
+    memset((uint8_t *)presentation_header->data, 15, 16);
 
     printf("Create BLS12381 key pair...");
     fflush(stdout);
@@ -235,9 +235,9 @@ int main(int argc, char **argv)
     }
     printf("pass\n");
 
-    printf("Set presentation message in proof context...");
+    printf("Set presentation header in proof context...");
     fflush(stdout);
-    if (bbs_bls12_381_shake_256_proof_gen_context_set_presentation_message(handle, presentation_message, err) != 0)
+    if (bbs_bls12_381_shake_256_proof_gen_context_set_presentation_header(handle, presentation_header, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -303,9 +303,9 @@ int main(int argc, char **argv)
     }
     printf("pass\n");
 
-    printf("Set presentation message in verify-proof context...");
+    printf("Set presentation header in verify-proof context...");
     fflush(stdout);
-    if (bbs_bls12_381_shake_256_proof_verify_context_set_presentation_message(handle, presentation_message, err) != 0)
+    if (bbs_bls12_381_shake_256_proof_verify_context_set_presentation_header(handle, presentation_header, err) != 0)
     {
         printf("fail\n");
         goto Fail;
