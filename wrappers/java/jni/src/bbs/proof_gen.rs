@@ -13,14 +13,14 @@ use pairing_crypto_c::{
             bbs_bls12_381_sha_256_proof_gen_context_finish,
             bbs_bls12_381_sha_256_proof_gen_context_init,
             bbs_bls12_381_sha_256_proof_gen_context_set_header,
-            bbs_bls12_381_sha_256_proof_gen_context_set_presentation_message,
+            bbs_bls12_381_sha_256_proof_gen_context_set_presentation_header,
             bbs_bls12_381_sha_256_proof_gen_context_set_public_key,
             bbs_bls12_381_sha_256_proof_gen_context_set_signature,
             bbs_bls12_381_shake_256_proof_gen_context_add_message,
             bbs_bls12_381_shake_256_proof_gen_context_finish,
             bbs_bls12_381_shake_256_proof_gen_context_init,
             bbs_bls12_381_shake_256_proof_gen_context_set_header,
-            bbs_bls12_381_shake_256_proof_gen_context_set_presentation_message,
+            bbs_bls12_381_shake_256_proof_gen_context_set_presentation_header,
             bbs_bls12_381_shake_256_proof_gen_context_set_public_key,
             bbs_bls12_381_shake_256_proof_gen_context_set_signature,
         },
@@ -39,8 +39,8 @@ macro_rules! bbs_proof_gen_api_wrapper_generator {
         $set_header_fn:ident,
         $java_wrapper_set_signature_fn:ident,
         $set_signature_fn:ident,
-        $java_wrapper_set_presentation_message_fn:ident,
-        $set_presentation_message_fn:ident,
+        $java_wrapper_set_presentation_header_fn:ident,
+        $set_presentation_header_fn:ident,
         $java_wrapper_add_message_fn:ident,
         $add_message_fn:ident,
         $java_wrapper_finish_fn:ident,
@@ -128,18 +128,18 @@ macro_rules! bbs_proof_gen_api_wrapper_generator {
 
         #[allow(non_snake_case)]
         #[no_mangle]
-        pub extern "C" fn $java_wrapper_set_presentation_message_fn(
+        pub extern "C" fn $java_wrapper_set_presentation_header_fn(
             env: JNIEnv,
             _: JObject,
             handle: jlong,
-            presentation_message: jbyteArray,
+            presentation_header: jbyteArray,
         ) -> jint {
-            match env.convert_byte_array(presentation_message) {
+            match env.convert_byte_array(presentation_header) {
                 Err(_) => 1,
                 Ok(s) => {
                     let mut error = ExternError::success();
                     let byte_array = ByteArray::from(&s);
-                    $set_presentation_message_fn(
+                    $set_presentation_header_fn(
                         handle as u64,
                         &byte_array,
                         &mut error,
@@ -203,8 +203,8 @@ bbs_proof_gen_api_wrapper_generator!(
     bbs_bls12_381_sha_256_proof_gen_context_set_header,
     Java_pairing_1crypto_Bls12381Sha256_proof_1gen_1context_1set_1signature,
     bbs_bls12_381_sha_256_proof_gen_context_set_signature,
-    Java_pairing_1crypto_Bls12381Sha256_proof_1gen_1context_1set_1presentation_1message,
-    bbs_bls12_381_sha_256_proof_gen_context_set_presentation_message,
+    Java_pairing_1crypto_Bls12381Sha256_proof_1gen_1context_1set_1presentation_1header,
+    bbs_bls12_381_sha_256_proof_gen_context_set_presentation_header,
     Java_pairing_1crypto_Bls12381Sha256_proof_1gen_1context_1add_1message,
     bbs_bls12_381_sha_256_proof_gen_context_add_message,
     Java_pairing_1crypto_Bls12381Sha256_proof_1gen_1context_1finish,
@@ -220,8 +220,8 @@ bbs_proof_gen_api_wrapper_generator!(
     bbs_bls12_381_shake_256_proof_gen_context_set_header,
     Java_pairing_1crypto_Bls12381Shake256_proof_1gen_1context_1set_1signature,
     bbs_bls12_381_shake_256_proof_gen_context_set_signature,
-    Java_pairing_1crypto_Bls12381Shake256_proof_1gen_1context_1set_1presentation_1message,
-    bbs_bls12_381_shake_256_proof_gen_context_set_presentation_message,
+    Java_pairing_1crypto_Bls12381Shake256_proof_1gen_1context_1set_1presentation_1header,
+    bbs_bls12_381_shake_256_proof_gen_context_set_presentation_header,
     Java_pairing_1crypto_Bls12381Shake256_proof_1gen_1context_1add_1message,
     bbs_bls12_381_shake_256_proof_gen_context_add_message,
     Java_pairing_1crypto_Bls12381Shake256_proof_1gen_1context_1finish,

@@ -7,6 +7,6 @@ abstract class Bbs {
     abstract KeyPair generateKeyPair (byte[] ikm, byte[] keyInfo) throws Exception;
     abstract byte[] sign(byte[] secretKey, byte[] publicKey, byte[] header, byte[][] messages) throws Exception;
     abstract boolean verify(byte[] publicKey, byte[] header, byte[] signature, byte[][] messages) throws Exception;
-    abstract byte[] createProof(byte[] publicKey, byte[] header, byte[] presentationMessage, byte[] signature, HashSet<Integer> disclosedIndices, byte[][] messages) throws Exception;
-    abstract boolean verifyProof(byte[] publicKey, byte[] header, byte[] presentationMessage, byte[] proof, Integer totalMessageCount, HashMap<Integer, byte[]> messages) throws Exception;
+    abstract byte[] createProof(byte[] publicKey, byte[] header, byte[] presentationHeader, byte[] signature, HashSet<Integer> disclosedIndices, byte[][] messages) throws Exception;
+    abstract boolean verifyProof(byte[] publicKey, byte[] header, byte[] presentationHeader, byte[] proof, Integer totalMessageCount, HashMap<Integer, byte[]> messages) throws Exception;
 }

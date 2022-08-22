@@ -22,14 +22,14 @@ pub struct BbsDeriveProofRequestDto {
     pub header: Vec<u8>,
     pub messages: Vec<BbsDeriveProofRevealMessageRequestDto>,
     pub signature: Vec<u8>,
-    pub presentation_message: Vec<u8>,
+    pub presentation_header: Vec<u8>,
 }
 
 pub struct BbsVerifyProofRequestDto {
     pub public_key: Vec<u8>,
     pub header: Vec<u8>,
     pub proof: Vec<u8>,
-    pub presentation_message: Vec<u8>,
+    pub presentation_header: Vec<u8>,
     pub total_message_count: usize,
     pub messages: Vec<(usize, Vec<u8>)>,
 }

@@ -38,8 +38,8 @@ macro_rules! generate_proof_fixture {
         let secret_key = &$fixture_gen_input.key_pair.secret_key.to_bytes();
         let public_key = &$fixture_gen_input.key_pair.public_key.to_octets();
         let header = &$fixture_gen_input.header.clone();
-        let presentation_message =
-            &$fixture_gen_input.presentation_message.clone();
+        let presentation_header =
+            &$fixture_gen_input.presentation_header.clone();
 
         let fixture_scratch: FixtureProof = $fixture_gen_input.clone().into();
 
@@ -95,7 +95,7 @@ macro_rules! generate_proof_fixture {
                 secret_key,
                 public_key,
                 header,
-                presentation_message,
+                presentation_header,
                 messages,
                 &disclosed_indices,
             );
@@ -126,7 +126,7 @@ macro_rules! generate_proof_fixture {
             secret_key,
             public_key,
             header,
-            presentation_message,
+            presentation_header,
             messages,
             &disclosed_indices,
         );
@@ -143,14 +143,14 @@ macro_rules! generate_proof_fixture {
             ..fixture_scratch.clone()
         };
 
-        let mut presentation_message =
-            $fixture_gen_input.presentation_message.clone();
-        presentation_message.reverse();
+        let mut presentation_header =
+            $fixture_gen_input.presentation_header.clone();
+        presentation_header.reverse();
         let fixture = FixtureProof {
-            presentation_message,
+            presentation_header,
             result: ExpectedResult {
                 valid: false,
-                reason: Some("different presentation message".to_owned()),
+                reason: Some("different presentation header".to_owned()),
             },
             ..fixture_negative.clone()
         };
@@ -293,7 +293,7 @@ macro_rules! proof_gen_helper {
     $secret_key:ident,
     $public_key:ident,
     $header:ident,
-    $presentation_message:ident,
+    $presentation_header:ident,
     $messages:ident,
     $disclosed_indices:expr,
 ) => {{
@@ -350,7 +350,7 @@ macro_rules! proof_gen_helper {
         let proof = $proof_gen_fn(&BbsProofGenRequest {
             $public_key,
             header: Some($header.clone()),
-            presentation_message: Some($presentation_message.clone()),
+            presentation_header: Some($presentation_header.clone()),
             messages: Some(&proof_messages),
             signature: &signature,
         })
@@ -361,7 +361,7 @@ macro_rules! proof_gen_helper {
             $proof_verify_fn(&BbsProofVerifyRequest {
                 $public_key,
                 header: Some($header.clone()),
-                presentation_message: Some($presentation_message.clone()),
+                presentation_header: Some($presentation_header.clone()),
                 messages: Some(&disclosed_messages),
                 total_message_count: $messages.len(),
                 proof: &proof,
@@ -380,7 +380,7 @@ macro_rules! validate_proof_fixture {
         let result = $proof_verify_fn(&BbsProofVerifyRequest {
             public_key: &$fixture.signer_public_key.to_octets(),
             header: Some($fixture.header.clone()),
-            presentation_message: Some($fixture.presentation_message.clone()),
+            presentation_header: Some($fixture.presentation_header.clone()),
             messages: Some(&$fixture.disclosed_messages),
             total_message_count: $fixture.total_message_count,
             proof: &$fixture.proof,

@@ -35,9 +35,9 @@ export interface BbsDeriveProofRequest {
    */
   readonly header?: Uint8Array;
   /**
-   * Presentation message to include in the derived proof
+   * Presentation header to include in the derived proof
    */
-  readonly presentationMessage?: Uint8Array;
+  readonly presentationHeader?: Uint8Array;
   /**
    * Raw signature value
    */

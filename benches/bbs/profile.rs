@@ -29,7 +29,7 @@ const TEST_KEY_INFOS: &[u8; 50] =
     b"12345678901234567890123456789012345678901234567890";
 
 const TEST_HEADER: &[u8; 16] = b"some_app_context";
-const TEST_PRESENTATION_MESSAGE: &[u8; 25] = b"test-presentation-message";
+const TEST_PRESENTATION_HEADER: &[u8; 25] = b"test-presentation-header";
 
 const NUM_MESSAGES: usize = 10;
 const NUM_REVEALED_MESSAGES: usize = 5;
@@ -125,7 +125,7 @@ fn profile_verify(c: &mut Criterion) {
 
 fn profile_proof_gen(c: &mut Criterion) {
     let header = TEST_HEADER.as_ref();
-    let presentation_message = TEST_PRESENTATION_MESSAGE.as_ref();
+    let presentation_header = TEST_PRESENTATION_HEADER.as_ref();
     let (secret_key, public_key) = get_random_key_pair();
     // generating random 100 bytes messages
     let mut messages = vec![[0u8; 100]; NUM_MESSAGES];
@@ -177,7 +177,7 @@ fn profile_proof_gen(c: &mut Criterion) {
                     header: Some(header),
                     messages: black_box(Some(&proof_messages)),
                     signature: black_box(&signature),
-                    presentation_message: black_box(Some(presentation_message)),
+                    presentation_header: black_box(Some(presentation_header)),
                 })
                 .unwrap();
             });
@@ -187,7 +187,7 @@ fn profile_proof_gen(c: &mut Criterion) {
 
 fn profile_proof_verify(c: &mut Criterion) {
     let header = TEST_HEADER.as_ref();
-    let presentation_message = TEST_PRESENTATION_MESSAGE.as_ref();
+    let presentation_header = TEST_PRESENTATION_HEADER.as_ref();
     let (secret_key, public_key) = get_random_key_pair();
     // generating random 100 bytes messages
     let mut messages = vec![[0u8; 100]; NUM_MESSAGES];
@@ -237,7 +237,7 @@ fn profile_proof_verify(c: &mut Criterion) {
         header: Some(header),
         messages: Some(&proof_messages),
         signature: &signature,
-        presentation_message: Some(presentation_message),
+        presentation_header: Some(presentation_header),
     })
     .expect("proof generation failed");
 
@@ -252,8 +252,8 @@ fn profile_proof_verify(c: &mut Criterion) {
                     &BbsProofVerifyRequest {
                         public_key: black_box(&public_key),
                         header: Some(header),
-                        presentation_message: black_box(Some(
-                            presentation_message
+                        presentation_header: black_box(Some(
+                            presentation_header
                         )),
                         proof: black_box(&proof),
                         total_message_count: black_box(NUM_MESSAGES),

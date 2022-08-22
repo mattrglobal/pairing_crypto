@@ -31,9 +31,9 @@ export interface BbsVerifyProofRequest {
    */
   readonly header?: Uint8Array;
   /**
-   * Presentation message that was included in the proof
+   * Presentation header that was included in the proof
    */
-  readonly presentationMessage?: Uint8Array;
+  readonly presentationHeader?: Uint8Array;
   /**
    * The total number of messages that were originally signed by the underlying signature
    */
