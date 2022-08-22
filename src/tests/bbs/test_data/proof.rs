@@ -55,8 +55,8 @@ pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
                 generators.clone(),
                 messages.clone(),
             ),
-            "no header, no presentation-header, and equal no. of messages \
-             and message-generators are provided",
+            "no header, no presentation-header, and equal no. of messages and \
+             message-generators are provided",
         ),
         (
             (
@@ -390,8 +390,8 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: generators.message_generators_length(),
                 messages: 2,
             },
-            "valid header, valid presentation-header, more \
-             message-generators than messages",
+            "valid header, valid presentation-header, more message-generators \
+             than messages",
         ),
         (
             (
