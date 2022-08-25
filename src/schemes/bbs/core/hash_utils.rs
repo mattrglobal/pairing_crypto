@@ -28,7 +28,7 @@ where
     C: BbsCipherSuiteParameter<'static>,
 {
     let message: &[u8] = message.as_ref();
-    let dst = dst.unwrap_or(C::DEFAULT_MAP_MESSAGE_TO_SCALAR_DST);
+    let dst = dst.unwrap_or(C::DEFAULT_MAP_MESSAGE_TO_SCALAR_AS_HASH_DST);
 
     // If len(dst) > 2^8 - 1 or len(msg) > 2^64 - 1, abort
     if message.len() as u64 > MAX_MESSAGE_SIZE {

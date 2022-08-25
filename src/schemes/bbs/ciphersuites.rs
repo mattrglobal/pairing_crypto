@@ -38,7 +38,7 @@ pub(crate) trait BbsCipherSuiteParameter<'a> {
     const DEFAULT_HASH_TO_SCALAR_DST: &'static [u8];
 
     /// Default domain separation tag to be used in [MapMessageToScalarAsHash](https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-mapmessagetoscalarashash).
-    const DEFAULT_MAP_MESSAGE_TO_SCALAR_DST: &'static [u8];
+    const DEFAULT_MAP_MESSAGE_TO_SCALAR_AS_HASH_DST: &'static [u8];
 
     /// A seed value with global scope for `generator_seed` as defined in
     /// BBS signature Spec which is used by the `create_generators ` operation
