@@ -34,11 +34,11 @@ pub(crate) trait BbsCipherSuiteParameter<'a> {
     /// Ciphersuite ID.
     const ID: CipherSuiteId;
 
-    /// DST for `hash_to_scalar` operation.
-    const HASH_TO_SCALAR_DST: &'static [u8];
+    /// Default domain separation tag for `hash_to_scalar` operation.
+    const DEFAULT_HASH_TO_SCALAR_DST: &'static [u8];
 
-    /// Domain separation tag to be used in [MapMessageToScalarAsHash](https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-mapmessagetoscalarashash).
-    const MAP_MESSAGE_TO_SCALAR_DST: &'static [u8];
+    /// Default domain separation tag to be used in [MapMessageToScalarAsHash](https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-mapmessagetoscalarashash).
+    const DEFAULT_MAP_MESSAGE_TO_SCALAR_DST: &'static [u8];
 
     /// A seed value with global scope for `generator_seed` as defined in
     /// BBS signature Spec which is used by the `create_generators ` operation

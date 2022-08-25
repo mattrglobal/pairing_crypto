@@ -96,7 +96,7 @@ fn get_test_messages() -> Vec<Message> {
                 Bls12381Shake256CipherSuiteParameter,
             >(
                 b.as_ref(),
-                Some(Bls12381Shake256CipherSuiteParameter::MAP_MESSAGE_TO_SCALAR_DST)
+                Some(Bls12381Shake256CipherSuiteParameter::DEFAULT_MAP_MESSAGE_TO_SCALAR_DST)
             )
         })
         .collect::<Result<Vec<Message>, _>>()

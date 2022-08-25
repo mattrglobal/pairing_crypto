@@ -21,10 +21,10 @@ pub(crate) struct Bls12381Shake256CipherSuiteParameter;
 impl<'a> BbsCipherSuiteParameter<'a> for Bls12381Shake256CipherSuiteParameter {
     const ID: CipherSuiteId = CipherSuiteId::BbsBls12381G1XofShake256;
 
-    const HASH_TO_SCALAR_DST: &'static [u8] =
+    const DEFAULT_HASH_TO_SCALAR_DST: &'static [u8] =
         b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_H2S_";
 
-    const MAP_MESSAGE_TO_SCALAR_DST: &'static [u8] =
+    const DEFAULT_MAP_MESSAGE_TO_SCALAR_DST: &'static [u8] =
         b"BBS-MESSAGE-HASH-BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_";
 
     const GENERATOR_SEED: &'static [u8] =
