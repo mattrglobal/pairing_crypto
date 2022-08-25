@@ -30,7 +30,6 @@ use crate::{
 
 /// Digests the set of input messages and returns in the form of an internal
 /// structure
-#[allow(clippy::useless_asref)]
 pub(super) fn digest_messages<T, C>(
     messages: Option<&[T]>,
 ) -> Result<Vec<Message>, Error>
@@ -77,7 +76,6 @@ where
     Ok((digested_messages, proof_messages))
 }
 
-#[allow(clippy::useless_asref)]
 pub(super) fn digest_revealed_proof_messages<T, C>(
     messages: Option<&[(usize, T)]>,
     total_message_count: usize,

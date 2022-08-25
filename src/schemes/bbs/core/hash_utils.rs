@@ -27,7 +27,6 @@ pub(crate) fn map_message_to_scalar_as_hash<C>(
 where
     C: BbsCipherSuiteParameter<'static>,
 {
-    let message: &[u8] = message.as_ref();
     let dst = dst.unwrap_or(C::DEFAULT_MAP_MESSAGE_TO_SCALAR_AS_HASH_DST);
 
     if !dst.is_ascii() {
