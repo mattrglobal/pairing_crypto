@@ -41,12 +41,7 @@ where
     if let Some(messages) = messages {
         return messages
             .iter()
-            .map(|msg| {
-                Message::from_arbitrary_data::<_, C>(
-                    msg.as_ref(),
-                    C::MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
-                )
-            })
+            .map(|msg| Message::from_arbitrary_data::<C>(msg.as_ref(), None))
             .collect();
     }
     Ok(vec![])
@@ -64,10 +59,7 @@ where
     let mut proof_messages = vec![];
     if let Some(messages) = messages {
         for m in messages {
-            match Message::from_arbitrary_data::<_, C>(
-                m.value.as_ref(),
-                C::MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
-            ) {
+            match Message::from_arbitrary_data::<C>(m.value.as_ref(), None) {
                 Ok(digested_message) => {
                     digested_messages.push(digested_message);
                     if m.reveal {
@@ -118,10 +110,7 @@ where
     messages
         .iter()
         .map(|(i, m)| {
-            match Message::from_arbitrary_data::<_, C>(
-                m.as_ref(),
-                C::MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
-            ) {
+            match Message::from_arbitrary_data::<C>(m.as_ref(), None) {
                 Ok(m) => Ok((*i, m)),
                 Err(e) => Err(e),
             }

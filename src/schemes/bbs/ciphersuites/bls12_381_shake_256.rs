@@ -22,7 +22,7 @@ impl<'a> BbsCipherSuiteParameter<'a> for Bls12381Shake256CipherSuiteParameter {
     const ID: CipherSuiteId = CipherSuiteId::BbsBls12381G1XofShake256;
 
     const HASH_TO_SCALAR_DST: &'static [u8] =
-        b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_HASH_TO_SCALAR_DST";
+        b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_H2S_";
 
     const MAP_MESSAGE_TO_SCALAR_DST: &'static [u8] =
         b"BBS-MESSAGE-HASH-BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_";
@@ -33,18 +33,29 @@ impl<'a> BbsCipherSuiteParameter<'a> for Bls12381Shake256CipherSuiteParameter {
     const GENERATOR_DST: &'static [u8] =
         b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_SIG_GENERATOR_DST_";
 
-    const SEED_DST: &'static [u8] =
+    const GENERATOR_SEED_DST: &'static [u8] =
         b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_SIG_GENERATOR_SEED_";
 
     fn hash_to_scalar(
-        msg_octets: &[u8],
+        message: &[u8],
         count: usize,
+        dst: Option<&[u8]>,
     ) -> Result<Vec<Scalar>, Error> {
-        do_hash_to_scalar::<Self, ExpandMsgXof<Shake256>>(msg_octets, count)
+        do_hash_to_scalar::<Self, ExpandMsgXof<Shake256>>(message, count, dst)
     }
 
-    fn create_generators(count: usize) -> Result<Vec<G1Projective>, Error> {
-        do_create_generators::<Self, ExpandMsgXof<Shake256>>(count)
+    fn create_generators(
+        count: usize,
+        generator_seed: Option<&[u8]>,
+        generator_seed_dst: Option<&[u8]>,
+        generator_dst: Option<&[u8]>,
+    ) -> Result<Vec<G1Projective>, Error> {
+        do_create_generators::<Self, ExpandMsgXof<Shake256>>(
+            count,
+            generator_seed,
+            generator_seed_dst,
+            generator_dst,
+        )
     }
 }
 

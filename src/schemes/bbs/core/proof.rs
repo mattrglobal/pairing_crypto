@@ -159,12 +159,12 @@ impl Proof {
             compute_domain::<_, C>(PK, header, messages.len(), generators)?;
 
         // (r1, r2, e~, r2~, r3~, s~) = hash_to_scalar(PRF(8*ceil(log2(r))), 6)
-        let r1 = create_random_scalar::<_, C>(&mut rng)?;
-        let r2 = create_random_scalar::<_, C>(&mut rng)?;
-        let e_tilde = create_random_scalar::<_, C>(&mut rng)?;
-        let r2_tilde = create_random_scalar::<_, C>(&mut rng)?;
-        let r3_tilde = create_random_scalar::<_, C>(&mut rng)?;
-        let s_tilde = create_random_scalar::<_, C>(&mut rng)?;
+        let r1 = create_random_scalar::<_, C>(&mut rng, None)?;
+        let r2 = create_random_scalar::<_, C>(&mut rng, None)?;
+        let e_tilde = create_random_scalar::<_, C>(&mut rng, None)?;
+        let r2_tilde = create_random_scalar::<_, C>(&mut rng, None)?;
+        let r3_tilde = create_random_scalar::<_, C>(&mut rng, None)?;
+        let s_tilde = create_random_scalar::<_, C>(&mut rng, None)?;
 
         // (m~_j1, ..., m~_jU) =  hash_to_scalar(PRF(8*ceil(log2(r))), U)
         // these random scalars will be generated further below during `C2`

@@ -23,7 +23,7 @@ impl Generators {
     where
         C: BbsCipherSuiteParameter<'static>,
     {
-        let generators = C::create_generators(count + 2)?;
+        let generators = C::create_generators(count + 2, None, None, None)?;
         Ok(Self {
             Q_1: generators[0],
             Q_2: generators[1],

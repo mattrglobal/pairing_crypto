@@ -184,7 +184,7 @@ impl Signature {
         for m in messages {
             data_to_hash.extend(m.to_bytes().as_ref());
         }
-        let scalars = C::hash_to_scalar(&data_to_hash, 2)?;
+        let scalars = C::hash_to_scalar(&data_to_hash, 2, None)?;
         let (e, s) = (scalars[0], scalars[1]);
 
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L

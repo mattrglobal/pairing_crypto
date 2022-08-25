@@ -88,7 +88,7 @@ where
         )?);
     }
 
-    Ok(C::hash_to_scalar(&data_to_hash, 1)?[0])
+    Ok(C::hash_to_scalar(&data_to_hash, 1, None)?[0])
 }
 
 /// Computes `B` value.
@@ -170,5 +170,5 @@ where
     }
 
     // c = hash_to_scalar(c_for_hash, 1)
-    Ok(Challenge(C::hash_to_scalar(&data_to_hash, 1)?[0]))
+    Ok(Challenge(C::hash_to_scalar(&data_to_hash, 1, None)?[0]))
 }

@@ -49,15 +49,21 @@ pub(crate) trait BbsCipherSuiteParameter<'a> {
     const GENERATOR_DST: &'static [u8];
 
     /// Seed DST which is used by the `create_generators ` operation.
-    const SEED_DST: &'static [u8];
+    const GENERATOR_SEED_DST: &'static [u8];
 
     /// Hash arbitrary data to `n` number of scalars as specified in BBS
     /// specification.
     fn hash_to_scalar(
         msg_octets: &[u8],
         count: usize,
+        dst: Option<&[u8]>,
     ) -> Result<Vec<Scalar>, Error>;
 
     /// Create generators as specified in BBS specification.
-    fn create_generators(count: usize) -> Result<Vec<G1Projective>, Error>;
+    fn create_generators(
+        count: usize,
+        generator_seed: Option<&[u8]>,
+        generator_seed_dst: Option<&[u8]>,
+        generator_dst: Option<&[u8]>,
+    ) -> Result<Vec<G1Projective>, Error>;
 }

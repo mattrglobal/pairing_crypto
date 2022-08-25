@@ -67,12 +67,14 @@ impl Message {
     }
 
     /// Map arbitrary data to `Message`.
-    pub fn from_arbitrary_data<T, C>(msg: T, dst: T) -> Result<Self, Error>
+    pub fn from_arbitrary_data<C>(
+        message: &[u8],
+        dst: Option<&[u8]>,
+    ) -> Result<Self, Error>
     where
-        T: AsRef<[u8]>,
         C: BbsCipherSuiteParameter<'static>,
     {
-        Ok(Self(map_message_to_scalar_as_hash::<_, C>(msg, dst)?))
+        Ok(Self(map_message_to_scalar_as_hash::<C>(message, dst)?))
     }
 }
 
