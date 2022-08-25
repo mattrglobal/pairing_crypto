@@ -1,15 +1,15 @@
 use crate::{
-    bbs::core::{
-        constants::MAP_MESSAGE_TO_SCALAR_DST,
-        generator::Generators,
-        key_pair::KeyPair,
-        types::Message,
+    bbs::{
+        ciphersuites::{
+            bls12_381_shake_256::Bls12381Shake256CipherSuiteParameter,
+            BbsCipherSuiteParameter,
+        },
+        core::{generator::Generators, key_pair::KeyPair, types::Message},
     },
-    curves::bls12_381::{hash_to_curve::ExpandMsgXof, G1Projective},
+    curves::bls12_381::G1Projective,
 };
 use group::Group;
 use rand_core::OsRng;
-use sha3::Shake256;
 
 mod test_data;
 
@@ -64,7 +64,7 @@ const TEST_PRESENTATION_HEADER_1: &[u8; 26] = b"test_presentation-header-1";
 const TEST_PRESENTATION_HEADER_2: &[u8; 26] = b"test_presentation-header-2";
 
 fn create_generators_helper(num_of_messages: usize) -> Generators {
-    Generators::new::<ExpandMsgXof<Shake256>>(num_of_messages)
+    Generators::new::<Bls12381Shake256CipherSuiteParameter>(num_of_messages)
         .expect("generators creation failed")
 }
 
@@ -92,9 +92,13 @@ fn get_test_messages() -> Vec<Message> {
     TEST_CLAIMS
         .iter()
         .map(|b| {
-            Message::from_arbitrary_data::<_, ExpandMsgXof<Shake256>>(
+            Message::from_arbitrary_data::<
+                _,
+                Bls12381Shake256CipherSuiteParameter,
+            >(
                 b.as_ref(),
-                MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
+                Bls12381Shake256CipherSuiteParameter::MAP_MESSAGE_TO_SCALAR_DST
+                    .as_ref(),
             )
         })
         .collect::<Result<Vec<Message>, _>>()

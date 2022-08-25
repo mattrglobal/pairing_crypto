@@ -1,6 +1,6 @@
-use super::hash_utils::create_generators;
 use crate::{
-    curves::bls12_381::{hash_to_curve::ExpandMessage, G1Projective},
+    bbs::ciphersuites::BbsCipherSuiteParameter,
+    curves::bls12_381::G1Projective,
     error::Error,
 };
 
@@ -19,8 +19,11 @@ pub(crate) struct Generators {
 impl Generators {
     /// Construct `Generators` from the given `seed` values.
     /// The implementation follows `CreateGenerators` section as defined in <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-creategenerators>.
-    pub fn new<X: ExpandMessage>(count: usize) -> Result<Self, Error> {
-        let generators = create_generators::<X>(count + 2)?;
+    pub fn new<C>(count: usize) -> Result<Self, Error>
+    where
+        C: BbsCipherSuiteParameter<'static>,
+    {
+        let generators = C::create_generators(count + 2)?;
         Ok(Self {
             Q_1: generators[0],
             Q_2: generators[1],

@@ -1,7 +1,10 @@
 use super::constants::OCTET_SCALAR_LENGTH;
 use crate::{
-    bbs::core::hash_utils::map_message_to_scalar_as_hash,
-    curves::bls12_381::{hash_to_curve::ExpandMessage, Scalar},
+    bbs::{
+        ciphersuites::BbsCipherSuiteParameter,
+        core::hash_utils::map_message_to_scalar_as_hash,
+    },
+    curves::bls12_381::Scalar,
     error::Error,
 };
 use serde::{Deserialize, Serialize};
@@ -64,12 +67,12 @@ impl Message {
     }
 
     /// Map arbitrary data to `Message`.
-    pub fn from_arbitrary_data<T, X>(msg: T, dst: T) -> Result<Self, Error>
+    pub fn from_arbitrary_data<T, C>(msg: T, dst: T) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
-        X: ExpandMessage,
+        C: BbsCipherSuiteParameter<'static>,
     {
-        Ok(Self(map_message_to_scalar_as_hash::<_, X>(msg, dst)?))
+        Ok(Self(map_message_to_scalar_as_hash::<_, C>(msg, dst)?))
     }
 }
 

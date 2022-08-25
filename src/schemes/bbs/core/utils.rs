@@ -1,24 +1,15 @@
 #![allow(non_snake_case)]
 
 use super::{
-    constants::{
-        BBS_CIPHERSUITE_ID,
-        NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
-        OCTET_POINT_G1_LENGTH,
-    },
+    constants::{NON_NEGATIVE_INTEGER_ENCODING_LENGTH, OCTET_POINT_G1_LENGTH},
     generator::Generators,
-    hash_utils::hash_to_scalar,
     key_pair::PublicKey,
     types::{Challenge, Message},
 };
 use crate::{
+    bbs::ciphersuites::BbsCipherSuiteParameter,
     common::serialization::{i2osp, i2osp_with_data},
-    curves::bls12_381::{
-        hash_to_curve::ExpandMessage,
-        G1Affine,
-        G1Projective,
-        Scalar,
-    },
+    curves::bls12_381::{G1Affine, G1Projective, Scalar},
     error::Error,
 };
 use ff::Field;
@@ -54,7 +45,7 @@ pub(crate) fn octets_to_point_g1(
 /// Computes `domain` value.
 /// domain =
 ///    hash_to_scalar((PK || L || generators || Ciphersuite_ID || header), 1)
-pub(crate) fn compute_domain<T, X>(
+pub(crate) fn compute_domain<T, C>(
     PK: &PublicKey,
     header: Option<T>,
     L: usize,
@@ -62,7 +53,7 @@ pub(crate) fn compute_domain<T, X>(
 ) -> Result<Scalar, Error>
 where
     T: AsRef<[u8]>,
-    X: ExpandMessage,
+    C: BbsCipherSuiteParameter<'static>,
 {
     // Error out if length of messages and generators are not equal
     if L != generators.message_generators_length() {
@@ -87,7 +78,7 @@ where
     // constant here. This should be passed as ciphersuite specific const as
     // generic parameter when initializing a curve specific ciphersuite.
     data_to_hash.extend(i2osp_with_data(
-        BBS_CIPHERSUITE_ID,
+        C::ID.as_octets(),
         NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
     )?);
     if let Some(header) = header {
@@ -97,7 +88,7 @@ where
         )?);
     }
 
-    Ok(hash_to_scalar::<X>(&data_to_hash, 1)?[0])
+    Ok(C::hash_to_scalar(&data_to_hash, 1)?[0])
 }
 
 /// Computes `B` value.
@@ -135,7 +126,7 @@ pub(crate) fn compute_B(
 
 /// Compute Fiat Shamir heuristic challenge.
 #[allow(clippy::too_many_arguments)]
-pub(crate) fn compute_challenge<T, X>(
+pub(crate) fn compute_challenge<T, C>(
     A_prime: &G1Projective,
     A_bar: &G1Projective,
     D: &G1Projective,
@@ -147,7 +138,7 @@ pub(crate) fn compute_challenge<T, X>(
 ) -> Result<Challenge, Error>
 where
     T: AsRef<[u8]>,
-    X: ExpandMessage,
+    C: BbsCipherSuiteParameter<'static>,
 {
     // c_array = (A', Abar, D, C1, C2, R, i1, ..., iR, msg_i1, ..., msg_iR,
     //              domain, ph)
@@ -179,5 +170,5 @@ where
     }
 
     // c = hash_to_scalar(c_for_hash, 1)
-    Ok(Challenge(hash_to_scalar::<X>(&data_to_hash, 1)?[0]))
+    Ok(Challenge(C::hash_to_scalar(&data_to_hash, 1)?[0]))
 }
