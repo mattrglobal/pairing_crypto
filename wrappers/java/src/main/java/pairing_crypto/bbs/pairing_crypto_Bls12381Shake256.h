@@ -149,6 +149,13 @@ extern "C"
 
   /*
    * Class:     pairing_crypto_Bls12381Shake256
+   * Method:    proof_gen_context_set_verify_signature
+   * Signature: (J[B)I
+   */
+  JNIEXPORT jint JNICALL Java_pairing_1crypto_Bls12381Shake256_proof_1gen_1context_1set_1verify_1signature(JNIEnv *, jclass, jlong, jboolean);
+
+  /*
+   * Class:     pairing_crypto_Bls12381Shake256
    * Method:    proof_gen_context_add_message
    * Signature: (JZ[B)I
    */

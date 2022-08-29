@@ -287,6 +287,7 @@ macro_rules! bbs_wrapper_api_generator {
                     .presentationHeader
                     .as_ref()
                     .map(|pm| pm.as_slice()),
+                verify_signature: request.verifySignature,
                 messages: None,
             };
 

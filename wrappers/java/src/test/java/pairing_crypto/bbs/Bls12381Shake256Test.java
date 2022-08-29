@@ -125,7 +125,7 @@ public class Bls12381Shake256Test {
         HashSet<Integer> allDisclosedIndices = new HashSet(Arrays.asList(0, 1, 2));
         byte[] proof = new byte[0];
         try {
-            proof = bbs.createProof(publicKey, header, presentation_header, signature, allDisclosedIndices, messages);
+            proof = bbs.createProof(publicKey, header, presentation_header, signature, false, allDisclosedIndices, messages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -146,7 +146,7 @@ public class Bls12381Shake256Test {
         HashMap<Integer, byte[]> fewDisclosedMessages = new HashMap<Integer, byte[]>();
         fewDisclosedMessages.put(1, messages[1]);
         try {
-            proof = bbs.createProof(publicKey, header, presentation_header, signature, fewDisclosedIndices, messages);
+            proof = bbs.createProof(publicKey, header, presentation_header, signature, false, fewDisclosedIndices, messages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }

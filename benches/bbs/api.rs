@@ -32,7 +32,7 @@ const TEST_KEY_INFOS: &[u8; 50] =
     b"12345678901234567890123456789012345678901234567890";
 
 const TEST_HEADER: &[u8; 16] = b"some_app_context";
-const TEST_PRESENTATION_HEADER: &[u8; 25] = b"test-presentation-header";
+const TEST_PRESENTATION_HEADER: &[u8; 24] = b"test-presentation-header";
 
 fn get_random_key_pair() -> ([u8; 32], [u8; 96]) {
     KeyPair::random(&mut OsRng, Some(TEST_KEY_INFOS))
@@ -193,6 +193,7 @@ macro_rules! proof_gen_benchmark_generator {
                                 presentation_header: black_box(Some(
                                     presentation_header,
                                 )),
+                                verify_signature: None,
                             })
                             .unwrap();
                         });
@@ -269,6 +270,7 @@ macro_rules! proof_verify_benchmark_generator {
                     messages: Some(&proof_messages),
                     signature: &signature,
                     presentation_header: black_box(Some(presentation_header)),
+                    verify_signature: None,
                 })
                 .expect("proof generation failed");
 

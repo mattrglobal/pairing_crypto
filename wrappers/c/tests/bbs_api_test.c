@@ -244,6 +244,15 @@ int main(int argc, char **argv)
     }
     printf("pass\n");
 
+    printf("Set verify-signature flag in proof context...");
+    fflush(stdout);
+    if (bbs_bls12_381_shake_256_proof_gen_context_set_verify_signature(handle, false, err) != 0)
+    {
+        printf("fail\n");
+        goto Fail;
+    }
+    printf("pass\n");
+
     printf("Creating proof...");
     fflush(stdout);
     if (bbs_bls12_381_shake_256_proof_gen_context_finish(handle, (ByteBuffer *)proof, err) != 0)

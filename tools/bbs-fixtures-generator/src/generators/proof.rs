@@ -353,6 +353,7 @@ macro_rules! proof_gen_helper {
             presentation_header: Some($presentation_header.clone()),
             messages: Some(&proof_messages),
             signature: &signature,
+            verify_signature: None,
         })
         .unwrap();
 
