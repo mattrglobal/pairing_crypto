@@ -13,12 +13,7 @@ use super::{
 };
 use crate::{
     bbs::ciphersuites::BbsCiphersuiteParameters,
-    curves::bls12_381::{
-        Bls12,
-        G1Projective,
-        G2Prepared,
-        Scalar,
-    },
+    curves::bls12_381::{Bls12, G1Projective, G2Prepared, Scalar},
     error::Error,
     print_byte_array,
 };
