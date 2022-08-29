@@ -21,21 +21,6 @@ pub(crate) struct Bls12381Shake256CipherSuiteParameter;
 impl<'a> BbsCiphersuiteParameters<'a> for Bls12381Shake256CipherSuiteParameter {
     const ID: CipherSuiteId = CipherSuiteId::BbsBls12381G1XofShake256;
 
-    const DEFAULT_HASH_TO_SCALAR_DST: &'static [u8] =
-        b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_H2S_";
-
-    const DEFAULT_MAP_MESSAGE_TO_SCALAR_AS_HASH_DST: &'static [u8] =
-        b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_MAP_MESSAGE_TO_SCALAR_AS_HASH_";
-
-    const GENERATOR_SEED: &'static [u8] =
-        b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_MESSAGE_GENERATOR_SEED";
-
-    const GENERATOR_DST: &'static [u8] =
-        b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_SIG_GENERATOR_DST_";
-
-    const GENERATOR_SEED_DST: &'static [u8] =
-        b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_SIG_GENERATOR_SEED_";
-
     fn hash_to_scalar(
         message: &[u8],
         count: usize,

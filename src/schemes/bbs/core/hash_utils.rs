@@ -27,7 +27,9 @@ pub(crate) fn map_message_to_scalar_as_hash<C>(
 where
     C: BbsCiphersuiteParameters<'static>,
 {
-    let dst = dst.unwrap_or(C::DEFAULT_MAP_MESSAGE_TO_SCALAR_AS_HASH_DST);
+    let default_map_message_to_scalar_as_hash_dst =
+        C::default_map_message_to_scalar_as_hash_dst();
+    let dst = dst.unwrap_or(&default_map_message_to_scalar_as_hash_dst);
 
     if !dst.is_ascii() {
         return Err(Error::BadParams {
@@ -64,7 +66,8 @@ where
     X: ExpandMessage,
 {
     let len_in_bytes = count * XOF_NO_OF_BYTES;
-    let dst_octets = dst_octets.unwrap_or(C::DEFAULT_HASH_TO_SCALAR_DST);
+    let default_hash_to_scalar_dst = C::default_hash_to_scalar_dst();
+    let dst_octets = dst_octets.unwrap_or(&default_hash_to_scalar_dst);
 
     if !dst_octets.is_ascii() {
         return Err(Error::BadParams {
@@ -128,10 +131,13 @@ where
     // Spec doesn't define P1
     let p1 = G1Projective::generator();
 
-    let generator_seed = generator_seed.unwrap_or(C::GENERATOR_SEED);
+    let default_generator_seed = C::generator_seed();
+    let generator_seed = generator_seed.unwrap_or(&default_generator_seed);
+    let default_generator_seed_dst = C::generator_seed_dst();
     let generator_seed_dst =
-        generator_seed_dst.unwrap_or(C::GENERATOR_SEED_DST);
-    let generator_dst = generator_dst.unwrap_or(C::GENERATOR_DST);
+        generator_seed_dst.unwrap_or(&default_generator_seed_dst);
+    let default_generator_dst = C::generator_dst();
+    let generator_dst = generator_dst.unwrap_or(&default_generator_dst);
 
     let mut points = Vec::with_capacity(count);
 
