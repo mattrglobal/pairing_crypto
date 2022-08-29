@@ -13,7 +13,7 @@ use crate::{
     error::Error,
 };
 use ff::Field;
-use group::{Curve, Group};
+use group::Curve;
 
 #[cfg(feature = "alloc")]
 use alloc::collections::BTreeMap;
@@ -93,12 +93,15 @@ where
 
 /// Computes `B` value.
 /// B = P1 + Q_1 * s + Q_2 * domain + H_1 * msg_1 + ... + H_L * msg_L
-pub(crate) fn compute_B(
+pub(crate) fn compute_B<C>(
     s: &Scalar,
     domain: &Scalar,
     messages: &[Message],
     generators: &Generators,
-) -> Result<G1Projective, Error> {
+) -> Result<G1Projective, Error>
+where
+    C: BbsCiphersuiteParameters<'static>,
+{
     // Input params check
     // Error out if length of generators and messages are not equal
     if messages.len() != generators.message_generators_length() {
@@ -108,12 +111,7 @@ pub(crate) fn compute_B(
         });
     }
 
-    // Spec doesn't define P1, using G1Projective::generator() as P1
-    let mut points: Vec<_> = vec![
-        G1Projective::generator(),
-        generators.Q_1(),
-        generators.Q_2(),
-    ];
+    let mut points: Vec<_> = vec![C::p1(), generators.Q_1(), generators.Q_2()];
     points.extend(generators.message_generators_iter());
     let scalars: Vec<_> = [Scalar::one(), *s, *domain]
         .iter()

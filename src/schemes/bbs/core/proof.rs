@@ -17,13 +17,13 @@ use super::{
 };
 use crate::{
     bbs::ciphersuites::BbsCiphersuiteParameters,
-    curves::bls12_381::{Bls12, G1Projective, G2Affine, G2Prepared, Scalar},
+    curves::bls12_381::{Bls12, G1Projective, G2Prepared, Scalar},
     error::Error,
     print_byte_array,
 };
 use core::convert::TryFrom;
 use ff::Field;
-use group::{prime::PrimeCurveAffine, Curve, Group};
+use group::{Curve, Group};
 use pairing::{MillerLoopResult as _, MultiMillerLoop};
 use rand::{CryptoRng, RngCore};
 use rand_core::OsRng;
@@ -172,7 +172,8 @@ impl Proof {
 
         let msg: Vec<_> = messages.iter().map(|m| m.get_message()).collect();
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let B = compute_B(&signature.s, &domain, msg.as_ref(), generators)?;
+        let B =
+            compute_B::<C>(&signature.s, &domain, msg.as_ref(), generators)?;
 
         // r3 = r1 ^ -1 mod r
         let r3 = r1.invert();
@@ -356,7 +357,7 @@ impl Proof {
         let T_len = 1 + 1 + disclosed_messages.len();
         let mut T_points = Vec::with_capacity(T_len);
         let mut T_scalars = Vec::with_capacity(T_len);
-        let P1 = G1Projective::generator();
+        let P1 = C::p1();
         // P1
         T_points.push(P1);
         T_scalars.push(Scalar::one());
@@ -435,7 +436,7 @@ impl Proof {
         // Check the signature proof
         // if e(A', W) * e(Abar, -P2) != 1, return INVALID
         // else return VALID
-        let P2 = G2Affine::generator();
+        let P2 = C::p2().to_affine();
         Ok(Bls12::multi_miller_loop(&[
             (
                 &self.A_prime.to_affine(),

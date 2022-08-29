@@ -128,9 +128,6 @@ where
     C: BbsCiphersuiteParameters<'static>,
     X: ExpandMessage,
 {
-    // Spec doesn't define P1
-    let p1 = G1Projective::generator();
-
     let default_generator_seed = C::generator_seed();
     let generator_seed = generator_seed.unwrap_or(&default_generator_seed);
     let default_generator_seed_dst = C::generator_seed_dst();
@@ -165,7 +162,7 @@ where
         let candidate = G1Projective::hash_to::<X>(&v, generator_dst);
 
         if (candidate.is_identity().unwrap_u8() == 1)
-            || candidate == p1
+            || candidate == C::p1()
             || points.iter().any(|e| e == &candidate)
         {
             continue;

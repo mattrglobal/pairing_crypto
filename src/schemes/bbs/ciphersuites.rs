@@ -1,5 +1,7 @@
+use group::Group;
+
 use crate::{
-    curves::bls12_381::{G1Projective, Scalar},
+    curves::bls12_381::{G1Projective, G2Projective, Scalar},
     Error,
 };
 
@@ -59,6 +61,17 @@ pub(crate) trait BbsCiphersuiteParameters<'a> {
     /// Seed DST which is used by the `create_generators ` operation.
     fn generator_seed_dst() -> Vec<u8> {
         [Self::ID.as_octets(), b"SIG_GENERATOR_SEED_"].concat()
+    }
+
+    /// Point on G1 to be used in signature and proof computation and
+    /// verification.
+    fn p1() -> G1Projective {
+        G1Projective::generator()
+    }
+
+    /// Point on G2 to be used during signature and proof verification.
+    fn p2() -> G2Projective {
+        G2Projective::generator()
     }
 
     /// Hash arbitrary data to `n` number of scalars as specified in BBS

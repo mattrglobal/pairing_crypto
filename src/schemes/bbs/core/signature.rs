@@ -17,7 +17,6 @@ use crate::{
         Bls12,
         G1Projective,
         G2Prepared,
-        G2Projective,
         Scalar,
     },
     error::Error,
@@ -188,7 +187,7 @@ impl Signature {
         let (e, s) = (scalars[0], scalars[1]);
 
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let B = compute_B(&s, &domain, messages, generators)?;
+        let B = compute_B::<C>(&s, &domain, messages, generators)?;
         let exp = (e + SK.as_scalar()).invert();
         let exp = if exp.is_some().unwrap_u8() == 1u8 {
             exp.unwrap()
@@ -249,9 +248,9 @@ impl Signature {
             compute_domain::<_, C>(PK, header, messages.len(), generators)?;
 
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let B = compute_B(&self.s, &domain, messages, generators)?;
+        let B = compute_B::<C>(&self.s, &domain, messages, generators)?;
 
-        let P2 = G2Projective::generator();
+        let P2 = C::p2();
         // C1 = (A, W + P2 * e)
         let C1 = (
             &self.A.to_affine(),
