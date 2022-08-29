@@ -7,7 +7,7 @@ use super::{
     types::{Challenge, Message},
 };
 use crate::{
-    bbs::ciphersuites::BbsCipherSuiteParameter,
+    bbs::ciphersuites::BbsCiphersuiteParameters,
     common::serialization::{i2osp, i2osp_with_data},
     curves::bls12_381::{G1Affine, G1Projective, Scalar},
     error::Error,
@@ -53,7 +53,7 @@ pub(crate) fn compute_domain<T, C>(
 ) -> Result<Scalar, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCipherSuiteParameter<'static>,
+    C: BbsCiphersuiteParameters<'static>,
 {
     // Error out if length of messages and generators are not equal
     if L != generators.message_generators_length() {
@@ -138,7 +138,7 @@ pub(crate) fn compute_challenge<T, C>(
 ) -> Result<Challenge, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCipherSuiteParameter<'static>,
+    C: BbsCiphersuiteParameters<'static>,
 {
     // c_array = (A', Abar, D, C1, C2, R, i1, ..., iR, msg_i1, ..., msg_iR,
     //              domain, ph)

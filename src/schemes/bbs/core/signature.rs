@@ -12,7 +12,7 @@ use super::{
     },
 };
 use crate::{
-    bbs::ciphersuites::BbsCipherSuiteParameter,
+    bbs::ciphersuites::BbsCiphersuiteParameters,
     curves::bls12_381::{
         Bls12,
         G1Projective,
@@ -149,7 +149,7 @@ impl Signature {
     where
         T: AsRef<[u8]>,
         M: AsRef<[Message]>,
-        C: BbsCipherSuiteParameter<'static>,
+        C: BbsCiphersuiteParameters<'static>,
     {
         let header = header.as_ref();
         let messages = messages.as_ref();
@@ -217,7 +217,7 @@ impl Signature {
     where
         T: AsRef<[u8]>,
         M: AsRef<[Message]>,
-        C: BbsCipherSuiteParameter<'static>,
+        C: BbsCiphersuiteParameters<'static>,
     {
         let messages = messages.as_ref();
 

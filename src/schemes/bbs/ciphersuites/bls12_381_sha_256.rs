@@ -1,6 +1,6 @@
 use super::{
     bls12_381::BBS_BLS12381G1_SIGNATURE_LENGTH,
-    BbsCipherSuiteParameter,
+    BbsCiphersuiteParameters,
     CipherSuiteId,
 };
 use crate::{
@@ -18,7 +18,7 @@ use sha2::Sha256;
 
 pub(crate) struct Bls12381Sha256CipherSuiteParameter;
 
-impl<'a> BbsCipherSuiteParameter<'a> for Bls12381Sha256CipherSuiteParameter {
+impl<'a> BbsCiphersuiteParameters<'a> for Bls12381Sha256CipherSuiteParameter {
     const ID: CipherSuiteId = CipherSuiteId::BbsBls12381G1XmdSha256;
 
     const DEFAULT_HASH_TO_SCALAR_DST: &'static [u8] =

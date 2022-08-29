@@ -1,7 +1,7 @@
 use super::constants::OCTET_SCALAR_LENGTH;
 use crate::{
     bbs::{
-        ciphersuites::BbsCipherSuiteParameter,
+        ciphersuites::BbsCiphersuiteParameters,
         core::hash_utils::map_message_to_scalar_as_hash,
     },
     curves::bls12_381::Scalar,
@@ -72,7 +72,7 @@ impl Message {
         dst: Option<&[u8]>,
     ) -> Result<Self, Error>
     where
-        C: BbsCipherSuiteParameter<'static>,
+        C: BbsCiphersuiteParameters<'static>,
     {
         Ok(Self(map_message_to_scalar_as_hash::<C>(message, dst)?))
     }

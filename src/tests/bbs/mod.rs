@@ -2,7 +2,7 @@ use crate::{
     bbs::{
         ciphersuites::{
             bls12_381_shake_256::Bls12381Shake256CipherSuiteParameter,
-            BbsCipherSuiteParameter,
+            BbsCiphersuiteParameters,
         },
         core::{generator::Generators, key_pair::KeyPair, types::Message},
     },

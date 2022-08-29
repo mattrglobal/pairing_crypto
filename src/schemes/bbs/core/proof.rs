@@ -16,7 +16,7 @@ use super::{
     },
 };
 use crate::{
-    bbs::ciphersuites::BbsCipherSuiteParameter,
+    bbs::ciphersuites::BbsCiphersuiteParameters,
     curves::bls12_381::{Bls12, G1Projective, G2Affine, G2Prepared, Scalar},
     error::Error,
     print_byte_array,
@@ -101,7 +101,7 @@ impl Proof {
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
-        C: BbsCipherSuiteParameter<'static>,
+        C: BbsCiphersuiteParameters<'static>,
     {
         Self::new_with_rng::<_, _, C>(
             PK,
@@ -126,7 +126,7 @@ impl Proof {
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
-        C: BbsCipherSuiteParameter<'static>,
+        C: BbsCiphersuiteParameters<'static>,
         R: RngCore + CryptoRng,
     {
         // Input parameter checks
@@ -159,12 +159,12 @@ impl Proof {
             compute_domain::<_, C>(PK, header, messages.len(), generators)?;
 
         // (r1, r2, e~, r2~, r3~, s~) = hash_to_scalar(PRF(8*ceil(log2(r))), 6)
-        let r1 = create_random_scalar::<_, C>(&mut rng, None)?;
-        let r2 = create_random_scalar::<_, C>(&mut rng, None)?;
-        let e_tilde = create_random_scalar::<_, C>(&mut rng, None)?;
-        let r2_tilde = create_random_scalar::<_, C>(&mut rng, None)?;
-        let r3_tilde = create_random_scalar::<_, C>(&mut rng, None)?;
-        let s_tilde = create_random_scalar::<_, C>(&mut rng, None)?;
+        let r1 = create_random_scalar::<_, C>(&mut rng)?;
+        let r2 = create_random_scalar::<_, C>(&mut rng)?;
+        let e_tilde = create_random_scalar::<_, C>(&mut rng)?;
+        let r2_tilde = create_random_scalar::<_, C>(&mut rng)?;
+        let r3_tilde = create_random_scalar::<_, C>(&mut rng)?;
+        let s_tilde = create_random_scalar::<_, C>(&mut rng)?;
 
         // (m~_j1, ..., m~_jU) =  hash_to_scalar(PRF(8*ceil(log2(r))), U)
         // these random scalars will be generated further below during `C2`
@@ -286,7 +286,7 @@ impl Proof {
     ) -> Result<bool, Error>
     where
         T: AsRef<[u8]>,
-        C: BbsCipherSuiteParameter<'static>,
+        C: BbsCiphersuiteParameters<'static>,
     {
         let total_no_of_messages =
             self.m_hat_list.len() + disclosed_messages.len();

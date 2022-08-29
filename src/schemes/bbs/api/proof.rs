@@ -3,7 +3,7 @@ use super::{
     utils::{digest_proof_messages, digest_revealed_proof_messages},
 };
 use crate::{
-    bbs::ciphersuites::BbsCipherSuiteParameter,
+    bbs::ciphersuites::BbsCiphersuiteParameters,
     error::Error,
     schemes::bbs::core::{
         generator::Generators,
@@ -31,7 +31,7 @@ pub(crate) fn proof_gen<T, C>(
 ) -> Result<Vec<u8>, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCipherSuiteParameter<'static>,
+    C: BbsCiphersuiteParameters<'static>,
 {
     // Parse public key from request
     let pk = PublicKey::from_octets(request.public_key)?;
@@ -73,7 +73,7 @@ pub(crate) fn proof_verify<T, C>(
 ) -> Result<bool, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCipherSuiteParameter<'static>,
+    C: BbsCiphersuiteParameters<'static>,
 {
     // Parse public key from request
     let public_key = PublicKey::from_octets(request.public_key)?;

@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     bbs::{
-        ciphersuites::BbsCipherSuiteParameter,
+        ciphersuites::BbsCiphersuiteParameters,
         core::{
             constants::BBS_BLS12381G1_SIGNATURE_LENGTH,
             generator::Generators,
@@ -22,7 +22,7 @@ pub(crate) fn sign<T, C>(
 ) -> Result<[u8; BBS_BLS12381G1_SIGNATURE_LENGTH], Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCipherSuiteParameter<'static>,
+    C: BbsCiphersuiteParameters<'static>,
 {
     // Parse the secret key
     let sk = SecretKey::from_bytes(request.secret_key)?;
@@ -53,7 +53,7 @@ pub(crate) fn verify<T, C>(
 ) -> Result<bool, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCipherSuiteParameter<'static>,
+    C: BbsCiphersuiteParameters<'static>,
 {
     // Parse public key from request
     let pk = PublicKey::from_octets(request.public_key)?;

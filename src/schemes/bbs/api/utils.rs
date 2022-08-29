@@ -22,7 +22,7 @@ use std::collections::BTreeMap;
 use super::dtos::BbsProofGenRevealMessageRequest;
 use crate::{
     bbs::{
-        ciphersuites::BbsCipherSuiteParameter,
+        ciphersuites::BbsCiphersuiteParameters,
         core::types::{Message, ProofMessage},
     },
     error::Error,
@@ -35,7 +35,7 @@ pub(super) fn digest_messages<T, C>(
 ) -> Result<Vec<Message>, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCipherSuiteParameter<'static>,
+    C: BbsCiphersuiteParameters<'static>,
 {
     if let Some(messages) = messages {
         return messages
@@ -52,7 +52,7 @@ pub(super) fn digest_proof_messages<T, C>(
 ) -> Result<(Vec<Message>, Vec<ProofMessage>), Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCipherSuiteParameter<'static>,
+    C: BbsCiphersuiteParameters<'static>,
 {
     let mut digested_messages = vec![];
     let mut proof_messages = vec![];
@@ -82,7 +82,7 @@ pub(super) fn digest_revealed_proof_messages<T, C>(
 ) -> Result<BTreeMap<usize, Message>, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCipherSuiteParameter<'static>,
+    C: BbsCiphersuiteParameters<'static>,
 {
     if messages.is_none() {
         return Ok(BTreeMap::new());

@@ -30,7 +30,7 @@ impl CipherSuiteId {
     }
 }
 
-pub(crate) trait BbsCipherSuiteParameter<'a> {
+pub(crate) trait BbsCiphersuiteParameters<'a> {
     /// Ciphersuite ID.
     const ID: CipherSuiteId;
 

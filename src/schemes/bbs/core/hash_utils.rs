@@ -6,7 +6,7 @@ use super::constants::{
     XOF_NO_OF_BYTES,
 };
 use crate::{
-    bbs::ciphersuites::BbsCipherSuiteParameter,
+    bbs::ciphersuites::BbsCiphersuiteParameters,
     common::serialization::{i2osp, i2osp_with_data},
     curves::bls12_381::{
         hash_to_curve::{ExpandMessage, ExpandMessageState},
@@ -25,7 +25,7 @@ pub(crate) fn map_message_to_scalar_as_hash<C>(
     dst: Option<&[u8]>,
 ) -> Result<Scalar, Error>
 where
-    C: BbsCipherSuiteParameter<'static>,
+    C: BbsCiphersuiteParameters<'static>,
 {
     let dst = dst.unwrap_or(C::DEFAULT_MAP_MESSAGE_TO_SCALAR_AS_HASH_DST);
 
@@ -60,7 +60,7 @@ pub(crate) fn do_hash_to_scalar<C, X>(
     dst_octets: Option<&[u8]>,
 ) -> Result<Vec<Scalar>, Error>
 where
-    C: BbsCipherSuiteParameter<'static>,
+    C: BbsCiphersuiteParameters<'static>,
     X: ExpandMessage,
 {
     let len_in_bytes = count * XOF_NO_OF_BYTES;
@@ -103,17 +103,14 @@ where
 
 /// Utility function to create random `Scalar` values using `hash_to_scalar`
 /// function.
-pub(crate) fn create_random_scalar<R, C>(
-    mut rng: R,
-    dst: Option<&[u8]>,
-) -> Result<Scalar, Error>
+pub(crate) fn create_random_scalar<R, C>(mut rng: R) -> Result<Scalar, Error>
 where
     R: RngCore,
-    C: BbsCipherSuiteParameter<'static>,
+    C: BbsCiphersuiteParameters<'static>,
 {
     let mut raw = [0u8; 32];
     rng.fill_bytes(&mut raw[..]);
-    Ok(C::hash_to_scalar(&raw, 1, dst)?[0])
+    Ok(C::hash_to_scalar(&raw, 1, None)?[0])
 }
 
 /// A convenient wrapper over underlying `hash_to_curve_g1` implementation(from
@@ -125,7 +122,7 @@ pub(crate) fn do_create_generators<C, X>(
     generator_dst: Option<&[u8]>,
 ) -> Result<Vec<G1Projective>, Error>
 where
-    C: BbsCipherSuiteParameter<'static>,
+    C: BbsCiphersuiteParameters<'static>,
     X: ExpandMessage,
 {
     // Spec doesn't define P1
