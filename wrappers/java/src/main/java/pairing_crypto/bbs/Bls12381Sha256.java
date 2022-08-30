@@ -51,6 +51,8 @@ public class Bls12381Sha256 extends Bbs {
 
     private static native int proof_gen_context_set_presentation_header(long handle, byte[] presentation_header);
 
+    private static native int proof_gen_context_set_verify_signature(long handle, boolean verify_signature);
+
     private static native int proof_gen_context_add_message(long handle, boolean reveal, byte[] message);
 
     private static native int proof_gen_context_finish(long handle, byte[] proof);
@@ -139,7 +141,7 @@ public class Bls12381Sha256 extends Bbs {
         }
     }
 
-    public byte[] createProof(byte[] publicKey, byte[] header, byte[] presentationHeader, byte[] signature, HashSet<Integer> disclosedIndices, byte[][] messages) throws Exception {
+    public byte[] createProof(byte[] publicKey, byte[] header, byte[] presentationHeader, byte[] signature, boolean verifySignature, HashSet<Integer> disclosedIndices, byte[][] messages) throws Exception {
         int numberOfUndisclosedMessages = 0;
         long handle = proof_gen_context_init();
         if (0 == handle) {
@@ -153,6 +155,9 @@ public class Bls12381Sha256 extends Bbs {
         }
         if (0 != proof_gen_context_set_presentation_header(handle, presentationHeader)) {
             throw new Exception("Unable to set presentation header");
+        }
+        if (0 != proof_gen_context_set_verify_signature(handle, verifySignature)) {
+            throw new Exception("Unable to set verify-signature flag");
         }
         if (0 != proof_gen_context_set_signature(handle, signature)) {
             throw new Exception("Unable to set signature: " + get_last_error());

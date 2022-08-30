@@ -181,6 +181,7 @@ macro_rules! proof_gen_verify_e2e_nominal {
                     messages: Some(&proof_messages),
                     signature: &signature,
                     presentation_header: Some(presentation_header),
+                    verify_signature: None,
                 })
                 .expect("proof generation failed");
 
@@ -278,14 +279,29 @@ macro_rules! proof_gen_failure_message_modified {
         // Modify one of the messages
         proof_messages[1].value = &[0xA; 50];
 
+        // Proof-gen fails with tampered message when we pass `true` value for
+        // `verify_signature`.
         let result = $proof_gen_fn(&BbsProofGenRequest {
             public_key: &public_key,
             header: Some(header),
             messages: Some(&proof_messages),
             signature: &signature,
             presentation_header: Some(presentation_header),
+            verify_signature: Some(true),
         });
         assert_eq!(result, Err(Error::SignatureVerification));
+
+        // Proof-gen succeeds with tampered message when we pass `false`value
+        // for `verify_signature`.
+        $proof_gen_fn(&BbsProofGenRequest {
+            public_key: &public_key,
+            header: Some(header),
+            messages: Some(&proof_messages),
+            signature: &signature,
+            presentation_header: Some(presentation_header),
+            verify_signature: Some(false),
+        })
+        .expect("proof should be generated for tampered messages");
     };
 }
 

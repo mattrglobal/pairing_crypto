@@ -144,6 +144,7 @@ macro_rules! derive_proof_fixtures {
                                     fixture.signature.clone(),
                                 )
                                 .unwrap(),
+                                verify_signature: Some(true),
                             },
                         )
                         .expect(&format!(
@@ -164,6 +165,7 @@ macro_rules! derive_proof_fixtures {
                             fixture.signature.clone(),
                         )
                         .unwrap(),
+                    verify_signature: Some(true),
                 });
 
                 assert!(
