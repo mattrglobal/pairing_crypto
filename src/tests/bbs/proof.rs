@@ -21,7 +21,7 @@ use crate::{
             bls12_381_shake_256::Bls12381Shake256CipherSuiteParameter,
         },
         core::{
-            generator::Generators,
+            generator::memory_cached_generator::MemoryCachedGenerators,
             proof::Proof,
             signature::Signature,
             types::{Challenge, FiatShamirProof, Message, ProofMessage},
@@ -49,7 +49,10 @@ use std::collections::{BTreeMap, BTreeSet};
 pub(crate) mod test_helper {
     use crate::bbs::{
         ciphersuites::bls12_381_shake_256::Bls12381Shake256CipherSuiteParameter,
-        core::types::{Message, ProofMessage},
+        core::{
+            generator::Generators,
+            types::{Message, ProofMessage},
+        },
     };
 
     use super::*;
@@ -82,37 +85,42 @@ pub(crate) mod test_helper {
         (proof_messages, revealed_messages)
     }
 
-    pub(crate) fn proof_gen<T, R>(
+    pub(crate) fn proof_gen<T, R, G>(
         pk: &PublicKey,
         signature: &Signature,
         header: Option<T>,
         ph: Option<T>,
-        generators: &Generators,
+        generators: &G,
         messages: &Vec<Message>,
         revealed_indices: &BTreeSet<usize>,
-        mut rng: R,
+        rng: R,
         failure_debug_message: &str,
     ) -> (Proof, BTreeMap<usize, Message>)
     where
         T: AsRef<[u8]> + Copy,
         R: RngCore + CryptoRng,
+        G: Generators,
     {
         let (proof_messages, revealed_messages) =
             to_proof_revealed_messages(messages, revealed_indices);
 
-        let proof =
-            Proof::new_with_rng::<_, _, Bls12381Shake256CipherSuiteParameter>(
-                pk,
-                signature,
-                header,
-                ph,
-                &generators,
-                proof_messages.as_slice(),
-                &mut rng,
-            )
-            .expect(&format!(
-                "proof generation failed - {failure_debug_message}"
-            ));
+        let proof = Proof::new_with_rng::<
+            T,
+            R,
+            G,
+            Bls12381Shake256CipherSuiteParameter,
+        >(
+            pk,
+            signature,
+            header,
+            ph,
+            &generators,
+            proof_messages.as_slice(),
+            rng,
+        )
+        .expect(&format!(
+            "proof generation failed - {failure_debug_message}"
+        ));
 
         (proof, revealed_messages)
     }
@@ -150,7 +158,7 @@ fn gen_verify_serde_nominal() {
         &[0, NUM_MESSAGES - 1].iter().cloned().collect();
 
     let signature =
-        Signature::new::<_, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
@@ -160,7 +168,7 @@ fn gen_verify_serde_nominal() {
         .expect("signing failed");
     assert_eq!(
         signature
-            .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
                 &key_pair.public_key,
                 header,
                 &generators,
@@ -183,7 +191,7 @@ fn gen_verify_serde_nominal() {
     );
     assert_eq!(
         proof
-            .verify::<_, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
                 &key_pair.public_key,
                 header,
                 ph,
@@ -204,7 +212,7 @@ fn gen_verify_serde_nominal() {
 
     assert_eq!(
         proof_deserialized
-            .verify::<_, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
                 &key_pair.public_key,
                 header,
                 ph,
@@ -264,7 +272,7 @@ fn gen_verify_different_key_pairs() {
         .expect("signature deserialization failed");
         assert_eq!(
             signature
-                .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+                .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
                     &pk,
                     header,
                     &generators,
@@ -279,6 +287,7 @@ fn gen_verify_different_key_pairs() {
         // Reveal 1 message at a time
         for j in 0..proof_msgs.len() {
             let proof = Proof::new_with_rng::<
+                _,
                 _,
                 _,
                 Bls12381Shake256CipherSuiteParameter,
@@ -306,7 +315,7 @@ fn gen_verify_different_key_pairs() {
 
             assert_eq!(
                 proof
-                    .verify::<_, Bls12381Shake256CipherSuiteParameter>(
+                    .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
                         &pk,
                         header,
                         ph,
@@ -371,7 +380,7 @@ fn proof_gen_verify_valid_cases() {
     {
         // Signature to be used in proof_gen
         let signature =
-            Signature::new::<_, _, Bls12381Shake256CipherSuiteParameter>(
+            Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
                 &key_pair.secret_key,
                 &key_pair.public_key,
                 header,
@@ -395,7 +404,7 @@ fn proof_gen_verify_valid_cases() {
         );
         assert_eq!(
             proof
-                .verify::<_, Bls12381Shake256CipherSuiteParameter>(
+                .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
                     &key_pair.public_key,
                     header,
                     ph,
@@ -427,7 +436,7 @@ fn proof_gen_verify_valid_cases() {
             );
             assert_eq!(
                 proof
-                    .verify::<_, Bls12381Shake256CipherSuiteParameter>(
+                    .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
                         &key_pair.public_key,
                         header,
                         ph,
@@ -459,7 +468,7 @@ fn proof_gen_verify_all_revealed_shuffled_indices() {
 
     // Signature to be used in proof_gen
     let signature =
-        Signature::new::<_, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
@@ -499,7 +508,7 @@ fn proof_gen_verify_all_revealed_shuffled_indices() {
 
     assert_eq!(
         proof_all_revealed_messages
-            .verify::<_, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
                 &key_pair.public_key,
                 header,
                 ph,
@@ -523,7 +532,7 @@ fn proof_gen_with_invalid_public_key() {
     let generators = create_generators_helper(messages.len());
     let indices_all_hidden = BTreeSet::<usize>::new();
     let signature =
-        Signature::new::<_, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
@@ -549,7 +558,7 @@ fn proof_gen_with_invalid_public_key() {
     // signing
     assert_eq!(
         proof
-            .verify::<_, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
                 &key_pair.public_key,
                 header,
                 ph,
@@ -563,7 +572,7 @@ fn proof_gen_with_invalid_public_key() {
     // Proof verification also fails if same(or any) invalid PublicKey is
     // provided
     assert_eq!(
-        proof.verify::<_, Bls12381Shake256CipherSuiteParameter>(
+        proof.verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
             &PublicKey::default(),
             header,
             ph,
@@ -589,7 +598,7 @@ fn proof_gen_invalid_parameters() {
             &revealed_indices,
         );
 
-        let result = Proof::new::<_, Bls12381Shake256CipherSuiteParameter>(
+        let result = Proof::new::<_, _, Bls12381Shake256CipherSuiteParameter>(
             &pk,
             &signature,
             header,
@@ -617,7 +626,7 @@ fn proof_verify_invalid_parameters() {
     ) in test_data_proof_verify_invalid_parameters()
     {
         assert_eq!(
-            proof.verify::<_, Bls12381Shake256CipherSuiteParameter>(
+            proof.verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
                 &pk,
                 header,
                 ph,
@@ -638,7 +647,7 @@ fn verify_proof_helper<const N: usize>(
             PublicKey,
             Option<&'static [u8]>,
             Option<&'static [u8]>,
-            Generators,
+            MemoryCachedGenerators,
             BTreeMap<usize, Message>,
         ),
         &'static str,
@@ -651,7 +660,7 @@ fn verify_proof_helper<const N: usize>(
     {
         assert_eq!(
             proof
-                .verify::<_, Bls12381Shake256CipherSuiteParameter>(
+                .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
                     &pk,
                     header,
                     ph,

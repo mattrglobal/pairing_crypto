@@ -45,14 +45,15 @@ pub(crate) fn octets_to_point_g1(
 /// Computes `domain` value.
 /// domain =
 ///    hash_to_scalar((PK || L || generators || Ciphersuite_ID || header), 1)
-pub(crate) fn compute_domain<T, C>(
+pub(crate) fn compute_domain<T, G, C>(
     PK: &PublicKey,
     header: Option<T>,
     L: usize,
-    generators: &Generators,
+    generators: &G,
 ) -> Result<Scalar, Error>
 where
     T: AsRef<[u8]>,
+    G: Generators,
     C: BbsCiphersuiteParameters<'static>,
 {
     // Error out if length of messages and generators are not equal
@@ -93,13 +94,14 @@ where
 
 /// Computes `B` value.
 /// B = P1 + Q_1 * s + Q_2 * domain + H_1 * msg_1 + ... + H_L * msg_L
-pub(crate) fn compute_B<C>(
+pub(crate) fn compute_B<G, C>(
     s: &Scalar,
     domain: &Scalar,
     messages: &[Message],
-    generators: &Generators,
+    generators: &G,
 ) -> Result<G1Projective, Error>
 where
+    G: Generators,
     C: BbsCiphersuiteParameters<'static>,
 {
     // Input params check

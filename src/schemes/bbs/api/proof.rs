@@ -3,10 +3,12 @@ use super::{
     utils::{digest_proof_messages, digest_revealed_proof_messages},
 };
 use crate::{
-    bbs::ciphersuites::BbsCiphersuiteParameters,
+    bbs::{
+        ciphersuites::BbsCiphersuiteParameters,
+        core::generator::memory_cached_generator::MemoryCachedGenerators,
+    },
     error::Error,
     schemes::bbs::core::{
-        generator::Generators,
         key_pair::PublicKey,
         proof::Proof,
         signature::Signature,
@@ -40,14 +42,14 @@ where
         digest_proof_messages::<_, C>(request.messages)?;
 
     // Derive generators
-    let generators = Generators::new::<C>(digested_messages.len())?;
+    let generators = MemoryCachedGenerators::new::<C>(digested_messages.len())?;
     // Parse signature from request
     let signature = Signature::from_octets(request.signature)?;
 
     let verify_signature = request.verify_signature.unwrap_or(true);
     if verify_signature {
         // Verify the signature to check the messages supplied are valid
-        if !(signature.verify::<_, _, C>(
+        if !(signature.verify::<_, _, _, C>(
             &pk,
             request.header.as_ref(),
             &generators,
@@ -58,7 +60,7 @@ where
     }
 
     // Generate the proof
-    let proof = Proof::new::<_, C>(
+    let proof = Proof::new::<_, _, C>(
         &pk,
         &signature,
         request.header.as_ref(),
@@ -89,11 +91,12 @@ where
         )?;
 
     // Derive generators
-    let generators = Generators::new::<C>(request.total_message_count)?;
+    let generators =
+        MemoryCachedGenerators::new::<C>(request.total_message_count)?;
 
     let proof = Proof::from_octets(request.proof)?;
 
-    proof.verify::<_, C>(
+    proof.verify::<_, _, C>(
         &public_key,
         request.header.as_ref(),
         request.presentation_header.as_ref(),

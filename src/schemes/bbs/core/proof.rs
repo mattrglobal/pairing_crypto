@@ -91,19 +91,20 @@ impl core::fmt::Display for Proof {
 impl Proof {
     /// Generates the zero-knowledge proof-of-knowledge of a signature, while
     /// optionally selectively disclosing from the original set of signed messages as defined in `ProofGen` API in BBS Signature specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofgen>.
-    pub fn new<T, C>(
+    pub fn new<T, G, C>(
         PK: &PublicKey,
         signature: &Signature,
         header: Option<T>,
         ph: Option<T>,
-        generators: &Generators,
+        generators: &G,
         messages: &[ProofMessage],
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
+        G: Generators,
         C: BbsCiphersuiteParameters<'static>,
     {
-        Self::new_with_rng::<_, _, C>(
+        Self::new_with_rng::<_, _, _, C>(
             PK,
             signature,
             header,
@@ -115,19 +116,20 @@ impl Proof {
     }
     /// Generates the zero-knowledge proof-of-knowledge of a signature, while
     /// optionally selectively disclosing from the original set of signed messages as defined in `ProofGen` API in BBS Signature specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofgen> using an externally supplied random number generator.
-    pub fn new_with_rng<T, R, C>(
+    pub fn new_with_rng<T, R, G, C>(
         PK: &PublicKey,
         signature: &Signature,
         header: Option<T>,
         ph: Option<T>,
-        generators: &Generators,
+        generators: &G,
         messages: &[ProofMessage],
         mut rng: R,
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
-        C: BbsCiphersuiteParameters<'static>,
         R: RngCore + CryptoRng,
+        G: Generators,
+        C: BbsCiphersuiteParameters<'static>,
     {
         // Input parameter checks
         // Error out if there is no `header` and not any `ProofMessage`
@@ -156,7 +158,7 @@ impl Proof {
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
         let domain =
-            compute_domain::<_, C>(PK, header, messages.len(), generators)?;
+            compute_domain::<_, _, C>(PK, header, messages.len(), generators)?;
 
         // (r1, r2, e~, r2~, r3~, s~) = hash_to_scalar(PRF(8*ceil(log2(r))), 6)
         let r1 = create_random_scalar::<_, C>(&mut rng)?;
@@ -173,7 +175,7 @@ impl Proof {
         let msg: Vec<_> = messages.iter().map(|m| m.get_message()).collect();
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
         let B =
-            compute_B::<C>(&signature.s, &domain, msg.as_ref(), generators)?;
+            compute_B::<_, C>(&signature.s, &domain, msg.as_ref(), generators)?;
 
         // r3 = r1 ^ -1 mod r
         let r3 = r1.invert();
@@ -277,16 +279,17 @@ impl Proof {
 
     /// Verify the zero-knowledge proof-of-knowledge of a signature with
     /// optionally selectively disclosed messages from the original set of signed messages as defined in `ProofGen` API in BBS Signature specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofverify>.
-    pub fn verify<T, C>(
+    pub fn verify<T, G, C>(
         &self,
         PK: &PublicKey,
         header: Option<T>,
         ph: Option<T>,
-        generators: &Generators,
+        generators: &G,
         disclosed_messages: &BTreeMap<usize, Message>,
     ) -> Result<bool, Error>
     where
         T: AsRef<[u8]>,
+        G: Generators,
         C: BbsCiphersuiteParameters<'static>,
     {
         let total_no_of_messages =
@@ -341,7 +344,7 @@ impl Proof {
 
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
-        let domain = compute_domain::<_, C>(
+        let domain = compute_domain::<_, _, C>(
             PK,
             header,
             generators.message_generators_length(),
@@ -366,7 +369,7 @@ impl Proof {
         T_scalars.push(domain);
         // H_i1 * msg_i1 + ... H_iR * msg_iR
         for (idx, msg) in disclosed_messages {
-            if let Some(g) = generators.get_message_generators_at_index(*idx) {
+            if let Some(g) = generators.get_message_generator_at_index(*idx) {
                 T_points.push(g);
                 T_scalars.push(msg.0);
             } else {
