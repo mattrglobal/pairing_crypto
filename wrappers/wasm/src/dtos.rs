@@ -56,7 +56,8 @@ wasm_impl!(
     header: Option<Vec<u8>>,
     messages: Option<Vec<BbsDeriveProofRevealMessageRequestDto>>,
     signature: Vec<u8>,
-    presentationHeader: Option<Vec<u8>>
+    presentationHeader: Option<Vec<u8>>,
+    verifySignature: Option<bool>
 );
 
 wasm_impl!(

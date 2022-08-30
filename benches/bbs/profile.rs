@@ -29,7 +29,7 @@ const TEST_KEY_INFOS: &[u8; 50] =
     b"12345678901234567890123456789012345678901234567890";
 
 const TEST_HEADER: &[u8; 16] = b"some_app_context";
-const TEST_PRESENTATION_HEADER: &[u8; 25] = b"test-presentation-header";
+const TEST_PRESENTATION_HEADER: &[u8; 24] = b"test-presentation-header";
 
 const NUM_MESSAGES: usize = 10;
 const NUM_REVEALED_MESSAGES: usize = 5;
@@ -178,6 +178,7 @@ fn profile_proof_gen(c: &mut Criterion) {
                     messages: black_box(Some(&proof_messages)),
                     signature: black_box(&signature),
                     presentation_header: black_box(Some(presentation_header)),
+                    verify_signature: None,
                 })
                 .unwrap();
             });
@@ -238,6 +239,7 @@ fn profile_proof_verify(c: &mut Criterion) {
         messages: Some(&proof_messages),
         signature: &signature,
         presentation_header: Some(presentation_header),
+        verify_signature: None,
     })
     .expect("proof generation failed");
 

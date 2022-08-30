@@ -38,6 +38,7 @@ bls12381Shake256SignatureFixtures.forEach((item: SignatureFixture) => {
                 };
               }),
               presentationHeader: stringToBytes("0123456789"),
+              verifySignature: false,
             };
 
             const proof = await bbs.bls12381_shake256.deriveProof(request);
@@ -62,6 +63,7 @@ bls12381Shake256SignatureFixtures.forEach((item: SignatureFixture) => {
                 };
               }),
               presentationHeader: stringToBytes("0123456789"),
+              verifySignature: false,
             };
 
             const proof = await bbs.bls12381_shake256.deriveProof(request);

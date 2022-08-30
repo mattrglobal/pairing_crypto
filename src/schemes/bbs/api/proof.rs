@@ -44,14 +44,17 @@ where
     // Parse signature from request
     let signature = Signature::from_octets(request.signature)?;
 
-    // Verify the signature to check the messages supplied are valid
-    if !(signature.verify::<_, _, X>(
-        &pk,
-        request.header.as_ref(),
-        &generators,
-        &digested_messages,
-    )?) {
-        return Err(Error::SignatureVerification);
+    let verify_signature = request.verify_signature.unwrap_or(true);
+    if verify_signature {
+        // Verify the signature to check the messages supplied are valid
+        if !(signature.verify::<_, _, X>(
+            &pk,
+            request.header.as_ref(),
+            &generators,
+            &digested_messages,
+        )?) {
+            return Err(Error::SignatureVerification);
+        }
     }
 
     // Generate the proof

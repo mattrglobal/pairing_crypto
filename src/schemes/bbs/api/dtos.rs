@@ -76,6 +76,9 @@ pub struct BbsProofGenRequest<'a, T: AsRef<[u8]>> {
     pub signature: &'a [u8; BBS_BLS12381G1_SIGNATURE_LENGTH],
     /// Presentation header to be bound to the signature proof of knowledge
     pub presentation_header: Option<T>,
+    /// Flag which indicates if the signature verification should be done
+    /// before actual proof computation.
+    pub verify_signature: Option<bool>,
 }
 
 impl<'a, T: AsRef<[u8]>> Default for BbsProofGenRequest<'a, T> {
@@ -86,6 +89,7 @@ impl<'a, T: AsRef<[u8]>> Default for BbsProofGenRequest<'a, T> {
             messages: Default::default(),
             signature: &[0u8; BBS_BLS12381G1_SIGNATURE_LENGTH],
             presentation_header: Default::default(),
+            verify_signature: None,
         }
     }
 }

@@ -16,6 +16,7 @@ use pairing_crypto_c::{
             bbs_bls12_381_sha_256_proof_gen_context_set_presentation_header,
             bbs_bls12_381_sha_256_proof_gen_context_set_public_key,
             bbs_bls12_381_sha_256_proof_gen_context_set_signature,
+            bbs_bls12_381_sha_256_proof_gen_context_set_verify_signature,
             bbs_bls12_381_shake_256_proof_gen_context_add_message,
             bbs_bls12_381_shake_256_proof_gen_context_finish,
             bbs_bls12_381_shake_256_proof_gen_context_init,
@@ -23,6 +24,7 @@ use pairing_crypto_c::{
             bbs_bls12_381_shake_256_proof_gen_context_set_presentation_header,
             bbs_bls12_381_shake_256_proof_gen_context_set_public_key,
             bbs_bls12_381_shake_256_proof_gen_context_set_signature,
+            bbs_bls12_381_shake_256_proof_gen_context_set_verify_signature,
         },
         BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
     },
@@ -41,6 +43,8 @@ macro_rules! bbs_proof_gen_api_wrapper_generator {
         $set_signature_fn:ident,
         $java_wrapper_set_presentation_header_fn:ident,
         $set_presentation_header_fn:ident,
+        $java_wrapper_set_verify_signature_fn:ident,
+        $set_verify_signature_fn:ident,
         $java_wrapper_add_message_fn:ident,
         $add_message_fn:ident,
         $java_wrapper_finish_fn:ident,
@@ -150,6 +154,22 @@ macro_rules! bbs_proof_gen_api_wrapper_generator {
 
         #[allow(non_snake_case)]
         #[no_mangle]
+        pub extern "C" fn $java_wrapper_set_verify_signature_fn(
+            _: JNIEnv,
+            _: JObject,
+            handle: jlong,
+            verify_signature: jboolean,
+        ) -> jint {
+            let mut error = ExternError::success();
+            $set_verify_signature_fn(
+                handle as u64,
+                verify_signature != 0,
+                &mut error,
+            )
+        }
+
+        #[allow(non_snake_case)]
+        #[no_mangle]
         pub extern "C" fn $java_wrapper_add_message_fn(
             env: JNIEnv,
             _: JObject,
@@ -205,6 +225,8 @@ bbs_proof_gen_api_wrapper_generator!(
     bbs_bls12_381_sha_256_proof_gen_context_set_signature,
     Java_pairing_1crypto_Bls12381Sha256_proof_1gen_1context_1set_1presentation_1header,
     bbs_bls12_381_sha_256_proof_gen_context_set_presentation_header,
+    Java_pairing_1crypto_Bls12381Sha256_proof_1gen_1context_1set_1verify_1signature,
+    bbs_bls12_381_sha_256_proof_gen_context_set_verify_signature,
     Java_pairing_1crypto_Bls12381Sha256_proof_1gen_1context_1add_1message,
     bbs_bls12_381_sha_256_proof_gen_context_add_message,
     Java_pairing_1crypto_Bls12381Sha256_proof_1gen_1context_1finish,
@@ -222,6 +244,8 @@ bbs_proof_gen_api_wrapper_generator!(
     bbs_bls12_381_shake_256_proof_gen_context_set_signature,
     Java_pairing_1crypto_Bls12381Shake256_proof_1gen_1context_1set_1presentation_1header,
     bbs_bls12_381_shake_256_proof_gen_context_set_presentation_header,
+    Java_pairing_1crypto_Bls12381Shake256_proof_1gen_1context_1set_1verify_1signature,
+    bbs_bls12_381_shake_256_proof_gen_context_set_verify_signature,
     Java_pairing_1crypto_Bls12381Shake256_proof_1gen_1context_1add_1message,
     bbs_bls12_381_shake_256_proof_gen_context_add_message,
     Java_pairing_1crypto_Bls12381Shake256_proof_1gen_1context_1finish,
