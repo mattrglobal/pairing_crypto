@@ -136,6 +136,13 @@ where
     let default_generator_dst = C::generator_dst();
     let generator_dst = generator_dst.unwrap_or(&default_generator_dst);
 
+    if generator_seed_dst == generator_dst {
+        return Err(Error::BadParams {
+            cause: "generator-seed-dst must be different than generator-dst"
+                .to_owned(),
+        });
+    }
+
     let mut points = Vec::with_capacity(count);
 
     //  v = expand_message(generator_seed, seed_dst, seed_len)
