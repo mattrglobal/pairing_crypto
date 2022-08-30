@@ -16,20 +16,14 @@ use super::{
     },
 };
 use crate::{
-    curves::bls12_381::{
-        hash_to_curve::ExpandMessage,
-        Bls12,
-        G1Projective,
-        G2Affine,
-        G2Prepared,
-        Scalar,
-    },
+    bbs::ciphersuites::BbsCiphersuiteParameters,
+    curves::bls12_381::{Bls12, G1Projective, G2Prepared, Scalar},
     error::Error,
     print_byte_array,
 };
 use core::convert::TryFrom;
 use ff::Field;
-use group::{prime::PrimeCurveAffine, Curve, Group};
+use group::{Curve, Group};
 use pairing::{MillerLoopResult as _, MultiMillerLoop};
 use rand::{CryptoRng, RngCore};
 use rand_core::OsRng;
@@ -97,7 +91,7 @@ impl core::fmt::Display for Proof {
 impl Proof {
     /// Generates the zero-knowledge proof-of-knowledge of a signature, while
     /// optionally selectively disclosing from the original set of signed messages as defined in `ProofGen` API in BBS Signature specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofgen>.
-    pub fn new<T, X>(
+    pub fn new<T, C>(
         PK: &PublicKey,
         signature: &Signature,
         header: Option<T>,
@@ -107,9 +101,9 @@ impl Proof {
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
-        X: ExpandMessage,
+        C: BbsCiphersuiteParameters<'static>,
     {
-        Self::new_with_rng::<_, _, X>(
+        Self::new_with_rng::<_, _, C>(
             PK,
             signature,
             header,
@@ -121,7 +115,7 @@ impl Proof {
     }
     /// Generates the zero-knowledge proof-of-knowledge of a signature, while
     /// optionally selectively disclosing from the original set of signed messages as defined in `ProofGen` API in BBS Signature specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofgen> using an externally supplied random number generator.
-    pub fn new_with_rng<T, R, X>(
+    pub fn new_with_rng<T, R, C>(
         PK: &PublicKey,
         signature: &Signature,
         header: Option<T>,
@@ -132,7 +126,7 @@ impl Proof {
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
-        X: ExpandMessage,
+        C: BbsCiphersuiteParameters<'static>,
         R: RngCore + CryptoRng,
     {
         // Input parameter checks
@@ -162,15 +156,15 @@ impl Proof {
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
         let domain =
-            compute_domain::<_, X>(PK, header, messages.len(), generators)?;
+            compute_domain::<_, C>(PK, header, messages.len(), generators)?;
 
         // (r1, r2, e~, r2~, r3~, s~) = hash_to_scalar(PRF(8*ceil(log2(r))), 6)
-        let r1 = create_random_scalar::<_, X>(&mut rng)?;
-        let r2 = create_random_scalar::<_, X>(&mut rng)?;
-        let e_tilde = create_random_scalar::<_, X>(&mut rng)?;
-        let r2_tilde = create_random_scalar::<_, X>(&mut rng)?;
-        let r3_tilde = create_random_scalar::<_, X>(&mut rng)?;
-        let s_tilde = create_random_scalar::<_, X>(&mut rng)?;
+        let r1 = create_random_scalar::<_, C>(&mut rng)?;
+        let r2 = create_random_scalar::<_, C>(&mut rng)?;
+        let e_tilde = create_random_scalar::<_, C>(&mut rng)?;
+        let r2_tilde = create_random_scalar::<_, C>(&mut rng)?;
+        let r3_tilde = create_random_scalar::<_, C>(&mut rng)?;
+        let s_tilde = create_random_scalar::<_, C>(&mut rng)?;
 
         // (m~_j1, ..., m~_jU) =  hash_to_scalar(PRF(8*ceil(log2(r))), U)
         // these random scalars will be generated further below during `C2`
@@ -178,7 +172,8 @@ impl Proof {
 
         let msg: Vec<_> = messages.iter().map(|m| m.get_message()).collect();
         // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let B = compute_B(&signature.s, &domain, msg.as_ref(), generators)?;
+        let B =
+            compute_B::<C>(&signature.s, &domain, msg.as_ref(), generators)?;
 
         // r3 = r1 ^ -1 mod r
         let r3 = r1.invert();
@@ -234,7 +229,7 @@ impl Proof {
         // c_for_hash = encode_for_hash(c_array)
         // if c_for_hash is INVALID, return INVALID
         // c = hash_to_scalar(c_for_hash, 1)
-        let c = compute_challenge::<_, X>(
+        let c = compute_challenge::<_, C>(
             &A_prime,
             &A_bar,
             &D,
@@ -282,7 +277,7 @@ impl Proof {
 
     /// Verify the zero-knowledge proof-of-knowledge of a signature with
     /// optionally selectively disclosed messages from the original set of signed messages as defined in `ProofGen` API in BBS Signature specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofverify>.
-    pub fn verify<T, X>(
+    pub fn verify<T, C>(
         &self,
         PK: &PublicKey,
         header: Option<T>,
@@ -292,7 +287,7 @@ impl Proof {
     ) -> Result<bool, Error>
     where
         T: AsRef<[u8]>,
-        X: ExpandMessage,
+        C: BbsCiphersuiteParameters<'static>,
     {
         let total_no_of_messages =
             self.m_hat_list.len() + disclosed_messages.len();
@@ -346,7 +341,7 @@ impl Proof {
 
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
-        let domain = compute_domain::<_, X>(
+        let domain = compute_domain::<_, C>(
             PK,
             header,
             generators.message_generators_length(),
@@ -362,7 +357,7 @@ impl Proof {
         let T_len = 1 + 1 + disclosed_messages.len();
         let mut T_points = Vec::with_capacity(T_len);
         let mut T_scalars = Vec::with_capacity(T_len);
-        let P1 = G1Projective::generator();
+        let P1 = C::p1();
         // P1
         T_points.push(P1);
         T_scalars.push(Scalar::one());
@@ -415,7 +410,7 @@ impl Proof {
         // cv_for_hash = encode_for_hash(cv_array)
         //  if cv_for_hash is INVALID, return INVALID
         //  cv = hash_to_scalar(cv_for_hash, 1)
-        let cv = compute_challenge::<_, X>(
+        let cv = compute_challenge::<_, C>(
             &self.A_prime,
             &self.A_bar,
             &self.D,
@@ -441,7 +436,7 @@ impl Proof {
         // Check the signature proof
         // if e(A', W) * e(Abar, -P2) != 1, return INVALID
         // else return VALID
-        let P2 = G2Affine::generator();
+        let P2 = C::p2().to_affine();
         Ok(Bls12::multi_miller_loop(&[
             (
                 &self.A_prime.to_affine(),

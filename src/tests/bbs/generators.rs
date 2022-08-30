@@ -1,22 +1,22 @@
-use sha3::Shake256;
-
-use crate::{
-    bbs::core::generator::Generators,
-    curves::bls12_381::hash_to_curve::ExpandMsgXof,
+use crate::bbs::{
+    ciphersuites::bls12_381_shake_256::Bls12381Shake256CipherSuiteParameter,
+    core::generator::Generators,
 };
 
 #[test]
 fn nominal() {
-    let generators = Generators::new::<ExpandMsgXof<Shake256>>(32)
-        .expect("generators creation failed");
+    let generators =
+        Generators::new::<Bls12381Shake256CipherSuiteParameter>(32)
+            .expect("generators creation failed");
     assert_eq!(generators.message_generators_length(), 32);
 }
 
 #[test]
 fn get_point_out_of_bound_index() {
     // Create 32 message generators
-    let generators = Generators::new::<ExpandMsgXof<Shake256>>(32)
-        .expect("generators creation failed");
+    let generators =
+        Generators::new::<Bls12381Shake256CipherSuiteParameter>(32)
+            .expect("generators creation failed");
     assert_eq!(generators.message_generators_length(), 32);
 
     // Getting any generator at index >= 32 should return None

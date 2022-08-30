@@ -1,16 +1,48 @@
+use super::{
+    bls12_381::BBS_BLS12381G1_SIGNATURE_LENGTH,
+    BbsCiphersuiteParameters,
+    CipherSuiteId,
+};
 use crate::{
     bbs::{
+        core::hash_utils::{do_create_generators, do_hash_to_scalar},
         BbsProofGenRequest,
         BbsProofVerifyRequest,
         BbsSignRequest,
         BbsVerifyRequest,
     },
-    curves::bls12_381::hash_to_curve::ExpandMsgXmd,
+    curves::bls12_381::{hash_to_curve::ExpandMsgXmd, G1Projective, Scalar},
     Error,
 };
 use sha2::Sha256;
 
-use super::bls12_381::BBS_BLS12381G1_SIGNATURE_LENGTH;
+pub(crate) struct Bls12381Sha256CipherSuiteParameter;
+
+impl<'a> BbsCiphersuiteParameters<'a> for Bls12381Sha256CipherSuiteParameter {
+    const ID: CipherSuiteId = CipherSuiteId::BbsBls12381G1XmdSha256;
+
+    fn hash_to_scalar(
+        message: &[u8],
+        count: usize,
+        dst: Option<&[u8]>,
+    ) -> Result<Vec<Scalar>, Error> {
+        do_hash_to_scalar::<Self, ExpandMsgXmd<Sha256>>(message, count, dst)
+    }
+
+    fn create_generators(
+        count: usize,
+        generator_seed: Option<&[u8]>,
+        generator_seed_dst: Option<&[u8]>,
+        generator_dst: Option<&[u8]>,
+    ) -> Result<Vec<G1Projective>, Error> {
+        do_create_generators::<Self, ExpandMsgXmd<Sha256>>(
+            count,
+            generator_seed,
+            generator_seed_dst,
+            generator_dst,
+        )
+    }
+}
 
 /// Create a BLS12-381-Sha-256 BBS signature.
 /// Security Warning: `secret_key` and `public_key` in `request` must be related
@@ -21,7 +53,9 @@ pub fn sign<T>(
 where
     T: AsRef<[u8]>,
 {
-    crate::bbs::api::signature::sign::<_, ExpandMsgXmd<Sha256>>(request)
+    crate::bbs::api::signature::sign::<_, Bls12381Sha256CipherSuiteParameter>(
+        request,
+    )
 }
 
 /// Verify a BLS12-381-Sha-256 BBS signature.
@@ -29,7 +63,9 @@ pub fn verify<T>(request: &BbsVerifyRequest<'_, T>) -> Result<bool, Error>
 where
     T: AsRef<[u8]>,
 {
-    crate::bbs::api::signature::verify::<_, ExpandMsgXmd<Sha256>>(request)
+    crate::bbs::api::signature::verify::<_, Bls12381Sha256CipherSuiteParameter>(
+        request,
+    )
 }
 
 /// Generate a BLS12-381-Sha-256 signature proof of knowledge.
@@ -39,7 +75,9 @@ pub fn proof_gen<T>(
 where
     T: AsRef<[u8]>,
 {
-    crate::bbs::api::proof::proof_gen::<_, ExpandMsgXmd<Sha256>>(request)
+    crate::bbs::api::proof::proof_gen::<_, Bls12381Sha256CipherSuiteParameter>(
+        request,
+    )
 }
 
 /// Verify a BLS12-381-Sha-256 signature proof of knowledge.
@@ -49,5 +87,7 @@ pub fn proof_verify<T>(
 where
     T: AsRef<[u8]>,
 {
-    crate::bbs::api::proof::proof_verify::<_, ExpandMsgXmd<Sha256>>(request)
+    crate::bbs::api::proof::proof_verify::<_, Bls12381Sha256CipherSuiteParameter>(
+        request,
+    )
 }
