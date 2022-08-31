@@ -5,7 +5,10 @@ use super::{
 };
 use crate::{
     bbs::{
-        core::hash_utils::{do_create_generators, do_hash_to_scalar},
+        core::{
+            constants::XOF_NO_OF_BYTES,
+            hash_utils::{do_create_generators, do_hash_to_scalar},
+        },
         BbsProofGenRequest,
         BbsProofVerifyRequest,
         BbsSignRequest,
@@ -31,15 +34,15 @@ impl<'a> BbsCiphersuiteParameters<'a> for Bls12381Sha256CipherSuiteParameter {
 
     fn create_generators(
         count: usize,
-        generator_seed: Option<&[u8]>,
-        generator_seed_dst: Option<&[u8]>,
-        generator_dst: Option<&[u8]>,
+        n: &mut u64,
+        v: &mut [u8; XOF_NO_OF_BYTES],
+        with_fresh_state: bool,
     ) -> Result<Vec<G1Projective>, Error> {
         do_create_generators::<Self, ExpandMsgXmd<Sha256>>(
             count,
-            generator_seed,
-            generator_seed_dst,
-            generator_dst,
+            n,
+            v,
+            with_fresh_state,
         )
     }
 }

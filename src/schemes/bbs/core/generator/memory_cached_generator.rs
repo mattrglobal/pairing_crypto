@@ -1,6 +1,9 @@
 use super::Generators;
 use crate::{
-    bbs::ciphersuites::BbsCiphersuiteParameters,
+    bbs::{
+        ciphersuites::BbsCiphersuiteParameters,
+        core::constants::XOF_NO_OF_BYTES,
+    },
     curves::bls12_381::G1Projective,
     error::Error,
 };
@@ -27,7 +30,9 @@ impl MemoryCachedGenerators {
     where
         C: BbsCiphersuiteParameters<'static>,
     {
-        let generators = C::create_generators(count + 2, None, None, None)?;
+        let mut n = 1;
+        let mut v = [0u8; XOF_NO_OF_BYTES];
+        let generators = C::create_generators(count + 2, &mut n, &mut v, true)?;
         Ok(Self {
             Q_1: generators[0],
             Q_2: generators[1],
