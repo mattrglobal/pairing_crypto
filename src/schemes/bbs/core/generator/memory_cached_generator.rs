@@ -29,7 +29,7 @@ pub(crate) struct MemoryCachedGenerators<
 impl<C: BbsCiphersuiteParameters<'static> + Debug + Clone>
     MemoryCachedGenerators<C>
 {
-    /// Construct `Generators` from the given `seed` values.
+    /// Construct `Generators`.
     /// The implementation follows `CreateGenerators` section as defined in <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-creategenerators>.
     pub fn new(count: usize) -> Result<Self, Error>
     where
