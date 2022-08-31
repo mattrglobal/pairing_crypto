@@ -9,7 +9,7 @@ use crate::bbs::{
 #[test]
 fn nominal() {
     let generators =
-        MemoryCachedGenerators::new::<Bls12381Shake256CipherSuiteParameter>(32)
+        MemoryCachedGenerators::<Bls12381Shake256CipherSuiteParameter>::new(32)
             .expect("generators creation failed");
     assert_eq!(generators.message_generators_length(), 32);
 }
@@ -17,8 +17,8 @@ fn nominal() {
 #[test]
 fn get_point_out_of_bound_index() {
     // Create 32 message generators
-    let generators =
-        MemoryCachedGenerators::new::<Bls12381Shake256CipherSuiteParameter>(32)
+    let mut generators =
+        MemoryCachedGenerators::<Bls12381Shake256CipherSuiteParameter>::new(32)
             .expect("generators creation failed");
     assert_eq!(generators.message_generators_length(), 32);
 

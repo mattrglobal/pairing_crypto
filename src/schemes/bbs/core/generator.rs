@@ -26,28 +26,28 @@ pub(crate) trait Generators: Debug + Clone {
     /// be in [0, `length`) range. In case of invalid `index`, `None` value
     /// is returned.
     fn get_message_generator_at_index(
-        &self,
+        &mut self,
         index: usize,
     ) -> Option<G1Projective>;
 
     /// Get a `Iterator` for message generators.
-    fn message_generators_iter(&self) -> GeneratorsIter<'_, Self> {
+    fn message_generators_iter(&self) -> GeneratorsIter<Self> {
         GeneratorsIter {
             index: 0,
             count: self.message_generators_length(),
-            generators: self,
+            generators: self.clone(),
         }
     }
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct GeneratorsIter<'g, G: Generators> {
+pub(crate) struct GeneratorsIter<G: Generators> {
     index: usize,
     count: usize,
-    generators: &'g G,
+    generators: G,
 }
 
-impl<G: Generators> Iterator for GeneratorsIter<'_, G> {
+impl<G: Generators> Iterator for GeneratorsIter<G> {
     type Item = G1Projective;
 
     fn size_hint(&self) -> (usize, Option<usize>) {

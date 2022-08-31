@@ -19,6 +19,7 @@ use crate::{
 };
 use sha2::Sha256;
 
+#[derive(Debug, Clone)]
 pub(crate) struct Bls12381Sha256CipherSuiteParameter;
 
 impl<'a> BbsCiphersuiteParameters<'a> for Bls12381Sha256CipherSuiteParameter {

@@ -1,11 +1,10 @@
-use group::Group;
-
+use super::core::constants::XOF_NO_OF_BYTES;
 use crate::{
     curves::bls12_381::{G1Projective, G2Projective, Scalar},
     Error,
 };
-
-use super::core::constants::XOF_NO_OF_BYTES;
+use core::fmt::Debug;
+use group::Group;
 
 /// BBS BLS12-381 ciphersuites.
 pub mod bls12_381;
@@ -34,7 +33,7 @@ impl CipherSuiteId {
     }
 }
 
-pub(crate) trait BbsCiphersuiteParameters<'a> {
+pub(crate) trait BbsCiphersuiteParameters<'a>: Debug + Clone {
     /// Ciphersuite ID.
     const ID: CipherSuiteId;
 

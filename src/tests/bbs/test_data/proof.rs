@@ -39,7 +39,7 @@ pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
         KeyPair,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        MemoryCachedGenerators,
+        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
         Vec<Message>,
     ),
     &'static str,
@@ -105,7 +105,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
         Signature,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        MemoryCachedGenerators,
+        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
         Vec<Message>,
         BTreeSet<usize>,
     ),
@@ -425,7 +425,7 @@ pub(crate) fn test_data_proof_uniqueness() -> [(
         Signature,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        MemoryCachedGenerators,
+        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
         Vec<Message>,
         BTreeSet<usize>,
     ),
@@ -434,7 +434,7 @@ pub(crate) fn test_data_proof_uniqueness() -> [(
         Signature,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        MemoryCachedGenerators,
+        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
         Vec<Message>,
         BTreeSet<usize>,
     ),
@@ -681,7 +681,7 @@ pub(crate) fn test_data_proof_verify_invalid_parameters() -> [(
         PublicKey,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        MemoryCachedGenerators,
+        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
         BTreeMap<usize, Message>,
     ),
     Error,
@@ -903,7 +903,7 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
         PublicKey,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        MemoryCachedGenerators,
+        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
         BTreeMap<usize, Message>,
     ),
     &'static str,
@@ -913,7 +913,7 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
     let header = Some(TEST_HEADER.as_ref());
     let ph = Some(TEST_PRESENTATION_HEADER_1.as_ref());
     let messages = get_random_test_messages(NUM_MESSAGES);
-    let generators = create_generators_helper(messages.len());
+    let mut generators = create_generators_helper(messages.len());
     let indices_all_hidden = BTreeSet::<usize>::new();
     let signature =
         Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
@@ -946,7 +946,7 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
                 &key_pair.public_key,
                 header,
                 ph,
-                &generators,
+                &mut generators,
                 &revealed_messages
             )
             .expect("proof verification failed"),
@@ -1140,7 +1140,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
         PublicKey,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        MemoryCachedGenerators,
+        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
         BTreeMap<usize, Message>,
     ),
     &'static str,
@@ -1150,7 +1150,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     let header = Some(TEST_HEADER.as_ref());
     let ph = Some(TEST_PRESENTATION_HEADER_1.as_ref());
     let messages = get_random_test_messages(NUM_MESSAGES);
-    let generators = create_generators_helper(messages.len());
+    let mut generators = create_generators_helper(messages.len());
     let generators_different_q_1 = test_generators_random_q_1(messages.len());
     let generators_different_q_2 = test_generators_random_q_2(messages.len());
     let generators_different_message_generators =
@@ -1190,7 +1190,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 &key_pair.public_key,
                 header,
                 ph,
-                &generators,
+                &mut generators,
                 &no_revealed_messages
             )
             .expect("proof verification failed"),
@@ -1228,7 +1228,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 &key_pair.public_key,
                 None,
                 ph,
-                &generators,
+                &mut generators,
                 &revealed_messages
             )
             .expect("proof verification failed"),
@@ -1256,7 +1256,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 &key_pair.public_key,
                 header,
                 None,
-                &generators,
+                &mut generators,
                 &revealed_messages
             )
             .expect("proof verification failed"),
@@ -1285,7 +1285,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 &key_pair.public_key,
                 None,
                 None,
-                &generators,
+                &mut generators,
                 &revealed_messages
             )
             .expect("proof verification failed"),
@@ -1334,7 +1334,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 &key_pair.public_key,
                 header,
                 ph,
-                &generators,
+                &mut generators,
                 &all_revealed_messages
             )
             .expect("proof verification failed"),

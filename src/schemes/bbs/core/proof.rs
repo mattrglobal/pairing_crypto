@@ -284,7 +284,7 @@ impl Proof {
         PK: &PublicKey,
         header: Option<T>,
         ph: Option<T>,
-        generators: &G,
+        generators: &mut G,
         disclosed_messages: &BTreeMap<usize, Message>,
     ) -> Result<bool, Error>
     where

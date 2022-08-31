@@ -153,7 +153,7 @@ fn gen_verify_serde_nominal() {
     let key_pair = get_random_test_key_pair();
     let header = Some(TEST_HEADER.as_ref());
     let ph = Some(TEST_PRESENTATION_HEADER_1.as_ref());
-    let generators = create_generators_helper(messages.len());
+    let mut generators = create_generators_helper(messages.len());
     let first_and_last_indices_revealed =
         &[0, NUM_MESSAGES - 1].iter().cloned().collect();
 
@@ -195,7 +195,7 @@ fn gen_verify_serde_nominal() {
                 &key_pair.public_key,
                 header,
                 ph,
-                &generators,
+                &mut generators,
                 &revealed_messages
             )
             .expect("proof verification failed"),
@@ -216,7 +216,7 @@ fn gen_verify_serde_nominal() {
                 &key_pair.public_key,
                 header,
                 ph,
-                &generators,
+                &mut generators,
                 &revealed_messages
             )
             .expect("roundtrip deserialized proof verification failed"),
@@ -240,7 +240,7 @@ fn gen_verify_different_key_pairs() {
     let header = Some(TEST_HEADER.as_ref());
     let ph = Some(TEST_PRESENTATION_HEADER_1.as_ref());
     let messages = get_test_messages();
-    let generators = create_generators_helper(messages.len());
+    let mut generators = create_generators_helper(messages.len());
 
     let expected_proofs = [
         ["84179bd8ec35bbaff08b98adbda9d8d59af4257c65fa3f7cb6695a0a4ee0cf516f0a0103c0d8c175c10395651ba6009dae552d4293484c5f2d5aa1e1bc083ed68b1a1bca82eceb96e54ae1d33819e84142cc51983a30f88c8b4f6bc97be41f79803d7cacbc32210e75c54fd315471de7323a9ec2de4ff22d50166b231d64ebcbacc322c6dfed754982332917ece1add755fe8cec6835dd1d4e7f4ced8a60afecaf768f2395673d32bd86cfdafa8f243b6288514413ed322f60533e3ef102a5b948343ab7f0e9dbcd2652c19d7e75a87608e2717a7a98ba968548602ec58eec38f6a367d9ea4ac64ba336c003a2d9f1b24d48a872d076d0cc5a54e9af104132881d5a3febde8af3826a6def74203d73284f4f5ed06589b2d04f483a9683fee18aa0e978a6c7f43b0469f8cc6d7631109168186c416668e4f58230e0bc399738d4205541215573673f0605cc933b1ef57c3e1ac3e7258548b78e4b68e1ce4aec44f8c9ade558b7fc71e2db206c7d477f5b53ceea78e7f3d3f3276ed6c922e9aeccc8a657c5ff0f97c0782f974edc4a1ae112d323f451e2d46dc464122f4ab1e8b1152eb9b06ea86541588cd19ca6cc28c2728c816b0331003fcff024c3a9649c9f3ae66130aa412f5cac3bb20998e0e3883c0446fc3143428f09cf4e6871a30cca82d183491c346510e8f1358bb64576b5", "8d0f2cc7efb50017ff4ca59bc52933ebaebf7e699de589fdd99c8276b1116f9f8b0cfda68420a0ce8261a55ac65a492687480c0201ee7f51f0b586ac20be7944ce9a0dc38c0342f5186722e34d65eec8df44c74ed496156e3d017f9b7593c4f791f206dfcd6a390ecc5ba1932849e6424e28dd44e3dde7652ccf0d98c31f245049f025ef65656a0d567c8820b2f58a73706b4f15fdb82ad5b2499061019d6c83c9fdb2de0466400c2b4b95611316dbdf0b659f8455bb215a08066100196c92bd0428921234e13fd8c90d979b9df863802cd175884410c18d5e71eab3d686ec36f4881bc6e95b67518832436a66f76020655f6034f2841a237f116988f912e5e7e76ad93eae6eb3afe236c46a49218f1e1b4ec98f4649e58131a5413bcff8c21dc7705d48babd74688338f7d2b730390432fe800afa994a52983d2d53ff7e16dce896fe51a14dbd7e8ed9e5fd02285daa501ebb7a7d429fd884cd10d9da5b2d8d7bda3adae2f30dd53a523ef134a064942c686a359f4a148578b40da94b15c21064bf8345e3979ae6ba6689328c4abe461336725943a7723029fbaa9fc4dbc8371c35e7ffbd77b0aee6824b20fc59165a4b267d0f763007ea17503b9c4afbb1d1bd91eb43b48de43495aaa5693136c785", "b0748f2a1f4c468b6334195bb2898d3efaf2de13ae544acb5e56c315526b01e2efb6c147816587bae77de5d28b6c2ed0a41677fe897b35507d49a06c11acdfe90ff943eb185e416d8336d50e3bdd7038bdce77cd9fd9055dca0aff3595c484e9a964374f1d5008c3a8a4c60a635bf64d1f97e3ddc13df28179192a85038bc463421c993f4282d0bde0a6d85644003a40367121ef7102ef254fadcc937d8ffe64efeea31d4e4e9bdd07507e8333137ca52e6ba962842c7ebf1caa8c5c47bde067eb439576360bcc071fc8f684c6a7ae1b26db18c0453d3e15bfa8e592c24fea8d6ce96cfafe0e50ded4488f50bf37ddb915b7adbd6661c2328d5752c48dadf81c2cb1c068f67fd98078b82ee266a8ae1b3cd359a28dd923a2e22d4e2d9441b357e3760626b91bbb6822c44beaf0f8c4ee3bc637862e954809d81e9460edab31fb4967d043acce78eb54adbad457cdfe895203b820a6371e210059f22e4618a34a1fc26dfc6c5af9745bbed46e646139085c95c0522400ce584292730797778c0a651d6e39e4587686c794614260705ea469d372b03af6c7358084b035ebb6e17b63e7b9ff195afbb2977a8b3422ebe0b5", "81e7074693082d6dc750ab859f86e6d7557b4b98931cdf2b572d8b0cf5a9bdb27f40ecfa9fd94ded9abd99e196c553778373051cbac743307d39179447d0bc1c6b928f7987e758340f5dcd810606841291ae94c2868ea46baaa7062afa3579f4ac981eeceb274a5f139e6ccd1cbf5c872d86ae8eeeef0eab622e7387f9a14a101188aa1c82170e2688d78834444ef58327e1f5a640af32e20125b533e52a1e6471598dc40e1dc735c11ea7796b64edf721c0c8104822640bc680c81a7f7eb73e91beb8b87e5824d96eb21e2ce08e67a063888fba899b616d3f58c88b4323a432651b35055ae8976bd9a128a24834f48d615a3bf284ba4e881e8de247635d6898897bf0c2b7c0ad6e2046192c6f34b2d628c08b6a8a5614d6fee093e817b297ee9d956667e26c934d5a1bd71768ceb4af6c3dbbe60a3eeaf2ea8a2da1d0db1f6ae986ba556a81537712ffee10114274bd315a5e4e0a39d9774b73905dee657e38442781d1c7bd12ce5d0e3cd38794625d00eed0d70fa00774bdc4a14e969ada7d61c0de36e8e2dc6dc4a8d22e14a8c8dc", "a2846658018a53b4fb6868442756768cad33b72cd01ebd239f96cedf35f7b80536a64a4d4e597347e7303790711cd450b5097a76af10455bfe5812c5857121fd8eb16670d6542a540015f9333dcad4aa105d482babf0d6a01708a233745bdc9395e63a1a3ab0ccf55c740683c3433a7d5305b54e7fa423156f36d04239a295717222dcf38556335c420d164933414c31473ed23cc07b7a735a0e8b648c76344b8bbe504a96ffab4bffbc9cc01c54a6d36dc1b8d44fa66f07ccffee145a17f4c1cc77c09018cc91e2c5c5d7c60b82dd561a530be2703e5b97033a4a190f6a08bf8d92802bdd4f567a4e6e466d9e685af440d75122b7f472a2588b90454d6109fb850d8cdadef3b4d72871ec58336881460e3f7bdb9303afc9f3147cbd809d6c6cdda515bbb3233260a861835a7e2f572d17082a386832c14efb20e69b800fb49869f5d94246aca5dd710fcd3ab18a8338711438a6efb9d7438120df0dd9db0b0497df45c5e19d6a5097219679fe032ee6", "b4081b12b84a3a4cf8d92bf3c0247f96005f44fdd3455b3090c6c48eef88ce1627f4b94b304576a2bc7df65defc06ec4aa9fd462dbfb2e070561f6e54cf803a6eaea3d4c8a350c7dc09845c0aa83a9f20fe7de78b1d5f68e046e2578f6d4d2bfa48305372f7d820f6fbfe398b1b885445ba99c05b58e8ddaa1edb1fefd8a326c7b95a6f1f78b124f0f48ea9a95409cfa0facb817df16856c04f3ca7d031cfb43ca90c9dea52e5983af7a7c8ae9d3f0480b09d0bb154cc31f014932d42b0130d3eebb3c46fdb53c0fc00fce184f51d7ba55e80d4def683feaa2a262c81d7914d37352bdb90c5c95d94ab732b033d4e0bb44f81a8555547b5de6dc50562c6e5b7bdb8da1ae19aee1097673d521981491c90d7988f824e021fc172329b1f43dc6d152c5520156817e28afef27cfa15adbe530143bbebbc88621232dbb7dc8aadc8bd7f595ff231e29fe4254142fa440f452"],
@@ -319,7 +319,7 @@ fn gen_verify_different_key_pairs() {
                         &pk,
                         header,
                         ph,
-                        &generators,
+                        &mut generators,
                         &revealed_msgs
                     )
                     .expect("proof verification failed"),
@@ -375,8 +375,10 @@ fn proof_uniqueness() {
 // Test `Proof::new_with_rng(...)` implementation by passing valid paramter
 // values.
 fn proof_gen_verify_valid_cases() {
-    for ((key_pair, header, ph, generators, messages), failure_debug_message) in
-        test_data_proof_gen_verify_valid_cases()
+    for (
+        (key_pair, header, ph, mut generators, messages),
+        failure_debug_message,
+    ) in test_data_proof_gen_verify_valid_cases()
     {
         // Signature to be used in proof_gen
         let signature =
@@ -408,7 +410,7 @@ fn proof_gen_verify_valid_cases() {
                     &key_pair.public_key,
                     header,
                     ph,
-                    &generators,
+                    &mut generators,
                     &revealed_messages
                 )
                 .expect(&format!(
@@ -440,7 +442,7 @@ fn proof_gen_verify_valid_cases() {
                         &key_pair.public_key,
                         header,
                         ph,
-                        &generators,
+                        &mut generators,
                         &revealed_messages
                     )
                     .expect(&format!(
@@ -464,7 +466,7 @@ fn proof_gen_verify_all_revealed_shuffled_indices() {
     let header = Some(TEST_HEADER.as_ref());
     let ph = Some(TEST_PRESENTATION_HEADER_1.as_ref());
     let messages = get_random_test_messages(NUM_MESSAGES);
-    let generators = create_generators_helper(messages.len());
+    let mut generators = create_generators_helper(messages.len());
 
     // Signature to be used in proof_gen
     let signature =
@@ -512,7 +514,7 @@ fn proof_gen_verify_all_revealed_shuffled_indices() {
                 &key_pair.public_key,
                 header,
                 ph,
-                &generators,
+                &mut generators,
                 &revealed_messages_same_but_shuffled_indices
             )
             .expect("proof-verification should not fail"),
@@ -529,7 +531,7 @@ fn proof_gen_with_invalid_public_key() {
     let header = Some(TEST_HEADER.as_ref());
     let ph = Some(TEST_PRESENTATION_HEADER_1.as_ref());
     let messages = get_random_test_messages(NUM_MESSAGES);
-    let generators = create_generators_helper(messages.len());
+    let mut generators = create_generators_helper(messages.len());
     let indices_all_hidden = BTreeSet::<usize>::new();
     let signature =
         Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
@@ -562,7 +564,7 @@ fn proof_gen_with_invalid_public_key() {
                 &key_pair.public_key,
                 header,
                 ph,
-                &generators,
+                &mut generators,
                 &revealed_messages
             )
             .expect(&format!("proof verification failed ")),
@@ -576,7 +578,7 @@ fn proof_gen_with_invalid_public_key() {
             &PublicKey::default(),
             header,
             ph,
-            &generators,
+            &mut generators,
             &revealed_messages
         ),
         Err(Error::InvalidPublicKey)
@@ -620,7 +622,7 @@ fn proof_gen_invalid_parameters() {
 // invalid paramter values.
 fn proof_verify_invalid_parameters() {
     for (
-        (proof, pk, header, ph, generators, revealed_messages),
+        (proof, pk, header, ph, mut generators, revealed_messages),
         error,
         failure_debug_message,
     ) in test_data_proof_verify_invalid_parameters()
@@ -630,7 +632,7 @@ fn proof_verify_invalid_parameters() {
                 &pk,
                 header,
                 ph,
-                &generators,
+                &mut generators,
                 &revealed_messages
             ),
             Err(error),
@@ -647,14 +649,14 @@ fn verify_proof_helper<const N: usize>(
             PublicKey,
             Option<&'static [u8]>,
             Option<&'static [u8]>,
-            MemoryCachedGenerators,
+            MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
             BTreeMap<usize, Message>,
         ),
         &'static str,
     ); N],
 ) {
     for (
-        (proof, pk, header, ph, generators, revealed_messages),
+        (proof, pk, header, ph, mut generators, revealed_messages),
         failure_debug_message,
     ) in test_data
     {
@@ -664,7 +666,7 @@ fn verify_proof_helper<const N: usize>(
                     &pk,
                     header,
                     ph,
-                    &generators,
+                    &mut generators,
                     &revealed_messages
                 )
                 .expect(&format!(

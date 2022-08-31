@@ -42,7 +42,7 @@ where
         digest_proof_messages::<_, C>(request.messages)?;
 
     // Derive generators
-    let generators = MemoryCachedGenerators::new::<C>(digested_messages.len())?;
+    let generators = MemoryCachedGenerators::<C>::new(digested_messages.len())?;
     // Parse signature from request
     let signature = Signature::from_octets(request.signature)?;
 
@@ -91,8 +91,8 @@ where
         )?;
 
     // Derive generators
-    let generators =
-        MemoryCachedGenerators::new::<C>(request.total_message_count)?;
+    let mut generators =
+        MemoryCachedGenerators::<C>::new(request.total_message_count)?;
 
     let proof = Proof::from_octets(request.proof)?;
 
@@ -100,7 +100,7 @@ where
         &public_key,
         request.header.as_ref(),
         request.presentation_header.as_ref(),
-        &generators,
+        &mut generators,
         &messages,
     )
 }

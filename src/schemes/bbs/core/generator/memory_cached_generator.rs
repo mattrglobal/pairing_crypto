@@ -7,7 +7,7 @@ use crate::{
     curves::bls12_381::G1Projective,
     error::Error,
 };
-use core::fmt::Debug;
+use core::{fmt::Debug, marker::PhantomData};
 
 /// A `Generators` implementation where generators are computed in advance
 /// during instantiation of `struct` and stored in RAM. Later when these
@@ -16,17 +16,22 @@ use core::fmt::Debug;
 /// computation to calculate generator value is performed.
 #[allow(non_snake_case)]
 #[derive(Debug, Clone)]
-pub(crate) struct MemoryCachedGenerators {
+pub(crate) struct MemoryCachedGenerators<
+    C: BbsCiphersuiteParameters<'static> + Debug + Clone,
+> {
     pub(crate) Q_1: G1Projective,
     pub(crate) Q_2: G1Projective,
     pub(crate) H_list: Vec<G1Projective>,
+    _phantom_data: PhantomData<C>,
 }
 
 #[allow(non_snake_case)]
-impl MemoryCachedGenerators {
+impl<C: BbsCiphersuiteParameters<'static> + Debug + Clone>
+    MemoryCachedGenerators<C>
+{
     /// Construct `Generators` from the given `seed` values.
     /// The implementation follows `CreateGenerators` section as defined in <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-creategenerators>.
-    pub fn new<C>(count: usize) -> Result<Self, Error>
+    pub fn new(count: usize) -> Result<Self, Error>
     where
         C: BbsCiphersuiteParameters<'static>,
     {
@@ -37,11 +42,14 @@ impl MemoryCachedGenerators {
             Q_1: generators[0],
             Q_2: generators[1],
             H_list: generators[2..].to_vec(),
+            _phantom_data: PhantomData,
         })
     }
 }
 
-impl Generators for MemoryCachedGenerators {
+impl<C: BbsCiphersuiteParameters<'static> + Debug + Clone> Generators
+    for MemoryCachedGenerators<C>
+{
     /// Get `Q_1`, the generator point for the blinding value (s) of the
     /// signature.
     fn Q_1(&self) -> G1Projective {
@@ -64,7 +72,7 @@ impl Generators for MemoryCachedGenerators {
     /// be in [0, `length`) range. In case of invalid `index`, `None` value
     /// is returned.
     fn get_message_generator_at_index(
-        &self,
+        &mut self,
         index: usize,
     ) -> Option<G1Projective> {
         if index >= self.H_list.len() {
