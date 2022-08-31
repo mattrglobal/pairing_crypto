@@ -73,7 +73,7 @@ where
     data_to_hash.extend(point_to_octets_g1(&generators.Q_2()).as_ref());
 
     for generator in generators.message_generators_iter() {
-        data_to_hash.extend(point_to_octets_g1(generator).as_ref());
+        data_to_hash.extend(point_to_octets_g1(&generator).as_ref());
     }
     // As of now we support only BLS12/381 ciphersuite, it's OK to use this
     // constant here. This should be passed as ciphersuite specific const as

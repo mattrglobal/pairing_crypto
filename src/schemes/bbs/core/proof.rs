@@ -215,7 +215,7 @@ impl Proof {
                     disclosed_messages.insert(i, m);
                 }
                 ProofMessage::Hidden(m) => {
-                    H_points.push(*generator);
+                    H_points.push(generator);
                     m_tilde_scalars.push(Scalar::random(&mut rng));
                     hidden_messages.push(m.0);
                 }
@@ -402,7 +402,7 @@ impl Proof {
             if disclosed_messages.contains_key(&i) {
                 continue;
             }
-            C2_points.push(*generator);
+            C2_points.push(generator);
             C2_scalars.push(self.m_hat_list[j].0);
             j += 1;
         }

@@ -72,9 +72,4 @@ impl Generators for MemoryCachedGenerators {
         }
         Some(self.H_list[index])
     }
-
-    /// Get a `core::slice::Iter` for message generators.
-    fn message_generators_iter(&self) -> core::slice::Iter<'_, G1Projective> {
-        self.H_list.iter()
-    }
 }
