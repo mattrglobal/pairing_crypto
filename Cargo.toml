@@ -10,6 +10,7 @@ version = "0.1.0"
 default = []
 alloc = []
 wasm = ["alloc", "getrandom"]
+__private_generator_api = []
 
 [dependencies]
 digest = "0.9"
@@ -54,6 +55,7 @@ harness = false
 [workspace]
 members = [
     "tools/bbs-fixtures-generator",
+    "tools/bbs-generators",
     "wrappers/c",
     "wrappers/java/jni",
     "wrappers/wasm"

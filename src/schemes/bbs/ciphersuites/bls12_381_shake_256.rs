@@ -96,3 +96,11 @@ where
         Bls12381Shake256CipherSuiteParameter,
     >(request)
 }
+
+/// Create generators.
+#[cfg(feature = "__private_generator_api")]
+pub fn create_generators(count: usize) -> Result<Vec<Vec<u8>>, Error> {
+    crate::bbs::api::generators::create_generators::<
+        Bls12381Shake256CipherSuiteParameter,
+    >(count)
+}
