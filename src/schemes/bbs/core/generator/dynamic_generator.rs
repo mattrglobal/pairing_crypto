@@ -20,6 +20,7 @@ pub(crate) struct DynamicGenerators<
     pub(crate) Q_1: G1Projective,
     pub(crate) Q_2: G1Projective,
     pub(crate) count: usize,
+    pub(crate) index: usize,
     pub(crate) n: u64,
     pub(crate) v: [u8; XOF_NO_OF_BYTES],
     _phantom_data: PhantomData<C>,
@@ -39,6 +40,7 @@ impl<C: BbsCiphersuiteParameters<'static> + Debug + Clone>
             Q_1: generators[0],
             Q_2: generators[1],
             count,
+            index: 0,
             n,
             v,
             _phantom_data: PhantomData,
@@ -66,19 +68,16 @@ impl<C: BbsCiphersuiteParameters<'static> + Debug + Clone> Generators
         self.count
     }
 
-    /// Get the message generator at `index`.
-    /// Note `MessageGenerators` is zero indexed, so passed `index` value should
-    /// be in [0, `length`) range. In case of invalid `index`, `None` value
-    /// is returned.
-    fn get_message_generator_at_index(
-        &mut self,
-        index: usize,
-    ) -> Option<G1Projective> {
-        if index >= self.count {
+    /// Get the next message generator. `index` argument is ignored.
+    fn get_message_generator(&mut self, _index: usize) -> Option<G1Projective> {
+        if self.index >= self.count {
             return None;
         }
         match C::create_generators(1, &mut self.n, &mut self.v, false) {
-            Ok(g) => Some(g[0]),
+            Ok(g) => {
+                self.index += 1;
+                Some(g[0])
+            }
             Err(_) => None,
         }
     }

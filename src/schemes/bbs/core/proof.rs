@@ -369,7 +369,7 @@ impl Proof {
         T_scalars.push(domain);
         // H_i1 * msg_i1 + ... H_iR * msg_iR
         for (idx, msg) in disclosed_messages {
-            if let Some(g) = generators.get_message_generator_at_index(*idx) {
+            if let Some(g) = generators.get_message_generator(*idx) {
                 T_points.push(g);
                 T_scalars.push(msg.0);
             } else {
