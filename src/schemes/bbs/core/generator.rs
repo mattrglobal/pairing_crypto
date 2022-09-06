@@ -5,10 +5,6 @@ use core::fmt::Debug;
 /// during instantiation of `struct` and stored in RAM.
 pub(crate) mod memory_cached_generator;
 
-/// A `Generators` implementation where generators are computed on fly. This
-/// implementation is better suited for memory-constrained systems.
-pub(crate) mod dynamic_generator;
-
 /// The generators that are used to sign a vector of commitments for a BBS
 /// signature. Same set of generators must be used in all BBS scheme operations
 /// - `Sign`, `Verify`, `ProofGen`, and `ProofVerify`.
