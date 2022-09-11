@@ -13,15 +13,15 @@ use crate::{
             bls12_381::{PublicKey, SecretKey},
             bls12_381_shake_256::Bls12381Shake256CipherSuiteParameter,
         },
-        core::{
-            constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
-            key_pair::KeyPair,
-            signature::Signature,
-            types::Message,
-        },
+        core::{key_pair::KeyPair, signature::Signature, types::Message},
     },
     common::util::vec_to_byte_array,
-    curves::bls12_381::{G1Projective, Scalar},
+    curves::bls12_381::{
+        G1Projective,
+        Scalar,
+        OCTET_POINT_G1_LENGTH,
+        OCTET_SCALAR_LENGTH,
+    },
     tests::bbs::{
         get_random_test_key_pair,
         get_test_messages,

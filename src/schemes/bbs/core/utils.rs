@@ -1,46 +1,35 @@
 #![allow(non_snake_case)]
 
 use super::{
-    constants::{NON_NEGATIVE_INTEGER_ENCODING_LENGTH, OCTET_POINT_G1_LENGTH},
+    constants::NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
     generator::Generators,
     key_pair::PublicKey,
     types::{Challenge, Message},
 };
 use crate::{
     bbs::ciphersuites::BbsCiphersuiteParameters,
-    common::serialization::{i2osp, i2osp_with_data},
-    curves::bls12_381::{G1Affine, G1Projective, Scalar},
+    common::{
+        h2s::constant::XOF_NO_OF_BYTES,
+        serialization::{i2osp, i2osp_with_data},
+    },
+    curves::{
+        bls12_381::{
+            hash_to_curve::{ExpandMessage, ExpandMessageState},
+            G1Projective,
+            Scalar,
+        },
+        point_serde::point_to_octets_g1,
+    },
     error::Error,
 };
 use ff::Field;
-use group::Curve;
 
 #[cfg(feature = "alloc")]
 use alloc::collections::BTreeMap;
+use group::Group;
 
 #[cfg(not(feature = "alloc"))]
 use std::collections::BTreeMap;
-
-/// Get the representation of a point G1(in Projective form) to compressed
-/// and big-endian octets form.
-pub(crate) fn point_to_octets_g1(
-    p: &G1Projective,
-) -> [u8; OCTET_POINT_G1_LENGTH] {
-    p.to_affine().to_compressed()
-}
-
-/// Convert from octets in affine, compressed and big-endian form to
-/// `G1Projective` type.
-pub(crate) fn octets_to_point_g1(
-    octets: &[u8; OCTET_POINT_G1_LENGTH],
-) -> Result<G1Projective, Error> {
-    let result = G1Affine::from_compressed(octets).map(G1Projective::from);
-    if result.is_some().unwrap_u8() == 1u8 {
-        Ok(result.unwrap())
-    } else {
-        Err(Error::BadEncoding)
-    }
-}
 
 /// Computes `domain` value.
 /// domain =
@@ -169,4 +158,67 @@ where
 
     // c = hash_to_scalar(c_for_hash, 1)
     Ok(Challenge(C::hash_to_scalar(&data_to_hash, 1, None)?[0]))
+}
+
+pub(crate) fn do_create_generators<C, X>(
+    count: usize,
+    generator_seed: Option<&[u8]>,
+    generator_seed_dst: Option<&[u8]>,
+    generator_dst: Option<&[u8]>,
+) -> Result<Vec<G1Projective>, Error>
+where
+    C: BbsCiphersuiteParameters<'static>,
+    X: ExpandMessage,
+{
+    let default_generator_seed = C::generator_seed();
+    let generator_seed = generator_seed.unwrap_or(&default_generator_seed);
+    let default_generator_seed_dst = C::generator_seed_dst();
+    let generator_seed_dst =
+        generator_seed_dst.unwrap_or(&default_generator_seed_dst);
+    let default_generator_dst = C::generator_dst();
+    let generator_dst = generator_dst.unwrap_or(&default_generator_dst);
+
+    if generator_seed_dst == generator_dst {
+        return Err(Error::BadParams {
+            cause: "generator-seed-dst must be different than generator-dst"
+                .to_owned(),
+        });
+    }
+
+    let mut points = Vec::with_capacity(count);
+
+    //  v = expand_message(generator_seed, seed_dst, seed_len)
+    let mut expander =
+        X::init_expand(generator_seed, generator_seed_dst, XOF_NO_OF_BYTES);
+    let mut v = [0u8; XOF_NO_OF_BYTES];
+    expander.read_into(&mut v);
+
+    let mut n = 1;
+
+    let mut i = 0;
+    while i < count {
+        // v = expand_message(v || I2OSP(n, 4), seed_dst, seed_len)
+        let mut expander = X::init_expand(
+            &[v.as_ref(), &i2osp(n, 4)?].concat(),
+            generator_seed_dst,
+            XOF_NO_OF_BYTES,
+        );
+        expander.read_into(&mut v);
+
+        n += 1;
+
+        // candidate = hash_to_curve_g1(v, generator_dst)
+        let candidate = G1Projective::hash_to::<X>(&v, generator_dst);
+
+        if (candidate.is_identity().unwrap_u8() == 1)
+            || candidate == C::p1()
+            || points.iter().any(|e| e == &candidate)
+        {
+            continue;
+        }
+
+        points.push(candidate);
+        i += 1;
+    }
+    Ok(points)
 }

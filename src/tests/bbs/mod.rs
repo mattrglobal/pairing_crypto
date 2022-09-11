@@ -1,11 +1,9 @@
 use crate::{
     bbs::{
-        ciphersuites::{
-            bls12_381_shake_256::Bls12381Shake256CipherSuiteParameter,
-            BbsCiphersuiteParameters,
-        },
+        ciphersuites::bls12_381_shake_256::Bls12381Shake256CipherSuiteParameter,
         core::{generator::Generators, key_pair::KeyPair, types::Message},
     },
+    common::h2s::HashToScalarParameter,
     curves::bls12_381::G1Projective,
 };
 use group::Group;

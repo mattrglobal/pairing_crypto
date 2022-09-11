@@ -4,9 +4,11 @@ use super::{
 };
 use crate::{
     bbs::{
-        ciphersuites::BbsCiphersuiteParameters,
+        ciphersuites::{
+            bls12_381::BBS_BLS12381G1_SIGNATURE_LENGTH,
+            BbsCiphersuiteParameters,
+        },
         core::{
-            constants::BBS_BLS12381G1_SIGNATURE_LENGTH,
             generator::Generators,
             key_pair::{PublicKey, SecretKey},
             signature::Signature,

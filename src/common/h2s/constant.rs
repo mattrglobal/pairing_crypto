@@ -15,6 +15,3 @@ pub(crate) const MAX_MESSAGE_SIZE: u64 = u64::MAX;
 /// Number of bytes specified to encode length of a non-negative-integer. This
 /// value is used in `i2osp` call.
 pub(crate) const NON_NEGATIVE_INTEGER_ENCODING_LENGTH: usize = 8;
-
-/// Minimum length of key generation IKM data in bytes.
-pub const MIN_KEY_GEN_IKM_LENGTH: usize = 32;

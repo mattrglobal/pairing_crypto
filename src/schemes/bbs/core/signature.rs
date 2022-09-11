@@ -1,19 +1,23 @@
 #![allow(non_snake_case)]
 use super::{
-    constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
     generator::Generators,
     key_pair::{PublicKey, SecretKey},
     types::Message,
-    utils::{
-        compute_B,
-        compute_domain,
-        octets_to_point_g1,
-        point_to_octets_g1,
-    },
+    utils::{compute_B, compute_domain},
 };
 use crate::{
     bbs::ciphersuites::BbsCiphersuiteParameters,
-    curves::bls12_381::{Bls12, G1Projective, G2Prepared, Scalar},
+    curves::{
+        bls12_381::{
+            Bls12,
+            G1Projective,
+            G2Prepared,
+            Scalar,
+            OCTET_POINT_G1_LENGTH,
+            OCTET_SCALAR_LENGTH,
+        },
+        point_serde::{octets_to_point_g1, point_to_octets_g1},
+    },
     error::Error,
     print_byte_array,
 };

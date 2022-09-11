@@ -1,23 +1,26 @@
 #![allow(non_snake_case)]
 
 use super::{
-    constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
     generator::Generators,
-    hash_utils::create_random_scalar,
     key_pair::PublicKey,
     signature::Signature,
     types::{Challenge, FiatShamirProof, Message, ProofMessage},
-    utils::{
-        compute_B,
-        compute_challenge,
-        compute_domain,
-        octets_to_point_g1,
-        point_to_octets_g1,
-    },
+    utils::{compute_B, compute_challenge, compute_domain},
 };
 use crate::{
     bbs::ciphersuites::BbsCiphersuiteParameters,
-    curves::bls12_381::{Bls12, G1Projective, G2Prepared, Scalar},
+    common::h2s::create_random_scalar,
+    curves::{
+        bls12_381::{
+            Bls12,
+            G1Projective,
+            G2Prepared,
+            Scalar,
+            OCTET_POINT_G1_LENGTH,
+            OCTET_SCALAR_LENGTH,
+        },
+        point_serde::{octets_to_point_g1, point_to_octets_g1},
+    },
     error::Error,
     print_byte_array,
 };

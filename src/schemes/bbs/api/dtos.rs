@@ -1,4 +1,4 @@
-use crate::bbs::core::constants::{
+use crate::bbs::ciphersuites::bls12_381::{
     BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
     BBS_BLS12381G1_SECRET_KEY_LENGTH,
     BBS_BLS12381G1_SIGNATURE_LENGTH,
