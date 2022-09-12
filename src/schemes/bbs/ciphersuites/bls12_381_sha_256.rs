@@ -19,7 +19,7 @@ use sha2::Sha256;
 
 pub(crate) struct Bls12381Sha256CipherSuiteParameter;
 
-impl<'a> HashToScalarParameter for Bls12381Sha256CipherSuiteParameter {
+impl HashToScalarParameter for Bls12381Sha256CipherSuiteParameter {
     const ID: CipherSuiteId = CipherSuiteId::BbsBls12381G1XmdSha256;
 
     fn hash_to_scalar(

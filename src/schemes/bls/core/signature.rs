@@ -2,7 +2,7 @@ use crate::{
     bls::ciphersuites::BlsCiphersuiteParameters,
     curves::{
         bls12_381::{Bls12, G2Prepared, G2Projective, OCTET_POINT_G2_LENGTH},
-        point_serde::octets_to_point_g2,
+        point_serde::{octets_to_point_g2, point_to_octets_g2},
     },
     error::Error,
     print_byte_array,
@@ -104,10 +104,10 @@ impl Signature {
     pub const SIZE_BYTES: usize = OCTET_POINT_G2_LENGTH;
 
     /// Generate a new `Signature`.
-    pub fn new<T, C>(sk: &SecretKey, message: T) -> Result<Self, Error>
+    pub fn new<T, C>(sk: &SecretKey, message: T, dst: T) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
-        C: BlsCiphersuiteParameters<'static>,
+        C: BlsCiphersuiteParameters,
     {
         let message = message.as_ref();
 
@@ -122,9 +122,16 @@ impl Signature {
             return Err(Error::InvalidSecretKey);
         }
 
-        let q = C::hash_to_g2(message, None)?;
+        let q = C::hash_to_g2(message, dst.as_ref())?;
 
         Ok(Self(q * (*sk.0)))
+    }
+
+    /// Check if the `Self` is valid.
+    pub fn is_valid(&self) -> Choice {
+        (!self.0.is_identity())
+            & self.0.is_on_curve()
+            & self.0.to_affine().is_torsion_free()
     }
 
     /// Verify a signature.
@@ -132,10 +139,11 @@ impl Signature {
         &self,
         pk: &PublicKey,
         message: T,
+        dst: T,
     ) -> Result<bool, Error>
     where
         T: AsRef<[u8]>,
-        C: BlsCiphersuiteParameters<'static>,
+        C: BlsCiphersuiteParameters,
     {
         let message = message.as_ref();
         // Input parameter checks
@@ -146,12 +154,12 @@ impl Signature {
             });
         }
         // Validate the public key; it should not be an identity and should
-        // belong to subgroup G2.
+        // belong to subgroup.
         if pk.is_valid().unwrap_u8() == 0 {
             return Err(Error::InvalidPublicKey);
         }
         let xp = pk.0;
-        let q = C::hash_to_g2(message, None)?;
+        let q = C::hash_to_g2(message, dst.as_ref())?;
         let p = C::p1();
 
         // C1 = pairing(Q, xP)
@@ -172,12 +180,20 @@ impl Signature {
 
     /// Get the octets representation of `Signature`.
     pub fn to_octets(self) -> [u8; Self::SIZE_BYTES] {
-        self.0.to_affine().to_compressed()
+        point_to_octets_g2(&self.0)
     }
 
     /// Get the `Signature` from a sequence of bytes in big endian
     /// format.
     pub fn from_octets(data: &[u8; Self::SIZE_BYTES]) -> Result<Self, Error> {
-        Ok(Self(octets_to_point_g2(&data)?))
+        let signature = Self(octets_to_point_g2(data)?);
+        // Validate the signature; it should not be an identity and should
+        // belong to subgroup.
+        if signature.is_valid().unwrap_u8() == 0 {
+            return Err(Error::MalformedSignature {
+                cause: "signature is invalid".to_owned(),
+            });
+        }
+        Ok(signature)
     }
 }

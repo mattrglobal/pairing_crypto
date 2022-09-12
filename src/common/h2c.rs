@@ -18,13 +18,7 @@ pub(crate) trait HashToCurveParameter {
         Self::ID.as_octets().to_vec()
     }
 
-    fn hash_to_g1(
-        msg_octets: &[u8],
-        dst: Option<&[u8]>,
-    ) -> Result<G1Projective, Error>;
+    fn hash_to_g1(message: &[u8], dst: &[u8]) -> Result<G1Projective, Error>;
 
-    fn hash_to_g2(
-        msg_octets: &[u8],
-        dst: Option<&[u8]>,
-    ) -> Result<G2Projective, Error>;
+    fn hash_to_g2(message: &[u8], dst: &[u8]) -> Result<G2Projective, Error>;
 }

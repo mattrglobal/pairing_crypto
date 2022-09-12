@@ -1,5 +1,3 @@
-mod api;
-
 /// Core implementation of BLS signature scheme.
 pub mod core;
 

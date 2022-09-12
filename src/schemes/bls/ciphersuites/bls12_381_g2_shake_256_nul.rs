@@ -15,12 +15,12 @@ use super::{
     BlsCiphersuiteParameters,
 };
 
-pub(crate) struct Bls12381G2XofShake256AugCipherSuiteParameter;
+pub(crate) struct Bls12381G2XofShake256NulCipherSuiteParameter;
 
-impl BlsCiphersuiteParameters for Bls12381G2XofShake256AugCipherSuiteParameter {}
+impl BlsCiphersuiteParameters for Bls12381G2XofShake256NulCipherSuiteParameter {}
 
-impl HashToCurveParameter for Bls12381G2XofShake256AugCipherSuiteParameter {
-    const ID: CipherSuiteId = CipherSuiteId::BlsSigBls12381G2XofShake256Aug;
+impl HashToCurveParameter for Bls12381G2XofShake256NulCipherSuiteParameter {
+    const ID: CipherSuiteId = CipherSuiteId::BlsSigBls12381G2XofShake256Nul;
 
     fn hash_to_g1(
         message: &[u8],
@@ -49,12 +49,10 @@ pub fn sign<T>(
 where
     T: AsRef<[u8]>,
 {
-    let pk: PublicKey = sk.into();
-    let data_to_sign = [pk.to_octets().as_ref(), message.as_ref()].concat();
     let signature = crate::schemes::bls::core::signature::Signature::new::<
         _,
-        Bls12381G2XofShake256AugCipherSuiteParameter,
-    >(sk, data_to_sign, Bls12381G2XofShake256AugCipherSuiteParameter::default_hash_to_point_g2_dst())?;
+        Bls12381G2XofShake256NulCipherSuiteParameter,
+    >(sk, message.as_ref(), Bls12381G2XofShake256NulCipherSuiteParameter::default_hash_to_point_g2_dst().as_ref())?;
     Ok(signature.to_octets())
 }
 
@@ -67,13 +65,10 @@ pub fn verify<T>(
 where
     T: AsRef<[u8]>,
 {
-    let data_to_sign = [pk.to_octets().as_ref(), message.as_ref()].concat();
     let signature =
         crate::schemes::bls::core::signature::Signature::from_octets(
             signature,
         )?;
-    signature.verify::<_, Bls12381G2XofShake256AugCipherSuiteParameter>(
-        pk,
-        data_to_sign, Bls12381G2XofShake256AugCipherSuiteParameter::default_hash_to_point_g2_dst()
-    )
+    signature
+        .verify::<_, Bls12381G2XofShake256NulCipherSuiteParameter>(pk, message.as_ref(), Bls12381G2XofShake256NulCipherSuiteParameter::default_hash_to_point_g2_dst().as_ref())
 }

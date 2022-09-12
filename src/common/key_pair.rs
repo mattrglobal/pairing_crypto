@@ -168,7 +168,9 @@ macro_rules! bbs_bls_key_pair_impl {
 
             /// Check if the `PublicKey` is valid.
             pub fn is_valid(&self) -> Choice {
-                (!self.0.is_identity()) & self.0.to_affine().is_torsion_free()
+                (!self.0.is_identity())
+                    & self.0.is_on_curve()
+                    & self.0.to_affine().is_torsion_free()
             }
 
             /// Get the G2 representation in affine, compressed and big-endian

@@ -1,9 +1,9 @@
-use group::Group;
 use crate::{
     common::{ciphersuite::CipherSuiteId, h2s::HashToScalarParameter},
     curves::bls12_381::{G1Projective, G2Projective},
     Error,
 };
+use group::Group;
 
 /// BBS BLS12-381 ciphersuites.
 pub mod bls12_381;

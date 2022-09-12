@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
 
 use super::{
-    constants::NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
     generator::Generators,
     key_pair::PublicKey,
     types::{Challenge, Message},
@@ -9,7 +8,10 @@ use super::{
 use crate::{
     bbs::ciphersuites::BbsCiphersuiteParameters,
     common::{
-        h2s::constant::XOF_NO_OF_BYTES,
+        h2s::constant::{
+            NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
+            XOF_NO_OF_BYTES,
+        },
         serialization::{i2osp, i2osp_with_data},
     },
     curves::{

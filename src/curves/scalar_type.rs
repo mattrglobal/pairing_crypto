@@ -1,4 +1,5 @@
 #[macro_export]
+/// Wrapper for `Scalar` data types.
 macro_rules! scalar_wrapper {
     ($(#[$docs:meta])*
      $name:ident) => {
