@@ -120,53 +120,44 @@ where
 /// pairing lib) which is used in `Generators` creation.
 pub(crate) fn do_create_generators<C, X>(
     count: usize,
-    generator_seed: Option<&[u8]>,
-    generator_seed_dst: Option<&[u8]>,
-    generator_dst: Option<&[u8]>,
+    n: &mut u64,
+    v: &mut [u8; XOF_NO_OF_BYTES],
+    with_fresh_state: bool,
 ) -> Result<Vec<G1Projective>, Error>
 where
     C: BbsCiphersuiteParameters<'static>,
     X: ExpandMessage,
 {
-    let default_generator_seed = C::generator_seed();
-    let generator_seed = generator_seed.unwrap_or(&default_generator_seed);
-    let default_generator_seed_dst = C::generator_seed_dst();
-    let generator_seed_dst =
-        generator_seed_dst.unwrap_or(&default_generator_seed_dst);
-    let default_generator_dst = C::generator_dst();
-    let generator_dst = generator_dst.unwrap_or(&default_generator_dst);
+    let generator_seed_dst = C::generator_seed_dst();
 
-    if generator_seed_dst == generator_dst {
-        return Err(Error::BadParams {
-            cause: "generator-seed-dst must be different than generator-dst"
-                .to_owned(),
-        });
+    if with_fresh_state {
+        *n = 1;
+
+        //  v = expand_message(generator_seed, seed_dst, seed_len)
+        let mut expander = X::init_expand(
+            &C::generator_seed(),
+            &generator_seed_dst,
+            XOF_NO_OF_BYTES,
+        );
+        expander.read_into(v);
     }
 
     let mut points = Vec::with_capacity(count);
-
-    //  v = expand_message(generator_seed, seed_dst, seed_len)
-    let mut expander =
-        X::init_expand(generator_seed, generator_seed_dst, XOF_NO_OF_BYTES);
-    let mut v = [0u8; XOF_NO_OF_BYTES];
-    expander.read_into(&mut v);
-
-    let mut n = 1;
 
     let mut i = 0;
     while i < count {
         // v = expand_message(v || I2OSP(n, 4), seed_dst, seed_len)
         let mut expander = X::init_expand(
-            &[v.as_ref(), &i2osp(n, 4)?].concat(),
-            generator_seed_dst,
+            &[v.as_ref(), &i2osp(*n, 4)?].concat(),
+            &generator_seed_dst,
             XOF_NO_OF_BYTES,
         );
-        expander.read_into(&mut v);
+        expander.read_into(v);
 
-        n += 1;
+        *n += 1;
 
         // candidate = hash_to_curve_g1(v, generator_dst)
-        let candidate = G1Projective::hash_to::<X>(&v, generator_dst);
+        let candidate = G1Projective::hash_to::<X>(v, &C::generator_dst());
 
         if (candidate.is_identity().unwrap_u8() == 1)
             || candidate == C::p1()

@@ -45,14 +45,15 @@ pub(crate) fn octets_to_point_g1(
 /// Computes `domain` value.
 /// domain =
 ///    hash_to_scalar((PK || L || generators || Ciphersuite_ID || header), 1)
-pub(crate) fn compute_domain<T, C>(
+pub(crate) fn compute_domain<T, G, C>(
     PK: &PublicKey,
     header: Option<T>,
     L: usize,
-    generators: &Generators,
+    generators: &G,
 ) -> Result<Scalar, Error>
 where
     T: AsRef<[u8]>,
+    G: Generators,
     C: BbsCiphersuiteParameters<'static>,
 {
     // Error out if length of messages and generators are not equal
@@ -72,7 +73,7 @@ where
     data_to_hash.extend(point_to_octets_g1(&generators.Q_2()).as_ref());
 
     for generator in generators.message_generators_iter() {
-        data_to_hash.extend(point_to_octets_g1(generator).as_ref());
+        data_to_hash.extend(point_to_octets_g1(&generator).as_ref());
     }
     // As of now we support only BLS12/381 ciphersuite, it's OK to use this
     // constant here. This should be passed as ciphersuite specific const as
@@ -93,13 +94,14 @@ where
 
 /// Computes `B` value.
 /// B = P1 + Q_1 * s + Q_2 * domain + H_1 * msg_1 + ... + H_L * msg_L
-pub(crate) fn compute_B<C>(
+pub(crate) fn compute_B<G, C>(
     s: &Scalar,
     domain: &Scalar,
     messages: &[Message],
-    generators: &Generators,
+    generators: &G,
 ) -> Result<G1Projective, Error>
 where
+    G: Generators,
     C: BbsCiphersuiteParameters<'static>,
 {
     // Input params check

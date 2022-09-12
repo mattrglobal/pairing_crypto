@@ -1,9 +1,10 @@
-use group::Group;
-
+use super::core::constants::XOF_NO_OF_BYTES;
 use crate::{
     curves::bls12_381::{G1Projective, G2Projective, Scalar},
     Error,
 };
+use core::fmt::Debug;
+use group::Group;
 
 /// BBS BLS12-381 ciphersuites.
 pub mod bls12_381;
@@ -32,7 +33,7 @@ impl CipherSuiteId {
     }
 }
 
-pub(crate) trait BbsCiphersuiteParameters<'a> {
+pub(crate) trait BbsCiphersuiteParameters<'a>: Debug + Clone {
     /// Ciphersuite ID.
     const ID: CipherSuiteId;
 
@@ -85,8 +86,8 @@ pub(crate) trait BbsCiphersuiteParameters<'a> {
     /// Create generators as specified in BBS specification.
     fn create_generators(
         count: usize,
-        generator_seed: Option<&[u8]>,
-        generator_seed_dst: Option<&[u8]>,
-        generator_dst: Option<&[u8]>,
+        n: &mut u64,
+        v: &mut [u8; XOF_NO_OF_BYTES],
+        with_fresh_state: bool,
     ) -> Result<Vec<G1Projective>, Error>;
 }
