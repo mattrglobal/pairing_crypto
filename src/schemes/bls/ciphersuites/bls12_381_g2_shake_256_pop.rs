@@ -74,12 +74,9 @@ where
 }
 
 /// Compute proof of posession of a secret key.
-pub fn pop_prove<T>(
+pub fn pop_prove(
     sk: &SecretKey,
-) -> Result<[u8; BLS_SIG_BLS12381G2_SIGNATURE_LENGTH], Error>
-where
-    T: AsRef<[u8]>,
-{
+) -> Result<[u8; BLS_SIG_BLS12381G2_SIGNATURE_LENGTH], Error> {
     let pk: PublicKey = sk.into();
 
     let pop = crate::schemes::bls::core::signature::Signature::new::<
@@ -94,21 +91,15 @@ where
 }
 
 /// Verify proof of posession of a secret key.
-pub fn pop_verify<T>(
+pub fn pop_verify(
     pk: &PublicKey,
-    message: T,
-    signature: &[u8; BLS_SIG_BLS12381G2_SIGNATURE_LENGTH],
-) -> Result<bool, Error>
-where
-    T: AsRef<[u8]>,
-{
-    let signature =
-        crate::schemes::bls::core::signature::Signature::from_octets(
-            signature,
-        )?;
-    signature.verify::<_, Bls12381G2XofShake256PopCipherSuiteParameter>(
+    proof: &[u8; BLS_SIG_BLS12381G2_SIGNATURE_LENGTH],
+) -> Result<bool, Error> {
+    let proof =
+        crate::schemes::bls::core::signature::Signature::from_octets(proof)?;
+    proof.verify::<_, Bls12381G2XofShake256PopCipherSuiteParameter>(
         pk,
-        message.as_ref(),
+        pk.to_octets().as_ref(),
         pop_dst::<Bls12381G2XofShake256PopCipherSuiteParameter>().as_ref(),
     )
 }
