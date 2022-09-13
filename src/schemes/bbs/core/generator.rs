@@ -5,10 +5,6 @@ use core::fmt::Debug;
 /// during instantiation of `struct` and stored in RAM.
 pub(crate) mod memory_cached_generator;
 
-/// A `Generators` implementation where generators are computed on fly. This
-/// implementation is better suited for memory-constrained systems.
-pub(crate) mod dynamic_generator;
-
 /// The generators that are used to sign a vector of commitments for a BBS
 /// signature. Same set of generators must be used in all BBS scheme operations
 /// - `Sign`, `Verify`, `ProofGen`, and `ProofVerify`.
@@ -26,13 +22,10 @@ pub(crate) trait Generators: Debug + Clone {
     fn message_generators_length(&self) -> usize;
 
     /// Get the message generator at `index`.
-    /// Note `MessageGenerators` is zero indexed, so passed `index` value should
-    /// be in [0, `length`) range. In case of invalid `index`, `None` value
-    /// is returned.
-    fn get_message_generator_at_index(
-        &mut self,
-        index: usize,
-    ) -> Option<G1Projective>;
+    /// Note - `MessageGenerators` is zero indexed, so passed `index` value
+    /// should be in [0, `length`) range. In case of an invalid `index`, `None`
+    /// value is returned.
+    fn get_message_generator(&mut self, index: usize) -> Option<G1Projective>;
 
     /// Get a `Iterator` for message generators.
     fn message_generators_iter(&self) -> GeneratorsIter<Self> {
@@ -65,7 +58,7 @@ impl<G: Generators> Iterator for GeneratorsIter<G> {
             None
         } else {
             self.index += 1;
-            self.generators.get_message_generator_at_index(index)
+            self.generators.get_message_generator(index)
         }
     }
 }
