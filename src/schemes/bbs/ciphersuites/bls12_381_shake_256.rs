@@ -11,12 +11,17 @@ use crate::{
         BbsSignRequest,
         BbsVerifyRequest,
     },
-    common::h2s::{do_hash_to_scalar, HashToScalarParameter},
+    common::h2s::{
+        constant::XOF_NO_OF_BYTES,
+        do_hash_to_scalar,
+        HashToScalarParameter,
+    },
     curves::bls12_381::{hash_to_curve::ExpandMsgXof, G1Projective, Scalar},
     Error,
 };
 use sha3::Shake256;
 
+#[derive(Debug, Clone)]
 pub(crate) struct Bls12381Shake256CipherSuiteParameter;
 
 impl HashToScalarParameter for Bls12381Shake256CipherSuiteParameter {
@@ -34,15 +39,15 @@ impl HashToScalarParameter for Bls12381Shake256CipherSuiteParameter {
 impl BbsCiphersuiteParameters for Bls12381Shake256CipherSuiteParameter {
     fn create_generators(
         count: usize,
-        generator_seed: Option<&[u8]>,
-        generator_seed_dst: Option<&[u8]>,
-        generator_dst: Option<&[u8]>,
+        n: &mut u64,
+        v: &mut [u8; XOF_NO_OF_BYTES],
+        with_fresh_state: bool,
     ) -> Result<Vec<G1Projective>, Error> {
         do_create_generators::<Self, ExpandMsgXof<Shake256>>(
             count,
-            generator_seed,
-            generator_seed_dst,
-            generator_dst,
+            n,
+            v,
+            with_fresh_state,
         )
     }
 }

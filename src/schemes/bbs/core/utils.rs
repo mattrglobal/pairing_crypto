@@ -36,14 +36,15 @@ use std::collections::BTreeMap;
 /// Computes `domain` value.
 /// domain =
 ///    hash_to_scalar((PK || L || generators || Ciphersuite_ID || header), 1)
-pub(crate) fn compute_domain<T, C>(
+pub(crate) fn compute_domain<T, G, C>(
     PK: &PublicKey,
     header: Option<T>,
     L: usize,
-    generators: &Generators,
+    generators: &G,
 ) -> Result<Scalar, Error>
 where
     T: AsRef<[u8]>,
+    G: Generators,
     C: BbsCiphersuiteParameters,
 {
     // Error out if length of messages and generators are not equal
@@ -63,7 +64,7 @@ where
     data_to_hash.extend(point_to_octets_g1(&generators.Q_2()).as_ref());
 
     for generator in generators.message_generators_iter() {
-        data_to_hash.extend(point_to_octets_g1(generator).as_ref());
+        data_to_hash.extend(point_to_octets_g1(&generator).as_ref());
     }
     // As of now we support only BLS12/381 ciphersuite, it's OK to use this
     // constant here. This should be passed as ciphersuite specific const as
@@ -84,13 +85,14 @@ where
 
 /// Computes `B` value.
 /// B = P1 + Q_1 * s + Q_2 * domain + H_1 * msg_1 + ... + H_L * msg_L
-pub(crate) fn compute_B<C>(
+pub(crate) fn compute_B<G, C>(
     s: &Scalar,
     domain: &Scalar,
     messages: &[Message],
-    generators: &Generators,
+    generators: &G,
 ) -> Result<G1Projective, Error>
 where
+    G: Generators,
     C: BbsCiphersuiteParameters,
 {
     // Input params check
@@ -162,55 +164,48 @@ where
     Ok(Challenge(C::hash_to_scalar(&data_to_hash, 1, None)?[0]))
 }
 
+// A convenient wrapper over underlying `hash_to_curve_g1` implementation(from
+/// pairing lib) which is used in `Generators` creation.
 pub(crate) fn do_create_generators<C, X>(
     count: usize,
-    generator_seed: Option<&[u8]>,
-    generator_seed_dst: Option<&[u8]>,
-    generator_dst: Option<&[u8]>,
+    n: &mut u64,
+    v: &mut [u8; XOF_NO_OF_BYTES],
+    with_fresh_state: bool,
 ) -> Result<Vec<G1Projective>, Error>
 where
     C: BbsCiphersuiteParameters,
     X: ExpandMessage,
 {
-    let default_generator_seed = C::generator_seed();
-    let generator_seed = generator_seed.unwrap_or(&default_generator_seed);
-    let default_generator_seed_dst = C::generator_seed_dst();
-    let generator_seed_dst =
-        generator_seed_dst.unwrap_or(&default_generator_seed_dst);
-    let default_generator_dst = C::generator_dst();
-    let generator_dst = generator_dst.unwrap_or(&default_generator_dst);
+    let generator_seed_dst = C::generator_seed_dst();
 
-    if generator_seed_dst == generator_dst {
-        return Err(Error::BadParams {
-            cause: "generator-seed-dst must be different than generator-dst"
-                .to_owned(),
-        });
+    if with_fresh_state {
+        *n = 1;
+
+        //  v = expand_message(generator_seed, seed_dst, seed_len)
+        let mut expander = X::init_expand(
+            &C::generator_seed(),
+            &generator_seed_dst,
+            XOF_NO_OF_BYTES,
+        );
+        expander.read_into(v);
     }
 
     let mut points = Vec::with_capacity(count);
-
-    //  v = expand_message(generator_seed, seed_dst, seed_len)
-    let mut expander =
-        X::init_expand(generator_seed, generator_seed_dst, XOF_NO_OF_BYTES);
-    let mut v = [0u8; XOF_NO_OF_BYTES];
-    expander.read_into(&mut v);
-
-    let mut n = 1;
 
     let mut i = 0;
     while i < count {
         // v = expand_message(v || I2OSP(n, 4), seed_dst, seed_len)
         let mut expander = X::init_expand(
-            &[v.as_ref(), &i2osp(n, 4)?].concat(),
-            generator_seed_dst,
+            &[v.as_ref(), &i2osp(*n, 4)?].concat(),
+            &generator_seed_dst,
             XOF_NO_OF_BYTES,
         );
-        expander.read_into(&mut v);
+        expander.read_into(v);
 
-        n += 1;
+        *n += 1;
 
         // candidate = hash_to_curve_g1(v, generator_dst)
-        let candidate = G1Projective::hash_to::<X>(&v, generator_dst);
+        let candidate = G1Projective::hash_to::<X>(v, &C::generator_dst());
 
         if (candidate.is_identity().unwrap_u8() == 1)
             || candidate == C::p1()

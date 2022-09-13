@@ -14,7 +14,7 @@ use super::{
     bls12_381::BLS_SIG_BLS12381G2_SIGNATURE_LENGTH,
     BlsCiphersuiteParameters,
 };
-
+#[derive(Debug, Clone)]
 pub(crate) struct Bls12381G2XofShake256PopCipherSuiteParameter;
 
 impl BlsCiphersuiteParameters for Bls12381G2XofShake256PopCipherSuiteParameter {}

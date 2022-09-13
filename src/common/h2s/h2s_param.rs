@@ -3,8 +3,9 @@ use crate::{
     curves::bls12_381::Scalar,
     Error,
 };
+use core::fmt::Debug;
 
-pub(crate) trait HashToScalarParameter {
+pub(crate) trait HashToScalarParameter: Debug + Clone {
     /// Ciphersuite ID.
     const ID: CipherSuiteId;
 

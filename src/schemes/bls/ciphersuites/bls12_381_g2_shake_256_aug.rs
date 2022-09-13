@@ -15,6 +15,7 @@ use super::{
     BlsCiphersuiteParameters,
 };
 
+#[derive(Debug, Clone)]
 pub(crate) struct Bls12381G2XofShake256AugCipherSuiteParameter;
 
 impl BlsCiphersuiteParameters for Bls12381G2XofShake256AugCipherSuiteParameter {}

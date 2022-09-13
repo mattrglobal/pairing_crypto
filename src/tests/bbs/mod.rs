@@ -1,7 +1,11 @@
 use crate::{
     bbs::{
         ciphersuites::bls12_381_shake_256::Bls12381Shake256CipherSuiteParameter,
-        core::{generator::Generators, key_pair::KeyPair, types::Message},
+        core::{
+            generator::memory_cached_generator::MemoryCachedGenerators,
+            key_pair::KeyPair,
+            types::Message,
+        },
     },
     common::h2s::HashToScalarParameter,
     curves::bls12_381::G1Projective,
@@ -61,18 +65,26 @@ const EXPECTED_SIGNATURES: [&str; 7] = [
 const TEST_PRESENTATION_HEADER_1: &[u8; 26] = b"test_presentation-header-1";
 const TEST_PRESENTATION_HEADER_2: &[u8; 26] = b"test_presentation-header-2";
 
-fn create_generators_helper(num_of_messages: usize) -> Generators {
-    Generators::new::<Bls12381Shake256CipherSuiteParameter>(num_of_messages)
-        .expect("generators creation failed")
+fn create_generators_helper(
+    num_of_messages: usize,
+) -> MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter> {
+    MemoryCachedGenerators::<Bls12381Shake256CipherSuiteParameter>::new(
+        num_of_messages,
+    )
+    .expect("generators creation failed")
 }
 
-fn test_generators_random_q_1(num_of_messages: usize) -> Generators {
+fn test_generators_random_q_1(
+    num_of_messages: usize,
+) -> MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter> {
     let mut generators = create_generators_helper(num_of_messages);
     generators.Q_1 = G1Projective::random(&mut OsRng);
     generators
 }
 
-fn test_generators_random_q_2(num_of_messages: usize) -> Generators {
+fn test_generators_random_q_2(
+    num_of_messages: usize,
+) -> MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter> {
     let mut generators = create_generators_helper(num_of_messages);
     generators.Q_2 = G1Projective::random(&mut OsRng);
     generators
@@ -80,7 +92,7 @@ fn test_generators_random_q_2(num_of_messages: usize) -> Generators {
 
 fn test_generators_random_message_generators(
     num_of_messages: usize,
-) -> Generators {
+) -> MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter> {
     let mut generators = create_generators_helper(num_of_messages);
     generators.H_list = vec![G1Projective::random(&mut OsRng); num_of_messages];
     generators

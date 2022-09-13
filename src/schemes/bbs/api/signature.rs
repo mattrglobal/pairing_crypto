@@ -9,7 +9,7 @@ use crate::{
             BbsCiphersuiteParameters,
         },
         core::{
-            generator::Generators,
+            generator::memory_cached_generator::MemoryCachedGenerators,
             key_pair::{PublicKey, SecretKey},
             signature::Signature,
             types::Message,
@@ -36,10 +36,10 @@ where
     let messages: Vec<Message> = digest_messages::<_, C>(request.messages)?;
 
     // Derive generators
-    let generators = Generators::new::<C>(messages.len())?;
+    let generators = MemoryCachedGenerators::<C>::new(messages.len())?;
 
     // Produce the signature and return
-    Signature::new::<_, _, C>(
+    Signature::new::<_, _, _, C>(
         &sk,
         &pk,
         request.header.as_ref(),
@@ -64,12 +64,12 @@ where
     let messages: Vec<Message> = digest_messages::<_, C>(request.messages)?;
 
     // Derive generators
-    let generators = Generators::new::<C>(messages.len())?;
+    let generators = MemoryCachedGenerators::<C>::new(messages.len())?;
 
     // Parse signature from request
     let signature = Signature::from_octets(request.signature)?;
 
-    signature.verify::<_, _, C>(
+    signature.verify::<_, _, _, C>(
         &pk,
         request.header.as_ref(),
         &generators,

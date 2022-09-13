@@ -3,8 +3,9 @@ use crate::{
     curves::bls12_381::{G1Projective, G2Projective},
     Error,
 };
+use core::fmt::Debug;
 
-pub(crate) trait HashToCurveParameter {
+pub(crate) trait HashToCurveParameter: Debug + Clone {
     /// Ciphersuite ID.
     const ID: CipherSuiteId;
 
