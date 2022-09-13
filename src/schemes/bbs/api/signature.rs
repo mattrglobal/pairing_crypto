@@ -24,7 +24,7 @@ pub(crate) fn sign<T, C>(
 ) -> Result<[u8; BBS_BLS12381G1_SIGNATURE_LENGTH], Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
 {
     // Parse the secret key
     let sk = SecretKey::from_bytes(request.secret_key)?;
@@ -55,7 +55,7 @@ pub(crate) fn verify<T, C>(
 ) -> Result<bool, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
 {
     // Parse public key from request
     let pk = PublicKey::from_octets(request.public_key)?;

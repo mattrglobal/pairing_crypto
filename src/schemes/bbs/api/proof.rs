@@ -31,7 +31,7 @@ pub(crate) fn proof_gen<T, C>(
 ) -> Result<Vec<u8>, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
 {
     // Parse public key from request
     let pk = PublicKey::from_octets(request.public_key)?;
@@ -76,7 +76,7 @@ pub(crate) fn proof_verify<T, C>(
 ) -> Result<bool, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
 {
     // Parse public key from request
     let public_key = PublicKey::from_octets(request.public_key)?;

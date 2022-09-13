@@ -44,7 +44,7 @@ pub(crate) fn compute_domain<T, C>(
 ) -> Result<Scalar, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
 {
     // Error out if length of messages and generators are not equal
     if L != generators.message_generators_length() {
@@ -91,7 +91,7 @@ pub(crate) fn compute_B<C>(
     generators: &Generators,
 ) -> Result<G1Projective, Error>
 where
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
 {
     // Input params check
     // Error out if length of generators and messages are not equal
@@ -127,7 +127,7 @@ pub(crate) fn compute_challenge<T, C>(
 ) -> Result<Challenge, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
 {
     // c_array = (A', Abar, D, C1, C2, R, i1, ..., iR, msg_i1, ..., msg_iR,
     //              domain, ph)
@@ -169,7 +169,7 @@ pub(crate) fn do_create_generators<C, X>(
     generator_dst: Option<&[u8]>,
 ) -> Result<Vec<G1Projective>, Error>
 where
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
     X: ExpandMessage,
 {
     let default_generator_seed = C::generator_seed();

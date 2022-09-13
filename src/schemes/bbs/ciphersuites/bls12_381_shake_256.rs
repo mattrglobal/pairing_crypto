@@ -31,7 +31,7 @@ impl HashToScalarParameter for Bls12381Shake256CipherSuiteParameter {
     }
 }
 
-impl<'a> BbsCiphersuiteParameters<'a> for Bls12381Shake256CipherSuiteParameter {
+impl BbsCiphersuiteParameters for Bls12381Shake256CipherSuiteParameter {
     fn create_generators(
         count: usize,
         generator_seed: Option<&[u8]>,

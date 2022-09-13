@@ -21,7 +21,7 @@ impl Generators {
     /// The implementation follows `CreateGenerators` section as defined in <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-creategenerators>.
     pub fn new<C>(count: usize) -> Result<Self, Error>
     where
-        C: BbsCiphersuiteParameters<'static>,
+        C: BbsCiphersuiteParameters,
     {
         let generators = C::create_generators(count + 2, None, None, None)?;
         Ok(Self {

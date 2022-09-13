@@ -37,7 +37,7 @@ impl Message {
         dst: Option<&[u8]>,
     ) -> Result<Self, Error>
     where
-        C: BbsCiphersuiteParameters<'static>,
+        C: BbsCiphersuiteParameters,
     {
         Ok(Self(map_message_to_scalar_as_hash::<C>(message, dst)?))
     }

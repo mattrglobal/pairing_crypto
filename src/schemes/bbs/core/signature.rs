@@ -147,7 +147,7 @@ impl Signature {
     where
         T: AsRef<[u8]>,
         M: AsRef<[Message]>,
-        C: BbsCiphersuiteParameters<'static>,
+        C: BbsCiphersuiteParameters,
     {
         let header = header.as_ref();
         let messages = messages.as_ref();
@@ -215,7 +215,7 @@ impl Signature {
     where
         T: AsRef<[u8]>,
         M: AsRef<[Message]>,
-        C: BbsCiphersuiteParameters<'static>,
+        C: BbsCiphersuiteParameters,
     {
         let messages = messages.as_ref();
 

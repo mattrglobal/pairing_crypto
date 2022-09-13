@@ -35,7 +35,7 @@ pub(super) fn digest_messages<T, C>(
 ) -> Result<Vec<Message>, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
 {
     if let Some(messages) = messages {
         return messages
@@ -52,7 +52,7 @@ pub(super) fn digest_proof_messages<T, C>(
 ) -> Result<(Vec<Message>, Vec<ProofMessage>), Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
 {
     let mut digested_messages = vec![];
     let mut proof_messages = vec![];
@@ -82,7 +82,7 @@ pub(super) fn digest_revealed_proof_messages<T, C>(
 ) -> Result<BTreeMap<usize, Message>, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
 {
     if messages.is_none() {
         return Ok(BTreeMap::new());

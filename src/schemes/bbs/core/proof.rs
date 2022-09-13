@@ -104,7 +104,7 @@ impl Proof {
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
-        C: BbsCiphersuiteParameters<'static>,
+        C: BbsCiphersuiteParameters,
     {
         Self::new_with_rng::<_, _, C>(
             PK,
@@ -129,7 +129,7 @@ impl Proof {
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
-        C: BbsCiphersuiteParameters<'static>,
+        C: BbsCiphersuiteParameters,
         R: RngCore + CryptoRng,
     {
         // Input parameter checks
@@ -290,7 +290,7 @@ impl Proof {
     ) -> Result<bool, Error>
     where
         T: AsRef<[u8]>,
-        C: BbsCiphersuiteParameters<'static>,
+        C: BbsCiphersuiteParameters,
     {
         let total_no_of_messages =
             self.m_hat_list.len() + disclosed_messages.len();
