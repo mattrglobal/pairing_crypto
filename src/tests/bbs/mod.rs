@@ -1,6 +1,6 @@
 use crate::{
     bbs::{
-        ciphersuites::bls12_381_shake_256::Bls12381Shake256CipherSuiteParameter,
+        ciphersuites::bls12_381_g1_shake_256::Bls12381Shake256CipherSuiteParameter,
         core::{
             generator::memory_cached_generator::MemoryCachedGenerators,
             key_pair::KeyPair,
@@ -70,6 +70,7 @@ fn create_generators_helper(
 ) -> MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter> {
     MemoryCachedGenerators::<Bls12381Shake256CipherSuiteParameter>::new(
         num_of_messages,
+        0,
     )
     .expect("generators creation failed")
 }

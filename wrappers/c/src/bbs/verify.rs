@@ -10,8 +10,8 @@ use pairing_crypto::bbs::{
             BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
             BBS_BLS12381G1_SIGNATURE_LENGTH,
         },
-        bls12_381_sha_256::verify as bls12_381_sha_256_verify,
-        bls12_381_shake_256::verify as bls12_381_shake_256_verify,
+        bls12_381_g1_sha_256::verify as bls12_381_sha_256_verify,
+        bls12_381_g1_shake_256::verify as bls12_381_shake_256_verify,
     },
     BbsVerifyRequest,
 };

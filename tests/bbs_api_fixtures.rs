@@ -7,12 +7,12 @@ use bbs_fixtures_generator::{
 use pairing_crypto::bbs::{
     ciphersuites::{
         bls12_381::BBS_BLS12381G1_SIGNATURE_LENGTH,
-        bls12_381_sha_256::{
+        bls12_381_g1_sha_256::{
             proof_gen as bls12_381_sha_256_proof_gen,
             proof_verify as bls12_381_sha_256_proof_verify,
             verify as bls12_381_sha_256_verify,
         },
-        bls12_381_shake_256::{
+        bls12_381_g1_shake_256::{
             proof_gen as bls12_381_shake_256_proof_gen,
             proof_verify as bls12_381_shake_256_proof_verify,
             verify as bls12_381_shake_256_verify,
