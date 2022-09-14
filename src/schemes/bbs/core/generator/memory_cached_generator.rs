@@ -20,6 +20,7 @@ pub(crate) struct MemoryCachedGenerators<
     pub(crate) Q_1: G1Projective,
     pub(crate) Q_2: G1Projective,
     pub(crate) H_list: Vec<G1Projective>,
+    pub(crate) extension_list: Vec<G1Projective>,
     _phantom_data: PhantomData<C>,
 }
 
@@ -27,17 +28,23 @@ pub(crate) struct MemoryCachedGenerators<
 impl<C: BbsCiphersuiteParameters + Debug + Clone> MemoryCachedGenerators<C> {
     /// Construct `Generators`.
     /// The implementation follows `CreateGenerators` section as defined in <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-creategenerators>.
-    pub fn new(count: usize) -> Result<Self, Error>
+    pub fn new(count: usize, extension_count: usize) -> Result<Self, Error>
     where
         C: BbsCiphersuiteParameters,
     {
         let mut n = 1;
         let mut v = [0u8; XOF_NO_OF_BYTES];
-        let generators = C::create_generators(count + 2, &mut n, &mut v, true)?;
+        let generators = C::create_generators(
+            count + extension_count + 2,
+            &mut n,
+            &mut v,
+            true,
+        )?;
         Ok(Self {
             Q_1: generators[0],
             Q_2: generators[1],
-            H_list: generators[2..].to_vec(),
+            H_list: generators[2..2 + count].to_vec(),
+            extension_list: generators[2 + count..].to_vec(),
             _phantom_data: PhantomData,
         })
     }
@@ -72,5 +79,25 @@ impl<C: BbsCiphersuiteParameters + Debug + Clone> Generators
             return None;
         }
         Some(self.H_list[index])
+    }
+
+    /// The number of BBS variant protocol extension generators this
+    /// `Generators` instance holds.
+    fn extension_generators_length(&self) -> usize {
+        self.extension_list.len()
+    }
+
+    /// Get the BBS variant protocol extension generator at `index`.
+    /// Note - `MessageGenerators` is zero indexed, so passed `index` value
+    /// should be in [0, `length`) range. In case of invalid `index`, `None`
+    /// value is returned.
+    fn get_extension_generator(
+        &mut self,
+        index: usize,
+    ) -> Option<G1Projective> {
+        if index >= self.extension_list.len() {
+            return None;
+        }
+        Some(self.extension_list[index])
     }
 }

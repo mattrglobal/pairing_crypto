@@ -66,6 +66,9 @@ where
     for generator in generators.message_generators_iter() {
         data_to_hash.extend(point_to_octets_g1(&generator).as_ref());
     }
+    for generator in generators.extension_generators_iter() {
+        data_to_hash.extend(point_to_octets_g1(&generator).as_ref());
+    }
     // As of now we support only BLS12/381 ciphersuite, it's OK to use this
     // constant here. This should be passed as ciphersuite specific const as
     // generic parameter when initializing a curve specific ciphersuite.
@@ -106,11 +109,16 @@ where
 
     let mut points: Vec<_> = vec![C::p1(), generators.Q_1(), generators.Q_2()];
     points.extend(generators.message_generators_iter());
-    let scalars: Vec<_> = [Scalar::one(), *s, *domain]
+    let mut scalars: Vec<_> = [Scalar::one(), *s, *domain]
         .iter()
         .copied()
         .chain(messages.iter().map(|c| c.0))
         .collect();
+
+    for generator in generators.extension_generators_iter() {
+        points.push(generator);
+        scalars.push(Scalar::one());
+    }
 
     Ok(G1Projective::multi_exp(&points, &scalars))
 }

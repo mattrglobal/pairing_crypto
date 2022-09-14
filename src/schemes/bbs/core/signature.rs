@@ -35,6 +35,8 @@ use serde::{
 };
 use subtle::{Choice, ConditionallySelectable};
 
+use crate::bls::core::key_pair::PublicKey as BlsPublicKey;
+
 /// A BBS+ signature
 #[allow(non_snake_case)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -178,7 +180,7 @@ impl Signature {
 
         // (e, s) = hash_to_scalar((SK  || domain || msg_1 || ... || msg_L), 2)
         let mut data_to_hash = vec![];
-        data_to_hash.extend(SK.clone().to_bytes().as_ref());
+        data_to_hash.extend(SK.to_bytes().as_ref());
         data_to_hash.extend(domain.to_bytes_be().as_ref());
         for m in messages {
             data_to_hash.extend(m.to_bytes().as_ref());
@@ -188,6 +190,77 @@ impl Signature {
 
         // B = P1 + Q_1 * s + Q_2 * domain + H_1 * msg_1 + ... + H_L * msg_L
         let B = compute_B::<_, C>(&s, &domain, messages, generators)?;
+        let exp = (e + SK.as_scalar()).invert();
+        let exp = if exp.is_some().unwrap_u8() == 1u8 {
+            exp.unwrap()
+        } else {
+            return Err(Error::CryptoOps {
+                cause: "failed to generate `exp` for `A` component of \
+                        signature"
+                    .to_owned(),
+            });
+        };
+
+        // A = B * (1 / (SK + e))
+        Ok(Self { A: B * exp, e, s })
+    }
+
+    /// Generate a bound bbs signature.
+    pub fn new_bound<T, M, G, C>(
+        SK: &SecretKey,
+        PK: &PublicKey,
+        BlsPk: &BlsPublicKey,
+        header: Option<T>,
+        generators: &G,
+        messages: M,
+    ) -> Result<Self, Error>
+    where
+        T: AsRef<[u8]>,
+        M: AsRef<[Message]>,
+        G: Generators,
+        C: BbsCiphersuiteParameters,
+    {
+        let header = header.as_ref();
+        let messages = messages.as_ref();
+
+        // Input parameter checks
+        // Error out if there is no `header` and also not any `Messages`
+        if header.is_none() && messages.is_empty() {
+            return Err(Error::BadParams {
+                cause: "nothing to sign".to_owned(),
+            });
+        }
+        // Error out if length of messages and generators are not equal
+        if messages.len() != generators.message_generators_length() {
+            return Err(Error::MessageGeneratorsLengthMismatch {
+                generators: generators.message_generators_length(),
+                messages: messages.len(),
+            });
+        }
+        if SK.0.is_zero().unwrap_u8() == 1 {
+            return Err(Error::InvalidSecretKey);
+        }
+
+        // domain=hash_to_scalar((PK||L||generators||Ciphersuite_ID||BP_1||header),1)
+        let domain =
+            compute_domain::<_, _, C>(PK, header, messages.len(), generators)?;
+
+        // (e, s) = hash_to_scalar((SK||BlsPk||domain||msg_1||...||msg_L), 2)
+        let mut data_to_hash = vec![];
+        data_to_hash.extend(SK.to_bytes().as_ref());
+        data_to_hash.extend(BlsPk.to_octets().as_ref());
+        data_to_hash.extend(domain.to_bytes_be().as_ref());
+        for m in messages {
+            data_to_hash.extend(m.to_bytes().as_ref());
+        }
+        let scalars = C::hash_to_scalar(&data_to_hash, 2, None)?;
+        let (e, s) = (scalars[0], scalars[1]);
+
+        // B = P1 + Q_1 * s + Q_2 * domain + H_1 * msg_1 + ... + H_L * msg_L
+        let mut B = compute_B::<_, C>(&s, &domain, messages, generators)?;
+        // Include BlsPk in B
+        B += BlsPk.0 * Scalar::one();
+
         let exp = (e + SK.as_scalar()).invert();
         let exp = if exp.is_some().unwrap_u8() == 1u8 {
             exp.unwrap()

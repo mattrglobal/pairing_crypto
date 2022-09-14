@@ -1,7 +1,7 @@
 use pairing_crypto::bbs::{
     ciphersuites::{
         bls12_381::KeyPair,
-        bls12_381_shake_256::{
+        bls12_381_g1_shake_256::{
             proof_gen as bls12_381_shake_256_proof_gen,
             proof_verify as bls12_381_shake_256_proof_verify,
             sign as bls12_381_shake_256_sign,

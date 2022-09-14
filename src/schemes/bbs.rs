@@ -4,6 +4,9 @@ mod api;
 pub mod core;
 
 pub use crate::schemes::bbs::api::dtos::{
+    BbsBoundProofGenRequest,
+    BbsBoundSignRequest,
+    BbsBoundVerifyRequest,
     BbsProofGenRequest,
     BbsProofGenRevealMessageRequest,
     BbsProofVerifyRequest,
