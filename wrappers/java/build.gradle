@@ -3,6 +3,7 @@ import org.gradle.internal.os.OperatingSystem
 plugins {
     // Apply the java-library plugin for API and implementation separation.
     id 'java-library'
+    id 'maven-publish'
 }
 
 apply plugin : "java-library" 
@@ -49,4 +50,17 @@ tasks.named('test') {
     
     // Enable logging output to stderr
     testLogging.showStandardStreams = true
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/mattrglobal/pairing_crypto"
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
 }
