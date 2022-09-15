@@ -32,12 +32,6 @@ jobs:
         working-directory: ./main/wrappers/obj-c
         run: ./scripts/update-libraries.h
 
-      - name: Build binary for IOS
+      - name: Test
         working-directory: ./main
-        run: yarn build:ios
-
-      - name: Build wrapper
-        working-directory: ./main
-        run: pod lib lint --allow-warnings
-        env:
-          DEVELOPER_DIR: /Applications/Xcode_11.7.app/Contents/Developer
+        run: xcodebuild test -project pairing_crypto.xcodeproj -scheme Tests -destination 'platform=iOS Simulator,name=iPhone 13 Pro,OS=15.5'
