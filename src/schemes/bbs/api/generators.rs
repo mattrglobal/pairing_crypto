@@ -19,7 +19,7 @@ where
     let mut generators = MemoryCachedGenerators::<C>::new(count)?;
     result.push(generators.Q_1.to_affine().to_compressed().to_vec());
     result.push(generators.Q_2.to_affine().to_compressed().to_vec());
-    for i in 2..count {
+    for i in 0..count - 2 {
         match generators.get_message_generator(i) {
             Some(g) => result.push(g.to_affine().to_compressed().to_vec()),
             _ => {
