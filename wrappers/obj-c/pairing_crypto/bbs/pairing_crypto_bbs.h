@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include <pairing_crypto_common.h>
+#include "include/pairing_crypto_common.h"
 
 #define _Nonnull
 #define _Nullable

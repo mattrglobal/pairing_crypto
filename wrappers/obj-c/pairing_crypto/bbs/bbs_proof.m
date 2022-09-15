@@ -1,8 +1,8 @@
 #import <Foundation/Foundation.h>
 
 #import "pairing_crypto_bbs.h"
-#import "bbs_proof.h"
-#import "PairingCryptoError.h"
+#import "include/bbs/bbs_proof.h"
+#import "include/PairingCryptoError.h"
 
 @interface BbsProof ()
 
@@ -32,7 +32,7 @@
                             messages:(NSArray *_Nullable)messages
                            withError:(NSError *_Nullable *_Nullable)errorPtr {
     
-    [self createSignatureProof:publicKey
+    [self doCreateProof:publicKey
                         header:header
            presentationMessage:presentationMessage
                      signature:signature
@@ -50,7 +50,7 @@ total_message_count:(NSUInteger)total_message_count
            messages:(NSDictionary *_Nullable)messages
           withError:(NSError *_Nullable *_Nullable)errorPtr {
     
-    return [self verifySignatureProof:publicKey
+    return [self doVerifyProof:publicKey
                                header:header
                   presentationMessage:presentationMessage
                   total_message_count:total_message_count
@@ -87,6 +87,7 @@ total_message_count:(NSUInteger)total_message_count
                    withError:(NSError *_Nullable *_Nullable)errorPtr  {
 
                    [self doesNotRecognizeSelector:_cmd];
+    return false;
 }
 
 @end

@@ -1,8 +1,8 @@
 #import <Foundation/Foundation.h>
 
-#import "bbs_signature.h"
+#import "include/bbs/bbs_signature.h"
 #import "pairing_crypto_bbs.h"
-#import "PairingCryptoError.h"
+#import "include/PairingCryptoError.h"
 
 /** @brief BBS Signature */
 @interface BbsSignature ()
@@ -76,6 +76,7 @@
               withError:(NSError *_Nullable*_Nullable)errorPtr {
 
                 [self doesNotRecognizeSelector:_cmd];
+    return false;
 }
 
 @end

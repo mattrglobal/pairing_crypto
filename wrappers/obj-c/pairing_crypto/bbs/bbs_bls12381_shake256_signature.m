@@ -1,8 +1,8 @@
 #import <Foundation/Foundation.h>
 
-#import "bbs_bls12381_shake256_signature.h"
+#import "include/bbs/bbs_bls12381_shake256_signature.h"
 #import "pairing_crypto_bbs.h"
-#import "PairingCryptoError.h"
+#import "include/PairingCryptoError.h"
 
 /** @brief BBS-Bls12381-Shake-256 Signature */
 @interface BbsBls12381Shake256Signature ()

@@ -7,14 +7,12 @@ use ffi_support::{ByteBuffer, ConcurrentHandleMap, ErrorCode, ExternError};
 use pairing_crypto::bbs::{
     ciphersuites::{
         bls12_381::{
-            BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
-            BBS_BLS12381G1_SIGNATURE_LENGTH,
+            BBS_BLS12381G1_PUBLIC_KEY_LENGTH, BBS_BLS12381G1_SIGNATURE_LENGTH,
         },
         bls12_381_sha_256::proof_gen as bls12_381_sha_256_proof_gen,
         bls12_381_shake_256::proof_gen as bls12_381_shake_256_proof_gen,
     },
-    BbsProofGenRequest,
-    BbsProofGenRevealMessageRequest,
+    BbsProofGenRequest, BbsProofGenRevealMessageRequest,
 };
 
 lazy_static! {
@@ -33,7 +31,7 @@ macro_rules! bbs_proof_gen_api_generator {
         $set_public_key_wrapper_fn:ident,
         $set_header_wrapper_fn:ident,
         $set_signature_fn:ident,
-        $set_presentation_message:ident,
+        $set_presentation_header:ident,
         $add_message_wrapper_fn:ident,
         $finish_wrapper_fn:ident,
         $proof_gen_lib_fn:ident
@@ -46,7 +44,7 @@ macro_rules! bbs_proof_gen_api_generator {
                     header: Vec::new(),
                     messages: Vec::new(),
                     signature: Vec::new(),
-                    presentation_message: Vec::new(),
+                    presentation_header: Vec::new(),
                 }
             })
         }
@@ -70,9 +68,9 @@ macro_rules! bbs_proof_gen_api_generator {
         );
 
         set_byte_array_impl!(
-            $set_presentation_message,
+            $set_presentation_header,
             BBS_DERIVE_PROOF_CONTEXT,
-            presentation_message
+            presentation_header
         );
 
         #[no_mangle]
@@ -139,11 +137,11 @@ macro_rules! bbs_proof_gen_api_generator {
                         Some(messages.as_slice())
                     };
 
-                    let presentation_message =
-                        if ctx.presentation_message.is_empty() {
+                    let presentation_header =
+                        if ctx.presentation_header.is_empty() {
                             None
                         } else {
-                            Some(ctx.presentation_message.as_slice())
+                            Some(ctx.presentation_header.as_slice())
                         };
 
                     let proof = $proof_gen_lib_fn(&BbsProofGenRequest {
@@ -151,7 +149,7 @@ macro_rules! bbs_proof_gen_api_generator {
                         header,
                         messages,
                         signature: &signature,
-                        presentation_message,
+                        presentation_message: presentation_header,
                     })?;
 
                     Ok(ByteBuffer::from_vec(proof.to_vec()))
@@ -177,7 +175,7 @@ bbs_proof_gen_api_generator!(
     bbs_bls12_381_sha_256_proof_gen_context_set_public_key,
     bbs_bls12_381_sha_256_proof_gen_context_set_header,
     bbs_bls12_381_sha_256_proof_gen_context_set_signature,
-    bbs_bls12_381_sha_256_proof_gen_context_set_presentation_message,
+    bbs_bls12_381_sha_256_proof_gen_context_set_presentation_header,
     bbs_bls12_381_sha_256_proof_gen_context_add_message,
     bbs_bls12_381_sha_256_proof_gen_context_finish,
     bls12_381_sha_256_proof_gen
@@ -188,7 +186,7 @@ bbs_proof_gen_api_generator!(
     bbs_bls12_381_shake_256_proof_gen_context_set_public_key,
     bbs_bls12_381_shake_256_proof_gen_context_set_header,
     bbs_bls12_381_shake_256_proof_gen_context_set_signature,
-    bbs_bls12_381_shake_256_proof_gen_context_set_presentation_message,
+    bbs_bls12_381_shake_256_proof_gen_context_set_presentation_header,
     bbs_bls12_381_shake_256_proof_gen_context_add_message,
     bbs_bls12_381_shake_256_proof_gen_context_finish,
     bls12_381_shake_256_proof_gen

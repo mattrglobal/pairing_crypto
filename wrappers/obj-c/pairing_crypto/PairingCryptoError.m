@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
-#import "PairingCryptoError.h"
+#import "include/PairingCryptoError.h"
 
 
 static NSString *const PairingCryptoErrorDomain = @"PairingCryptoError";
