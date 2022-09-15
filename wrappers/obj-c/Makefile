@@ -1,8 +1,8 @@
 TARGET = pairing_crypto_obj_c
 
 _CC = gcc
-_GNUSTEP_LIBS = $(shell gnustep-config --base-libs)
-_GNUSTEP_CFLAGS = $(shell gnustep-config --objc-flags)
+# _GNUSTEP_LIBS = $(shell gnustep-config --base-libs)
+# _GNUSTEP_CFLAGS = $(shell gnustep-config --objc-flags)
 
 OUTDIR = ./libraries
 SUBDIR = pairing_crypto pairing_crypto/bbs
@@ -12,15 +12,16 @@ INCS = $(wildcard *.h $(foreach fd, $(SUBDIR), $(fd)/*.h))
 SRCS = $(wildcard *.m $(foreach fd, $(SUBDIR), $(fd)/*.m))
 OBJS = $(addprefix $(DIR_OBJ)/, $(SRCS:m=o))
 INC_DIRS = -I./ -Ipairing_crypto/include -Ipairing_crypto/include/bbs
-LIBS = -lpairing_crypto_c
+FRAMEWORKS:= -framework Foundation
+LIBS = -lpairing_crypto_c -lobjc
 LIB_DIRS = -Llibraries
 
 _CC_FLAGS = $(INCLUDES) $(_GNUSTEP_CFLAGS)
-_LD_FLAGS = -L. $(_GNUSTEP_LIBS) $(LIB_DIRS) $(LIBS)
+_LD_FLAGS = -L. $(_GNUSTEP_LIBS) $(LIB_DIRS) $(LIBS) $(FRAMEWORKS)
 
 PHONY := $(TARGET)
 $(TARGET): $(OBJS)
-	$(_CC) -o $(OUTDIR)/$@ $(OBJS) $(_LD_FLAGS)
+	$(_CC) -o $(OUTDIR)/$@ $(OBJS) $(_LD_FLAGS) --shared
 
 $(DIR_OBJ)/%.o: %.m $(INCS)
 	mkdir -p $(@D)

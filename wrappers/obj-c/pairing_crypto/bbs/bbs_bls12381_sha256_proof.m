@@ -26,7 +26,7 @@
     
     pairing_crypto_error_t *err = (pairing_crypto_error_t*) malloc(sizeof(pairing_crypto_error_t));
     
-    uint64_t deriveProofHandle = bbs_bls12_381_sha_256_derive_proof_context_init(err);
+    uint64_t deriveProofHandle = bbs_bls12_381_sha_256_proof_gen_context_init(err);
     
     if (deriveProofHandle == 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
@@ -37,7 +37,7 @@
     publicKeyBuffer.len = publicKey.length;
     publicKeyBuffer.data = (uint8_t *)publicKey.bytes;
 
-    if (bbs_bls12_381_sha_256_derive_proof_context_set_public_key(deriveProofHandle, publicKeyBuffer, err) != 0) {
+    if (bbs_bls12_381_sha_256_proof_gen_context_set_public_key(deriveProofHandle, publicKeyBuffer, err) != 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
         return;
     }
@@ -47,7 +47,7 @@
         headerBuffer.len = header.length;
         headerBuffer.data = (uint8_t *)header.bytes;
 
-        if (bbs_bls12_381_sha_256_derive_proof_context_set_header(deriveProofHandle, headerBuffer, err) > 0) {
+        if (bbs_bls12_381_sha_256_proof_gen_context_set_header(deriveProofHandle, headerBuffer, err) > 0) {
             *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
             return;
         }
@@ -58,7 +58,7 @@
         presentationMessageBuffer.len = presentationMessage.length;
         presentationMessageBuffer.data = (uint8_t *)presentationMessage.bytes;
 
-        if (bbs_bls12_381_sha_256_derive_proof_context_set_presentation_message(deriveProofHandle, presentationMessageBuffer, err) > 0) {
+        if (bbs_bls12_381_sha_256_proof_gen_context_set_presentation_header(deriveProofHandle, presentationMessageBuffer, err) > 0) {
             *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
             return;
         }
@@ -68,7 +68,7 @@
     signatureBuffer.len = signature.length;
     signatureBuffer.data = (uint8_t *)signature.bytes;
 
-    if (bbs_bls12_381_sha_256_derive_proof_context_set_signature(deriveProofHandle, signatureBuffer, err) != 0) {
+    if (bbs_bls12_381_sha_256_proof_gen_context_set_signature(deriveProofHandle, signatureBuffer, err) != 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
         return;
     }
@@ -82,7 +82,7 @@
         
             BOOL isDisclosed = [disclosedIndices containsObject:[[NSNumber alloc] initWithInt:i]];
         
-            if (bbs_bls12_381_sha_256_derive_proof_context_add_message(deriveProofHandle, isDisclosed, messageBuffer, err) > 0) {
+            if (bbs_bls12_381_sha_256_proof_gen_context_add_message(deriveProofHandle, isDisclosed, messageBuffer, err) > 0) {
                 *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
                 return;
             }
@@ -93,7 +93,7 @@
     
     pairing_crypto_byte_buffer_t *proof = (pairing_crypto_byte_buffer_t*) malloc(sizeof(pairing_crypto_byte_buffer_t));
     
-    if (bbs_bls12_381_sha_256_derive_proof_context_finish(deriveProofHandle, proof, err) != 0) {
+    if (bbs_bls12_381_sha_256_proof_gen_context_finish(deriveProofHandle, proof, err) != 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
         return;
     }
@@ -115,7 +115,7 @@
     
     pairing_crypto_error_t *err = (pairing_crypto_error_t*) malloc(sizeof(pairing_crypto_error_t));
     
-    uint64_t verifyProofHandle = bbs_bls12_381_sha_256_verify_proof_context_init(err);
+    uint64_t verifyProofHandle = bbs_bls12_381_sha_256_proof_verify_context_init(err);
     
     if (verifyProofHandle == 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
@@ -126,7 +126,7 @@
     publicKeyBuffer.len = publicKey.length;
     publicKeyBuffer.data = (uint8_t *)publicKey.bytes;
 
-    if (bbs_bls12_381_sha_256_verify_proof_context_set_public_key(verifyProofHandle, publicKeyBuffer, err) != 0) {
+    if (bbs_bls12_381_sha_256_proof_verify_context_set_public_key(verifyProofHandle, publicKeyBuffer, err) != 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
         return false;
     }
@@ -136,7 +136,7 @@
         headerBuffer.len = header.length;
         headerBuffer.data = (uint8_t *)header.bytes;
 
-        if (bbs_bls12_381_sha_256_verify_proof_context_set_header(verifyProofHandle, headerBuffer, err) > 0) {
+        if (bbs_bls12_381_sha_256_proof_verify_context_set_header(verifyProofHandle, headerBuffer, err) > 0) {
             *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
             return false;
         }
@@ -147,13 +147,13 @@
         presentationMessageBuffer.len = presentationMessage.length;
         presentationMessageBuffer.data = (uint8_t *)presentationMessage.bytes;
 
-        if (bbs_bls12_381_sha_256_verify_proof_context_set_presentation_message(verifyProofHandle, presentationMessageBuffer, err) > 0) {
+        if (bbs_bls12_381_sha_256_proof_verify_context_set_presentation_header(verifyProofHandle, presentationMessageBuffer, err) > 0) {
             *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
             return false;
         }
     }
 
-    if (bbs_bls12_381_sha_256_verify_proof_context_set_total_message_count(verifyProofHandle, total_message_count, err) != 0) {
+    if (bbs_bls12_381_sha_256_proof_verify_context_set_total_message_count(verifyProofHandle, total_message_count, err) != 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
         return false;
     }
@@ -162,7 +162,7 @@
     proofBuffer.len = self.value.length;
     proofBuffer.data = (uint8_t *)self.value.bytes;
 
-    if (bbs_bls12_381_sha_256_verify_proof_context_set_proof(verifyProofHandle, proofBuffer, err) != 0) {
+    if (bbs_bls12_381_sha_256_proof_verify_context_set_proof(verifyProofHandle, proofBuffer, err) != 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
         return false;
     }
@@ -174,14 +174,14 @@
             messageBuffer.len = message.length;
             messageBuffer.data = (uint8_t *)message.bytes;
                 
-            if (bbs_bls12_381_sha_256_verify_proof_context_add_message(verifyProofHandle, [index intValue], messageBuffer, err) > 0) {
+            if (bbs_bls12_381_sha_256_proof_verify_context_add_message(verifyProofHandle, [index intValue], messageBuffer, err) > 0) {
                 *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
                 return false;
             }
         }
     }
 
-    if (bbs_bls12_381_sha_256_verify_proof_context_finish(verifyProofHandle, err) != 0) {
+    if (bbs_bls12_381_sha_256_proof_verify_context_finish(verifyProofHandle, err) != 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
         return false;
     }

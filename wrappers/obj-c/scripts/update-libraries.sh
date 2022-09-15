@@ -2,7 +2,7 @@
 # exit if any commands fails
 set -e
 
-LIBRARY_FILE="libpairing_crypto"
+LIBRARY_FILE="libpairing_crypto_c"
 
 # set the script directory
 CURRENT_SCRIPT_DIRECTORY="$(dirname -- "$(readlink -f "${BASH_SOURCE}")")"

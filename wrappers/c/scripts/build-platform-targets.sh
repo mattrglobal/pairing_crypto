@@ -13,7 +13,7 @@ OUTPUT_LOCATION=$2
 
 PROJECT_NAME=pairing_crypto_c
 INPUT_FILE="libpairing_crypto_c"
-OUTPUT_FILE="libpairing_crypto"
+OUTPUT_FILE="libpairing_crypto_c"
 
 SCRIPT_DIRECTORY="$(dirname -- "$(readlink -f "${BASH_SOURCE}")")"
 
@@ -49,9 +49,9 @@ case $PLATFORM in
       cargo install cargo-lipo
       rustup target install x86_64-apple-ios aarch64-apple-ios
       cargo lipo -p $PROJECT_NAME --release
-      cp "$SCRIPT_DIRECTORY/../target/x86_64-apple-ios/release/$INPUT_FILE.a" "$OUTPUT_LOCATION/ios/x86_64/$OUTPUT_FILE.a"
-      cp "$SCRIPT_DIRECTORY/../target/aarch64-apple-ios/release/$INPUT_FILE.a" "$OUTPUT_LOCATION/ios/aarch64/$OUTPUT_FILE.a"
-      cp "$SCRIPT_DIRECTORY/../target/universal/release/$INPUT_FILE.a" "$OUTPUT_LOCATION/ios/universal/$OUTPUT_FILE.a"
+      cp "$SCRIPT_DIRECTORY/../../../target/x86_64-apple-ios/release/$INPUT_FILE.a" "$OUTPUT_LOCATION/ios/x86_64/$OUTPUT_FILE.a"
+      cp "$SCRIPT_DIRECTORY/../../../target/aarch64-apple-ios/release/$INPUT_FILE.a" "$OUTPUT_LOCATION/ios/aarch64/$OUTPUT_FILE.a"
+      cp "$SCRIPT_DIRECTORY/../../../target/universal/release/$INPUT_FILE.a" "$OUTPUT_LOCATION/ios/universal/$OUTPUT_FILE.a"
     ;;
   *)
     echo "ERROR: PLATFORM unknown: $1"
