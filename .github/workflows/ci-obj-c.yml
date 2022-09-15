@@ -32,7 +32,7 @@ jobs:
           path: main # TODO remove once temp build step below is removed
 
       - name: Build binary
-        run: ./scripts/update-libraries.h
+        run: ./scripts/update-libraries.sh
 
       - name: Test
         run: xcodebuild test -project pairing_crypto.xcodeproj -scheme Tests -destination 'platform=iOS Simulator,name=iPhone 13 Pro,OS=15.5'
