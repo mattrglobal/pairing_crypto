@@ -32,6 +32,7 @@ macro_rules! bbs_proof_gen_api_generator {
         $set_header_wrapper_fn:ident,
         $set_signature_fn:ident,
         $set_presentation_header:ident,
+        $set_verify_signature: ident,
         $add_message_wrapper_fn:ident,
         $finish_wrapper_fn:ident,
         $proof_gen_lib_fn:ident
@@ -45,6 +46,7 @@ macro_rules! bbs_proof_gen_api_generator {
                     messages: Vec::new(),
                     signature: Vec::new(),
                     presentation_header: Vec::new(),
+                    verify_signature: None,
                 }
             })
         }
@@ -91,6 +93,18 @@ macro_rules! bbs_proof_gen_api_generator {
                     value: message,
                     reveal,
                 });
+            });
+            err.get_code().code()
+        }
+
+        #[no_mangle]
+        pub extern "C" fn $set_verify_signature(
+            handle: u64,
+            verify_signature: bool,
+            err: &mut ExternError,
+        ) -> i32 {
+            BBS_DERIVE_PROOF_CONTEXT.call_with_output_mut(err, handle, |ctx| {
+                ctx.verify_signature = Some(verify_signature);
             });
             err.get_code().code()
         }
@@ -149,7 +163,8 @@ macro_rules! bbs_proof_gen_api_generator {
                         header,
                         messages,
                         signature: &signature,
-                        presentation_message: presentation_header,
+                        presentation_header,
+                        verify_signature: ctx.verify_signature,
                     })?;
 
                     Ok(ByteBuffer::from_vec(proof.to_vec()))
@@ -176,6 +191,7 @@ bbs_proof_gen_api_generator!(
     bbs_bls12_381_sha_256_proof_gen_context_set_header,
     bbs_bls12_381_sha_256_proof_gen_context_set_signature,
     bbs_bls12_381_sha_256_proof_gen_context_set_presentation_header,
+    bbs_bls12_381_sha_256_proof_gen_context_set_verify_signature,
     bbs_bls12_381_sha_256_proof_gen_context_add_message,
     bbs_bls12_381_sha_256_proof_gen_context_finish,
     bls12_381_sha_256_proof_gen
@@ -187,6 +203,7 @@ bbs_proof_gen_api_generator!(
     bbs_bls12_381_shake_256_proof_gen_context_set_header,
     bbs_bls12_381_shake_256_proof_gen_context_set_signature,
     bbs_bls12_381_shake_256_proof_gen_context_set_presentation_header,
+    bbs_bls12_381_shake_256_proof_gen_context_set_verify_signature,
     bbs_bls12_381_shake_256_proof_gen_context_add_message,
     bbs_bls12_381_shake_256_proof_gen_context_finish,
     bls12_381_shake_256_proof_gen

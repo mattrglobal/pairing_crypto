@@ -29,7 +29,7 @@ use std::{convert::TryFrom, path::Path};
 static FIXTURES_DIR: &'static str =
     concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/bbs");
 
-const TEST_PRESENTATION_MESSAGE: &[u8; 25] = b"test-presentation-message";
+const TEST_PRESENTATION_HEADER: &[u8; 24] = b"test-presentation-header";
 
 macro_rules! sign_verify_fixtures {
     ($verify_fn:ident, $signature_fixtures_dir:expr) => {
@@ -135,8 +135,8 @@ macro_rules! derive_proof_fixtures {
                                     .public_key
                                     .to_octets(),
                                 header: Some(fixture.header.clone()),
-                                presentation_message: Some(
-                                    (&TEST_PRESENTATION_MESSAGE).to_vec(),
+                                presentation_header: Some(
+                                    (&TEST_PRESENTATION_HEADER).to_vec(),
                                 ),
                                 messages: Some(&test.0),
                                 signature: &<[u8;
@@ -144,6 +144,7 @@ macro_rules! derive_proof_fixtures {
                                     fixture.signature.clone(),
                                 )
                                 .unwrap(),
+                                verify_signature: Some(true),
                             },
                         )
                         .expect(&format!(
@@ -155,8 +156,8 @@ macro_rules! derive_proof_fixtures {
                 let result = $proof_gen_fn(&BbsProofGenRequest {
                     public_key: &fixture.key_pair.public_key.to_octets(),
                     header: Some(fixture.header.clone()),
-                    presentation_message: Some(
-                        (&TEST_PRESENTATION_MESSAGE).to_vec(),
+                    presentation_header: Some(
+                        (&TEST_PRESENTATION_HEADER).to_vec(),
                     ),
                     messages: Some(&all_revealed_messages),
                     signature:
@@ -164,6 +165,7 @@ macro_rules! derive_proof_fixtures {
                             fixture.signature.clone(),
                         )
                         .unwrap(),
+                    verify_signature: Some(true),
                 });
 
                 assert!(

@@ -152,7 +152,7 @@ macro_rules! bbs_proof_verify_api_generator {
                         public_key: &public_key,
                         header,
                         proof: &ctx.proof,
-                        presentation_message: presentation_header,
+                        presentation_header,
                         messages,
                         total_message_count: ctx.total_message_count,
                     })? {

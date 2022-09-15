@@ -35,13 +35,19 @@ export interface BbsDeriveProofRequest {
    */
   readonly header?: Uint8Array;
   /**
-   * Presentation message to include in the derived proof
+   * Presentation header to include in the derived proof
    */
-  readonly presentationMessage?: Uint8Array;
+  readonly presentationHeader?: Uint8Array;
   /**
    * Raw signature value
    */
   readonly signature: Uint8Array;
+  /**
+   * Indicates whether signature verification should be done during proof computation.
+   * Pass true if messages and signature are from an un-trusted source.
+   * If you are not sure about this, pass a true value for this flag.
+   */
+  readonly verifySignature?: boolean;
   /**
    * Messages that were signed to produce the signature
    */

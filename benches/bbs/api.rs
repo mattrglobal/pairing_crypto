@@ -32,7 +32,7 @@ const TEST_KEY_INFOS: &[u8; 50] =
     b"12345678901234567890123456789012345678901234567890";
 
 const TEST_HEADER: &[u8; 16] = b"some_app_context";
-const TEST_PRESENTATION_MESSAGE: &[u8; 25] = b"test-presentation-message";
+const TEST_PRESENTATION_HEADER: &[u8; 24] = b"test-presentation-header";
 
 fn get_random_key_pair() -> ([u8; 32], [u8; 96]) {
     KeyPair::random(&mut OsRng, Some(TEST_KEY_INFOS))
@@ -131,7 +131,7 @@ macro_rules! proof_gen_benchmark_generator {
     ($benchmark_fn:ident, $ciphersuite:literal, $sign_fn:ident, $verify_fn:ident, $proof_gen_fn:ident, $proof_verify_fn:ident) => {
         fn $benchmark_fn(c: &mut Criterion) {
             let header = TEST_HEADER.as_ref();
-            let presentation_message = TEST_PRESENTATION_MESSAGE.as_ref();
+            let presentation_header = TEST_PRESENTATION_HEADER.as_ref();
             let (secret_key, public_key) = get_random_key_pair();
 
             let mut group =
@@ -190,9 +190,10 @@ macro_rules! proof_gen_benchmark_generator {
                                 header: Some(header),
                                 messages: black_box(Some(&proof_messages)),
                                 signature: black_box(&signature),
-                                presentation_message: black_box(Some(
-                                    presentation_message,
+                                presentation_header: black_box(Some(
+                                    presentation_header,
                                 )),
+                                verify_signature: None,
                             })
                             .unwrap();
                         });
@@ -208,7 +209,7 @@ macro_rules! proof_verify_benchmark_generator {
     ($benchmark_fn:ident, $ciphersuite:literal, $sign_fn:ident, $verify_fn:ident, $proof_gen_fn:ident, $proof_verify_fn:ident) => {
         fn $benchmark_fn(c: &mut Criterion) {
             let header = TEST_HEADER.as_ref();
-            let presentation_message = TEST_PRESENTATION_MESSAGE.as_ref();
+            let presentation_header = TEST_PRESENTATION_HEADER.as_ref();
             let (secret_key, public_key) = get_random_key_pair();
 
             let mut group =
@@ -268,7 +269,8 @@ macro_rules! proof_verify_benchmark_generator {
                     header: Some(header),
                     messages: Some(&proof_messages),
                     signature: &signature,
-                    presentation_message: black_box(Some(presentation_message)),
+                    presentation_header: black_box(Some(presentation_header)),
+                    verify_signature: None,
                 })
                 .expect("proof generation failed");
 
@@ -280,8 +282,8 @@ macro_rules! proof_verify_benchmark_generator {
                             assert!($proof_verify_fn(&BbsProofVerifyRequest {
                                 public_key: black_box(&public_key),
                                 header: Some(header),
-                                presentation_message: black_box(Some(
-                                    presentation_message
+                                presentation_header: black_box(Some(
+                                    presentation_header
                                 )),
                                 proof: black_box(&proof),
                                 total_message_count: black_box(num_messages),

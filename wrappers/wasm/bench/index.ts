@@ -58,14 +58,14 @@ const runBbsBenchmark = async (
     [...Array(numberRevealed).keys()]
   );
 
-  const presentationMessage = randomBytes(32);
+  const presentationHeader = randomBytes(32);
 
   const messageDeriveProof: BbsDeriveProofRequest = {
     signature: messageSignature,
     publicKey: keyPair.publicKey,
     header,
     messages: messagesToReveal,
-    presentationMessage,
+    presentationHeader,
   };
 
   const proof = await bbs.bls12381_shake256.deriveProof(messageDeriveProof);
@@ -76,7 +76,7 @@ const runBbsBenchmark = async (
     header,
     messages: utilities.convertRevealMessageArrayToRevealMap(messagesToReveal),
     totalMessageCount: messages.length,
-    presentationMessage,
+    presentationHeader,
   };
 
   report(

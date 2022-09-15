@@ -37,7 +37,8 @@ bls12381Shake256SignatureFixtures.forEach((item: SignatureFixture) => {
                   reveal: true,
                 };
               }),
-              presentationMessage: stringToBytes("0123456789"),
+              presentationHeader: stringToBytes("0123456789"),
+              verifySignature: false,
             };
 
             const proof = await bbs.bls12381_shake256.deriveProof(request);
@@ -61,7 +62,8 @@ bls12381Shake256SignatureFixtures.forEach((item: SignatureFixture) => {
                   reveal: false,
                 };
               }),
-              presentationMessage: stringToBytes("0123456789"),
+              presentationHeader: stringToBytes("0123456789"),
+              verifySignature: false,
             };
 
             const proof = await bbs.bls12381_shake256.deriveProof(request);
@@ -87,7 +89,7 @@ bls12381Shake256SignatureFixtures.forEach((item: SignatureFixture) => {
                     reveal: messagesToReveal.includes(index) ? true : false,
                   };
                 }),
-                presentationMessage: stringToBytes("0123456789"),
+                presentationHeader: stringToBytes("0123456789"),
               };
 
               const proof = await bbs.bls12381_shake256.deriveProof(request);
@@ -112,7 +114,7 @@ bls12381Shake256SignatureFixtures.forEach((item: SignatureFixture) => {
                   reveal: true,
                 };
               }),
-              presentationMessage: stringToBytes("0123456789"),
+              presentationHeader: stringToBytes("0123456789"),
             };
 
             await expect(

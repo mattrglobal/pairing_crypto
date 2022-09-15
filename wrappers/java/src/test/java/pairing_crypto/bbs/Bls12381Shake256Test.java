@@ -121,11 +121,11 @@ public class Bls12381Shake256Test {
         assertTrue(isVerified);
 
         // All disclosed messages
-        byte[] presentation_message = "test-presentation-message".getBytes();
+        byte[] presentation_header = "test-presentation-header".getBytes();
         HashSet<Integer> allDisclosedIndices = new HashSet(Arrays.asList(0, 1, 2));
         byte[] proof = new byte[0];
         try {
-            proof = bbs.createProof(publicKey, header, presentation_message, signature, allDisclosedIndices, messages);
+            proof = bbs.createProof(publicKey, header, presentation_header, signature, false, allDisclosedIndices, messages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -135,7 +135,7 @@ public class Bls12381Shake256Test {
         allDisclosedMessages.put(1, messages[1]);
         allDisclosedMessages.put(2, messages[2]);
         try {
-            isVerified = bbs.verifyProof(publicKey, header, presentation_message, proof, messages.length, allDisclosedMessages);
+            isVerified = bbs.verifyProof(publicKey, header, presentation_header, proof, messages.length, allDisclosedMessages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -146,13 +146,13 @@ public class Bls12381Shake256Test {
         HashMap<Integer, byte[]> fewDisclosedMessages = new HashMap<Integer, byte[]>();
         fewDisclosedMessages.put(1, messages[1]);
         try {
-            proof = bbs.createProof(publicKey, header, presentation_message, signature, fewDisclosedIndices, messages);
+            proof = bbs.createProof(publicKey, header, presentation_header, signature, false, fewDisclosedIndices, messages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
         assertNotNull(proof);
         try {
-            isVerified = bbs.verifyProof(publicKey, header, presentation_message, proof, messages.length, fewDisclosedMessages);
+            isVerified = bbs.verifyProof(publicKey, header, presentation_header, proof, messages.length, fewDisclosedMessages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }

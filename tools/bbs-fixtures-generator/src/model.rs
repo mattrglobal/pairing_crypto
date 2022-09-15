@@ -25,7 +25,7 @@ pub struct TestAsset {
     #[serde(deserialize_with = "hex::serde::deserialize")]
     pub header: Vec<u8>,
     #[serde(deserialize_with = "hex::serde::deserialize")]
-    pub presentation_message: Vec<u8>,
+    pub presentation_header: Vec<u8>,
     pub messages: Vec<String>,
 }
 
@@ -34,7 +34,7 @@ pub struct FixtureGenInput {
     pub key_pair: KeyPair,
     pub spare_key_pair: KeyPair,
     pub header: Vec<u8>,
-    pub presentation_message: Vec<u8>,
+    pub presentation_header: Vec<u8>,
     pub messages: Vec<Vec<u8>>,
 }
 
@@ -54,7 +54,7 @@ impl From<TestAsset> for FixtureGenInput {
             key_pair,
             spare_key_pair,
             header: t.header,
-            presentation_message: t.presentation_message,
+            presentation_header: t.presentation_header,
             messages,
         }
     }
@@ -112,7 +112,7 @@ pub struct FixtureProof {
     pub header: Vec<u8>,
     #[serde(serialize_with = "hex::serde::serialize")]
     #[serde(deserialize_with = "hex::serde::deserialize")]
-    pub presentation_message: Vec<u8>,
+    pub presentation_header: Vec<u8>,
     #[serde(serialize_with = "serialize_disclosed_messages")]
     #[serde(deserialize_with = "deserialize_disclosed_messages")]
     #[serde(rename = "revealedMessages")]
@@ -130,7 +130,7 @@ impl From<FixtureGenInput> for FixtureProof {
             case_name: Default::default(),
             signer_public_key: val.key_pair.public_key,
             header: val.header,
-            presentation_message: val.presentation_message,
+            presentation_header: val.presentation_header,
             disclosed_messages: Default::default(),
             total_message_count: Default::default(),
             proof: Default::default(),

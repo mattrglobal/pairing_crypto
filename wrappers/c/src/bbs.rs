@@ -23,6 +23,7 @@ pub struct BbsDeriveProofRequestDto {
     pub messages: Vec<BbsDeriveProofRevealMessageRequestDto>,
     pub signature: Vec<u8>,
     pub presentation_header: Vec<u8>,
+    pub verify_signature: Option<bool>,
 }
 
 pub struct BbsVerifyProofRequestDto {

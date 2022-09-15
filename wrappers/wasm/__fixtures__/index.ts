@@ -24,7 +24,7 @@ export interface ProofFixtureData {
   readonly caseName: string;
   readonly proof: string;
   readonly header: string;
-  readonly presentationMessage: string;
+  readonly presentationHeader: string;
   readonly totalMessageCount: number;
   result: { valid: false; reason: string } | { valid: true };
   readonly revealedMessages: { [key: number]: string };

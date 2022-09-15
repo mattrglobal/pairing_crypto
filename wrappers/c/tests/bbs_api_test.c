@@ -235,9 +235,18 @@ int main(int argc, char **argv)
     }
     printf("pass\n");
 
-    printf("Set presentation message in proof context...");
+    printf("Set presentation header in proof context...");
     fflush(stdout);
     if (bbs_bls12_381_shake_256_proof_gen_context_set_presentation_header(handle, presentation_header, err) != 0)
+    {
+        printf("fail\n");
+        goto Fail;
+    }
+    printf("pass\n");
+
+    printf("Set verify-signature flag in proof context...");
+    fflush(stdout);
+    if (bbs_bls12_381_shake_256_proof_gen_context_set_verify_signature(handle, false, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -303,7 +312,7 @@ int main(int argc, char **argv)
     }
     printf("pass\n");
 
-    printf("Set presentation message in verify-proof context...");
+    printf("Set presentation header in verify-proof context...");
     fflush(stdout);
     if (bbs_bls12_381_shake_256_proof_verify_context_set_presentation_header(handle, presentation_header, err) != 0)
     {

@@ -1,15 +1,19 @@
 use crate::{
-    bbs::core::{
-        constants::MAP_MESSAGE_TO_SCALAR_DST,
-        generator::Generators,
-        key_pair::KeyPair,
-        types::Message,
+    bbs::{
+        ciphersuites::{
+            bls12_381_shake_256::Bls12381Shake256CipherSuiteParameter,
+            BbsCiphersuiteParameters,
+        },
+        core::{
+            generator::memory_cached_generator::MemoryCachedGenerators,
+            key_pair::KeyPair,
+            types::Message,
+        },
     },
-    curves::bls12_381::{hash_to_curve::ExpandMsgXof, G1Projective},
+    curves::bls12_381::G1Projective,
 };
 use group::Group;
 use rand_core::OsRng;
-use sha3::Shake256;
 
 mod test_data;
 
@@ -46,35 +50,43 @@ const ANOTHER_TEST_HEADER: &[u8; 23] = b"some_other_test_context";
 
 // Expected signature for TEST_KEY_GEN_IKM, TEST_KEY_INFO, TEST_HEADER and
 // TEST_CLAIMS
-const EXPECTED_SIGNATURE: &str = "a9fad191805006bcf47f88c65ebbdbe599c253afd089a2e0f8674dcdca1ff121c88d325e04dab5d3239480742a03257d279b22f8d80b4c73b1cf90299842e61ca184f58c4fd298ed6b688c8c997e87b711dc992cad720ac8193420c60a9bdc0088cb854a900db6616d65c84e628e9ce5";
+const EXPECTED_SIGNATURE: &str = "ad644efdb0c054026042342c10ae3b52e80050b76da49f15c6a0308dd357aa2331e5e2247b0e68dc2f52a912204905a65c9f30bfe9bc8e9d7417e53ee436b94aaa26b18ec4b8fe18e9505663d4990d215a46077ee51baa8e776d7c97c99593fc5130e4c0b7751b324364ef8f14d39434";
 
 // Expected signature for TEST_KEY_GEN_IKM, TEST_KEY_INFOS, TEST_HEADER and
 // TEST_CLAIMS
 const EXPECTED_SIGNATURES: [&str; 7] = [
-    "b9bc5ddb6bdbd3b7b60c7e7e57b2dad9c2c0677f94f51e7d9f0df5d446633188058e060b621924cc4393fd63924705815baf10e9234dd953306a295b958902f62052e6a8cf6e6bea9a21781cc37158471504db298ce7e326ce05aa4cb5374c3c74f74f209c8ad7607595c74bc15c9426",
-    "89455f50e6ab7cde0684afa49d10f66b8d3545da83a01213b53177ba22d68ca265d4cbb013b003a8598d65b3ca9db7bd0a9d6ecbbffd7ff916fc950e768d85b5efd19c03ac4cb93c95119aa40f8048cf0d30e89180c0617a7d31c0d17e3f85d84eab681b8593448321dd191ef4f45183",
-    "b505410652af38a74727227e530a5753ef890d017b86937629c85543e2c1b2c955d5fa1ab1cfd68925041809cd9bf1251d3b6c75a041ae626d740ce576c0668d9487ddab1733eae33e078b10e17535ef490b5ddc5a9b9325f267889c8c2537437f21529c915ecfda11d9d533c88d1ece",
-    "8226da54c3d92213cf2a8edfdd7defee7db9d2dbc9158bfd05e14743ad2b93bd0e121758cc1c4e084b1abfbf3f6715da13a5cd1f9ce2a9de80e6b7a6832a6d9d33dd58433c5a9c3e7c24301c4c6cc53e180d11749661b4eefaeead391c5c55833ea751c40c4138cd2ee3a742594f489c",
-    "8bda3c7608760bbc4c338c83502668491ede90e9e700f7eddb2720333ba0f220ee48ace2b2356413ba12fd0bac6805ef4ddd2d334176bc02989c0a2f11e630697ef58039b57f5bb4276fc2e14e59e4d6599238729b642a9af5f1e2f59102b30b41cb3fe822e0a7276541f851c5ed398a",
-    "a741b26906b6646624b7a6c26f1e2c53a8e18b2d2dd7affe0b8ec1792db8535dc8811f718215a4a08368d25d7e6801a61e997921d4c99cb8dcbbb9a6b0a88b8913779526c8a19d1eaa1efcb390c2cdd907793f148127d175d302e251a5e9beaddc11b5f38578774ee3539e197d2ef67d",
-    "8704ecdbd7dee870916a071c694b71b910d1c8bafd446fa5d91e34e58913a1f100d248644f5c4560deb79f9d9f018e271e3863673b52ed37d3f76e898c1e75f2a2f9f0c297c85ce40c56a7a05f8005d313b4b16a59c33fcd583a12f4e7eac94553b6a459e7229b964dbb06e41e585638",
+    "b6686e89636673c3f52d67dd39f0b39fbc7b82b4e7897bda124329a8e47efe27c984c775907c89cb34424b6a56dec2885f7c7bb68ed9c7bc06beaad407aa91b9dde1857355daf185b2d5e087d0fb966925cbeab0e69dbb58d0583383a1aafbd132129d4bde7521b35f9f459c36dd18aa",
+    "b63fd2b7b7d092af3f1b1656d60a4415c3990f9de122a023a71ca941d72ac88c734f8804f5ef23e3a0f25d77e5e0669073cdc2955b18ce5b72d6961fb7671aa57ddb40ef9bf397aa21b5a4de0dd3a3cd24bf3f9a479960493d0493fa6eaf0d06488d7c858811e4d920ff4c7b5e7dfeb7",
+    "a310d46e9ecad20c5cff4050cbe8066c93cf33496839b27eb1b8cbb91b4aac9b3e6cf6c3710097b4dfcc8208c2e775f21529099064d6a5169cdedeb03d3493ba41cdfbea998badcb2439076eca203803048760afcdf3c48098f8565070fdc504f2bcb56bb9ee8b1880be6225ebd292f7",
+    "967b60f0f42f3017872521dbc133a99d530c8db274ad9bcfb6153a7fcb5e5b587d894cca9af3b1154fbc9d62ff09b2d33d85d0b49dd22e1f63fec5a508f97cc20bbf9aa943d2b0822ab053ac402387be0875705bdd57b95318d26676bad910f445f02e40e9f146b3ddb8c06898a41a3f",
+    "a88f1503840d4a22d142b182083a4cb1ab54d40e8ceb9410958cf0804089aeb8f335728f635aa17a3ccb4d70d8bfe4774b1859b4667674e3821d00a7c40abf4b0837cc39bd3fa7faeccdc866b3bc1e6f38ee44b80aaf66db2b2bd0f1f23d5123f44bc6d4d2fddf6cf797c05165d36f3b",
+    "983bcc97b3d37e2718a344f8c140b3bf7d744cb2de20c2a8b372f0f5e6e8ac0fcc5ad4fe3057e50c0525117d2a8fefba664c4035a11f85c291257596616ec600e02a7b76a7a0d5a31d880ad9ac69017f398232378a3488c9c1d9b2a2e3e74bee57237a05c8faf9c84696fecc3f58bd31",
+    "a27cd6d07201615c8ea146d8237d5d193a3a4e9fb0cb8ce48f418a49f617da3db73a85bf86c29b3950dacd7566161cfd10e0f9353eb1642097dc08c522efc23886fd3b902bc4b58a8ace9acdeda472cb51d7302f3ea7f1a9eb05b54eea17c501d54cadca633de6a524522b22629947b6",
 ];
 
 const TEST_PRESENTATION_HEADER_1: &[u8; 26] = b"test_presentation-header-1";
 const TEST_PRESENTATION_HEADER_2: &[u8; 26] = b"test_presentation-header-2";
 
-fn create_generators_helper(num_of_messages: usize) -> Generators {
-    Generators::new::<ExpandMsgXof<Shake256>>(num_of_messages)
-        .expect("generators creation failed")
+fn create_generators_helper(
+    num_of_messages: usize,
+) -> MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter> {
+    MemoryCachedGenerators::<Bls12381Shake256CipherSuiteParameter>::new(
+        num_of_messages,
+    )
+    .expect("generators creation failed")
 }
 
-fn test_generators_random_q_1(num_of_messages: usize) -> Generators {
+fn test_generators_random_q_1(
+    num_of_messages: usize,
+) -> MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter> {
     let mut generators = create_generators_helper(num_of_messages);
     generators.Q_1 = G1Projective::random(&mut OsRng);
     generators
 }
 
-fn test_generators_random_q_2(num_of_messages: usize) -> Generators {
+fn test_generators_random_q_2(
+    num_of_messages: usize,
+) -> MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter> {
     let mut generators = create_generators_helper(num_of_messages);
     generators.Q_2 = G1Projective::random(&mut OsRng);
     generators
@@ -82,7 +94,7 @@ fn test_generators_random_q_2(num_of_messages: usize) -> Generators {
 
 fn test_generators_random_message_generators(
     num_of_messages: usize,
-) -> Generators {
+) -> MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter> {
     let mut generators = create_generators_helper(num_of_messages);
     generators.H_list = vec![G1Projective::random(&mut OsRng); num_of_messages];
     generators
@@ -92,9 +104,11 @@ fn get_test_messages() -> Vec<Message> {
     TEST_CLAIMS
         .iter()
         .map(|b| {
-            Message::from_arbitrary_data::<_, ExpandMsgXof<Shake256>>(
+            Message::from_arbitrary_data::<
+                Bls12381Shake256CipherSuiteParameter,
+            >(
                 b.as_ref(),
-                MAP_MESSAGE_TO_SCALAR_DST.as_ref(),
+                Some(&Bls12381Shake256CipherSuiteParameter::default_map_message_to_scalar_as_hash_dst())
             )
         })
         .collect::<Result<Vec<Message>, _>>()

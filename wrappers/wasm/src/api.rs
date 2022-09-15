@@ -252,7 +252,7 @@ macro_rules! bbs_wrapper_api_generator {
         ///     "publicKey": Vec<u8>, // Uint8Array of bytes representing the
         /// public key     "header": Vec<u8>,
         ///     "signature": Vec<u8>,
-        ///     "presentationMessage": Vec<u8>,
+        ///     "presentationHeader": Vec<u8>,
         ///     "messages": [{ // Note this array is considered ordered and MUST
         /// match the order in which the messages were signed         "value":
         /// Vec<u8>, // Uint8Array of raw bytes representing the message
@@ -283,10 +283,11 @@ macro_rules! bbs_wrapper_api_generator {
                     request.signature,
                     BBS_BLS12381G1_SIGNATURE_LENGTH
                 ),
-                presentation_message: request
-                    .presentationMessage
+                presentation_header: request
+                    .presentationHeader
                     .as_ref()
                     .map(|pm| pm.as_slice()),
+                verify_signature: request.verifySignature,
                 messages: None,
             };
 
@@ -323,7 +324,7 @@ macro_rules! bbs_wrapper_api_generator {
         ///     "publicKey": Vec<u8>, // Uint8Array of bytes representing the
         /// public key     "header": Vec<u8>,
         ///     "proof": Vec<u8>,
-        ///     "presentationMessage": Vec<u8>,
+        ///     "presentationHeader": Vec<u8>,
         ///     "totalMessageCount": usize,
         ///     "messages": {
         ///         number: {
@@ -352,8 +353,8 @@ macro_rules! bbs_wrapper_api_generator {
                 ),
                 header: request.header.as_ref().map(|m| m.as_slice()),
                 proof: &request.proof,
-                presentation_message: request
-                    .presentationMessage
+                presentation_header: request
+                    .presentationHeader
                     .as_ref()
                     .map(|pm| pm.as_slice()),
                 total_message_count: request.totalMessageCount,

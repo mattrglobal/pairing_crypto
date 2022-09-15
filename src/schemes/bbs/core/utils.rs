@@ -1,28 +1,19 @@
 #![allow(non_snake_case)]
 
 use super::{
-    constants::{
-        BBS_CIPHERSUITE_ID,
-        NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
-        OCTET_POINT_G1_LENGTH,
-    },
+    constants::{NON_NEGATIVE_INTEGER_ENCODING_LENGTH, OCTET_POINT_G1_LENGTH},
     generator::Generators,
-    hash_utils::hash_to_scalar,
     key_pair::PublicKey,
     types::{Challenge, Message},
 };
 use crate::{
+    bbs::ciphersuites::BbsCiphersuiteParameters,
     common::serialization::{i2osp, i2osp_with_data},
-    curves::bls12_381::{
-        hash_to_curve::ExpandMessage,
-        G1Affine,
-        G1Projective,
-        Scalar,
-    },
+    curves::bls12_381::{G1Affine, G1Projective, Scalar},
     error::Error,
 };
 use ff::Field;
-use group::{Curve, Group};
+use group::Curve;
 
 #[cfg(feature = "alloc")]
 use alloc::collections::BTreeMap;
@@ -54,15 +45,16 @@ pub(crate) fn octets_to_point_g1(
 /// Computes `domain` value.
 /// domain =
 ///    hash_to_scalar((PK || L || generators || Ciphersuite_ID || header), 1)
-pub(crate) fn compute_domain<T, X>(
+pub(crate) fn compute_domain<T, G, C>(
     PK: &PublicKey,
     header: Option<T>,
     L: usize,
-    generators: &Generators,
+    generators: &G,
 ) -> Result<Scalar, Error>
 where
     T: AsRef<[u8]>,
-    X: ExpandMessage,
+    G: Generators,
+    C: BbsCiphersuiteParameters<'static>,
 {
     // Error out if length of messages and generators are not equal
     if L != generators.message_generators_length() {
@@ -81,13 +73,13 @@ where
     data_to_hash.extend(point_to_octets_g1(&generators.Q_2()).as_ref());
 
     for generator in generators.message_generators_iter() {
-        data_to_hash.extend(point_to_octets_g1(generator).as_ref());
+        data_to_hash.extend(point_to_octets_g1(&generator).as_ref());
     }
     // As of now we support only BLS12/381 ciphersuite, it's OK to use this
     // constant here. This should be passed as ciphersuite specific const as
     // generic parameter when initializing a curve specific ciphersuite.
     data_to_hash.extend(i2osp_with_data(
-        BBS_CIPHERSUITE_ID,
+        C::ID.as_octets(),
         NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
     )?);
     if let Some(header) = header {
@@ -97,17 +89,21 @@ where
         )?);
     }
 
-    Ok(hash_to_scalar::<X>(&data_to_hash, 1)?[0])
+    Ok(C::hash_to_scalar(&data_to_hash, 1, None)?[0])
 }
 
 /// Computes `B` value.
 /// B = P1 + Q_1 * s + Q_2 * domain + H_1 * msg_1 + ... + H_L * msg_L
-pub(crate) fn compute_B(
+pub(crate) fn compute_B<G, C>(
     s: &Scalar,
     domain: &Scalar,
     messages: &[Message],
-    generators: &Generators,
-) -> Result<G1Projective, Error> {
+    generators: &G,
+) -> Result<G1Projective, Error>
+where
+    G: Generators,
+    C: BbsCiphersuiteParameters<'static>,
+{
     // Input params check
     // Error out if length of generators and messages are not equal
     if messages.len() != generators.message_generators_length() {
@@ -117,12 +113,7 @@ pub(crate) fn compute_B(
         });
     }
 
-    // Spec doesn't define P1, using G1Projective::generator() as P1
-    let mut points: Vec<_> = vec![
-        G1Projective::generator(),
-        generators.Q_1(),
-        generators.Q_2(),
-    ];
+    let mut points: Vec<_> = vec![C::p1(), generators.Q_1(), generators.Q_2()];
     points.extend(generators.message_generators_iter());
     let scalars: Vec<_> = [Scalar::one(), *s, *domain]
         .iter()
@@ -135,7 +126,7 @@ pub(crate) fn compute_B(
 
 /// Compute Fiat Shamir heuristic challenge.
 #[allow(clippy::too_many_arguments)]
-pub(crate) fn compute_challenge<T, X>(
+pub(crate) fn compute_challenge<T, C>(
     A_prime: &G1Projective,
     A_bar: &G1Projective,
     D: &G1Projective,
@@ -147,7 +138,7 @@ pub(crate) fn compute_challenge<T, X>(
 ) -> Result<Challenge, Error>
 where
     T: AsRef<[u8]>,
-    X: ExpandMessage,
+    C: BbsCiphersuiteParameters<'static>,
 {
     // c_array = (A', Abar, D, C1, C2, R, i1, ..., iR, msg_i1, ..., msg_iR,
     //              domain, ph)
@@ -179,5 +170,5 @@ where
     }
 
     // c = hash_to_scalar(c_for_hash, 1)
-    Ok(Challenge(hash_to_scalar::<X>(&data_to_hash, 1)?[0]))
+    Ok(Challenge(C::hash_to_scalar(&data_to_hash, 1, None)?[0]))
 }

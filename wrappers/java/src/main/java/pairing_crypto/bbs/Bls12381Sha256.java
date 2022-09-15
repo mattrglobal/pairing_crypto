@@ -49,7 +49,9 @@ public class Bls12381Sha256 extends Bbs {
 
     private static native int proof_gen_context_set_signature(long handle, byte[] signature);
 
-    private static native int proof_gen_context_set_presentation_message(long handle, byte[] presentation_message);
+    private static native int proof_gen_context_set_presentation_header(long handle, byte[] presentation_header);
+
+    private static native int proof_gen_context_set_verify_signature(long handle, boolean verify_signature);
 
     private static native int proof_gen_context_add_message(long handle, boolean reveal, byte[] message);
 
@@ -63,7 +65,7 @@ public class Bls12381Sha256 extends Bbs {
 
     private static native int proof_verify_context_set_proof(long handle, byte[] proof);
 
-    private static native int proof_verify_context_set_presentation_message(long handle, byte[] presentation_message);
+    private static native int proof_verify_context_set_presentation_header(long handle, byte[] presentation_header);
 
     private static native int proof_verify_context_set_total_message_count(long handle, int total_message_count);
 
@@ -139,7 +141,7 @@ public class Bls12381Sha256 extends Bbs {
         }
     }
 
-    public byte[] createProof(byte[] publicKey, byte[] header, byte[] presentationMessage, byte[] signature, HashSet<Integer> disclosedIndices, byte[][] messages) throws Exception {
+    public byte[] createProof(byte[] publicKey, byte[] header, byte[] presentationHeader, byte[] signature, boolean verifySignature, HashSet<Integer> disclosedIndices, byte[][] messages) throws Exception {
         int numberOfUndisclosedMessages = 0;
         long handle = proof_gen_context_init();
         if (0 == handle) {
@@ -151,8 +153,11 @@ public class Bls12381Sha256 extends Bbs {
         if (0 != proof_gen_context_set_header(handle, header)) {
             throw new Exception("Unable to set header");
         }
-        if (0 != proof_gen_context_set_presentation_message(handle, presentationMessage)) {
-            throw new Exception("Unable to set presentation message");
+        if (0 != proof_gen_context_set_presentation_header(handle, presentationHeader)) {
+            throw new Exception("Unable to set presentation header");
+        }
+        if (0 != proof_gen_context_set_verify_signature(handle, verifySignature)) {
+            throw new Exception("Unable to set verify-signature flag");
         }
         if (0 != proof_gen_context_set_signature(handle, signature)) {
             throw new Exception("Unable to set signature: " + get_last_error());
@@ -182,7 +187,7 @@ public class Bls12381Sha256 extends Bbs {
         return proof;
     }
 
-    public boolean verifyProof(byte[] publicKey, byte[] header, byte[] presentationMessage, byte[] proof, Integer totalMessageCount, HashMap<Integer, byte[]> messages) throws Exception {
+    public boolean verifyProof(byte[] publicKey, byte[] header, byte[] presentationHeader, byte[] proof, Integer totalMessageCount, HashMap<Integer, byte[]> messages) throws Exception {
         long handle = proof_verify_context_init();
         if (0 == handle) {
             throw new Exception("Unable to create verify signature context");
@@ -193,8 +198,8 @@ public class Bls12381Sha256 extends Bbs {
         if (0 != proof_verify_context_set_header(handle, header)) {
             throw new Exception("Unable to set header");
         }
-        if (0 != proof_verify_context_set_presentation_message(handle, presentationMessage)) {
-            throw new Exception("Unable to set presentation message");
+        if (0 != proof_verify_context_set_presentation_header(handle, presentationHeader)) {
+            throw new Exception("Unable to set presentation header");
         }
         if (0 != proof_verify_context_set_proof(handle, proof)) {
             throw new Exception("Unable to set proof");

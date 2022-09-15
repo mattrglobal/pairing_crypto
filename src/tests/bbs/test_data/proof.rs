@@ -1,13 +1,19 @@
 use crate::{
-    bbs::core::{
-        constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
-        generator::Generators,
-        key_pair::{KeyPair, PublicKey},
-        proof::Proof,
-        signature::Signature,
-        types::{Challenge, FiatShamirProof, Message},
+    bbs::{
+        ciphersuites::bls12_381_shake_256::Bls12381Shake256CipherSuiteParameter,
+        core::{
+            constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
+            generator::{
+                memory_cached_generator::MemoryCachedGenerators,
+                Generators,
+            },
+            key_pair::{KeyPair, PublicKey},
+            proof::Proof,
+            signature::Signature,
+            types::{Challenge, FiatShamirProof, Message},
+        },
     },
-    curves::bls12_381::{hash_to_curve::ExpandMsgXof, G1Projective, Scalar},
+    curves::bls12_381::{G1Projective, Scalar},
     tests::bbs::{
         create_generators_helper,
         get_random_test_key_pair,
@@ -26,7 +32,6 @@ use crate::{
 use ff::Field;
 use group::{Curve, Group};
 use rand_core::OsRng;
-use sha3::Shake256;
 use std::collections::{BTreeMap, BTreeSet};
 
 pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
@@ -34,7 +39,7 @@ pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
         KeyPair,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        Generators,
+        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
         Vec<Message>,
     ),
     &'static str,
@@ -55,8 +60,8 @@ pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
                 generators.clone(),
                 messages.clone(),
             ),
-            "no header, no presentation-message, and equal no. of messages \
-             and message-generators are provided",
+            "no header, no presentation-header, and equal no. of messages and \
+             message-generators are provided",
         ),
         (
             (
@@ -66,7 +71,7 @@ pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
                 generators.clone(),
                 messages.clone(),
             ),
-            "valid header, no presentation-message, no messages and no \
+            "valid header, no presentation-header, no messages and no \
              message-generators are provided",
         ),
         (
@@ -77,7 +82,7 @@ pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
                 generators.clone(),
                 messages.clone(),
             ),
-            "no header, valid presentation-message, and equal no. of messages \
+            "no header, valid presentation-header, and equal no. of messages \
              and message-generators are provided",
         ),
         (
@@ -88,7 +93,7 @@ pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
                 generators.clone(),
                 messages.clone(),
             ),
-            "valid header, valid presentation-message, no messages and no \
+            "valid header, valid presentation-header, no messages and no \
              message-generators are provided",
         ),
     ]
@@ -100,7 +105,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
         Signature,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        Generators,
+        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
         Vec<Message>,
         BTreeSet<usize>,
     ),
@@ -114,14 +119,15 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
     let messages = get_random_test_messages(NUM_MESSAGES);
     let generators = create_generators_helper(messages.len());
     let indices_all_hidden = BTreeSet::<usize>::new();
-    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
-        &key_pair.secret_key,
-        &key_pair.public_key,
-        header,
-        &generators,
-        messages.clone(),
-    )
-    .expect("signing failed");
+    let signature =
+        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            &key_pair.secret_key,
+            &key_pair.public_key,
+            header,
+            &generators,
+            messages.clone(),
+        )
+        .expect("signing failed");
 
     [
         (
@@ -137,7 +143,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
             Error::BadParams {
                 cause: "nothing to prove".to_owned(),
             },
-            "no header, no presentation-message, no messages, no \
+            "no header, no presentation-header, no messages, no \
              message-generators",
         ),
         (
@@ -153,7 +159,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
             Error::BadParams {
                 cause: "nothing to prove".to_owned(),
             },
-            "no header, no presentation-message, no messages but \
+            "no header, no presentation-header, no messages but \
              message-generators are provided",
         ),
         (
@@ -170,7 +176,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: 0,
                 messages: messages.len(),
             },
-            "no header, no presentation-message, no message-generators but \
+            "no header, no presentation-header, no message-generators but \
              messages are provided",
         ),
         (
@@ -187,7 +193,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: generators.message_generators_length(),
                 messages: 2,
             },
-            "no header, no presentation-message, more message-generators than \
+            "no header, no presentation-header, more message-generators than \
              messages",
         ),
         (
@@ -204,7 +210,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: 4,
                 messages: messages.len(),
             },
-            "no header, no presentation-message, more messages than \
+            "no header, no presentation-header, more messages than \
              message-generators",
         ),
         (
@@ -220,7 +226,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
             Error::BadParams {
                 cause: "nothing to prove".to_owned(),
             },
-            "no header, valid presentation-message, no messages but \
+            "no header, valid presentation-header, no messages but \
              message-generators are provided",
         ),
         (
@@ -237,7 +243,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: 0,
                 messages: messages.len(),
             },
-            "no header, valid presentation-message, no message-generators but \
+            "no header, valid presentation-header, no message-generators but \
              messages are provided",
         ),
         (
@@ -254,7 +260,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: generators.message_generators_length(),
                 messages: 2,
             },
-            "no header, valid presentation-message, more message-generators \
+            "no header, valid presentation-header, more message-generators \
              than messages",
         ),
         (
@@ -271,7 +277,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: 4,
                 messages: messages.len(),
             },
-            "no header, valid presentation-message, more messages than \
+            "no header, valid presentation-header, more messages than \
              message-generators",
         ),
         (
@@ -288,7 +294,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: 0,
                 messages: messages.len(),
             },
-            "valid header, no presentation-message, no message-generators but \
+            "valid header, no presentation-header, no message-generators but \
              messages are provided",
         ),
         (
@@ -305,7 +311,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: generators.message_generators_length(),
                 messages: 0,
             },
-            "valid header, no presentation-message, no messages but \
+            "valid header, no presentation-header, no messages but \
              message-generators are provided",
         ),
         (
@@ -322,7 +328,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: generators.message_generators_length(),
                 messages: 2,
             },
-            "valid header, no presentation-message, more message-generators \
+            "valid header, no presentation-header, more message-generators \
              than messages",
         ),
         (
@@ -339,7 +345,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: 4,
                 messages: messages.len(),
             },
-            "valid header, no presentation-message, more messages than \
+            "valid header, no presentation-header, more messages than \
              message-generators",
         ),
         (
@@ -356,7 +362,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: 0,
                 messages: messages.len(),
             },
-            "valid header, valid presentation-message, no message-generators \
+            "valid header, valid presentation-header, no message-generators \
              but messages are provided",
         ),
         (
@@ -373,7 +379,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: generators.message_generators_length(),
                 messages: 0,
             },
-            "valid header, valid presentation-message, no messages but \
+            "valid header, valid presentation-header, no messages but \
              message-generators are provided",
         ),
         (
@@ -390,8 +396,8 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: generators.message_generators_length(),
                 messages: 2,
             },
-            "valid header, valid presentation-message, more \
-             message-generators than messages",
+            "valid header, valid presentation-header, more message-generators \
+             than messages",
         ),
         (
             (
@@ -407,7 +413,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
                 generators: 4,
                 messages: messages.len(),
             },
-            "valid header, valid presentation-message, more messages than \
+            "valid header, valid presentation-header, more messages than \
              message-generators",
         ),
     ]
@@ -419,7 +425,7 @@ pub(crate) fn test_data_proof_uniqueness() -> [(
         Signature,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        Generators,
+        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
         Vec<Message>,
         BTreeSet<usize>,
     ),
@@ -428,7 +434,7 @@ pub(crate) fn test_data_proof_uniqueness() -> [(
         Signature,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        Generators,
+        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
         Vec<Message>,
         BTreeSet<usize>,
     ),
@@ -455,16 +461,17 @@ pub(crate) fn test_data_proof_uniqueness() -> [(
         .iter()
         .cloned()
         .collect::<BTreeSet<usize>>();
-    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
-        &key_pair.secret_key,
-        &key_pair.public_key,
-        header,
-        &generators,
-        messages.clone(),
-    )
-    .expect("signing failed");
+    let signature =
+        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            &key_pair.secret_key,
+            &key_pair.public_key,
+            header,
+            &generators,
+            messages.clone(),
+        )
+        .expect("signing failed");
     let signature_with_different_key_pair =
-        Signature::new::<_, _, ExpandMsgXof<Shake256>>(
+        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
             &key_pair2.secret_key,
             &key_pair2.public_key,
             header,
@@ -674,7 +681,7 @@ pub(crate) fn test_data_proof_verify_invalid_parameters() -> [(
         PublicKey,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        Generators,
+        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
         BTreeMap<usize, Message>,
     ),
     Error,
@@ -687,14 +694,15 @@ pub(crate) fn test_data_proof_verify_invalid_parameters() -> [(
     let messages = get_random_test_messages(NUM_MESSAGES);
     let generators = create_generators_helper(messages.len());
     let indices_all_hidden = BTreeSet::<usize>::new();
-    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
-        &key_pair.secret_key,
-        &key_pair.public_key,
-        header,
-        &generators,
-        messages.clone(),
-    )
-    .expect("signing failed");
+    let signature =
+        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            &key_pair.secret_key,
+            &key_pair.public_key,
+            header,
+            &generators,
+            messages.clone(),
+        )
+        .expect("signing failed");
 
     // Proof is generated by passing invalid PublicKey which is identity element
     let (proof, revealed_messages) = test_helper::proof_gen(
@@ -895,7 +903,7 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
         PublicKey,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        Generators,
+        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
         BTreeMap<usize, Message>,
     ),
     &'static str,
@@ -905,16 +913,17 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
     let header = Some(TEST_HEADER.as_ref());
     let ph = Some(TEST_PRESENTATION_HEADER_1.as_ref());
     let messages = get_random_test_messages(NUM_MESSAGES);
-    let generators = create_generators_helper(messages.len());
+    let mut generators = create_generators_helper(messages.len());
     let indices_all_hidden = BTreeSet::<usize>::new();
-    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
-        &key_pair.secret_key,
-        &key_pair.public_key,
-        header,
-        &generators,
-        messages.clone(),
-    )
-    .expect("signing failed");
+    let signature =
+        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            &key_pair.secret_key,
+            &key_pair.public_key,
+            header,
+            &generators,
+            messages.clone(),
+        )
+        .expect("signing failed");
 
     // Generate a valid proof
     let (proof, revealed_messages) = test_helper::proof_gen(
@@ -933,11 +942,11 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
     // works
     assert_eq!(
         proof
-            .verify::<_, ExpandMsgXof<Shake256>>(
+            .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
                 &key_pair.public_key,
                 header,
                 ph,
-                &generators,
+                &mut generators,
                 &revealed_messages
             )
             .expect("proof verification failed"),
@@ -1131,7 +1140,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
         PublicKey,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        Generators,
+        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
         BTreeMap<usize, Message>,
     ),
     &'static str,
@@ -1141,7 +1150,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     let header = Some(TEST_HEADER.as_ref());
     let ph = Some(TEST_PRESENTATION_HEADER_1.as_ref());
     let messages = get_random_test_messages(NUM_MESSAGES);
-    let generators = create_generators_helper(messages.len());
+    let mut generators = create_generators_helper(messages.len());
     let generators_different_q_1 = test_generators_random_q_1(messages.len());
     let generators_different_q_2 = test_generators_random_q_2(messages.len());
     let generators_different_message_generators =
@@ -1149,14 +1158,15 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
 
     let indices_all_hidden = BTreeSet::<usize>::new();
 
-    let signature = Signature::new::<_, _, ExpandMsgXof<Shake256>>(
-        &key_pair.secret_key,
-        &key_pair.public_key,
-        header,
-        &generators,
-        messages.clone(),
-    )
-    .expect("signing failed");
+    let signature =
+        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            &key_pair.secret_key,
+            &key_pair.public_key,
+            header,
+            &generators,
+            messages.clone(),
+        )
+        .expect("signing failed");
 
     // Generate a valid proof
     let (proof_all_hidden_messages, no_revealed_messages) =
@@ -1176,11 +1186,11 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     // works
     assert_eq!(
         proof_all_hidden_messages
-            .verify::<_, ExpandMsgXof<Shake256>>(
+            .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
                 &key_pair.public_key,
                 header,
                 ph,
-                &generators,
+                &mut generators,
                 &no_revealed_messages
             )
             .expect("proof verification failed"),
@@ -1188,7 +1198,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     );
 
     let no_header_signature =
-        Signature::new::<&[u8], _, ExpandMsgXof<Shake256>>(
+        Signature::new::<&[u8], _, _, Bls12381Shake256CipherSuiteParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             None,
@@ -1214,11 +1224,11 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     // works
     assert_eq!(
         no_header_proof
-            .verify::<_, ExpandMsgXof<Shake256>>(
+            .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
                 &key_pair.public_key,
                 None,
                 ph,
-                &generators,
+                &mut generators,
                 &revealed_messages
             )
             .expect("proof verification failed"),
@@ -1242,11 +1252,11 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     // works
     assert_eq!(
         no_ph_proof
-            .verify::<_, ExpandMsgXof<Shake256>>(
+            .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
                 &key_pair.public_key,
                 header,
                 None,
-                &generators,
+                &mut generators,
                 &revealed_messages
             )
             .expect("proof verification failed"),
@@ -1255,7 +1265,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
 
     // Generate a valid proof
     let (no_header_no_ph_proof, revealed_messages) =
-        test_helper::proof_gen::<&[u8], _>(
+        test_helper::proof_gen::<&[u8], _, _>(
             &key_pair.public_key,
             &no_header_signature,
             None,
@@ -1271,11 +1281,11 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     // works
     assert_eq!(
         no_header_no_ph_proof
-            .verify::<&[u8], ExpandMsgXof<Shake256>>(
+            .verify::<&[u8], _, Bls12381Shake256CipherSuiteParameter>(
                 &key_pair.public_key,
                 None,
                 None,
-                &generators,
+                &mut generators,
                 &revealed_messages
             )
             .expect("proof verification failed"),
@@ -1320,11 +1330,11 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     // works
     assert_eq!(
         proof_all_revealed_messages
-            .verify::<_, ExpandMsgXof<Shake256>>(
+            .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
                 &key_pair.public_key,
                 header,
                 ph,
-                &generators,
+                &mut generators,
                 &all_revealed_messages
             )
             .expect("proof verification failed"),
