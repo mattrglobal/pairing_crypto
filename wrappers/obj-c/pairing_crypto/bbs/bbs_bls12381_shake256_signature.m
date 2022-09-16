@@ -29,18 +29,18 @@
         return;
     }
 
-    pairing_crypto_byte_buffer_t secretKeyBuffer;
-    secretKeyBuffer.len = keyPair.secretKey.length;
-    secretKeyBuffer.data = (uint8_t *)keyPair.secretKey.bytes;
+    pairing_crypto_byte_buffer_t *secretKeyBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
+    secretKeyBuffer->len = keyPair.secretKey.length;
+    secretKeyBuffer->data = (uint8_t *)keyPair.secretKey.bytes;
 
     if (bbs_bls12_381_shake_256_sign_context_set_secret_key(createSignatureHandle, secretKeyBuffer, err) > 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
         return;
     }
     
-    pairing_crypto_byte_buffer_t publicKeyBuffer;
-    publicKeyBuffer.len = keyPair.publicKey.length;
-    publicKeyBuffer.data = (uint8_t *)keyPair.publicKey.bytes;
+    pairing_crypto_byte_buffer_t *publicKeyBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
+    publicKeyBuffer->len = keyPair.publicKey.length;
+    publicKeyBuffer->data = (uint8_t *)keyPair.publicKey.bytes;
 
     if (bbs_bls12_381_shake_256_sign_context_set_public_key(createSignatureHandle, publicKeyBuffer, err) > 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
@@ -48,9 +48,9 @@
     }
 
     if (header) {
-        pairing_crypto_byte_buffer_t headerBuffer;
-        headerBuffer.len = header.length;
-        headerBuffer.data = (uint8_t *)header.bytes;
+        pairing_crypto_byte_buffer_t *headerBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
+        headerBuffer->len = header.length;
+        headerBuffer->data = (uint8_t *)header.bytes;
 
         if (bbs_bls12_381_shake_256_sign_context_set_header(createSignatureHandle, headerBuffer, err) > 0) {
             *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
@@ -60,9 +60,9 @@
 
     if (messages && [messages count] != 0) {
         for (NSData *message in messages) {
-            pairing_crypto_byte_buffer_t messageBuffer;
-            messageBuffer.len = message.length;
-            messageBuffer.data = (uint8_t *)message.bytes;
+            pairing_crypto_byte_buffer_t *messageBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
+            messageBuffer->len = message.length;
+            messageBuffer->data = (uint8_t *)message.bytes;
         
             if (bbs_bls12_381_shake_256_sign_context_add_message(createSignatureHandle, messageBuffer, err) > 0) {
                 *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
@@ -99,9 +99,9 @@
     }
     
         
-    pairing_crypto_byte_buffer_t publicKeyBuffer;
-    publicKeyBuffer.len = publicKey.length;
-    publicKeyBuffer.data = (uint8_t *)publicKey.bytes;
+    pairing_crypto_byte_buffer_t *publicKeyBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
+    publicKeyBuffer->len = publicKey.length;
+    publicKeyBuffer->data = (uint8_t *)publicKey.bytes;
 
     if (bbs_bls12_381_shake_256_verify_context_set_public_key(verifySignatureHandle, publicKeyBuffer, err) != 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
@@ -109,9 +109,9 @@
     }
 
     if (header) {
-        pairing_crypto_byte_buffer_t headerBuffer;
-        headerBuffer.len = header.length;
-        headerBuffer.data = (uint8_t *)header.bytes;
+        pairing_crypto_byte_buffer_t *headerBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
+        headerBuffer->len = header.length;
+        headerBuffer->data = (uint8_t *)header.bytes;
 
         if (bbs_bls12_381_shake_256_verify_context_set_header(verifySignatureHandle, headerBuffer, err) > 0) {
             *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
@@ -119,9 +119,9 @@
         }
     }
     
-    pairing_crypto_byte_buffer_t signatureBuffer;
-    signatureBuffer.len = self.value.length;
-    signatureBuffer.data = (uint8_t *)self.value.bytes;
+    pairing_crypto_byte_buffer_t *signatureBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
+    signatureBuffer->len = self.value.length;
+    signatureBuffer->data = (uint8_t *)self.value.bytes;
 
     if (bbs_bls12_381_shake_256_verify_context_set_signature(verifySignatureHandle, signatureBuffer, err) != 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
@@ -130,9 +130,9 @@
 
     if (messages && [messages count] != 0) {
         for (NSData *message in messages) {
-            pairing_crypto_byte_buffer_t messageBuffer;
-            messageBuffer.len = message.length;
-            messageBuffer.data = (uint8_t *)message.bytes;
+            pairing_crypto_byte_buffer_t *messageBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
+            messageBuffer->len = message.length;
+            messageBuffer->data = (uint8_t *)message.bytes;
         
             if (bbs_bls12_381_shake_256_verify_context_add_message(verifySignatureHandle, messageBuffer, err) != 0) {
                 *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];

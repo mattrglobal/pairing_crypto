@@ -8,8 +8,8 @@ int main(int argc, char **argv)
     const uint8_t *IKM = "12345678123456781234567812345678";
     ByteArray *ikm = (ByteArray *)malloc(sizeof(ByteArray));
     ByteArray *key_info = (ByteArray *)malloc(sizeof(ByteArray));
-    ByteArray* secret_key = (ByteArray*)malloc(sizeof(ByteArray));
-    ByteArray* public_key = (ByteArray*)malloc(sizeof(ByteArray));
+    ByteArray *secret_key = (ByteArray *)malloc(sizeof(ByteArray));
+    ByteArray *public_key = (ByteArray *)malloc(sizeof(ByteArray));
 
     ByteArray *header = (ByteArray *)malloc(sizeof(ByteArray));
 
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
     printf("Create BLS12381 key pair...");
     fflush(stdout);
 
-    if (bbs_bls12_381_shake_256_generate_key_pair(*ikm, *key_info, (ByteBuffer*) secret_key, (ByteBuffer*) public_key, err) != 0)
+    if (bbs_bls12_381_shake_256_generate_key_pair(*ikm, *key_info, (ByteBuffer *)secret_key, (ByteBuffer *)public_key, err) != 0)
     {
         // TODO need to check the actual value of the populated public key and secret key
         printf("fail\n");
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 
     printf("Set secret key in sign context...");
     fflush(stdout);
-    if (bbs_bls12_381_shake_256_sign_context_set_secret_key(handle, *secret_key, err) != 0)
+    if (bbs_bls12_381_shake_256_sign_context_set_secret_key(handle, secret_key, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 
     printf("Set public key in sign context...");
     fflush(stdout);
-    if (bbs_bls12_381_shake_256_sign_context_set_public_key(handle, *public_key, err) != 0)
+    if (bbs_bls12_381_shake_256_sign_context_set_public_key(handle, public_key, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 
     printf("Set header in sign context...");
     fflush(stdout);
-    if (bbs_bls12_381_shake_256_sign_context_set_header(handle, *header, err) != 0)
+    if (bbs_bls12_381_shake_256_sign_context_set_header(handle, header, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
     fflush(stdout);
     for (i = 0; i < message_count; i++)
     {
-        if (bbs_bls12_381_shake_256_sign_context_add_message(handle, *messages[i], err) != 0)
+        if (bbs_bls12_381_shake_256_sign_context_add_message(handle, messages[i], err) != 0)
         {
             printf("fail\n");
             goto Fail;
@@ -140,7 +140,7 @@ int main(int argc, char **argv)
 
     printf("Set public key in verify signature context...");
     fflush(stdout);
-    if (bbs_bls12_381_shake_256_verify_context_set_public_key(handle, *public_key, err) != 0)
+    if (bbs_bls12_381_shake_256_verify_context_set_public_key(handle, public_key, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -149,7 +149,7 @@ int main(int argc, char **argv)
 
     printf("Set header in verify context...");
     fflush(stdout);
-    if (bbs_bls12_381_shake_256_verify_context_set_header(handle, *header, err) != 0)
+    if (bbs_bls12_381_shake_256_verify_context_set_header(handle, header, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -160,7 +160,7 @@ int main(int argc, char **argv)
     fflush(stdout);
     for (i = 0; i < message_count; i++)
     {
-        if (bbs_bls12_381_shake_256_verify_context_add_message(handle, *messages[i], err) != 0)
+        if (bbs_bls12_381_shake_256_verify_context_add_message(handle, messages[i], err) != 0)
         {
             printf("fail\n");
             goto Fail;
@@ -170,7 +170,7 @@ int main(int argc, char **argv)
 
     printf("Set signature in verify signature context...");
     fflush(stdout);
-    if (bbs_bls12_381_shake_256_verify_context_set_signature(handle, *signature, err) != 0)
+    if (bbs_bls12_381_shake_256_verify_context_set_signature(handle, signature, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -198,7 +198,7 @@ int main(int argc, char **argv)
 
     printf("Set header in proof context...");
     fflush(stdout);
-    if (bbs_bls12_381_shake_256_proof_gen_context_set_header(handle, *header, err) != 0)
+    if (bbs_bls12_381_shake_256_proof_gen_context_set_header(handle, header, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -219,7 +219,7 @@ int main(int argc, char **argv)
 
     printf("Setting signature in proof context...");
     fflush(stdout);
-    if (bbs_bls12_381_shake_256_proof_gen_context_set_signature(handle, *signature, err) != 0)
+    if (bbs_bls12_381_shake_256_proof_gen_context_set_signature(handle, signature, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -228,7 +228,7 @@ int main(int argc, char **argv)
 
     printf("Set public key in proof context...");
     fflush(stdout);
-    if (bbs_bls12_381_shake_256_proof_gen_context_set_public_key(handle, *public_key, err) != 0)
+    if (bbs_bls12_381_shake_256_proof_gen_context_set_public_key(handle, public_key, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -237,7 +237,7 @@ int main(int argc, char **argv)
 
     printf("Set presentation header in proof context...");
     fflush(stdout);
-    if (bbs_bls12_381_shake_256_proof_gen_context_set_presentation_header(handle, *presentation_header, err) != 0)
+    if (bbs_bls12_381_shake_256_proof_gen_context_set_presentation_header(handle, presentation_header, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -274,7 +274,7 @@ int main(int argc, char **argv)
 
     printf("Set header in verify-proof context...");
     fflush(stdout);
-    if (bbs_bls12_381_shake_256_proof_verify_context_set_header(handle, *header, err) != 0)
+    if (bbs_bls12_381_shake_256_proof_verify_context_set_header(handle, header, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -296,7 +296,7 @@ int main(int argc, char **argv)
 
     printf("Setting proof in verify-proof context...");
     fflush(stdout);
-    if (bbs_bls12_381_shake_256_proof_verify_context_set_proof(handle, *proof, err) != 0)
+    if (bbs_bls12_381_shake_256_proof_verify_context_set_proof(handle, proof, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -305,7 +305,7 @@ int main(int argc, char **argv)
 
     printf("Set public key in verify-proof context...");
     fflush(stdout);
-    if (bbs_bls12_381_shake_256_proof_verify_context_set_public_key(handle, *public_key, err) != 0)
+    if (bbs_bls12_381_shake_256_proof_verify_context_set_public_key(handle, public_key, err) != 0)
     {
         printf("fail\n");
         goto Fail;
@@ -314,7 +314,7 @@ int main(int argc, char **argv)
 
     printf("Set presentation header in verify-proof context...");
     fflush(stdout);
-    if (bbs_bls12_381_shake_256_proof_verify_context_set_presentation_header(handle, *presentation_header, err) != 0)
+    if (bbs_bls12_381_shake_256_proof_verify_context_set_presentation_header(handle, presentation_header, err) != 0)
     {
         printf("fail\n");
         goto Fail;
