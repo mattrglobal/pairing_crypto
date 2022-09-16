@@ -36,4 +36,4 @@ jobs:
         shell: bash
 
       - name: Test
-        run: xcodebuild test -project pairing_crypto.xcodeproj -scheme Tests -destination 'platform=iOS Simulator,name=Any iOS Simulator Device'
+        run: xcodebuild test -project pairing_crypto.xcodeproj -scheme Tests -destination 'platform=iOS Simulator,name=iPhone 11,OS=14.2'
