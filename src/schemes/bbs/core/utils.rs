@@ -159,9 +159,9 @@ where
             .extend(i2osp(i as u64, NON_NEGATIVE_INTEGER_ENCODING_LENGTH)?);
     }
     for &msg in disclosed_messages.values() {
-        data_to_hash.extend(&msg.to_bytes());
+        data_to_hash.extend(msg.to_bytes());
     }
-    data_to_hash.extend(&domain.to_bytes_be());
+    data_to_hash.extend(domain.to_bytes_be());
     if let Some(ph) = ph {
         data_to_hash.extend(i2osp_with_data(
             ph.as_ref(),
