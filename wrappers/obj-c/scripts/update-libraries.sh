@@ -5,7 +5,7 @@ set -e
 LIBRARY_FILE="libpairing_crypto_c"
 
 # set the script directory
-CURRENT_SCRIPT_DIRECTORY="$(dirname -- "$(greadlink -f "${BASH_SOURCE}")")"
+CURRENT_SCRIPT_DIRECTORY="$(dirname -- "${BASH_SOURCE}")"
 
 echo $CURRENT_SCRIPT_DIRECTORY
 

@@ -15,7 +15,7 @@ PROJECT_NAME=pairing_crypto_c
 INPUT_FILE="libpairing_crypto_c"
 OUTPUT_FILE="libpairing_crypto_c"
 
-SCRIPT_DIRECTORY="$(dirname -- "$(readlink -f "${BASH_SOURCE}")")"
+SCRIPT_DIRECTORY="$(dirname -- "${BASH_SOURCE}")"
 
 if [ -z "$PLATFORM" ]
 then
