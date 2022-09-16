@@ -144,7 +144,7 @@
     }
 
     if (presentationMessage) {
-        pairing_crypto_byte_buffer_t *presentationMessageBuffer;
+        pairing_crypto_byte_buffer_t *presentationMessageBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
         presentationMessageBuffer->len = presentationMessage.length;
         presentationMessageBuffer->data = (uint8_t *)presentationMessage.bytes;
 
