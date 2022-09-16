@@ -1,6 +1,11 @@
 use super::{
-    create_generators_helper, ANOTHER_TEST_HEADER, EXPECTED_SIGNATURES,
-    TEST_HEADER, TEST_KEY_GEN_IKM, TEST_KEY_INFO, TEST_KEY_INFOS,
+    create_generators_helper,
+    ANOTHER_TEST_HEADER,
+    EXPECTED_SIGNATURES,
+    TEST_HEADER,
+    TEST_KEY_GEN_IKM,
+    TEST_KEY_INFO,
+    TEST_KEY_INFOS,
 };
 use crate::{
     bbs::{
@@ -19,9 +24,12 @@ use crate::{
     common::util::vec_to_byte_array,
     curves::bls12_381::{G1Projective, Scalar},
     tests::bbs::{
-        get_random_test_key_pair, get_test_messages,
-        test_generators_random_message_generators, test_generators_random_q_1,
-        test_generators_random_q_2, EXPECTED_SIGNATURE,
+        get_random_test_key_pair,
+        get_test_messages,
+        test_generators_random_message_generators,
+        test_generators_random_q_1,
+        test_generators_random_q_2,
+        EXPECTED_SIGNATURE,
     },
     Error,
 };

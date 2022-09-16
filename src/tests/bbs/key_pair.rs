@@ -4,7 +4,8 @@ use crate::{
         key_pair::{KeyPair, PublicKey, SecretKey},
     },
     curves::bls12_381::G2Projective,
-    from_vec_deserialization_invalid_vec_size, Error,
+    from_vec_deserialization_invalid_vec_size,
+    Error,
 };
 use core::convert::TryFrom;
 use ff::Field;

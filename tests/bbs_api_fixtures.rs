@@ -1,5 +1,7 @@
 use bbs_fixtures_generator::{
-    validate_proof_fixture, validate_signature_fixture, FixtureProof,
+    validate_proof_fixture,
+    validate_signature_fixture,
+    FixtureProof,
     FixtureSignature,
 };
 use pairing_crypto::bbs::{
@@ -16,7 +18,9 @@ use pairing_crypto::bbs::{
             verify as bls12_381_shake_256_verify,
         },
     },
-    BbsProofGenRequest, BbsProofGenRevealMessageRequest, BbsProofVerifyRequest,
+    BbsProofGenRequest,
+    BbsProofGenRevealMessageRequest,
+    BbsProofVerifyRequest,
     BbsVerifyRequest,
 };
 

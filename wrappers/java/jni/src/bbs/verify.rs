@@ -21,7 +21,8 @@ use pairing_crypto_c::{
             bbs_bls12_381_shake_256_verify_context_set_public_key,
             bbs_bls12_381_shake_256_verify_context_set_signature,
         },
-        BBS_BLS12381G1_PUBLIC_KEY_LENGTH, BBS_BLS12381G1_SIGNATURE_LENGTH,
+        BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+        BBS_BLS12381G1_SIGNATURE_LENGTH,
     },
     dtos::ByteArray,
 };

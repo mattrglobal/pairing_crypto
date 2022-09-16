@@ -18,13 +18,16 @@ use core::convert::{TryFrom, TryInto};
 use pairing_crypto::bbs::{
     ciphersuites::{
         bls12_381::{
-            KeyPair as Bls12381BbsKeyPair, BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
-            BBS_BLS12381G1_SECRET_KEY_LENGTH, BBS_BLS12381G1_SIGNATURE_LENGTH,
+            KeyPair as Bls12381BbsKeyPair,
+            BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+            BBS_BLS12381G1_SECRET_KEY_LENGTH,
+            BBS_BLS12381G1_SIGNATURE_LENGTH,
         },
         bls12_381_sha_256::{
             proof_gen as bls12_381_sha_256_proof_gen,
             proof_verify as bls12_381_sha_256_proof_verify,
-            sign as bls12_381_sha_256_sign, verify as bls12_381_sha_256_verify,
+            sign as bls12_381_sha_256_sign,
+            verify as bls12_381_sha_256_verify,
         },
         bls12_381_shake_256::{
             proof_gen as bls12_381_shake_256_proof_gen,
@@ -33,8 +36,11 @@ use pairing_crypto::bbs::{
             verify as bls12_381_shake_256_verify,
         },
     },
-    BbsProofGenRequest, BbsProofGenRevealMessageRequest, BbsProofVerifyRequest,
-    BbsSignRequest, BbsVerifyRequest,
+    BbsProofGenRequest,
+    BbsProofGenRevealMessageRequest,
+    BbsProofVerifyRequest,
+    BbsSignRequest,
+    BbsVerifyRequest,
 };
 use rand_core::OsRng;
 use wasm_bindgen::prelude::*;

@@ -7,12 +7,14 @@ use ffi_support::{ByteBuffer, ConcurrentHandleMap, ErrorCode, ExternError};
 use pairing_crypto::bbs::{
     ciphersuites::{
         bls12_381::{
-            BBS_BLS12381G1_PUBLIC_KEY_LENGTH, BBS_BLS12381G1_SIGNATURE_LENGTH,
+            BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+            BBS_BLS12381G1_SIGNATURE_LENGTH,
         },
         bls12_381_sha_256::proof_gen as bls12_381_sha_256_proof_gen,
         bls12_381_shake_256::proof_gen as bls12_381_shake_256_proof_gen,
     },
-    BbsProofGenRequest, BbsProofGenRevealMessageRequest,
+    BbsProofGenRequest,
+    BbsProofGenRevealMessageRequest,
 };
 
 lazy_static! {

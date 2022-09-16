@@ -4,7 +4,8 @@ use pairing_crypto::bbs::{
         bls12_381_sha_256::{
             proof_gen as bls12_381_sha_256_proof_gen,
             proof_verify as bls12_381_sha_256_proof_verify,
-            sign as bls12_381_sha_256_sign, verify as bls12_381_sha_256_verify,
+            sign as bls12_381_sha_256_sign,
+            verify as bls12_381_sha_256_verify,
         },
         bls12_381_shake_256::{
             proof_gen as bls12_381_shake_256_proof_gen,
@@ -13,8 +14,11 @@ use pairing_crypto::bbs::{
             verify as bls12_381_shake_256_verify,
         },
     },
-    BbsProofGenRequest, BbsProofGenRevealMessageRequest, BbsProofVerifyRequest,
-    BbsSignRequest, BbsVerifyRequest,
+    BbsProofGenRequest,
+    BbsProofGenRevealMessageRequest,
+    BbsProofVerifyRequest,
+    BbsSignRequest,
+    BbsVerifyRequest,
 };
 use rand::{rngs::OsRng, RngCore};
 use std::time::Duration;

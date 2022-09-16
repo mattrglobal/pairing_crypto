@@ -8,8 +8,11 @@ use pairing_crypto::bbs::{
             verify as bls12_381_shake_256_verify,
         },
     },
-    BbsProofGenRequest, BbsProofGenRevealMessageRequest, BbsProofVerifyRequest,
-    BbsSignRequest, BbsVerifyRequest,
+    BbsProofGenRequest,
+    BbsProofGenRevealMessageRequest,
+    BbsProofVerifyRequest,
+    BbsSignRequest,
+    BbsVerifyRequest,
 };
 
 #[macro_use]
