@@ -36,5 +36,4 @@ jobs:
         shell: bash
 
       - name: Test
-        # Device being used here 'id:dvtdevice-DVTiOSDeviceSimulatorPlaceholder-iphonesimulator' is only simulator available on GH action currently
-        run: xcodebuild test -project pairing_crypto.xcodeproj -scheme Tests -destination 'platform=iOS Simulator,id:dvtdevice-DVTiOSDeviceSimulatorPlaceholder-iphonesimulator:placeholder, name:Any iOS Simulator Device'
+        run: xcodebuild test -project pairing_crypto.xcodeproj -scheme Tests -destination 'platform=iOS Simulator, name:Any iOS Simulator Device'
