@@ -2,6 +2,7 @@
 
 #import "pairing_crypto_bbs.h"
 #import "include/bbs/bbs_bls12381_shake256_proof.h"
+#import "include/bbs/bbs_signature.h"
 #import "include/PairingCryptoError.h"
 
 @interface BbsBls12381Shake256Proof ()
@@ -18,7 +19,7 @@
 - (void) doCreateProof:(NSData *_Nonnull)publicKey
                        header:(NSData *_Nullable)header
           presentationMessage:(NSData *_Nullable)presentationMessage
-                    signature:(NSData *_Nonnull)signature
+                    signature:(BbsSignature *_Nonnull)signature
              disclosedIndices:(NSSet *_Nullable)disclosedIndices
                      messages:(NSArray *_Nullable)messages
                     withError:(NSError *_Nullable *_Nullable)errorPtr {
