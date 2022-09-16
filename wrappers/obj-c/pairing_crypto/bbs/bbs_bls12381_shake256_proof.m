@@ -64,8 +64,8 @@
     }
     
     pairing_crypto_byte_buffer_t *signatureBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
-    signatureBuffer->len = signature.length;
-    signatureBuffer->data = (uint8_t *)signature.bytes;
+    signatureBuffer->len = signature.value.length;
+    signatureBuffer->data = (uint8_t *)signature.value.bytes;
 
     if (bbs_bls12_381_shake_256_proof_gen_context_set_signature(deriveProofHandle, signatureBuffer, err) != 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
