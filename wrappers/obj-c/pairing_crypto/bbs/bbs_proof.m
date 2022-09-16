@@ -87,6 +87,7 @@ total_message_count:(NSUInteger)total_message_count
                    withError:(NSError *_Nullable *_Nullable)errorPtr  {
 
                    [self doesNotRecognizeSelector:_cmd];
+    return false;
 }
 
 @end
