@@ -23,10 +23,8 @@ pub(crate) trait Generators: Debug + Clone {
 
     /// Get the message generator at `index`.
     /// Note - `MessageGenerators` is zero indexed, so passed `index` value
-    /// should be in [0, `length`) range. In case of invalid `index`, `None`
+    /// should be in [0, `length`) range. In case of an invalid `index`, `None`
     /// value is returned.
-    /// For a Non-index based generators, like DynamicGenerator, `index`
-    /// argument is ignored.
     fn get_message_generator(&mut self, index: usize) -> Option<G1Projective>;
 
     /// Get a `Iterator` for message generators.
