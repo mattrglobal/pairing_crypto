@@ -3,7 +3,7 @@ macro_rules! set_byte_array_impl {
         #[no_mangle]
         pub extern "C" fn $name(
             handle: u64,
-            value: &ByteArray,
+            value: ByteArray,
             err: &mut ExternError,
         ) -> i32 {
             let value = value.to_vec();
@@ -37,7 +37,7 @@ macro_rules! add_byte_array_impl {
         #[no_mangle]
         pub extern "C" fn $name_bytes(
             handle: u64,
-            value: &ByteArray,
+            value: ByteArray,
             err: &mut ExternError,
         ) -> i32 {
             let value = value.to_vec();
