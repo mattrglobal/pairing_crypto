@@ -8,10 +8,7 @@ use super::{
     signature::Signature,
     types::{Challenge, FiatShamirProof, Message, ProofMessage},
     utils::{
-        compute_B,
-        compute_challenge,
-        compute_domain,
-        octets_to_point_g1,
+        compute_B, compute_challenge, compute_domain, octets_to_point_g1,
         point_to_octets_g1,
     },
 };

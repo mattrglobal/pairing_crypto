@@ -3,16 +3,11 @@ use super::{
     test_data::proof::{
         test_data_from_octets_invalid_parameters,
         test_data_proof_gen_invalid_parameters,
-        test_data_proof_gen_verify_valid_cases,
-        test_data_proof_uniqueness,
+        test_data_proof_gen_verify_valid_cases, test_data_proof_uniqueness,
         test_data_proof_verify_invalid_parameters,
-        test_data_verify_tampered_parameters,
-        test_data_verify_tampered_proof,
+        test_data_verify_tampered_parameters, test_data_verify_tampered_proof,
     },
-    EXPECTED_SIGNATURES,
-    TEST_HEADER,
-    TEST_KEY_GEN_IKM,
-    TEST_KEY_INFOS,
+    EXPECTED_SIGNATURES, TEST_HEADER, TEST_KEY_GEN_IKM, TEST_KEY_INFOS,
 };
 use crate::{
     bbs::{
@@ -30,10 +25,8 @@ use crate::{
     curves::bls12_381::{G1Projective, Scalar},
     tests::{
         bbs::{
-            get_random_test_key_pair,
-            get_random_test_messages,
-            get_test_messages,
-            TEST_PRESENTATION_HEADER_1,
+            get_random_test_key_pair, get_random_test_messages,
+            get_test_messages, TEST_PRESENTATION_HEADER_1,
         },
         mock_rng::MockRng,
     },

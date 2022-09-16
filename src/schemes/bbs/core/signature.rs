@@ -5,10 +5,7 @@ use super::{
     key_pair::{PublicKey, SecretKey},
     types::Message,
     utils::{
-        compute_B,
-        compute_domain,
-        octets_to_point_g1,
-        point_to_octets_g1,
+        compute_B, compute_domain, octets_to_point_g1, point_to_octets_g1,
     },
 };
 use crate::{
@@ -24,10 +21,7 @@ use pairing::{MillerLoopResult, MultiMillerLoop};
 use serde::{
     de::{Error as DError, SeqAccess, Visitor},
     ser::SerializeTuple,
-    Deserialize,
-    Deserializer,
-    Serialize,
-    Serializer,
+    Deserialize, Deserializer, Serialize, Serializer,
 };
 use subtle::{Choice, ConditionallySelectable};
 

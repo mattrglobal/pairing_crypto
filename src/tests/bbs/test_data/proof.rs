@@ -4,8 +4,7 @@ use crate::{
         core::{
             constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
             generator::{
-                memory_cached_generator::MemoryCachedGenerators,
-                Generators,
+                memory_cached_generator::MemoryCachedGenerators, Generators,
             },
             key_pair::{KeyPair, PublicKey},
             proof::Proof,
@@ -15,17 +14,11 @@ use crate::{
     },
     curves::bls12_381::{G1Projective, Scalar},
     tests::bbs::{
-        create_generators_helper,
-        get_random_test_key_pair,
-        get_random_test_messages,
-        proof::test_helper,
-        test_generators_random_message_generators,
-        test_generators_random_q_1,
-        test_generators_random_q_2,
-        ANOTHER_TEST_HEADER,
-        TEST_HEADER,
-        TEST_PRESENTATION_HEADER_1,
-        TEST_PRESENTATION_HEADER_2,
+        create_generators_helper, get_random_test_key_pair,
+        get_random_test_messages, proof::test_helper,
+        test_generators_random_message_generators, test_generators_random_q_1,
+        test_generators_random_q_2, ANOTHER_TEST_HEADER, TEST_HEADER,
+        TEST_PRESENTATION_HEADER_1, TEST_PRESENTATION_HEADER_2,
     },
     Error,
 };

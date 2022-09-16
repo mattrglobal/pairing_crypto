@@ -9,10 +9,7 @@ use crate::{
     },
     error::Error,
     schemes::bbs::core::{
-        key_pair::PublicKey,
-        proof::Proof,
-        signature::Signature,
-        types::Message,
+        key_pair::PublicKey, proof::Proof, signature::Signature, types::Message,
     },
 };
 

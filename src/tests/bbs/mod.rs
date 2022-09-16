@@ -6,8 +6,7 @@ use crate::{
         },
         core::{
             generator::memory_cached_generator::MemoryCachedGenerators,
-            key_pair::KeyPair,
-            types::Message,
+            key_pair::KeyPair, types::Message,
         },
     },
     curves::bls12_381::G1Projective,

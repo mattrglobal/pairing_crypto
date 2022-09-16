@@ -2,16 +2,14 @@ use pairing_crypto::bbs::{
     ciphersuites::{
         bls12_381::{KeyPair, BBS_BLS12381G1_SIGNATURE_LENGTH},
         bls12_381_sha_256::{
-            sign as bls12_381_sha_256_sign,
-            verify as bls12_381_sha_256_verify,
+            sign as bls12_381_sha_256_sign, verify as bls12_381_sha_256_verify,
         },
         bls12_381_shake_256::{
             sign as bls12_381_shake_256_sign,
             verify as bls12_381_shake_256_verify,
         },
     },
-    BbsSignRequest,
-    BbsVerifyRequest,
+    BbsSignRequest, BbsVerifyRequest,
 };
 use rand::{prelude::SliceRandom, thread_rng};
 use std::path::PathBuf;

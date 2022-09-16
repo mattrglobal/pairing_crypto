@@ -1,17 +1,13 @@
 use super::constants::{
-    MAX_DST_SIZE,
-    MAX_MESSAGE_SIZE,
-    MAX_VALUE_GENERATION_RETRY_COUNT,
-    NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
-    XOF_NO_OF_BYTES,
+    MAX_DST_SIZE, MAX_MESSAGE_SIZE, MAX_VALUE_GENERATION_RETRY_COUNT,
+    NON_NEGATIVE_INTEGER_ENCODING_LENGTH, XOF_NO_OF_BYTES,
 };
 use crate::{
     bbs::ciphersuites::BbsCiphersuiteParameters,
     common::serialization::{i2osp, i2osp_with_data},
     curves::bls12_381::{
         hash_to_curve::{ExpandMessage, ExpandMessageState},
-        G1Projective,
-        Scalar,
+        G1Projective, Scalar,
     },
     error::Error,
 };

@@ -1,6 +1,5 @@
 use super::{
-    bls12_381::BBS_BLS12381G1_SIGNATURE_LENGTH,
-    BbsCiphersuiteParameters,
+    bls12_381::BBS_BLS12381G1_SIGNATURE_LENGTH, BbsCiphersuiteParameters,
     CipherSuiteId,
 };
 use crate::{
@@ -9,9 +8,7 @@ use crate::{
             constants::XOF_NO_OF_BYTES,
             hash_utils::{do_create_generators, do_hash_to_scalar},
         },
-        BbsProofGenRequest,
-        BbsProofVerifyRequest,
-        BbsSignRequest,
+        BbsProofGenRequest, BbsProofVerifyRequest, BbsSignRequest,
         BbsVerifyRequest,
     },
     curves::bls12_381::{hash_to_curve::ExpandMsgXmd, G1Projective, Scalar},

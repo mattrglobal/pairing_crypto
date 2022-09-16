@@ -15,11 +15,8 @@ use pairing_crypto::{
                 verify as bls12_381_shake_256_verify,
             },
         },
-        BbsProofGenRequest,
-        BbsProofGenRevealMessageRequest,
-        BbsProofVerifyRequest,
-        BbsSignRequest,
-        BbsVerifyRequest,
+        BbsProofGenRequest, BbsProofGenRevealMessageRequest,
+        BbsProofVerifyRequest, BbsSignRequest, BbsVerifyRequest,
     },
     Error,
 };

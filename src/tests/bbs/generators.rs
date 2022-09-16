@@ -1,8 +1,7 @@
 use crate::bbs::{
     ciphersuites::bls12_381_shake_256::Bls12381Shake256CipherSuiteParameter,
     core::generator::{
-        memory_cached_generator::MemoryCachedGenerators,
-        Generators,
+        memory_cached_generator::MemoryCachedGenerators, Generators,
     },
 };
 

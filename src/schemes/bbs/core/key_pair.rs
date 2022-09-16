@@ -1,16 +1,10 @@
 use super::constants::{
-    MIN_KEY_GEN_IKM_LENGTH,
-    OCTET_POINT_G2_LENGTH,
-    OCTET_SCALAR_LENGTH,
+    MIN_KEY_GEN_IKM_LENGTH, OCTET_POINT_G2_LENGTH, OCTET_SCALAR_LENGTH,
 };
 use crate::{
     common::util::vec_to_byte_array,
     curves::bls12_381::{
-        generate_sk,
-        sk_to_pk_in_g2,
-        G2Affine,
-        G2Projective,
-        Scalar,
+        generate_sk, sk_to_pk_in_g2, G2Affine, G2Projective, Scalar,
     },
     error::Error,
     print_byte_array,

@@ -7,8 +7,7 @@ use ffi_support::{ConcurrentHandleMap, ErrorCode, ExternError};
 use pairing_crypto::bbs::{
     ciphersuites::{
         bls12_381::{
-            BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
-            BBS_BLS12381G1_SIGNATURE_LENGTH,
+            BBS_BLS12381G1_PUBLIC_KEY_LENGTH, BBS_BLS12381G1_SIGNATURE_LENGTH,
         },
         bls12_381_sha_256::verify as bls12_381_sha_256_verify,
         bls12_381_shake_256::verify as bls12_381_shake_256_verify,

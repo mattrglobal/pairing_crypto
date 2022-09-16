@@ -7,9 +7,7 @@ use pairing_crypto::bbs::{
 use serde::{
     de::{self, MapAccess},
     ser::{SerializeMap, SerializeSeq, SerializeStruct},
-    Deserialize,
-    Deserializer,
-    Serializer,
+    Deserialize, Deserializer, Serializer,
 };
 use serde_derive::Serialize;
 
