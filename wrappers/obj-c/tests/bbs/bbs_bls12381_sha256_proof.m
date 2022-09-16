@@ -52,15 +52,11 @@
         for (int j = 0; j < i; j++) {
             [disclosedMessages setObject:[messages objectAtIndex:j] forKey:[NSNumber numberWithInt:j]];
         }
-
-        BbsBls12381Sha256Proof *proofCheck = [[BbsBls12381Sha256Proof alloc] initWithBytes:proof.value
-                                                                   withError:&error];
     
         isVerified = false;
-        isVerified = [proofCheck verifyProof:keyPair.publicKey
+        isVerified = [proof verifyProof:keyPair.publicKey
                                   header:header
                      presentationMessage:presentationMessage
-                                   proof:proof
                      total_message_count:messages.count
                                 messages:disclosedMessages
                                withError:&error];

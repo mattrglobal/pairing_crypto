@@ -27,7 +27,7 @@
 - (nullable instancetype)createProof:(NSData *_Nonnull)publicKey
                               header:(NSData *_Nullable)header
                  presentationMessage:(NSData *_Nullable)presentationMessage
-                           signature:(NSData *_Nonnull)signature
+                           signature:(BbsSignature *_Nonnull)signature
                     disclosedIndices:(NSSet *_Nullable)disclosedIndices
                             messages:(NSArray *_Nullable)messages
                            withError:(NSError *_Nullable *_Nullable)errorPtr {
@@ -70,7 +70,7 @@ total_message_count:(NSUInteger)total_message_count
 - (void) doCreateProof:(NSData *_Nonnull)publicKey
                        header:(NSData *_Nullable)header
           presentationMessage:(NSData *_Nullable)presentationMessage
-                    signature:(NSData *_Nonnull)signature
+                    signature:(BbsSignature *_Nonnull)signature
              disclosedIndices:(NSSet *_Nullable)disclosedIndices
                      messages:(NSArray *_Nullable)messages
                     withError:(NSError *_Nullable *_Nullable)errorPtr {
