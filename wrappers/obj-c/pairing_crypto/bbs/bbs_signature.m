@@ -76,7 +76,6 @@
               withError:(NSError *_Nullable*_Nullable)errorPtr {
 
                 [self doesNotRecognizeSelector:_cmd];
-    return false;
 }
 
 @end
