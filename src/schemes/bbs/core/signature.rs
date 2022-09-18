@@ -231,7 +231,7 @@ impl Signature {
             });
         }
         // Error out if length of messages and generators are not equal
-        if messages.len() != generators.message_generators_length() {
+        if messages.len() != (generators.message_generators_length() - 1) {
             return Err(Error::MessageGeneratorsLengthMismatch {
                 generators: generators.message_generators_length(),
                 messages: messages.len(),
@@ -241,9 +241,13 @@ impl Signature {
             return Err(Error::InvalidSecretKey);
         }
 
-        // domain=hash_to_scalar((PK||L||generators||Ciphersuite_ID||BP_1||header),1)
-        let domain =
-            compute_domain::<_, _, C>(PK, header, messages.len(), generators)?;
+        // domain=hash_to_scalar((PK||L||generators||BP_1||Ciphersuite_ID||header),1)
+        let domain = compute_domain::<_, _, C>(
+            PK,
+            header,
+            messages.len() + 1,
+            generators,
+        )?;
 
         // (e, s) = hash_to_scalar((SK||BlsPk||domain||msg_1||...||msg_L), 2)
         let mut data_to_hash = vec![];
@@ -256,10 +260,20 @@ impl Signature {
         let scalars = C::hash_to_scalar(&data_to_hash, 2, None)?;
         let (e, s) = (scalars[0], scalars[1]);
 
-        // B = P1 + Q_1 * s + Q_2 * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let mut B = compute_B::<_, C>(&s, &domain, messages, generators)?;
-        // Include BlsPk in B
-        B += BlsPk.0 * Scalar::one();
+        // B = P1 + Q_1*s + Q_2*domain + H_1*msg_1 + ... + H_L*msg_L + BlsPk
+        let mut points: Vec<_> =
+            vec![C::p1(), generators.Q_1(), generators.Q_2()];
+        points.extend(generators.message_generators_iter());
+        points.remove(2 + generators.message_generators_length());
+        let mut scalars: Vec<_> = [Scalar::one(), s, domain]
+            .iter()
+            .copied()
+            .chain(messages.iter().map(|c| c.0))
+            .collect();
+
+        points.push(BlsPk.0);
+        scalars.push(Scalar::one());
+        let B = G1Projective::multi_exp(&points, &scalars);
 
         let exp = (e + SK.as_scalar()).invert();
         let exp = if exp.is_some().unwrap_u8() == 1u8 {

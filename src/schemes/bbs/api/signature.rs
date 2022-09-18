@@ -80,7 +80,7 @@ where
     let messages: Vec<Message> = digest_messages::<_, C>(request.messages)?;
 
     // Derive generators
-    let generators = MemoryCachedGenerators::<C>::new(messages.len(), 0)?;
+    let generators = MemoryCachedGenerators::<C>::new(messages.len(), 1)?;
 
     // Produce the signature and return
     Signature::new_bound::<_, _, _, C>(
@@ -141,7 +141,7 @@ where
     messages.push(Message(*bls_sk.0));
 
     // Derive generators
-    let generators = MemoryCachedGenerators::<C>::new(messages.len(), 1)?;
+    let generators = MemoryCachedGenerators::<C>::new(messages.len() - 1, 1)?;
 
     // Parse signature from request
     let signature = Signature::from_octets(request.signature)?;
