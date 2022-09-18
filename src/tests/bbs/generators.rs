@@ -13,6 +13,38 @@ fn creation_nominal() {
     >::new(32, 0)
     .expect("generators creation failed");
     assert_eq!(generators.message_generators_length(), 32);
+    assert_eq!(generators.extension_generators_length(), 0);
+}
+
+#[test]
+fn equality() {
+    let mut generators_1 = MemoryCachedGenerators::<
+        Bls12381Shake256CipherSuiteParameter,
+    >::new(1000, 100)
+    .expect("generators creation failed");
+    assert_eq!(generators_1.message_generators_length(), 1000);
+    assert_eq!(generators_1.extension_generators_length(), 100);
+
+    let mut generators_2 = MemoryCachedGenerators::<
+        Bls12381Shake256CipherSuiteParameter,
+    >::new(1000, 100)
+    .expect("generators creation failed");
+    assert_eq!(generators_2.message_generators_length(), 1000);
+    assert_eq!(generators_2.extension_generators_length(), 100);
+
+    for i in 0..1000 {
+        assert_eq!(
+            generators_1.get_message_generator(i),
+            generators_2.get_message_generator(i)
+        );
+    }
+
+    for i in 0..100 {
+        assert_eq!(
+            generators_1.get_extension_generator(i),
+            generators_2.get_extension_generator(i)
+        );
+    }
 }
 
 #[test]
