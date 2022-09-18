@@ -13,7 +13,12 @@ fn creation_nominal() {
     >::new(32, 0)
     .expect("generators creation failed");
     assert_eq!(generators.message_generators_length(), 32);
-    assert_eq!(generators.extension_generators_length(), 0);
+
+    let generators = MemoryCachedGenerators::<
+        Bls12381Shake256CipherSuiteParameter,
+    >::new(32, 32)
+    .expect("generators creation failed");
+    assert_eq!(generators.message_generators_length(), 64);
 }
 
 #[test]
@@ -22,27 +27,18 @@ fn equality() {
         Bls12381Shake256CipherSuiteParameter,
     >::new(1000, 100)
     .expect("generators creation failed");
-    assert_eq!(generators_1.message_generators_length(), 1000);
-    assert_eq!(generators_1.extension_generators_length(), 100);
+    assert_eq!(generators_1.message_generators_length(), 1100);
 
     let mut generators_2 = MemoryCachedGenerators::<
         Bls12381Shake256CipherSuiteParameter,
     >::new(1000, 100)
     .expect("generators creation failed");
-    assert_eq!(generators_2.message_generators_length(), 1000);
-    assert_eq!(generators_2.extension_generators_length(), 100);
+    assert_eq!(generators_2.message_generators_length(), 1100);
 
-    for i in 0..1000 {
+    for i in 0..1100 {
         assert_eq!(
             generators_1.get_message_generator(i),
             generators_2.get_message_generator(i)
-        );
-    }
-
-    for i in 0..100 {
-        assert_eq!(
-            generators_1.get_extension_generator(i),
-            generators_2.get_extension_generator(i)
         );
     }
 }

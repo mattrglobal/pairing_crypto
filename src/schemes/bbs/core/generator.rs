@@ -35,26 +35,6 @@ pub(crate) trait Generators: Debug + Clone {
             generators: self.clone(),
         }
     }
-
-    /// The number of BBS variant protocol extension generators this
-    /// `Generators` instance holds.
-    fn extension_generators_length(&self) -> usize;
-
-    /// Get the BBS variant protocol extension generator at `index`.
-    /// Note - `MessageGenerators` is zero indexed, so passed `index` value
-    /// should be in [0, `length`) range. In case of invalid `index`, `None`
-    /// value is returned.
-    fn get_extension_generator(&mut self, index: usize)
-        -> Option<G1Projective>;
-
-    /// Get a `Iterator` for BBS variant protocol extension generators.
-    fn extension_generators_iter(&self) -> ExtensionGeneratorsIter<Self> {
-        ExtensionGeneratorsIter {
-            index: 0,
-            count: self.extension_generators_length(),
-            generators: self.clone(),
-        }
-    }
 }
 
 #[derive(Clone, Debug)]
@@ -79,32 +59,6 @@ impl<G: Generators> Iterator for MessageGeneratorsIter<G> {
         } else {
             self.index += 1;
             self.generators.get_message_generator(index)
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
-pub(crate) struct ExtensionGeneratorsIter<G: Generators> {
-    index: usize,
-    count: usize,
-    generators: G,
-}
-
-impl<G: Generators> Iterator for ExtensionGeneratorsIter<G> {
-    type Item = G1Projective;
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let length = self.count - self.index;
-        (length, Some(length))
-    }
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let index = self.index;
-        if index >= self.count {
-            None
-        } else {
-            self.index += 1;
-            self.generators.get_extension_generator(index)
         }
     }
 }

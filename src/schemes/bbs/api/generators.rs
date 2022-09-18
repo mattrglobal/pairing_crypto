@@ -33,15 +33,5 @@ where
             }
         }
     }
-    for i in 0..extension_count {
-        match generators.get_extension_generator(i) {
-            Some(g) => result.push(g.to_affine().to_compressed().to_vec()),
-            _ => {
-                return Err(Error::CryptoOps {
-                    cause: "unexpected generator `None` value".to_owned(),
-                })
-            }
-        }
-    }
     Ok(result)
 }
