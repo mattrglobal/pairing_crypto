@@ -143,6 +143,29 @@ where
     T: AsRef<[u8]>,
     C: BbsCiphersuiteParameters,
 {
+    do_proof_verify::<_, C>(request, false)
+}
+
+// Verify a BBS bound signature proof of knowledge.
+pub(crate) fn bound_proof_verify<T, C>(
+    request: &BbsProofVerifyRequest<'_, T>,
+) -> Result<bool, Error>
+where
+    T: AsRef<[u8]>,
+    C: BbsCiphersuiteParameters,
+{
+    do_proof_verify::<_, C>(request, true)
+}
+
+// Verify a BBS signature proof of knowledge.
+pub(crate) fn do_proof_verify<T, C>(
+    request: &BbsProofVerifyRequest<'_, T>,
+    private_holder_binding: bool,
+) -> Result<bool, Error>
+where
+    T: AsRef<[u8]>,
+    C: BbsCiphersuiteParameters,
+{
     // Parse public key from request
     let public_key = PublicKey::from_octets(request.public_key)?;
 
@@ -154,8 +177,14 @@ where
         )?;
 
     // Derive generators
+    let mut total_message_count = request.total_message_count;
+    let mut extension_count = 0;
+    if private_holder_binding {
+        total_message_count -= 1;
+        extension_count = 1;
+    }
     let mut generators =
-        MemoryCachedGenerators::<C>::new(request.total_message_count, 0)?;
+        MemoryCachedGenerators::<C>::new(total_message_count, extension_count)?;
 
     let proof = Proof::from_octets(request.proof)?;
 
@@ -166,15 +195,4 @@ where
         &mut generators,
         &messages,
     )
-}
-
-// Verify a BBS bound signature proof of knowledge.
-pub(crate) fn bound_proof_verify<T, C>(
-    request: &BbsProofVerifyRequest<'_, T>,
-) -> Result<bool, Error>
-where
-    T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters,
-{
-    proof_verify::<_, C>(request)
 }
