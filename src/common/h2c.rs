@@ -1,14 +1,13 @@
-use super::ciphersuite::CipherSuiteId;
+use super::ciphersuite::CipherSuiteParameter;
 use crate::{
     curves::bls12_381::{G1Projective, G2Projective},
     Error,
 };
 use core::fmt::Debug;
 
-pub(crate) trait HashToCurveParameter: Debug + Clone {
-    /// Ciphersuite ID.
-    const ID: CipherSuiteId;
-
+pub(crate) trait HashToCurveParameter:
+    Debug + Clone + CipherSuiteParameter
+{
     /// Default domain separation tag for `hash_to_point` operation in G1.
     fn default_hash_to_point_g1_dst() -> Vec<u8> {
         Self::ID.as_octets().to_vec()

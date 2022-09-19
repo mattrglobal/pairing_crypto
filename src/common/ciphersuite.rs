@@ -1,3 +1,10 @@
+use core::fmt::Debug;
+
+pub(crate) trait CipherSuiteParameter: Debug + Clone {
+    /// Ciphersuite ID.
+    const ID: CipherSuiteId;
+}
+
 /// Ciphersuite ID.
 pub(crate) enum CipherSuiteId {
     BbsBls12381G1XmdSha256,

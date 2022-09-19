@@ -1,14 +1,13 @@
 use crate::{
-    common::ciphersuite::CipherSuiteId,
+    common::ciphersuite::CipherSuiteParameter,
     curves::bls12_381::Scalar,
     Error,
 };
 use core::fmt::Debug;
 
-pub(crate) trait HashToScalarParameter: Debug + Clone {
-    /// Ciphersuite ID.
-    const ID: CipherSuiteId;
-
+pub(crate) trait HashToScalarParameter:
+    Debug + Clone + CipherSuiteParameter
+{
     /// Default domain separation tag for `hash_to_scalar` operation.
     fn default_hash_to_scalar_dst() -> Vec<u8> {
         [Self::ID.as_octets(), b"H2S_"].concat()

@@ -1,6 +1,9 @@
 use crate::{
     bls::core::key_pair::{PublicKey, SecretKey},
-    common::{ciphersuite::CipherSuiteId, h2c::HashToCurveParameter},
+    common::{
+        ciphersuite::{CipherSuiteId, CipherSuiteParameter},
+        h2c::HashToCurveParameter,
+    },
     curves::bls12_381::{
         hash_to_curve::ExpandMsgXof,
         G1Projective,
@@ -18,11 +21,13 @@ use super::{
 #[derive(Debug, Clone)]
 pub(crate) struct Bls12381G2XofShake256NulCipherSuiteParameter;
 
+impl CipherSuiteParameter for Bls12381G2XofShake256NulCipherSuiteParameter {
+    const ID: CipherSuiteId = CipherSuiteId::BlsSigBls12381G2XofShake256Nul;
+}
+
 impl BlsCiphersuiteParameters for Bls12381G2XofShake256NulCipherSuiteParameter {}
 
 impl HashToCurveParameter for Bls12381G2XofShake256NulCipherSuiteParameter {
-    const ID: CipherSuiteId = CipherSuiteId::BlsSigBls12381G2XofShake256Nul;
-
     fn hash_to_g1(
         message: &[u8],
         dst: &[u8],

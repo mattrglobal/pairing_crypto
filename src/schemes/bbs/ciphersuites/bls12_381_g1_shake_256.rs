@@ -13,10 +13,13 @@ use crate::{
         BbsSignRequest,
         BbsVerifyRequest,
     },
-    common::h2s::{
-        constant::XOF_NO_OF_BYTES,
-        do_hash_to_scalar,
-        HashToScalarParameter,
+    common::{
+        ciphersuite::CipherSuiteParameter,
+        h2s::{
+            constant::XOF_NO_OF_BYTES,
+            do_hash_to_scalar,
+            HashToScalarParameter,
+        },
     },
     curves::bls12_381::{hash_to_curve::ExpandMsgXof, G1Projective, Scalar},
     Error,
@@ -26,9 +29,11 @@ use sha3::Shake256;
 #[derive(Debug, Clone)]
 pub(crate) struct Bls12381Shake256CipherSuiteParameter;
 
-impl HashToScalarParameter for Bls12381Shake256CipherSuiteParameter {
+impl CipherSuiteParameter for Bls12381Shake256CipherSuiteParameter {
     const ID: CipherSuiteId = CipherSuiteId::BbsBls12381G1XofShake256;
+}
 
+impl HashToScalarParameter for Bls12381Shake256CipherSuiteParameter {
     fn hash_to_scalar(
         message: &[u8],
         count: usize,
