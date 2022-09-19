@@ -62,6 +62,7 @@
                                withError:&error];
     
         XCTAssertTrue(isVerified);
+        [disclosedIndices addObject:[NSNumber numberWithInt:i]];  
     }
 }
 
