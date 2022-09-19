@@ -75,6 +75,11 @@ where
 
     // Parse BLS public key from request
     let bls_pk = BlsPublicKey::from_octets(request.bls_public_key)?;
+    // Validate the public key; it should not be an identity and should
+    // belong to subgroup.
+    if bls_pk.is_valid().unwrap_u8() == 0 {
+        return Err(Error::InvalidPublicKey);
+    }
 
     // Digest the supplied messages
     let messages: Vec<Message> = digest_messages::<_, C>(request.messages)?;

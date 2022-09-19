@@ -26,3 +26,8 @@ pub(crate) trait BlsCiphersuiteParameters: HashToCurveParameter {
         G2Projective::generator()
     }
 }
+
+pub(crate) trait BlsSigAugCiphersuiteParameters:
+    BlsCiphersuiteParameters
+{
+}

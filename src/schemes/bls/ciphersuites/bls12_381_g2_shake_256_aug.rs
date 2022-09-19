@@ -16,6 +16,7 @@ use sha3::Shake256;
 use super::{
     bls12_381::BLS_SIG_BLS12381G2_SIGNATURE_LENGTH,
     BlsCiphersuiteParameters,
+    BlsSigAugCiphersuiteParameters,
 };
 
 #[derive(Debug, Clone)]
@@ -26,6 +27,11 @@ impl CipherSuiteParameter for Bls12381G2XofShake256AugCipherSuiteParameter {
 }
 
 impl BlsCiphersuiteParameters for Bls12381G2XofShake256AugCipherSuiteParameter {}
+
+impl BlsSigAugCiphersuiteParameters
+    for Bls12381G2XofShake256AugCipherSuiteParameter
+{
+}
 
 impl HashToCurveParameter for Bls12381G2XofShake256AugCipherSuiteParameter {
     fn hash_to_g1(
