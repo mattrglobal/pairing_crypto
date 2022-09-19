@@ -33,12 +33,10 @@ where
     let bls_pop_message = get_bls_pop_message::<C1, C2>(aud, dst, extra_info)?;
 
     let dst = dst.unwrap_or(b"");
-    Ok(BlsSignature::new::<_, C2>(
-        bls_sk,
-        bls_pop_message.as_ref(),
-        dst.as_ref(),
-    )?
-    .to_octets())
+    Ok(
+        BlsSignature::new::<_, C2>(bls_sk, bls_pop_message.as_ref(), dst)?
+            .to_octets(),
+    )
 }
 
 ///  Validate a proof of possession of a BLS secret key (KeyPoP) created using
@@ -61,7 +59,7 @@ where
         return Err(Error::InvalidPublicKey);
     }
 
-    let bls_signature = BlsSignature::from_octets(&key_pop)?;
+    let bls_signature = BlsSignature::from_octets(key_pop)?;
     let bls_pop_message = get_bls_pop_message::<C1, C2>(aud, dst, extra_info)?;
     let dst = dst.unwrap_or(b"");
     bls_signature.verify::<_, C2>(
