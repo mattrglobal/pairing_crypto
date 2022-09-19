@@ -72,7 +72,7 @@ macro_rules! bbs_verify_api_generator {
             handle: u64,
             err: &mut ExternError,
         ) -> i32 {
-            let _ = BBS_VERIFY_CONTEXT.call_with_result(
+            let result = BBS_VERIFY_CONTEXT.call_with_result(
                 err,
                 handle,
                 move |ctx| -> Result<i32, PairingCryptoFfiError> {
@@ -116,7 +116,14 @@ macro_rules! bbs_verify_api_generator {
                     }
                 },
             );
+
             if err.get_code().is_success() {
+                if result != 0 {
+                    *err = ExternError::new_error(
+                        ErrorCode::new(1),
+                        "verification failed",
+                    )
+                }
                 if let Err(e) = BBS_VERIFY_CONTEXT.remove_u64(handle) {
                     *err = ExternError::from(e)
                 }

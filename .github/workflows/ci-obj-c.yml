@@ -1,0 +1,39 @@
+name: ci-obj-c
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+jobs:
+  build_test:
+    name: Build & Test Objective-C Wrapper
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ./main/wrappers/obj-c
+    steps:
+      # This is a temporary build step that clones another
+      # repository as a private un-published dependency 'blstrs'
+      # it uses a GH personal access token with read only permission
+      - name: Check out mattrglobal/blstrs
+        uses: actions/checkout@master
+        with:
+          repository: mattrglobal/blstrs
+          token: ${{ secrets.MATTR_BLSTRS_PAT }}
+          path: blstrs
+
+      - name: Checkout pairing_crypto
+        uses: actions/checkout@v2
+        with:
+          path: main # TODO remove once temp build step below is removed
+
+      - name: Build binary
+        run: ./scripts/update-libraries.sh
+        shell: bash
+
+      - name: Test
+        run: xcodebuild test -project pairing_crypto.xcodeproj -scheme Tests -destination 'platform=iOS Simulator,OS=15.2,name=iPhone 13 Pro'
