@@ -51,7 +51,6 @@ tasks.named('test') {
     // Enable logging output to stderr
     testLogging.showStandardStreams = true
 }
-
 publishing {
     repositories {
         maven {
