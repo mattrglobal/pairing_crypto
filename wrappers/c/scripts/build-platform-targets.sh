@@ -67,7 +67,7 @@ case $PLATFORM in
       # Works on macos host
       cargo build -p $PROJECT_NAME --target x86_64-apple-darwin --release
       # cargo lipo -p $PROJECT_NAME --release
-      cp "$SCRIPT_DIRECTORY/../../../target/darwin-x86_64/release/$INPUT_FILE.a" "$OUTPUT_LOCATION/macos/darwin-x86_64/$OUTPUT_FILE.a"
+      cp "$SCRIPT_DIRECTORY/../../../target/x86_64-apple-darwin/release/$INPUT_FILE.a" "$OUTPUT_LOCATION/macos/darwin-x86_64/$OUTPUT_FILE.a"
     ;;
   *)
     echo "ERROR: PLATFORM unknown: $1"
