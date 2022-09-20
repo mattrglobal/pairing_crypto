@@ -166,9 +166,9 @@ where
 #[cfg(feature = "__private_generator_api")]
 pub fn create_generators(
     count: usize,
-    extension_count: usize,
+    private_holder_binding: Option<bool>,
 ) -> Result<Vec<Vec<u8>>, Error> {
     crate::bbs::api::generators::create_generators::<
         Bls12381Shake256CipherSuiteParameter,
-    >(count, extension_count)
+    >(count, private_holder_binding)
 }

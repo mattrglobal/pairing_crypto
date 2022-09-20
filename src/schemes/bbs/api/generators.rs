@@ -13,14 +13,14 @@ use crate::{
 
 pub(crate) fn create_generators<C>(
     count: usize,
-    extension_count: usize,
+    private_holder_binding: Option<bool>,
 ) -> Result<Vec<Vec<u8>>, Error>
 where
     C: BbsCiphersuiteParameters,
 {
     let mut result = Vec::new();
     let mut generators =
-        MemoryCachedGenerators::<C>::new(count, extension_count)?;
+        MemoryCachedGenerators::<C>::new(count, private_holder_binding)?;
     result.push(generators.Q_1.to_affine().to_compressed().to_vec());
     result.push(generators.Q_2.to_affine().to_compressed().to_vec());
     for i in 0..count - 2 {

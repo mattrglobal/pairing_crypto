@@ -70,7 +70,7 @@ fn create_generators_helper(
 ) -> MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter> {
     MemoryCachedGenerators::<Bls12381Shake256CipherSuiteParameter>::new(
         num_of_messages,
-        0,
+        None,
     )
     .expect("generators creation failed")
 }

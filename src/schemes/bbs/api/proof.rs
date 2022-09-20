@@ -52,7 +52,7 @@ where
 
     // Derive generators
     let generators =
-        MemoryCachedGenerators::<C>::new(digested_messages.len(), 0)?;
+        MemoryCachedGenerators::<C>::new(digested_messages.len(), None)?;
     // Parse signature from request
     let signature = Signature::from_octets(request.signature)?;
 
@@ -103,8 +103,10 @@ where
     proof_messages.push(ProofMessage::Hidden(bls_sk));
 
     // Derive generators
-    let generators =
-        MemoryCachedGenerators::<C>::new(digested_messages.len() - 1, 1)?;
+    let generators = MemoryCachedGenerators::<C>::new(
+        digested_messages.len() - 1,
+        Some(true),
+    )?;
 
     // Parse signature from request
     let signature = Signature::from_octets(request.signature)?;
@@ -143,7 +145,7 @@ where
     T: AsRef<[u8]>,
     C: BbsCiphersuiteParameters,
 {
-    do_proof_verify::<_, C>(request, false)
+    do_proof_verify::<_, C>(request, None)
 }
 
 // Verify a BBS bound signature proof of knowledge.
@@ -154,13 +156,13 @@ where
     T: AsRef<[u8]>,
     C: BbsCiphersuiteParameters,
 {
-    do_proof_verify::<_, C>(request, true)
+    do_proof_verify::<_, C>(request, Some(true))
 }
 
 // Verify a BBS signature proof of knowledge.
 pub(crate) fn do_proof_verify<T, C>(
     request: &BbsProofVerifyRequest<'_, T>,
-    private_holder_binding: bool,
+    private_holder_binding: Option<bool>,
 ) -> Result<bool, Error>
 where
     T: AsRef<[u8]>,
@@ -178,13 +180,16 @@ where
 
     // Derive generators
     let mut total_message_count = request.total_message_count;
-    let mut extension_count = 0;
-    if private_holder_binding {
-        total_message_count -= 1;
-        extension_count = 1;
+    if let Some(bound_bbs) = private_holder_binding {
+        if bound_bbs == true {
+            total_message_count -= 1;
+        }
     }
-    let mut generators =
-        MemoryCachedGenerators::<C>::new(total_message_count, extension_count)?;
+
+    let mut generators = MemoryCachedGenerators::<C>::new(
+        total_message_count,
+        private_holder_binding,
+    )?;
 
     let proof = Proof::from_octets(request.proof)?;
 

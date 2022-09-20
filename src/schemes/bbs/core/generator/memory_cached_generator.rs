@@ -27,7 +27,10 @@ pub(crate) struct MemoryCachedGenerators<
 impl<C: BbsCiphersuiteParameters + Debug + Clone> MemoryCachedGenerators<C> {
     /// Construct `Generators`.
     /// The implementation follows `CreateGenerators` section as defined in <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-creategenerators>.
-    pub fn new(count: usize, extension_count: usize) -> Result<Self, Error>
+    pub fn new(
+        count: usize,
+        private_holder_binding: Option<bool>,
+    ) -> Result<Self, Error>
     where
         C: BbsCiphersuiteParameters,
     {
@@ -35,8 +38,10 @@ impl<C: BbsCiphersuiteParameters + Debug + Clone> MemoryCachedGenerators<C> {
         let mut v = [0u8; XOF_NO_OF_BYTES];
         let generators = C::create_generators(count + 2, &mut n, &mut v, true)?;
         let mut H_list = generators[2..2 + count].to_vec();
-        for _ in 0..extension_count {
-            H_list.push(C::p1());
+        if let Some(bound_bbs) = private_holder_binding {
+            if bound_bbs {
+                H_list.push(C::p1());
+            }
         }
 
         Ok(Self {

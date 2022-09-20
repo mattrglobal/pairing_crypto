@@ -48,10 +48,10 @@ fn main() {
 
     let generators = match ciphersuite {
         Ciphersuite::Bls12381Sha256 => {
-            bls12_381_sha_256_create_generators(num_of_generators, 0)
+            bls12_381_sha_256_create_generators(num_of_generators, None)
         }
         Ciphersuite::Bls12381Shake256 => {
-            bls12_381_shake_256_create_generators(num_of_generators, 0)
+            bls12_381_shake_256_create_generators(num_of_generators, None)
         }
     }
     .unwrap();
