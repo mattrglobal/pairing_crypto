@@ -8,11 +8,11 @@ use group::Group;
 pub mod bls12_381;
 
 /// BLS BLS12-381-G2-Shake-256-Aug ciphersuites.
-pub mod bls12_381_g2_shake_256_aug;
+pub mod bls12_381_g2_sha_256_aug;
 /// BLS BLS12-381-G2-Shake-256-Nul ciphersuites.
-pub mod bls12_381_g2_shake_256_nul;
+pub mod bls12_381_g2_sha_256_nul;
 /// BLS BLS12-381-G2-Shake-256-Pop ciphersuites.
-pub mod bls12_381_g2_shake_256_pop;
+pub mod bls12_381_g2_sha_256_pop;
 
 pub(crate) trait BlsCiphersuiteParameters: HashToCurveParameter {
     /// Point on G1 to be used in signature and proof computation and

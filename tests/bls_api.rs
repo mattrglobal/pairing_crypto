@@ -1,14 +1,14 @@
 use pairing_crypto::bls::{
     ciphersuites::{
-        bls12_381_g2_shake_256_aug::{
+        bls12_381_g2_sha_256_aug::{
             sign as bls12_381_g2_shake_256_aug_sign,
             verify as bls12_381_g2_shake_256_aug_verify,
         },
-        bls12_381_g2_shake_256_nul::{
+        bls12_381_g2_sha_256_nul::{
             sign as bls12_381_g2_shake_256_nul_sign,
             verify as bls12_381_g2_shake_256_nul_verify,
         },
-        bls12_381_g2_shake_256_pop::{
+        bls12_381_g2_sha_256_pop::{
             pop_prove as bls12_381_g2_shake_256_pop_pop_prove,
             pop_verify as bls12_381_g2_shake_256_pop_pop_verify,
             sign as bls12_381_g2_shake_256_pop_sign,

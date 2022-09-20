@@ -9,9 +9,9 @@ pub(crate) trait CipherSuiteParameter: Debug + Clone {
 pub(crate) enum CipherSuiteId {
     BbsBls12381G1XmdSha256,
     BbsBls12381G1XofShake256,
-    BlsSigBls12381G2XofShake256Nul,
-    BlsSigBls12381G2XofShake256Aug,
-    BlsSigBls12381G2XofShake256Pop,
+    BlsSigBls12381G2XmdSha256Nul,
+    BlsSigBls12381G2XmdSha256Aug,
+    BlsSigBls12381G2XmdSha256Pop,
 }
 
 impl CipherSuiteId {
@@ -24,14 +24,14 @@ impl CipherSuiteId {
             CipherSuiteId::BbsBls12381G1XofShake256 => {
                 b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_"
             }
-            CipherSuiteId::BlsSigBls12381G2XofShake256Nul => {
-                b"BLS_SIG_BLS12381G2_XOF:SHAKE-256_SSWU_RO_NUL_"
+            CipherSuiteId::BlsSigBls12381G2XmdSha256Nul => {
+                b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_"
             }
-            CipherSuiteId::BlsSigBls12381G2XofShake256Aug => {
-                b"BLS_SIG_BLS12381G2_XOF:SHAKE-256_SSWU_RO_AUG_"
+            CipherSuiteId::BlsSigBls12381G2XmdSha256Aug => {
+                b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_AUG_"
             }
-            CipherSuiteId::BlsSigBls12381G2XofShake256Pop => {
-                b"BLS_SIG_BLS12381G2_XOF:SHAKE-256_SSWU_RO_POP_"
+            CipherSuiteId::BlsSigBls12381G2XmdSha256Pop => {
+                b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_"
             }
         }
     }

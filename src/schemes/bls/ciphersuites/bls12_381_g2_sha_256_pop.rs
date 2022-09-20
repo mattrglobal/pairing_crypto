@@ -5,44 +5,40 @@ use crate::{
         h2c::HashToCurveParameter,
     },
     curves::bls12_381::{
-        hash_to_curve::ExpandMsgXof,
+        hash_to_curve::ExpandMsgXmd,
         G1Projective,
         G2Projective,
     },
     Error,
 };
-use sha3::Shake256;
+use sha2::Sha256;
 
 use super::{
     bls12_381::BLS_SIG_BLS12381G2_SIGNATURE_LENGTH,
     BlsCiphersuiteParameters,
 };
 #[derive(Debug, Clone)]
-pub(crate) struct Bls12381G2XofShake256PopCipherSuiteParameter;
+pub(crate) struct Bls12381G2XmdSha256PopCipherSuiteParameter;
 
-impl CipherSuiteParameter for Bls12381G2XofShake256PopCipherSuiteParameter {
-    const ID: CipherSuiteId = CipherSuiteId::BlsSigBls12381G2XofShake256Pop;
+impl CipherSuiteParameter for Bls12381G2XmdSha256PopCipherSuiteParameter {
+    const ID: CipherSuiteId = CipherSuiteId::BlsSigBls12381G2XmdSha256Pop;
 }
 
-impl BlsCiphersuiteParameters for Bls12381G2XofShake256PopCipherSuiteParameter {}
+impl BlsCiphersuiteParameters for Bls12381G2XmdSha256PopCipherSuiteParameter {}
 
-impl HashToCurveParameter for Bls12381G2XofShake256PopCipherSuiteParameter {
+impl HashToCurveParameter for Bls12381G2XmdSha256PopCipherSuiteParameter {
     fn hash_to_g1(
         message: &[u8],
         dst: &[u8],
     ) -> Result<blstrs::G1Projective, Error> {
-        Ok(G1Projective::hash_to::<ExpandMsgXof<Shake256>>(
-            message, dst,
-        ))
+        Ok(G1Projective::hash_to::<ExpandMsgXmd<Sha256>>(message, dst))
     }
 
     fn hash_to_g2(
         message: &[u8],
         dst: &[u8],
     ) -> Result<blstrs::G2Projective, Error> {
-        Ok(G2Projective::hash_to::<ExpandMsgXof<Shake256>>(
-            message, dst,
-        ))
+        Ok(G2Projective::hash_to::<ExpandMsgXmd<Sha256>>(message, dst))
     }
 }
 
@@ -56,8 +52,8 @@ where
 {
     let signature = crate::schemes::bls::core::signature::Signature::new::<
         _,
-        Bls12381G2XofShake256PopCipherSuiteParameter,
-    >(sk, message.as_ref(), Bls12381G2XofShake256PopCipherSuiteParameter::default_hash_to_point_g2_dst().as_ref())?;
+        Bls12381G2XmdSha256PopCipherSuiteParameter,
+    >(sk, message.as_ref(), Bls12381G2XmdSha256PopCipherSuiteParameter::default_hash_to_point_g2_dst().as_ref())?;
     Ok(signature.to_octets())
 }
 
@@ -75,7 +71,7 @@ where
             signature,
         )?;
     signature
-        .verify::<_, Bls12381G2XofShake256PopCipherSuiteParameter>(pk, message.as_ref(), Bls12381G2XofShake256PopCipherSuiteParameter::default_hash_to_point_g2_dst().as_ref())
+        .verify::<_, Bls12381G2XmdSha256PopCipherSuiteParameter>(pk, message.as_ref(), Bls12381G2XmdSha256PopCipherSuiteParameter::default_hash_to_point_g2_dst().as_ref())
 }
 
 /// Compute proof of posession of a secret key.
@@ -86,11 +82,11 @@ pub fn pop_prove(
 
     let pop = crate::schemes::bls::core::signature::Signature::new::<
         _,
-        Bls12381G2XofShake256PopCipherSuiteParameter,
+        Bls12381G2XmdSha256PopCipherSuiteParameter,
     >(
         sk,
         pk.to_octets().as_ref(),
-        pop_dst::<Bls12381G2XofShake256PopCipherSuiteParameter>().as_ref(),
+        pop_dst::<Bls12381G2XmdSha256PopCipherSuiteParameter>().as_ref(),
     )?;
     Ok(pop.to_octets())
 }
@@ -102,10 +98,10 @@ pub fn pop_verify(
 ) -> Result<bool, Error> {
     let proof =
         crate::schemes::bls::core::signature::Signature::from_octets(proof)?;
-    proof.verify::<_, Bls12381G2XofShake256PopCipherSuiteParameter>(
+    proof.verify::<_, Bls12381G2XmdSha256PopCipherSuiteParameter>(
         pk,
         pk.to_octets().as_ref(),
-        pop_dst::<Bls12381G2XofShake256PopCipherSuiteParameter>().as_ref(),
+        pop_dst::<Bls12381G2XmdSha256PopCipherSuiteParameter>().as_ref(),
     )
 }
 

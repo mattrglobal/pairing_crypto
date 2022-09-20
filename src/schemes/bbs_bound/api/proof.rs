@@ -1,11 +1,14 @@
 use super::{
-    dtos::{BbsProofGenRequest, BbsProofVerifyRequest},
+    dtos::{BbsBoundProofGenRequest, BbsBoundProofVerifyRequest},
     utils::{digest_proof_messages, digest_revealed_proof_messages},
 };
 use crate::{
     bbs::{
         ciphersuites::BbsCiphersuiteParameters,
-        core::generator::memory_cached_generator::MemoryCachedGenerators,
+        core::{
+            generator::memory_cached_generator::MemoryCachedGenerators,
+            types::ProofMessage,
+        },
     },
     error::Error,
     schemes::bbs::core::{
@@ -15,6 +18,8 @@ use crate::{
         types::Message,
     },
 };
+
+use crate::bls::core::key_pair::SecretKey as BlsSecretKey;
 
 #[cfg(feature = "alloc")]
 use alloc::collections::BTreeMap;
@@ -27,9 +32,9 @@ pub fn get_proof_size(num_undisclosed_messages: usize) -> usize {
     Proof::get_size(num_undisclosed_messages)
 }
 
-// Generate a BBS signature proof of knowledge.
+// Generate a BBS bound signature proof of knowledge.
 pub(crate) fn proof_gen<T, C>(
-    request: &BbsProofGenRequest<'_, T>,
+    request: &BbsBoundProofGenRequest<'_, T>,
 ) -> Result<Vec<u8>, Error>
 where
     T: AsRef<[u8]>,
@@ -38,12 +43,21 @@ where
     // Parse public key from request
     let pk = PublicKey::from_octets(request.public_key)?;
 
-    let (digested_messages, proof_messages) =
+    // Parse BLS secret key from request
+    let bls_sk = BlsSecretKey::from_bytes(request.bls_secret_key)?;
+    let bls_sk = Message(*bls_sk.0);
+
+    let (mut digested_messages, mut proof_messages) =
         digest_proof_messages::<_, C>(request.messages)?;
+    digested_messages.push(bls_sk);
+    proof_messages.push(ProofMessage::Hidden(bls_sk));
 
     // Derive generators
-    let generators =
-        MemoryCachedGenerators::<C>::new(digested_messages.len(), None)?;
+    let generators = MemoryCachedGenerators::<C>::new(
+        digested_messages.len() - 1,
+        Some(true),
+    )?;
+
     // Parse signature from request
     let signature = Signature::from_octets(request.signature)?;
 
@@ -73,9 +87,9 @@ where
     Ok(proof.to_octets())
 }
 
-// Verify a BBS signature proof of knowledge.
+// Verify a BBS bound signature proof of knowledge.
 pub(crate) fn proof_verify<T, C>(
-    request: &BbsProofVerifyRequest<'_, T>,
+    request: &BbsBoundProofVerifyRequest<'_, T>,
 ) -> Result<bool, Error>
 where
     T: AsRef<[u8]>,
@@ -92,8 +106,10 @@ where
         )?;
 
     // Derive generators
-    let mut generators =
-        MemoryCachedGenerators::<C>::new(request.total_message_count, None)?;
+    let mut generators = MemoryCachedGenerators::<C>::new(
+        request.total_message_count - 1,
+        Some(true),
+    )?;
 
     let proof = Proof::from_octets(request.proof)?;
 
