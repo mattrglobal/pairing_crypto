@@ -34,7 +34,7 @@ impl<'a, T: AsRef<[u8]>> Default for BbsSignRequest<'a, T> {
     }
 }
 
-/// Sign request for a BBS signature.
+/// Sign request for a bound BBS signature.
 #[derive(Clone, Debug)]
 pub struct BbsBoundSignRequest<'a, T: AsRef<[u8]>> {
     /// Secret key
@@ -85,7 +85,7 @@ impl<'a, T: AsRef<[u8]>> Default for BbsVerifyRequest<'a, T> {
     }
 }
 
-/// Verify request for a BBS signature.
+/// Verify request for a bound BBS signature.
 #[derive(Clone, Debug)]
 pub struct BbsBoundVerifyRequest<'a, T: AsRef<[u8]>> {
     /// Public key
