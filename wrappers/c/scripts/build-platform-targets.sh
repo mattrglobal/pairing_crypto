@@ -62,9 +62,11 @@ case $PLATFORM in
 
       # Install cargo-lipo
       # see https://github.com/TimNN/cargo-lipo
-      cargo install cargo-lipo
+      # cargo install cargo-lipo
       rustup target install x86_64-apple-darwin
-      cargo lipo -p $PROJECT_NAME --release
+      # Works on macos host
+      cargo build -p $PROJECT_NAME --target x86_64-apple-darwin --release
+      # cargo lipo -p $PROJECT_NAME --release
       cp "$SCRIPT_DIRECTORY/../../../target/darwin-x86_64/release/$INPUT_FILE.a" "$OUTPUT_LOCATION/macos/darwin-x86_64/$OUTPUT_FILE.a"
     ;;
   *)
