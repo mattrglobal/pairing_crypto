@@ -1,12 +1,8 @@
 // Common ciphersuite trait.
 pub(crate) mod ciphersuite;
 
-// Hash to curve wrapper.
-pub(crate) mod h2c;
-
-// Hash to scalar wrapper.
-pub(crate) mod h2s;
-
+// Traits and types for Hash to curve and hash to scalar operations.
+pub(crate) mod hash_param;
 // Key pair.
 pub(crate) mod key_pair;
 

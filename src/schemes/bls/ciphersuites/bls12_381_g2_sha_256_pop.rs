@@ -2,13 +2,9 @@ use crate::{
     bls::core::key_pair::{PublicKey, SecretKey},
     common::{
         ciphersuite::{CipherSuiteId, CipherSuiteParameter},
-        h2c::HashToCurveParameter,
+        hash_param::{h2c::HashToCurveParameter, ExpandMessageParameter},
     },
-    curves::bls12_381::{
-        hash_to_curve::ExpandMsgXmd,
-        G1Projective,
-        G2Projective,
-    },
+    curves::bls12_381::hash_to_curve::ExpandMsgXmd,
     Error,
 };
 use sha2::Sha256;
@@ -24,23 +20,13 @@ impl CipherSuiteParameter for Bls12381G2XmdSha256PopCipherSuiteParameter {
     const ID: CipherSuiteId = CipherSuiteId::BlsSigBls12381G2XmdSha256Pop;
 }
 
-impl BlsCiphersuiteParameters for Bls12381G2XmdSha256PopCipherSuiteParameter {}
-
-impl HashToCurveParameter for Bls12381G2XmdSha256PopCipherSuiteParameter {
-    fn hash_to_g1(
-        message: &[u8],
-        dst: &[u8],
-    ) -> Result<blstrs::G1Projective, Error> {
-        Ok(G1Projective::hash_to::<ExpandMsgXmd<Sha256>>(message, dst))
-    }
-
-    fn hash_to_g2(
-        message: &[u8],
-        dst: &[u8],
-    ) -> Result<blstrs::G2Projective, Error> {
-        Ok(G2Projective::hash_to::<ExpandMsgXmd<Sha256>>(message, dst))
-    }
+impl ExpandMessageParameter for Bls12381G2XmdSha256PopCipherSuiteParameter {
+    type Expander = ExpandMsgXmd<Sha256>;
 }
+
+impl HashToCurveParameter for Bls12381G2XmdSha256PopCipherSuiteParameter {}
+
+impl BlsCiphersuiteParameters for Bls12381G2XmdSha256PopCipherSuiteParameter {}
 
 /// Sign a message.
 pub fn sign<T>(

@@ -1,6 +1,5 @@
 use crate::{
     bbs::ciphersuites::BbsCiphersuiteParameters,
-    common::h2s::map_message_to_scalar_as_hash,
     curves::bls12_381::{Scalar, OCTET_SCALAR_LENGTH},
     error::Error,
     scalar_wrapper,
@@ -39,7 +38,7 @@ impl Message {
     where
         C: BbsCiphersuiteParameters,
     {
-        Ok(Self(map_message_to_scalar_as_hash::<C>(message, dst)?))
+        Ok(Self(C::map_message_to_scalar_as_hash(message, dst)?))
     }
 }
 

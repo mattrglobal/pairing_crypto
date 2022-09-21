@@ -12,7 +12,10 @@ use crate::{
         },
         BlsSigAugCiphersuiteParameters,
     },
-    common::{h2s::constant::MAX_DST_SIZE, serialization::i2osp_with_data},
+    common::{
+        hash_param::constant::MAX_DST_SIZE,
+        serialization::i2osp_with_data,
+    },
     Error,
 };
 

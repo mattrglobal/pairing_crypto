@@ -7,7 +7,7 @@ use crate::{
             types::Message,
         },
     },
-    common::h2s::HashToScalarParameter,
+    common::hash_param::h2s::HashToScalarParameter,
     curves::bls12_381::G1Projective,
 };
 use group::Group;
