@@ -26,7 +26,7 @@ wasm_impl!(
 wasm_impl!(KeyPair, publicKey: Vec<u8>, secretKey: Option<Vec<u8>>);
 
 wasm_impl!(
-    BbsBoundKeyPopGenRequestDto,
+    BlsKeyPopGenRequestDto,
     blsSecretKey: Vec<u8>,
     aud: Vec<u8>,
     dst: Option<Vec<u8>>,
@@ -34,7 +34,7 @@ wasm_impl!(
 );
 
 wasm_impl!(
-    BbsBoundKeyPopVerifyRequestDto,
+    BlsKeyPopVerifyRequestDto,
     keyPop: Vec<u8>,
     blsPublicKey: Vec<u8>,
     aud: Vec<u8>,

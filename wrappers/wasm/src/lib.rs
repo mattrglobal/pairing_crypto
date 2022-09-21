@@ -29,7 +29,7 @@ mod api;
 
 /// Exposed prelude when using wasm
 pub mod prelude {
-    pub use crate::api::*;
+    pub use crate::{api::*, bbs_bound::api::*};
 }
 
 mod dtos;

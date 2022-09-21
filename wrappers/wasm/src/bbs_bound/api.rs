@@ -25,7 +25,7 @@ use pairing_crypto::{
     },
     bbs_bound::{
         ciphersuites::bls12_381_bbs_g1_bls_sig_g2_sha_256::{
-            bls_key_pop as bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop,
+            bls_key_pop as bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_gen,
             bls_key_pop_verify as bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_verify,
             proof_gen as bls12_381_bbs_g1_bls_sig_g2_sha_256_proof_gen,
             proof_verify as bls12_381_bbs_g1_bls_sig_g2_sha_256_proof_verify,
@@ -38,11 +38,14 @@ use pairing_crypto::{
         BbsBoundProofVerifyRequest,
         BbsBoundSignRequest,
         BbsBoundVerifyRequest,
+        BlsKeyPopGenRequest,
+        BlsKeyPopVerifyRequest,
     },
     bls::ciphersuites::bls12_381::{
         KeyPair as BlsSigBls12381G2KeyPair,
         BLS_SIG_BLS12381G2_PUBLIC_KEY_LENGTH,
         BLS_SIG_BLS12381G2_SECRET_KEY_LENGTH,
+        BLS_SIG_BLS12381G2_SIGNATURE_LENGTH,
     },
 };
 
@@ -136,6 +139,10 @@ pub async fn bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bls_key_pair(
 
 macro_rules! bbs_bound_wrapper_api_generator {
     (
+        $key_pop_gen_wrapper_fn:ident,
+        $key_pop_gen_lib_fn:ident,
+        $key_pop_verify_wrapper_fn:ident,
+        $key_pop_verify_lib_fn:ident,
         $sign_wrapper_fn:ident,
         $sign_lib_fn:ident,
         $verify_wrapper_fn:ident,
@@ -145,6 +152,98 @@ macro_rules! bbs_bound_wrapper_api_generator {
         $proof_verify_wrapper_fn:ident,
         $proof_verify_lib_fn:ident
     ) => {
+
+        /// Create a BLS proof of posession for a BLS signature secret key
+        ///
+        /// * request: JSON encoded request containing a byte array of
+        ///             information to construct a BLS key-pop-message
+        ///
+        /// Returned value is a byte array which is the produced PoP (112
+        /// bytes)
+        #[wasm_bindgen(js_name = $key_pop_gen_wrapper_fn)]
+        pub async fn $key_pop_gen_wrapper_fn(
+            request: JsValue,
+        ) -> Result<JsValue, serde_wasm_bindgen::Error> {
+            // Improves error output in JS based console.log() when built with
+            // debug feature enabled
+            set_panic_hook();
+
+            // Cast the supplied JSON request into a rust struct
+            let request: BlsKeyPopGenRequestDto = request.try_into()?;
+
+            let api_request = BlsKeyPopGenRequest {
+                bls_secret_key: &vec_to_u8_sized_array!(
+                    request.blsSecretKey,
+                    BLS_SIG_BLS12381G2_SECRET_KEY_LENGTH
+                ),
+                aud: &request.aud,
+                dst: request.dst.as_ref().map(|m| m.as_slice()),
+                extra_info: request.extra_info.as_ref().map(|m| m.as_slice()),
+            };
+
+            match $key_pop_gen_lib_fn(&api_request) {
+                Ok(pop) => {
+                    Ok(serde_wasm_bindgen::to_value(&pop.to_vec()).unwrap())
+                }
+                Err(e) => Err(serde_wasm_bindgen::Error::new(e)),
+            }
+        }
+
+        /// Verify a BLS proof of posession for a BLS signature secret key
+        ///
+        /// * request: JSON encoded request containing a byte array of
+        ///            a BLS key-pop-message
+        ///
+        /// Returned value is JSON structure with a boolean value indicating
+        /// whether the proof of posession was verified and if not any
+        /// details on the error available
+        #[wasm_bindgen(js_name = $key_pop_verify_wrapper_fn)]
+        pub async fn $key_pop_verify_wrapper_fn(
+            request: JsValue,
+        ) -> Result<JsValue, serde_wasm_bindgen::Error> {
+            // Improves error output in JS based console.log() when built with
+            // debug feature enabled
+            set_panic_hook();
+
+            // Cast the supplied JSON request into a rust struct
+            let request: BlsKeyPopVerifyRequestDto = request.try_into()?;
+
+            let api_request = BlsKeyPopVerifyRequest {
+                bls_key_pop: &vec_to_u8_sized_array!(
+                    request.keyPop,
+                    BLS_SIG_BLS12381G2_SIGNATURE_LENGTH
+                ),
+                bls_public_key: &vec_to_u8_sized_array!(
+                    request.blsPublicKey,
+                    BLS_SIG_BLS12381G2_PUBLIC_KEY_LENGTH
+                ),
+                aud: &request.aud,
+                dst: request.dst.as_ref().map(|m| m.as_slice()),
+                extra_info: request.extra_info.as_ref().map(|m| m.as_slice()),
+            };
+
+            match $key_pop_verify_lib_fn(&api_request) {
+                Ok(result) => {
+                    return Ok(serde_wasm_bindgen::to_value(
+                        &BbsBoundKeyPopVerifyResponseDto {
+                            verified: result,
+                            error: None,
+                        },
+                    )
+                    .unwrap())
+                }
+                Err(e) => {
+                    return Ok(serde_wasm_bindgen::to_value(
+                        &BbsBoundKeyPopVerifyResponseDto {
+                            verified: false,
+                            error: Some(format!("{:?}", e)),
+                        },
+                    )
+                    .unwrap())
+                }
+            }
+        }
+
         /// Create (Signs) a BBS bound Signature in the G1 sub-group using a key
         /// pair based in G2
         ///
@@ -464,6 +563,10 @@ macro_rules! bbs_bound_wrapper_api_generator {
 }
 
 bbs_bound_wrapper_api_generator!(
+    bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_gen,
+    bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_gen,
+    bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_verify,
+    bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_verify,
     bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_sign,
     bls12_381_bbs_g1_bls_sig_g2_sha_256_sign,
     bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_verify,
