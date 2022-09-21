@@ -40,8 +40,7 @@ pub(crate) trait HashToScalarParameter: ExpandMessageParameter {
         dst: Option<&[u8]>,
     ) -> Result<Vec<Scalar>, Error> {
         let len_in_bytes = count * XOF_NO_OF_BYTES;
-        let default_hash_to_scalar_dst =
-            Self::default_hash_to_scalar_dst().clone();
+        let default_hash_to_scalar_dst = Self::default_hash_to_scalar_dst();
         let dst_octets = dst.unwrap_or(&default_hash_to_scalar_dst);
 
         if !dst_octets.is_ascii() {
