@@ -14,56 +14,63 @@ use crate::{
     Error,
 };
 
+use super::dtos::{BlsKeyPopGenRequest, BlsKeyPopVerifyRequest};
+
 const MAX_AUD_SIZE: usize = 65535;
 const MAX_EXTRA_INFO_SIZE: usize = 65535;
 const BBS_BLS_POP_DST_SUFFIX: &[u8] = b"BBS_BLS_POP_MSG_";
 
-///  Generate a commitment to their BLS secret key.
-// #TODO make signature length a generic const
+///  Generate a commitment to a BLS secret key.
 pub(crate) fn generate<C1, C2>(
-    bls_sk: &BlsSecretKey,
-    aud: &[u8],
-    dst: Option<&[u8]>,
-    extra_info: Option<&[u8]>,
+    request: &BlsKeyPopGenRequest<'_>,
 ) -> Result<[u8; BLS_SIG_BLS12381G2_SIGNATURE_LENGTH], Error>
 where
     C1: BbsCiphersuiteParameters,
     C2: BlsSigAugCiphersuiteParameters,
 {
-    let bls_pop_message = get_bls_pop_message::<C1, C2>(aud, dst, extra_info)?;
+    // Parse BLS secret key from request
+    let bls_sk = BlsSecretKey::from_bytes(request.bls_secret_key)?;
 
-    let dst = dst.unwrap_or(b"");
+    let bls_pop_message = get_bls_pop_message::<C1, C2>(
+        request.aud,
+        request.dst,
+        request.extra_info,
+    )?;
+
+    let dst = request.dst.unwrap_or(b"");
     Ok(
-        BlsSignature::new::<_, C2>(bls_sk, bls_pop_message.as_ref(), dst)?
+        BlsSignature::new::<_, C2>(&bls_sk, bls_pop_message.as_ref(), dst)?
             .to_octets(),
     )
 }
 
 ///  Validate a proof of possession of a BLS secret key (KeyPoP) created using
 /// the `key_pop` operation.
-// #TODO make signature length a generic const
 pub(crate) fn verify<C1, C2>(
-    key_pop: &[u8; BLS_SIG_BLS12381G2_SIGNATURE_LENGTH],
-    bls_pk: &BlsPublicKey,
-    aud: &[u8],
-    dst: Option<&[u8]>,
-    extra_info: Option<&[u8]>,
+    request: &BlsKeyPopVerifyRequest<'_>,
 ) -> Result<bool, Error>
 where
     C1: BbsCiphersuiteParameters,
     C2: BlsSigAugCiphersuiteParameters,
 {
+    // Parse BLS public key from request
+    let bls_pk = BlsPublicKey::from_octets(request.bls_public_key)?;
+
     // Validate the public key; it should not be an identity and should
     // belong to subgroup.
     if bls_pk.is_valid().unwrap_u8() == 0 {
         return Err(Error::InvalidPublicKey);
     }
 
-    let bls_signature = BlsSignature::from_octets(key_pop)?;
-    let bls_pop_message = get_bls_pop_message::<C1, C2>(aud, dst, extra_info)?;
-    let dst = dst.unwrap_or(b"");
+    let bls_signature = BlsSignature::from_octets(request.bls_key_pop)?;
+    let bls_pop_message = get_bls_pop_message::<C1, C2>(
+        request.aud,
+        request.dst,
+        request.extra_info,
+    )?;
+    let dst = request.dst.unwrap_or(b"");
     bls_signature.verify::<_, C2>(
-        bls_pk,
+        &bls_pk,
         bls_pop_message.as_ref(),
         dst.as_ref(),
     )

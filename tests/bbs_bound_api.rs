@@ -14,6 +14,8 @@ use pairing_crypto::{
         BbsBoundProofVerifyRequest,
         BbsBoundSignRequest,
         BbsBoundVerifyRequest,
+        BlsKeyPopGenRequest,
+        BlsKeyPopVerifyRequest,
     },
     bls::ciphersuites::bls12_381::KeyPair as BlsSigBls12381G2KeyPair,
 };
@@ -41,26 +43,36 @@ const TEST_EXTRA_INFO: &[u8] = b"sample-app-100-apac";
 
 #[test]
 fn bls_key_pop_gen_verify_e2e_nominal() {
-    let bls_key_pair = BlsSigBls12381G2KeyPair::new(
+    let (bls_secret_key, bls_public_key) = BlsSigBls12381G2KeyPair::new(
         TEST_KEY_GEN_SEED.as_ref(),
         Some(TEST_KEY_INFO),
     )
+    .map(|key_pair| {
+        (
+            key_pair.secret_key.to_bytes(),
+            key_pair.public_key.to_octets(),
+        )
+    })
     .expect("key generation failed");
 
-    let key_pop = bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop(
-        &bls_key_pair.secret_key,
-        TEST_AUD,
-        None,
-        Some(TEST_EXTRA_INFO),
+    let bls_key_pop = bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop(
+        &&BlsKeyPopGenRequest {
+            bls_secret_key: &bls_secret_key,
+            aud: &TEST_AUD,
+            dst: None,
+            extra_info: Some(TEST_EXTRA_INFO),
+        },
     )
     .expect("PoP commitment generation failed");
 
     assert!(bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_verify(
-        &key_pop,
-        &bls_key_pair.public_key,
-        TEST_AUD,
-        None,
-        Some(TEST_EXTRA_INFO),
+        &&BlsKeyPopVerifyRequest {
+            bls_key_pop: &bls_key_pop,
+            bls_public_key: &bls_public_key,
+            aud: &TEST_AUD,
+            dst: None,
+            extra_info: Some(TEST_EXTRA_INFO),
+        },
     )
     .expect("PoP commitment verification failed"));
 }
@@ -80,38 +92,39 @@ macro_rules! bound_sign_verify_e2e_nominal {
                 })
                 .expect("key generation failed");
 
-        let bls_key_pair = BlsSigBls12381G2KeyPair::new(
+        let (bls_secret_key, bls_public_key) = BlsSigBls12381G2KeyPair::new(
             TEST_KEY_GEN_SEED.as_ref(),
             Some(TEST_KEY_INFO),
         )
+        .map(|key_pair| {
+            (
+                key_pair.secret_key.to_bytes(),
+                key_pair.public_key.to_octets(),
+            )
+        })
         .expect("key generation failed");
 
-        let (bls_sig_secret_key, bls_sig_public_key) = (
-            bls_key_pair.secret_key.to_bytes(),
-            bls_key_pair.public_key.to_octets(),
-        );
-
-        let key_pop = $key_pop_gen_fn(
-            &bls_key_pair.secret_key,
-            TEST_AUD,
-            None,
-            Some(TEST_EXTRA_INFO),
-        )
+        let bls_key_pop = $key_pop_gen_fn(&&BlsKeyPopGenRequest {
+            bls_secret_key: &bls_secret_key,
+            aud: &TEST_AUD,
+            dst: None,
+            extra_info: Some(TEST_EXTRA_INFO),
+        })
         .expect("PoP commitment generation failed");
 
-        assert!($key_pop_verify_fn(
-            &key_pop,
-            &bls_key_pair.public_key,
-            TEST_AUD,
-            None,
-            Some(TEST_EXTRA_INFO),
-        )
+        assert!($key_pop_verify_fn(&&BlsKeyPopVerifyRequest {
+            bls_key_pop: &bls_key_pop,
+            bls_public_key: &bls_public_key,
+            aud: &TEST_AUD,
+            dst: None,
+            extra_info: Some(TEST_EXTRA_INFO),
+        },)
         .expect("PoP commitment verification failed"));
 
         let signature = $sign_fn(&BbsBoundSignRequest {
             secret_key: &bbs_secret_key,
             public_key: &bbs_public_key,
-            bls_public_key: &bls_sig_public_key,
+            bls_public_key: &bls_public_key,
             header: Some(header),
             messages: Some(messages),
         })
@@ -120,7 +133,7 @@ macro_rules! bound_sign_verify_e2e_nominal {
         assert_eq!(
             $verify_fn(&BbsBoundVerifyRequest {
                 public_key: &bbs_public_key,
-                bls_secret_key: &bls_sig_secret_key,
+                bls_secret_key: &bls_secret_key,
                 header: Some(header),
                 messages: Some(messages),
                 signature: &signature,
@@ -157,38 +170,39 @@ macro_rules! bound_proof_gen_verify_e2e_nominal {
                 })
                 .expect("key generation failed");
 
-        let bls_key_pair = BlsSigBls12381G2KeyPair::new(
+        let (bls_secret_key, bls_public_key) = BlsSigBls12381G2KeyPair::new(
             TEST_KEY_GEN_SEED.as_ref(),
             Some(TEST_KEY_INFO),
         )
+        .map(|key_pair| {
+            (
+                key_pair.secret_key.to_bytes(),
+                key_pair.public_key.to_octets(),
+            )
+        })
         .expect("key generation failed");
 
-        let (bls_sig_secret_key, bls_sig_public_key) = (
-            bls_key_pair.secret_key.to_bytes(),
-            bls_key_pair.public_key.to_octets(),
-        );
-
-        let key_pop = $key_pop_gen_fn(
-            &bls_key_pair.secret_key,
-            TEST_AUD,
-            None,
-            Some(TEST_EXTRA_INFO),
-        )
+        let bls_key_pop = $key_pop_gen_fn(&&BlsKeyPopGenRequest {
+            bls_secret_key: &bls_secret_key,
+            aud: &TEST_AUD,
+            dst: None,
+            extra_info: Some(TEST_EXTRA_INFO),
+        })
         .expect("PoP commitment generation failed");
 
-        assert!($key_pop_verify_fn(
-            &key_pop,
-            &bls_key_pair.public_key,
-            TEST_AUD,
-            None,
-            Some(TEST_EXTRA_INFO),
-        )
+        assert!($key_pop_verify_fn(&&BlsKeyPopVerifyRequest {
+            bls_key_pop: &bls_key_pop,
+            bls_public_key: &bls_public_key,
+            aud: &TEST_AUD,
+            dst: None,
+            extra_info: Some(TEST_EXTRA_INFO),
+        },)
         .expect("PoP commitment verification failed"));
 
         let signature = $sign_fn(&BbsBoundSignRequest {
             secret_key: &bbs_secret_key,
             public_key: &bbs_public_key,
-            bls_public_key: &bls_sig_public_key,
+            bls_public_key: &bls_public_key,
             header: Some(header),
             messages: Some(messages),
         })
@@ -197,7 +211,7 @@ macro_rules! bound_proof_gen_verify_e2e_nominal {
         assert_eq!(
             $verify_fn(&BbsBoundVerifyRequest {
                 public_key: &bbs_public_key,
-                bls_secret_key: &bls_sig_secret_key,
+                bls_secret_key: &bls_secret_key,
                 header: Some(header),
                 messages: Some(messages),
                 signature: &signature,
@@ -220,7 +234,7 @@ macro_rules! bound_proof_gen_verify_e2e_nominal {
         for j in 0..proof_messages.len() {
             let proof = &$proof_gen_fn(&BbsBoundProofGenRequest {
                 public_key: &bbs_public_key,
-                bls_secret_key: &bls_sig_secret_key,
+                bls_secret_key: &bls_secret_key,
                 header: Some(header),
                 messages: Some(&proof_messages),
                 signature: &signature,

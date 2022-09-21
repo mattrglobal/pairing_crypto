@@ -5,19 +5,18 @@ use crate::{
         bls12_381_g1_shake_256::Bls12381Shake256CipherSuiteParameter,
     },
     bbs_bound::{
-        api::dtos::{BbsBoundSignRequest, BbsBoundVerifyRequest},
+        api::dtos::{
+            BbsBoundSignRequest,
+            BbsBoundVerifyRequest,
+            BlsKeyPopGenRequest,
+            BlsKeyPopVerifyRequest,
+        },
         BbsBoundProofGenRequest,
         BbsBoundProofVerifyRequest,
     },
-    bls::{
-        ciphersuites::{
-            bls12_381::BLS_SIG_BLS12381G2_SIGNATURE_LENGTH,
-            bls12_381_g2_sha_256_aug::Bls12381G2XmdSha256AugCipherSuiteParameter,
-        },
-        core::key_pair::{
-            PublicKey as BlsPublicKey,
-            SecretKey as BlsSecretKey,
-        },
+    bls::ciphersuites::{
+        bls12_381::BLS_SIG_BLS12381G2_SIGNATURE_LENGTH,
+        bls12_381_g2_sha_256_aug::Bls12381G2XmdSha256AugCipherSuiteParameter,
     },
     Error,
 };
@@ -33,30 +32,23 @@ pub use crate::schemes::bbs::core::{
 
 ///  Generate a commitment to their BLS secret key.
 pub fn bls_key_pop(
-    bls_sk: &BlsSecretKey,
-    aud: &[u8],
-    dst: Option<&[u8]>,
-    extra_info: Option<&[u8]>,
+    request: &BlsKeyPopGenRequest<'_>,
 ) -> Result<[u8; BLS_SIG_BLS12381G2_SIGNATURE_LENGTH], Error> {
     crate::bbs_bound::api::bls_key_pop::generate::<
         Bls12381Shake256CipherSuiteParameter,
         Bls12381G2XmdSha256AugCipherSuiteParameter,
-    >(bls_sk, aud, dst, extra_info)
+    >(request)
 }
 
 ///  Validate a proof of possession of a BLS secret key (KeyPoP) created using
 /// the `key_pop` operation.
 pub fn bls_key_pop_verify(
-    key_pop: &[u8; BLS_SIG_BLS12381G2_SIGNATURE_LENGTH],
-    bls_pk: &BlsPublicKey,
-    aud: &[u8],
-    dst: Option<&[u8]>,
-    extra_info: Option<&[u8]>,
+    request: &BlsKeyPopVerifyRequest<'_>,
 ) -> Result<bool, Error> {
     crate::bbs_bound::api::bls_key_pop::verify::<
         Bls12381Shake256CipherSuiteParameter,
         Bls12381G2XmdSha256AugCipherSuiteParameter,
-    >(key_pop, bls_pk, aud, dst, extra_info)
+    >(request)
 }
 
 /// Create a BLS12-381-G1-Shake-256 BBS bound signature.
