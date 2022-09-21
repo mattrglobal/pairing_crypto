@@ -8,18 +8,11 @@ use super::{
 use crate::{
     bbs::ciphersuites::BbsCiphersuiteParameters,
     common::{
-        h2s::constant::{
-            NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
-            XOF_NO_OF_BYTES,
-        },
+        hash_param::constant::NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
         serialization::{i2osp, i2osp_with_data},
     },
     curves::{
-        bls12_381::{
-            hash_to_curve::{ExpandMessage, ExpandMessageState},
-            G1Projective,
-            Scalar,
-        },
+        bls12_381::{G1Projective, Scalar},
         point_serde::point_to_octets_g1,
     },
     error::Error,
@@ -28,7 +21,6 @@ use ff::Field;
 
 #[cfg(feature = "alloc")]
 use alloc::collections::BTreeMap;
-use group::Group;
 
 #[cfg(not(feature = "alloc"))]
 use std::collections::BTreeMap;
@@ -160,60 +152,4 @@ where
 
     // c = hash_to_scalar(c_for_hash, 1)
     Ok(Challenge(C::hash_to_scalar(&data_to_hash, 1, None)?[0]))
-}
-
-// A convenient wrapper over underlying `hash_to_curve_g1` implementation(from
-/// pairing lib) which is used in `Generators` creation.
-pub(crate) fn do_create_generators<C, X>(
-    count: usize,
-    n: &mut u64,
-    v: &mut [u8; XOF_NO_OF_BYTES],
-    with_fresh_state: bool,
-) -> Result<Vec<G1Projective>, Error>
-where
-    C: BbsCiphersuiteParameters,
-    X: ExpandMessage,
-{
-    let generator_seed_dst = C::generator_seed_dst();
-
-    if with_fresh_state {
-        *n = 1;
-
-        //  v = expand_message(generator_seed, seed_dst, seed_len)
-        let mut expander = X::init_expand(
-            &C::generator_seed(),
-            &generator_seed_dst,
-            XOF_NO_OF_BYTES,
-        );
-        expander.read_into(v);
-    }
-
-    let mut points = Vec::with_capacity(count);
-
-    let mut i = 0;
-    while i < count {
-        // v = expand_message(v || I2OSP(n, 4), seed_dst, seed_len)
-        let mut expander = X::init_expand(
-            &[v.as_ref(), &i2osp(*n, 4)?].concat(),
-            &generator_seed_dst,
-            XOF_NO_OF_BYTES,
-        );
-        expander.read_into(v);
-
-        *n += 1;
-
-        // candidate = hash_to_curve_g1(v, generator_dst)
-        let candidate = G1Projective::hash_to::<X>(v, &C::generator_dst());
-
-        if (candidate.is_identity().unwrap_u8() == 1)
-            || candidate == C::p1()
-            || points.iter().any(|e| e == &candidate)
-        {
-            continue;
-        }
-
-        points.push(candidate);
-        i += 1;
-    }
-    Ok(points)
 }

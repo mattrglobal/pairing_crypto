@@ -1,7 +1,7 @@
 use super::Generators;
 use crate::{
     bbs::ciphersuites::BbsCiphersuiteParameters,
-    common::h2s::constant::XOF_NO_OF_BYTES,
+    common::hash_param::constant::XOF_NO_OF_BYTES,
     curves::bls12_381::G1Projective,
     error::Error,
 };

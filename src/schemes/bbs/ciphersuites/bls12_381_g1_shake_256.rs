@@ -5,7 +5,6 @@ use super::{
 };
 use crate::{
     bbs::{
-        core::utils::do_create_generators,
         BbsProofGenRequest,
         BbsProofVerifyRequest,
         BbsSignRequest,
@@ -13,13 +12,13 @@ use crate::{
     },
     common::{
         ciphersuite::CipherSuiteParameter,
-        h2s::{
-            constant::XOF_NO_OF_BYTES,
-            do_hash_to_scalar,
-            HashToScalarParameter,
+        hash_param::{
+            h2c::HashToCurveParameter,
+            h2s::HashToScalarParameter,
+            ExpandMessageParameter,
         },
     },
-    curves::bls12_381::{hash_to_curve::ExpandMsgXof, G1Projective, Scalar},
+    curves::bls12_381::hash_to_curve::ExpandMsgXof,
     Error,
 };
 use sha3::Shake256;
@@ -31,31 +30,15 @@ impl CipherSuiteParameter for Bls12381Shake256CipherSuiteParameter {
     const ID: CipherSuiteId = CipherSuiteId::BbsBls12381G1XofShake256;
 }
 
-impl HashToScalarParameter for Bls12381Shake256CipherSuiteParameter {
-    fn hash_to_scalar(
-        message: &[u8],
-        count: usize,
-        dst: Option<&[u8]>,
-    ) -> Result<Vec<Scalar>, Error> {
-        do_hash_to_scalar::<Self, ExpandMsgXof<Shake256>>(message, count, dst)
-    }
+impl ExpandMessageParameter for Bls12381Shake256CipherSuiteParameter {
+    type Expander = ExpandMsgXof<Shake256>;
 }
 
-impl BbsCiphersuiteParameters for Bls12381Shake256CipherSuiteParameter {
-    fn create_generators(
-        count: usize,
-        n: &mut u64,
-        v: &mut [u8; XOF_NO_OF_BYTES],
-        with_fresh_state: bool,
-    ) -> Result<Vec<G1Projective>, Error> {
-        do_create_generators::<Self, ExpandMsgXof<Shake256>>(
-            count,
-            n,
-            v,
-            with_fresh_state,
-        )
-    }
-}
+impl HashToScalarParameter for Bls12381Shake256CipherSuiteParameter {}
+
+impl HashToCurveParameter for Bls12381Shake256CipherSuiteParameter {}
+
+impl BbsCiphersuiteParameters for Bls12381Shake256CipherSuiteParameter {}
 
 /// Create a BLS12-381-G1-Shake-256 BBS signature.
 /// Security Warning: `secret_key` and `public_key` in `request` must be related

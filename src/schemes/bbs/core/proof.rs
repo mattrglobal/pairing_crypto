@@ -9,7 +9,7 @@ use super::{
 };
 use crate::{
     bbs::ciphersuites::BbsCiphersuiteParameters,
-    common::h2s::create_random_scalar,
+    common::hash_param::h2s::create_random_scalar,
     curves::{
         bls12_381::{
             Bls12,

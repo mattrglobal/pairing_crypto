@@ -1,5 +1,5 @@
 use crate::{
-    common::h2c::HashToCurveParameter,
+    common::hash_param::h2c::HashToCurveParameter,
     curves::bls12_381::{G1Projective, G2Projective},
 };
 use group::Group;
