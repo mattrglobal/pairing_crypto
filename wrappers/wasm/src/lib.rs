@@ -34,3 +34,5 @@ pub mod prelude {
 
 mod dtos;
 mod utils;
+
+mod bbs_bound;
