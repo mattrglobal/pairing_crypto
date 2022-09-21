@@ -15,11 +15,17 @@ C_WRAPPER_DIRECTORY="$CURRENT_SCRIPT_DIRECTORY/../../c"
 # Build the c wrapper for the IOS platform target
 source $C_WRAPPER_DIRECTORY/scripts/build-platform-targets.sh IOS $C_WRAPPER_DIRECTORY/out
 
+# source $C_WRAPPER_DIRECTORY/scripts/build-platform-targets.sh MACOS $C_WRAPPER_DIRECTORY/out
+
 echo $CURRENT_SCRIPT_DIRECTORY
 
 mkdir -p "$CURRENT_SCRIPT_DIRECTORY/../libraries/universal"
 mkdir -p "$CURRENT_SCRIPT_DIRECTORY/../libraries/x86_64"
 mkdir -p "$CURRENT_SCRIPT_DIRECTORY/../libraries/aarch64"
+
+# cp "$C_WRAPPER_DIRECTORY/out/macos/darwin-x86_64/$LIBRARY_FILE.a" "$CURRENT_SCRIPT_DIRECTORY/../libraries/universal/$LIBRARY_FILE.a"
+# cp "$C_WRAPPER_DIRECTORY/out/macos/darwin-x86_64/$LIBRARY_FILE.a" "$CURRENT_SCRIPT_DIRECTORY/../libraries/x86_64/$LIBRARY_FILE.a"
+# cp "$C_WRAPPER_DIRECTORY/out/macos/darwin-x86_64/$LIBRARY_FILE.a" "$CURRENT_SCRIPT_DIRECTORY/../libraries/aarch64/$LIBRARY_FILE.a"
 
 cp "$C_WRAPPER_DIRECTORY/out/ios/universal/$LIBRARY_FILE.a" "$CURRENT_SCRIPT_DIRECTORY/../libraries/universal/$LIBRARY_FILE.a"
 cp "$C_WRAPPER_DIRECTORY/out/ios/x86_64/$LIBRARY_FILE.a" "$CURRENT_SCRIPT_DIRECTORY/../libraries/x86_64/$LIBRARY_FILE.a"

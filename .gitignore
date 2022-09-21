@@ -45,6 +45,7 @@ Cargo.lock
 *.dll
 
 # Compiled Static libraries
+*.a
 *.lai
 *.la
 *.lib
