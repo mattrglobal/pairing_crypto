@@ -8,13 +8,8 @@ use core::fmt::Debug;
 pub(crate) trait HashToCurveParameter:
     Debug + Clone + CipherSuiteParameter
 {
-    /// Default domain separation tag for `hash_to_point` operation in G1.
-    fn default_hash_to_point_g1_dst() -> Vec<u8> {
-        Self::ID.as_octets().to_vec()
-    }
-
-    /// Default domain separation tag for `hash_to_point` operation in G2.
-    fn default_hash_to_point_g2_dst() -> Vec<u8> {
+    /// Default domain separation tag for `hash_to_point` operation.
+    fn default_hash_to_point_dst() -> Vec<u8> {
         Self::ID.as_octets().to_vec()
     }
 

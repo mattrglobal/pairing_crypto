@@ -62,7 +62,11 @@ where
     let signature = crate::schemes::bls::core::signature::Signature::new::<
         _,
         Bls12381G2XmdSha256AugCipherSuiteParameter,
-    >(sk, data_to_sign, Bls12381G2XmdSha256AugCipherSuiteParameter::default_hash_to_point_g2_dst())?;
+    >(
+        sk,
+        data_to_sign,
+        Bls12381G2XmdSha256AugCipherSuiteParameter::default_hash_to_point_dst(),
+    )?;
     Ok(signature.to_octets())
 }
 
@@ -82,6 +86,7 @@ where
         )?;
     signature.verify::<_, Bls12381G2XmdSha256AugCipherSuiteParameter>(
         pk,
-        data_to_sign, Bls12381G2XmdSha256AugCipherSuiteParameter::default_hash_to_point_g2_dst()
+        data_to_sign,
+        Bls12381G2XmdSha256AugCipherSuiteParameter::default_hash_to_point_dst(),
     )
 }

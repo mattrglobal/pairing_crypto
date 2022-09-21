@@ -53,7 +53,12 @@ where
     let signature = crate::schemes::bls::core::signature::Signature::new::<
         _,
         Bls12381G2XmdSha256PopCipherSuiteParameter,
-    >(sk, message.as_ref(), Bls12381G2XmdSha256PopCipherSuiteParameter::default_hash_to_point_g2_dst().as_ref())?;
+    >(
+        sk,
+        message.as_ref(),
+        Bls12381G2XmdSha256PopCipherSuiteParameter::default_hash_to_point_dst()
+            .as_ref(),
+    )?;
     Ok(signature.to_octets())
 }
 
@@ -70,8 +75,12 @@ where
         crate::schemes::bls::core::signature::Signature::from_octets(
             signature,
         )?;
-    signature
-        .verify::<_, Bls12381G2XmdSha256PopCipherSuiteParameter>(pk, message.as_ref(), Bls12381G2XmdSha256PopCipherSuiteParameter::default_hash_to_point_g2_dst().as_ref())
+    signature.verify::<_, Bls12381G2XmdSha256PopCipherSuiteParameter>(
+        pk,
+        message.as_ref(),
+        Bls12381G2XmdSha256PopCipherSuiteParameter::default_hash_to_point_dst()
+            .as_ref(),
+    )
 }
 
 /// Compute proof of posession of a secret key.

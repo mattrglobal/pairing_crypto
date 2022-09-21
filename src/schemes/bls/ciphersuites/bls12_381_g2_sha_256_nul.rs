@@ -54,7 +54,12 @@ where
     let signature = crate::schemes::bls::core::signature::Signature::new::<
         _,
         Bls12381G2XmdSha256NulCipherSuiteParameter,
-    >(sk, message.as_ref(), Bls12381G2XmdSha256NulCipherSuiteParameter::default_hash_to_point_g2_dst().as_ref())?;
+    >(
+        sk,
+        message.as_ref(),
+        Bls12381G2XmdSha256NulCipherSuiteParameter::default_hash_to_point_dst()
+            .as_ref(),
+    )?;
     Ok(signature.to_octets())
 }
 
@@ -71,6 +76,10 @@ where
         crate::schemes::bls::core::signature::Signature::from_octets(
             signature,
         )?;
-    signature
-        .verify::<_, Bls12381G2XmdSha256NulCipherSuiteParameter>(pk, message.as_ref(), Bls12381G2XmdSha256NulCipherSuiteParameter::default_hash_to_point_g2_dst().as_ref())
+    signature.verify::<_, Bls12381G2XmdSha256NulCipherSuiteParameter>(
+        pk,
+        message.as_ref(),
+        Bls12381G2XmdSha256NulCipherSuiteParameter::default_hash_to_point_dst()
+            .as_ref(),
+    )
 }
