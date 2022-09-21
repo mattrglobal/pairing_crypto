@@ -21,6 +21,9 @@ Cargo.lock
 # Code coverage artifacts
 *.profraw
 
+# C/Obj-C build artifacts
+*.d
+*.o
 # Ignore Gradle project-specific cache directory
 .gradle
 
@@ -42,12 +45,16 @@ Cargo.lock
 *.dll
 
 # Compiled Static libraries
+*.a
 *.lai
 *.la
-*.a
 *.lib
 
 *.class
 
 // Test executable generated in c-wrapper
 bbs_api_test
+
+*.DS_Store
+
+**/xcuserdata/*
