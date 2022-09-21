@@ -9,4 +9,6 @@ pub use crate::schemes::bbs_bound::api::dtos::{
     BbsBoundProofVerifyRequest,
     BbsBoundSignRequest,
     BbsBoundVerifyRequest,
+    BlsKeyPopGenRequest,
+    BlsKeyPopVerifyRequest,
 };

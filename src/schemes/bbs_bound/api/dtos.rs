@@ -7,8 +7,66 @@ use crate::{
     bls::ciphersuites::bls12_381::{
         BLS_SIG_BLS12381G2_PUBLIC_KEY_LENGTH,
         BLS_SIG_BLS12381G2_SECRET_KEY_LENGTH,
+        BLS_SIG_BLS12381G2_SIGNATURE_LENGTH,
     },
 };
+
+// #TODO make hardcodeds length a generic const
+
+/// Request to generate a proof of posession commitment for a BLS secret key.
+#[derive(Clone, Debug)]
+pub struct BlsKeyPopGenRequest<'a> {
+    /// BLS Secret key
+    pub bls_secret_key: &'a [u8; BLS_SIG_BLS12381G2_SECRET_KEY_LENGTH],
+    /// The Issuer's unique identifier
+    pub aud: &'a [u8],
+    /// Domain separation tag. If not supplied it defaults to the empty string
+    /// ("")
+    pub dst: Option<&'a [u8]>,
+    /// Extra information to bind to a KeyPoP (e.g., creation date, dst etc.).
+    /// If not supplied, it defaults to the empty string ("").
+    pub extra_info: Option<&'a [u8]>,
+}
+
+impl<'a> Default for BlsKeyPopGenRequest<'a> {
+    fn default() -> Self {
+        Self {
+            bls_secret_key: &[0u8; BLS_SIG_BLS12381G2_SECRET_KEY_LENGTH],
+            aud: &[0u8; 0],
+            dst: Default::default(),
+            extra_info: Default::default(),
+        }
+    }
+}
+
+/// Request to validate a proof of posession commitment for a BLS secret key.
+#[derive(Clone, Debug)]
+pub struct BlsKeyPopVerifyRequest<'a> {
+    /// BLS Key-Pop
+    pub bls_key_pop: &'a [u8; BLS_SIG_BLS12381G2_SIGNATURE_LENGTH],
+    /// BLS Public key
+    pub bls_public_key: &'a [u8; BLS_SIG_BLS12381G2_PUBLIC_KEY_LENGTH],
+    /// The Issuer's unique identifier
+    pub aud: &'a [u8],
+    /// Domain separation tag. If not supplied it defaults to the empty string
+    /// ("")
+    pub dst: Option<&'a [u8]>,
+    /// Extra information to bind to a KeyPoP (e.g., creation date, dst etc.).
+    /// If not supplied, it defaults to the empty string ("").
+    pub extra_info: Option<&'a [u8]>,
+}
+
+impl<'a> Default for BlsKeyPopVerifyRequest<'a> {
+    fn default() -> Self {
+        Self {
+            bls_key_pop: &[0u8; BLS_SIG_BLS12381G2_SIGNATURE_LENGTH],
+            bls_public_key: &[0u8; BLS_SIG_BLS12381G2_PUBLIC_KEY_LENGTH],
+            aud: &[0u8; 0],
+            dst: Default::default(),
+            extra_info: Default::default(),
+        }
+    }
+}
 
 /// Sign request for a bound BBS signature.
 #[derive(Clone, Debug)]
