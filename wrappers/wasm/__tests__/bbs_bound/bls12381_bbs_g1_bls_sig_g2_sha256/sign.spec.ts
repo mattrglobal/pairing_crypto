@@ -93,7 +93,8 @@ describe("bbs_bound", () => {
         const request: any = {
           secretKey: undefined,
           publicKey: bbsKeyPair.publicKey,
-          blsPublicKey: blsKeyPair.publicKey, messages: [
+          blsPublicKey: blsKeyPair.publicKey, 
+          messages: [
             stringToBytes("ExampleMessage"),
             stringToBytes("ExampleMessage2"),
             stringToBytes("ExampleMessage3"),

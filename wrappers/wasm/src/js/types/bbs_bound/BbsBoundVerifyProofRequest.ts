@@ -13,7 +13,7 @@
 
 interface BbsBoundVerifyProofMessageRequest {
   /**
-   * Messages that was signed to produce the signature
+   * Revealed message from the messages that was signed to produce the signature
    */
   readonly [key: number]: Uint8Array;
 }
