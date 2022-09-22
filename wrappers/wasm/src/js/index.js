@@ -23,6 +23,12 @@ const DEFAULT_BLS12381_PRIVATE_KEY_LENGTH = 32;
 
 const DEFAULT_BLS12381_PUBLIC_KEY_LENGTH = 96;
 
+const BLS_SIG_BLS12381_G2_PRIVATE_KEY_LENGTH = 32;
+
+const BLS_SIG_BLS12381_G2_PUBLIC_KEY_LENGTH = 48;
+
+const BLS_SIG_BLS12381_G2_KEY_POP_LENGTH = 96;
+
 // Casts a rejected promise to an error rather than a
 // simple string result
 const throwErrorOnRejectedPromise = async (promise) => {
@@ -104,6 +110,58 @@ const bbs_bls12_381_shake_256_proof_verify = async (request) => {
     return await throwErrorOnRejectedPromise(wasm.bbs_bls12_381_shake_256_proof_verify(request));
 }
 
+const bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bbs_key_pair = async (request) => {
+    await initialize();
+    var result = await throwErrorOnRejectedPromise(
+        wasm.bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bbs_key_pair(request ?? {})
+    );
+    return {
+        secretKey: new Uint8Array(result.secretKey),
+        publicKey: new Uint8Array(result.publicKey),
+    };
+};
+
+const bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bls_key_pair = async (request) => {
+    await initialize();
+    var result = await throwErrorOnRejectedPromise(
+        wasm.bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bls_key_pair(request ?? {})
+    );
+    return {
+        secretKey: new Uint8Array(result.secretKey),
+        publicKey: new Uint8Array(result.publicKey),
+    };
+};
+
+const bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_gen = async (request) => {
+    await initialize();
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_gen(request)));
+};
+
+const bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_verify = async (request) => {
+    await initialize();
+    return await throwErrorOnRejectedPromise(wasm.bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_verify(request));
+};
+
+const bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_sign = async (request) => {
+    await initialize();
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_sign(request)));
+};
+
+const bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_verify = async (request) => {
+    await initialize();
+    return await throwErrorOnRejectedPromise(wasm.bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_verify(request));
+};
+
+const bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_proof_gen = async (request) => {
+    await initialize();
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_proof_gen(request)));
+}
+
+const bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_proof_verify = async (request) => {
+    await initialize();
+    return await throwErrorOnRejectedPromise(wasm.bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_proof_verify(request));
+}
+
 const convertToRevealMessageArray = (messages, revealedIndicies) => {
     let revealMessages = [];
     let i = 0;
@@ -155,6 +213,27 @@ module.exports.bbs = {
         verify: bbs_bls12_381_shake_256_verify,
         deriveProof: bbs_bls12_381_shake_256_proof_gen,
         verifyProof: bbs_bls12_381_shake_256_proof_verify
+    }
+}
+
+module.exports.bbs_bound = {
+    bls12381_bbs_g1_bls_sig_g2_sha256: {
+        BBS_PRIVATE_KEY_LENGTH: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
+        BBS_PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_PUBLIC_KEY_LENGTH,
+        BBS_SIGNATURE_LENGTH: DEFAULT_BLS12381_BBS_SIGNATURE_LENGTH,
+
+        BLS_PRIVATE_KEY_LENGTH: BLS_SIG_BLS12381_G2_PRIVATE_KEY_LENGTH,
+        BLS_PUBLIC_KEY_LENGTH: BLS_SIG_BLS12381_G2_PUBLIC_KEY_LENGTH,
+        BLS_KEY_POP_LENGTH: BLS_SIG_BLS12381_G2_KEY_POP_LENGTH,
+
+        generateBbsKeyPair: bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bbs_key_pair,
+        generateBlsKeyPair: bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bls_key_pair,
+        bls_key_pop_gen: bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_gen,
+        bls_key_pop_verify: bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_verify,
+        sign: bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_sign,
+        verify: bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_verify,
+        deriveProof: bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_proof_gen,
+        verifyProof: bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_proof_verify
     }
 }
 
