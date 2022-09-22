@@ -11,11 +11,28 @@
  * limitations under the License.
  */
 
-export { BbsDeriveProofRequest } from "./BbsDeriveProofRequest";
-export { BbsSignRequest } from "./BbsSignRequest";
-export { BbsVerifyRequest } from "./BbsVerifyRequest";
-export { BbsVerifyResult } from "./BbsVerifyResult";
-export { BbsVerifyProofRequest } from "./BbsVerifyProofRequest";
-
-export { KeyPair } from "./../KeyPair";
-export { KeyGenerationRequest } from "./../KeyGenerationRequest";
+/**
+ * A request to verify a BBS bound signature for a set of messages
+ */
+export interface BbsBoundVerifyRequest {
+  /**
+   * Public key of the signer of the signature
+   */
+  readonly publicKey: Uint8Array;
+  /**
+   * BLS secret key of the holder
+   */
+  readonly blsSecretKey: Uint8Array;
+  /**
+   * Header message that was included in the signature
+   */
+  readonly header?: Uint8Array;
+  /**
+   * Raw signature value
+   */
+  readonly signature: Uint8Array;
+  /**
+   * Messages that were signed to produce the signature
+   */
+  readonly messages?: readonly Uint8Array[];
+}
