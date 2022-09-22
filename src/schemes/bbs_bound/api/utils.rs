@@ -23,7 +23,7 @@ use crate::{
 };
 
 /// Digests a set of supplied proof messages
-pub(super) fn digest_proof_messages<T, C>(
+pub(super) fn digest_bound_proof_messages<T, C>(
     messages: Option<&[BbsBoundProofGenRevealMessageRequest<T>]>,
 ) -> Result<(Vec<Message>, Vec<ProofMessage>), Error>
 where
