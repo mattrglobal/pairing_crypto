@@ -35,17 +35,11 @@ wasm_impl!(
 
 wasm_impl!(
     BlsKeyPopVerifyRequestDto,
-    keyPop: Vec<u8>,
+    blsKeyPop: Vec<u8>,
     blsPublicKey: Vec<u8>,
     aud: Vec<u8>,
     dst: Option<Vec<u8>>,
     extra_info: Option<Vec<u8>>
-);
-
-wasm_impl!(
-    BbsBoundKeyPopVerifyResponseDto,
-    verified: bool,
-    error: Option<String>
 );
 
 wasm_impl!(

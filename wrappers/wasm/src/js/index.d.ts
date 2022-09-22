@@ -87,8 +87,8 @@ export namespace bbs_bound {
     function generateBlsKeyPair(
       request?: KeyGenerationRequest
     ): Promise<Required<KeyPair>>;
-    function bls_key_pop_gen(request: BlsKeyPopGenRequest): Promise<Uint8Array>;
-    function bls_key_pop_verify(request: BlsKeyPopVerifyRequest): Promise<BbsBoundVerifyResult>;
+    function blsKeyPopGen(request: BlsKeyPopGenRequest): Promise<Uint8Array>;
+    function blsKeyPopVerify(request: BlsKeyPopVerifyRequest): Promise<BbsBoundVerifyResult>;
     function sign(request: BbsBoundSignRequest): Promise<Uint8Array>;
     function verify(request: BbsBoundVerifyRequest): Promise<BbsBoundVerifyResult>;
     function deriveProof(request: BbsBoundDeriveProofRequest): Promise<Uint8Array>;

@@ -210,7 +210,7 @@ macro_rules! bbs_bound_wrapper_api_generator {
 
             let api_request = BlsKeyPopVerifyRequest {
                 bls_key_pop: &vec_to_u8_sized_array!(
-                    request.keyPop,
+                    request.blsKeyPop,
                     BLS_SIG_BLS12381G2_SIGNATURE_LENGTH
                 ),
                 bls_public_key: &vec_to_u8_sized_array!(
@@ -225,7 +225,7 @@ macro_rules! bbs_bound_wrapper_api_generator {
             match $key_pop_verify_lib_fn(&api_request) {
                 Ok(result) => {
                     return Ok(serde_wasm_bindgen::to_value(
-                        &BbsBoundKeyPopVerifyResponseDto {
+                        &BbsBoundVerifyResponse {
                             verified: result,
                             error: None,
                         },
@@ -234,7 +234,7 @@ macro_rules! bbs_bound_wrapper_api_generator {
                 }
                 Err(e) => {
                     return Ok(serde_wasm_bindgen::to_value(
-                        &BbsBoundKeyPopVerifyResponseDto {
+                        &BbsBoundVerifyResponse {
                             verified: false,
                             error: Some(format!("{:?}", e)),
                         },
@@ -542,7 +542,7 @@ macro_rules! bbs_bound_wrapper_api_generator {
                 Ok(verified) => {
                     return Ok(serde_wasm_bindgen::to_value(
                         &BbsBoundVerifyResponse {
-                            verified, // TODO need to check test cases here
+                            verified,
                             error: None,
                         },
                     )

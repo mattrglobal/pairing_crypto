@@ -228,8 +228,8 @@ module.exports.bbs_bound = {
 
         generateBbsKeyPair: bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bbs_key_pair,
         generateBlsKeyPair: bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bls_key_pair,
-        bls_key_pop_gen: bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_gen,
-        bls_key_pop_verify: bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_verify,
+        blsKeyPopGen: bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_gen,
+        blsKeyPopVerify: bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_verify,
         sign: bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_sign,
         verify: bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_verify,
         deriveProof: bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_proof_gen,
