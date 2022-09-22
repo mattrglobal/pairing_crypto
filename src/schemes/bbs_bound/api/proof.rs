@@ -1,9 +1,10 @@
 use super::{
     dtos::{BbsBoundProofGenRequest, BbsBoundProofVerifyRequest},
-    utils::{digest_proof_messages, digest_revealed_proof_messages},
+    utils::digest_proof_messages,
 };
 use crate::{
     bbs::{
+        api::utils::digest_revealed_proof_messages,
         ciphersuites::BbsCiphersuiteParameters,
         core::{
             generator::memory_cached_generator::MemoryCachedGenerators,

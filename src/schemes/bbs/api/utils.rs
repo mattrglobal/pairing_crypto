@@ -30,7 +30,7 @@ use crate::{
 
 /// Digests the set of input messages and returns in the form of an internal
 /// structure
-pub(super) fn digest_messages<T, C>(
+pub(crate) fn digest_messages<T, C>(
     messages: Option<&[T]>,
 ) -> Result<Vec<Message>, Error>
 where
@@ -76,7 +76,7 @@ where
     Ok((digested_messages, proof_messages))
 }
 
-pub(super) fn digest_revealed_proof_messages<T, C>(
+pub(crate) fn digest_revealed_proof_messages<T, C>(
     messages: Option<&[(usize, T)]>,
     total_message_count: usize,
 ) -> Result<BTreeMap<usize, Message>, Error>
