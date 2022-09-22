@@ -104,5 +104,5 @@ fn pop_dst<C>() -> Vec<u8>
 where
     C: BlsCiphersuiteParameters,
 {
-    [b"BLS_POP_", C::ID.as_octets()].concat()
+    [b"BLS_POP_", &C::ID.as_octets().to_vec()[8..]].concat()
 }

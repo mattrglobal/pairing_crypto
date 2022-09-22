@@ -13,12 +13,6 @@
 // limitations under the License.
 // ------------------------------------------------------------------------------
 
-#[cfg(feature = "alloc")]
-use alloc::collections::BTreeMap;
-
-#[cfg(not(feature = "alloc"))]
-use std::collections::BTreeMap;
-
 use super::dtos::BbsBoundProofGenRevealMessageRequest;
 use crate::{
     bbs::{
@@ -28,26 +22,8 @@ use crate::{
     error::Error,
 };
 
-/// Digests the set of input messages and returns in the form of an internal
-/// structure
-pub(super) fn digest_messages<T, C>(
-    messages: Option<&[T]>,
-) -> Result<Vec<Message>, Error>
-where
-    T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters,
-{
-    if let Some(messages) = messages {
-        return messages
-            .iter()
-            .map(|msg| Message::from_arbitrary_data::<C>(msg.as_ref(), None))
-            .collect();
-    }
-    Ok(vec![])
-}
-
 /// Digests a set of supplied proof messages
-pub(super) fn digest_proof_messages<T, C>(
+pub(super) fn digest_bound_proof_messages<T, C>(
     messages: Option<&[BbsBoundProofGenRevealMessageRequest<T>]>,
 ) -> Result<(Vec<Message>, Vec<ProofMessage>), Error>
 where
@@ -74,44 +50,4 @@ where
         }
     }
     Ok((digested_messages, proof_messages))
-}
-
-pub(super) fn digest_revealed_proof_messages<T, C>(
-    messages: Option<&[(usize, T)]>,
-    total_message_count: usize,
-) -> Result<BTreeMap<usize, Message>, Error>
-where
-    T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters,
-{
-    if messages.is_none() {
-        return Ok(BTreeMap::new());
-    }
-    let messages = messages.unwrap();
-
-    let revealed_message_indices: Vec<usize> =
-        messages.iter().map(|item| item.0).collect();
-
-    if revealed_message_indices
-        .iter()
-        .any(|r| *r >= total_message_count)
-    {
-        return Err(Error::BadParams {
-            cause: format!(
-                "revealed message index is out of bounds, total_message_count \
-                 is {}",
-                total_message_count
-            ),
-        });
-    }
-
-    messages
-        .iter()
-        .map(|(i, m)| {
-            match Message::from_arbitrary_data::<C>(m.as_ref(), None) {
-                Ok(m) => Ok((*i, m)),
-                Err(e) => Err(e),
-            }
-        })
-        .collect()
 }

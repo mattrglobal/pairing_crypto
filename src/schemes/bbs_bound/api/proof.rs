@@ -1,9 +1,10 @@
 use super::{
     dtos::{BbsBoundProofGenRequest, BbsBoundProofVerifyRequest},
-    utils::{digest_proof_messages, digest_revealed_proof_messages},
+    utils::digest_bound_proof_messages,
 };
 use crate::{
     bbs::{
+        api::utils::digest_revealed_proof_messages,
         ciphersuites::BbsCiphersuiteParameters,
         core::{
             generator::memory_cached_generator::MemoryCachedGenerators,
@@ -48,7 +49,7 @@ where
     let bls_sk = Message(*bls_sk.0);
 
     let (mut digested_messages, mut proof_messages) =
-        digest_proof_messages::<_, C>(request.messages)?;
+        digest_bound_proof_messages::<_, C>(request.messages)?;
     digested_messages.push(bls_sk);
     proof_messages.push(ProofMessage::Hidden(bls_sk));
 

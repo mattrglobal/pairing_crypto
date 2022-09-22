@@ -1,9 +1,7 @@
-use super::{
-    dtos::{BbsBoundSignRequest, BbsBoundVerifyRequest},
-    utils::digest_messages,
-};
+use super::dtos::{BbsBoundSignRequest, BbsBoundVerifyRequest};
 use crate::{
     bbs::{
+        api::utils::digest_messages,
         ciphersuites::{
             bls12_381::BBS_BLS12381G1_SIGNATURE_LENGTH,
             BbsCiphersuiteParameters,
