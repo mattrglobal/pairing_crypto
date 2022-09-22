@@ -19,9 +19,9 @@ import {
   BbsDeriveProofRequest,
   BbsVerifyProofRequest,
   KeyGenerationRequest,
-} from "./bbs/types";
+} from "./types/bbs";
 
-export * from "./bbs/types";
+export * from "./types/bbs";
 
 export namespace bbs {
   namespace bls12381_sha256 {
