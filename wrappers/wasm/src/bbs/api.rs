@@ -13,7 +13,8 @@
 // limitations under the License.
 // ------------------------------------------------------------------------------
 
-use crate::{dtos::*, utils::*};
+use super::dtos::*;
+use crate::utils::*;
 use core::convert::{TryFrom, TryInto};
 use pairing_crypto::bbs::{
     ciphersuites::{
