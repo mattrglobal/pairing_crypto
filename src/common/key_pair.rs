@@ -7,6 +7,7 @@ macro_rules! bbs_bls_key_pair_impl {
         $octet_point_length:ident,
         $point_projective_type:ident,
         $point_affine_type:ident,
+        $generate_sk:ident,
         $sk_to_pk_fn:ident
     ) => {
         /// The secret key is field element 0 < `x` < `r`
@@ -53,7 +54,7 @@ macro_rules! bbs_bls_key_pair_impl {
             {
                 let key_info = key_info.unwrap_or(&[]);
 
-                if let Some(out) = generate_sk(ikm.as_ref(), key_info) {
+                if let Some(out) = $generate_sk(ikm.as_ref(), key_info) {
                     // Extra assurance
                     if out.is_zero().unwrap_u8() == 1u8 {
                         return None;

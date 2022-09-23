@@ -28,5 +28,6 @@ bbs_bls_key_pair_impl!(
     OCTET_POINT_G2_LENGTH,
     G2Projective,
     G2Affine,
+    generate_sk,
     sk_to_pk_in_g2
 );
