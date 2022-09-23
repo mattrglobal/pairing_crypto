@@ -108,7 +108,7 @@ where
 
     // Derive generators
     let mut generators = MemoryCachedGenerators::<C>::new(
-        request.total_message_count - 1,
+        request.total_message_count,
         Some(true),
     )?;
 
