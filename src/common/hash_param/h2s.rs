@@ -55,10 +55,8 @@ pub(crate) trait HashToScalarParameter: ExpandMessageParameter {
                 return Err(Error::MaxRetryReached);
             }
             let msg_prime = [
-                [msg_octets, &i2osp(t as u64, 1)?].concat(),
-                i2osp(count as u64, 4)?,
-            ]
-            .concat();
+                msg_octets, &i2osp(t as u64, 1)?, &i2osp(count as u64, 4)?,
+            ].concat();
 
             let mut expander = Self::Expander::init_expand(
                 &msg_prime,
