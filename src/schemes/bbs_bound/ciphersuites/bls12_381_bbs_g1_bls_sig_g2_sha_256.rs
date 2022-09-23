@@ -2,7 +2,6 @@ use crate::{
     bbs::ciphersuites::{
         bls12_381::BBS_BLS12381G1_SIGNATURE_LENGTH,
         bls12_381_g1_sha_256::Bls12381Sha256CipherSuiteParameter,
-        bls12_381_g1_shake_256::Bls12381Shake256CipherSuiteParameter,
     },
     bbs_bound::{
         api::dtos::{
@@ -35,7 +34,7 @@ pub fn bls_key_pop(
     request: &BlsKeyPopGenRequest<'_>,
 ) -> Result<[u8; BLS_SIG_BLS12381G2_SIGNATURE_LENGTH], Error> {
     crate::bbs_bound::api::bls_key_pop::generate::<
-        Bls12381Shake256CipherSuiteParameter,
+        Bls12381Sha256CipherSuiteParameter,
         Bls12381G2XmdSha256AugCipherSuiteParameter,
     >(request)
 }
@@ -46,7 +45,7 @@ pub fn bls_key_pop_verify(
     request: &BlsKeyPopVerifyRequest<'_>,
 ) -> Result<bool, Error> {
     crate::bbs_bound::api::bls_key_pop::verify::<
-        Bls12381Shake256CipherSuiteParameter,
+        Bls12381Sha256CipherSuiteParameter,
         Bls12381G2XmdSha256AugCipherSuiteParameter,
     >(request)
 }
