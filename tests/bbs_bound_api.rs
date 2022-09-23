@@ -254,7 +254,7 @@ macro_rules! bound_proof_gen_verify_e2e_nominal {
                     header: Some(header),
                     presentation_header: Some(presentation_header),
                     proof: &proof,
-                    total_message_count: messages.len() + 1,
+                    total_message_count: messages.len(),
                     messages: Some(revealed_msgs.as_slice()),
                 })
                 .expect("proof verification failed"),
