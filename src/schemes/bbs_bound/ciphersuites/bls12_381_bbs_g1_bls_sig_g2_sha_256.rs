@@ -35,7 +35,7 @@ pub fn bls_key_pop(
     request: &BlsKeyPopGenRequest<'_>,
 ) -> Result<[u8; BLS_SIG_BLS12381G2_SIGNATURE_LENGTH], Error> {
     crate::bbs_bound::api::bls_key_pop::generate::<
-        Bls12381Shake256CipherSuiteParameter,
+        Bls12381Sha256CipherSuiteParameter,
         Bls12381G2XmdSha256AugCipherSuiteParameter,
     >(request)
 }
@@ -46,7 +46,7 @@ pub fn bls_key_pop_verify(
     request: &BlsKeyPopVerifyRequest<'_>,
 ) -> Result<bool, Error> {
     crate::bbs_bound::api::bls_key_pop::verify::<
-        Bls12381Shake256CipherSuiteParameter,
+        Bls12381Sha256CipherSuiteParameter,
         Bls12381G2XmdSha256AugCipherSuiteParameter,
     >(request)
 }
