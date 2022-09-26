@@ -2,7 +2,8 @@ name: ci-wrapper-wasm
 
 on:
   workflow_run:
-    workflows: ci-core
+    workflows: 
+      - ci-core
     types:
       - completed
 

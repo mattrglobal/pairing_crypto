@@ -2,7 +2,8 @@ name: ci-obj-c
 
 on:
   workflow_run:
-    workflows: ci-wrapper-c
+    workflows: 
+      - ci-wrapper-c
     types:
       - completed
 

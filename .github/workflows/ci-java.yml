@@ -2,7 +2,8 @@ name: ci-java
 
 on:
   workflow_run:
-    workflows: ci-wrapper-c
+    workflows:
+      - ci-wrapper-c
     types:
       - completed
 
