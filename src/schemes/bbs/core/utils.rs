@@ -1,46 +1,29 @@
 #![allow(non_snake_case)]
 
 use super::{
-    constants::{NON_NEGATIVE_INTEGER_ENCODING_LENGTH, OCTET_POINT_G1_LENGTH},
     generator::Generators,
     key_pair::PublicKey,
     types::{Challenge, Message},
 };
 use crate::{
     bbs::ciphersuites::BbsCiphersuiteParameters,
-    common::serialization::{i2osp, i2osp_with_data},
-    curves::bls12_381::{G1Affine, G1Projective, Scalar},
+    common::{
+        hash_param::constant::NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
+        serialization::{i2osp, i2osp_with_data},
+    },
+    curves::{
+        bls12_381::{G1Projective, Scalar},
+        point_serde::point_to_octets_g1,
+    },
     error::Error,
 };
 use ff::Field;
-use group::Curve;
 
 #[cfg(feature = "alloc")]
 use alloc::collections::BTreeMap;
 
 #[cfg(not(feature = "alloc"))]
 use std::collections::BTreeMap;
-
-/// Get the representation of a point G1(in Projective form) to compressed
-/// and big-endian octets form.
-pub(crate) fn point_to_octets_g1(
-    p: &G1Projective,
-) -> [u8; OCTET_POINT_G1_LENGTH] {
-    p.to_affine().to_compressed()
-}
-
-/// Convert from octets in affine, compressed and big-endian form to
-/// `G1Projective` type.
-pub(crate) fn octets_to_point_g1(
-    octets: &[u8; OCTET_POINT_G1_LENGTH],
-) -> Result<G1Projective, Error> {
-    let result = G1Affine::from_compressed(octets).map(G1Projective::from);
-    if result.is_some().unwrap_u8() == 1u8 {
-        Ok(result.unwrap())
-    } else {
-        Err(Error::BadEncoding)
-    }
-}
 
 /// Computes `domain` value.
 /// domain =
@@ -54,7 +37,7 @@ pub(crate) fn compute_domain<T, G, C>(
 where
     T: AsRef<[u8]>,
     G: Generators,
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
 {
     // Error out if length of messages and generators are not equal
     if L != generators.message_generators_length() {
@@ -75,9 +58,7 @@ where
     for generator in generators.message_generators_iter() {
         data_to_hash.extend(point_to_octets_g1(&generator).as_ref());
     }
-    // As of now we support only BLS12/381 ciphersuite, it's OK to use this
-    // constant here. This should be passed as ciphersuite specific const as
-    // generic parameter when initializing a curve specific ciphersuite.
+
     data_to_hash.extend(i2osp_with_data(
         C::ID.as_octets(),
         NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
@@ -102,7 +83,7 @@ pub(crate) fn compute_B<G, C>(
 ) -> Result<G1Projective, Error>
 where
     G: Generators,
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
 {
     // Input params check
     // Error out if length of generators and messages are not equal
@@ -138,7 +119,7 @@ pub(crate) fn compute_challenge<T, C>(
 ) -> Result<Challenge, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
 {
     // c_array = (A', Abar, D, C1, C2, R, i1, ..., iR, msg_i1, ..., msg_iR,
     //              domain, ph)

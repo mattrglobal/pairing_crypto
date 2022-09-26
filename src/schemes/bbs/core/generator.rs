@@ -28,8 +28,8 @@ pub(crate) trait Generators: Debug + Clone {
     fn get_message_generator(&mut self, index: usize) -> Option<G1Projective>;
 
     /// Get a `Iterator` for message generators.
-    fn message_generators_iter(&self) -> GeneratorsIter<Self> {
-        GeneratorsIter {
+    fn message_generators_iter(&self) -> MessageGeneratorsIter<Self> {
+        MessageGeneratorsIter {
             index: 0,
             count: self.message_generators_length(),
             generators: self.clone(),
@@ -38,13 +38,13 @@ pub(crate) trait Generators: Debug + Clone {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct GeneratorsIter<G: Generators> {
+pub(crate) struct MessageGeneratorsIter<G: Generators> {
     index: usize,
     count: usize,
     generators: G,
 }
 
-impl<G: Generators> Iterator for GeneratorsIter<G> {
+impl<G: Generators> Iterator for MessageGeneratorsIter<G> {
     type Item = G1Projective;
 
     fn size_hint(&self) -> (usize, Option<usize>) {

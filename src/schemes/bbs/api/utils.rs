@@ -30,12 +30,12 @@ use crate::{
 
 /// Digests the set of input messages and returns in the form of an internal
 /// structure
-pub(super) fn digest_messages<T, C>(
+pub(crate) fn digest_messages<T, C>(
     messages: Option<&[T]>,
 ) -> Result<Vec<Message>, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
 {
     if let Some(messages) = messages {
         return messages
@@ -52,7 +52,7 @@ pub(super) fn digest_proof_messages<T, C>(
 ) -> Result<(Vec<Message>, Vec<ProofMessage>), Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
 {
     let mut digested_messages = vec![];
     let mut proof_messages = vec![];
@@ -76,13 +76,13 @@ where
     Ok((digested_messages, proof_messages))
 }
 
-pub(super) fn digest_revealed_proof_messages<T, C>(
+pub(crate) fn digest_revealed_proof_messages<T, C>(
     messages: Option<&[(usize, T)]>,
     total_message_count: usize,
 ) -> Result<BTreeMap<usize, Message>, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
 {
     if messages.is_none() {
         return Ok(BTreeMap::new());

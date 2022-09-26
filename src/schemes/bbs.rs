@@ -1,4 +1,4 @@
-mod api;
+pub(crate) mod api;
 
 /// Core implementation of BBS scheme.
 pub mod core;

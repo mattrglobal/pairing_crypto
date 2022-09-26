@@ -5,16 +5,20 @@ use super::{
 };
 use crate::{
     bbs::{
-        core::{
-            constants::XOF_NO_OF_BYTES,
-            hash_utils::{do_create_generators, do_hash_to_scalar},
-        },
         BbsProofGenRequest,
         BbsProofVerifyRequest,
         BbsSignRequest,
         BbsVerifyRequest,
     },
-    curves::bls12_381::{hash_to_curve::ExpandMsgXmd, G1Projective, Scalar},
+    common::{
+        ciphersuite::CipherSuiteParameter,
+        hash_param::{
+            h2c::HashToCurveParameter,
+            h2s::HashToScalarParameter,
+            ExpandMessageParameter,
+        },
+    },
+    curves::bls12_381::hash_to_curve::ExpandMsgXmd,
     Error,
 };
 use sha2::Sha256;
@@ -22,33 +26,21 @@ use sha2::Sha256;
 #[derive(Debug, Clone)]
 pub(crate) struct Bls12381Sha256CipherSuiteParameter;
 
-impl<'a> BbsCiphersuiteParameters<'a> for Bls12381Sha256CipherSuiteParameter {
+impl CipherSuiteParameter for Bls12381Sha256CipherSuiteParameter {
     const ID: CipherSuiteId = CipherSuiteId::BbsBls12381G1XmdSha256;
-
-    fn hash_to_scalar(
-        message: &[u8],
-        count: usize,
-        dst: Option<&[u8]>,
-    ) -> Result<Vec<Scalar>, Error> {
-        do_hash_to_scalar::<Self, ExpandMsgXmd<Sha256>>(message, count, dst)
-    }
-
-    fn create_generators(
-        count: usize,
-        n: &mut u64,
-        v: &mut [u8; XOF_NO_OF_BYTES],
-        with_fresh_state: bool,
-    ) -> Result<Vec<G1Projective>, Error> {
-        do_create_generators::<Self, ExpandMsgXmd<Sha256>>(
-            count,
-            n,
-            v,
-            with_fresh_state,
-        )
-    }
 }
 
-/// Create a BLS12-381-Sha-256 BBS signature.
+impl ExpandMessageParameter for Bls12381Sha256CipherSuiteParameter {
+    type Expander = ExpandMsgXmd<Sha256>;
+}
+
+impl HashToScalarParameter for Bls12381Sha256CipherSuiteParameter {}
+
+impl HashToCurveParameter for Bls12381Sha256CipherSuiteParameter {}
+
+impl BbsCiphersuiteParameters for Bls12381Sha256CipherSuiteParameter {}
+
+/// Create a BLS12-381-G1-Sha-256 BBS signature.
 /// Security Warning: `secret_key` and `public_key` in `request` must be related
 /// key-pair generated using `KeyPair` APIs.
 pub fn sign<T>(
@@ -62,7 +54,7 @@ where
     )
 }
 
-/// Verify a BLS12-381-Sha-256 BBS signature.
+/// Verify a BLS12-381-G1-Sha-256 BBS signature.
 pub fn verify<T>(request: &BbsVerifyRequest<'_, T>) -> Result<bool, Error>
 where
     T: AsRef<[u8]>,
@@ -72,7 +64,7 @@ where
     )
 }
 
-/// Generate a BLS12-381-Sha-256 signature proof of knowledge.
+/// Generate a BLS12-381-G1-Sha-256 BBS signature proof of knowledge.
 pub fn proof_gen<T>(
     request: &BbsProofGenRequest<'_, T>,
 ) -> Result<Vec<u8>, Error>
@@ -84,7 +76,7 @@ where
     )
 }
 
-/// Verify a BLS12-381-Sha-256 signature proof of knowledge.
+/// Verify a BLS12-381-G1-Sha-256 BBS signature proof of knowledge.
 pub fn proof_verify<T>(
     request: &BbsProofVerifyRequest<'_, T>,
 ) -> Result<bool, Error>
@@ -98,8 +90,11 @@ where
 
 /// Create generators.
 #[cfg(feature = "__private_generator_api")]
-pub fn create_generators(count: usize) -> Result<Vec<Vec<u8>>, Error> {
+pub fn create_generators(
+    count: usize,
+    private_holder_binding: Option<bool>,
+) -> Result<Vec<Vec<u8>>, Error> {
     crate::bbs::api::generators::create_generators::<
         Bls12381Sha256CipherSuiteParameter,
-    >(count)
+    >(count, private_holder_binding)
 }

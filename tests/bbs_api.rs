@@ -2,17 +2,17 @@ use pairing_crypto::{
     bbs::{
         ciphersuites::{
             bls12_381::KeyPair,
-            bls12_381_sha_256::{
-                proof_gen as bls12_381_sha_256_proof_gen,
-                proof_verify as bls12_381_sha_256_proof_verify,
-                sign as bls12_381_sha_256_sign,
-                verify as bls12_381_sha_256_verify,
+            bls12_381_g1_sha_256::{
+                proof_gen as bls12_381_g1_sha_256_proof_gen,
+                proof_verify as bls12_381_g1_sha_256_proof_verify,
+                sign as bls12_381_g1_sha_256_sign,
+                verify as bls12_381_g1_sha_256_verify,
             },
-            bls12_381_shake_256::{
-                proof_gen as bls12_381_shake_256_proof_gen,
-                proof_verify as bls12_381_shake_256_proof_verify,
-                sign as bls12_381_shake_256_sign,
-                verify as bls12_381_shake_256_verify,
+            bls12_381_g1_shake_256::{
+                proof_gen as bls12_381_g1_shake_256_proof_gen,
+                proof_verify as bls12_381_g1_shake_256_proof_verify,
+                sign as bls12_381_g1_shake_256_sign,
+                verify as bls12_381_g1_shake_256_verify,
             },
         },
         BbsProofGenRequest,
@@ -115,14 +115,14 @@ macro_rules! sign_verify_e2e_nominal {
 #[test]
 fn sign_verify_e2e_nominal() {
     sign_verify_e2e_nominal!(
-        bls12_381_shake_256_sign,
-        bls12_381_shake_256_verify,
+        bls12_381_g1_shake_256_sign,
+        bls12_381_g1_shake_256_verify,
         EXPECTED_SIGNATURES_SHAKE_256
     );
 
     sign_verify_e2e_nominal!(
-        bls12_381_sha_256_sign,
-        bls12_381_sha_256_verify,
+        bls12_381_g1_sha_256_sign,
+        bls12_381_g1_sha_256_verify,
         EXPECTED_SIGNATURES_SHA_256
     );
 }
@@ -211,17 +211,17 @@ macro_rules! proof_gen_verify_e2e_nominal {
 #[test]
 fn proof_gen_verify_e2e_nominal() {
     proof_gen_verify_e2e_nominal!(
-        bls12_381_shake_256_sign,
-        bls12_381_shake_256_verify,
-        bls12_381_shake_256_proof_gen,
-        bls12_381_shake_256_proof_verify
+        bls12_381_g1_shake_256_sign,
+        bls12_381_g1_shake_256_verify,
+        bls12_381_g1_shake_256_proof_gen,
+        bls12_381_g1_shake_256_proof_verify
     );
 
     proof_gen_verify_e2e_nominal!(
-        bls12_381_sha_256_sign,
-        bls12_381_sha_256_verify,
-        bls12_381_sha_256_proof_gen,
-        bls12_381_sha_256_proof_verify
+        bls12_381_g1_sha_256_sign,
+        bls12_381_g1_sha_256_verify,
+        bls12_381_g1_sha_256_proof_gen,
+        bls12_381_g1_sha_256_proof_verify
     );
 }
 
@@ -308,14 +308,14 @@ macro_rules! proof_gen_failure_message_modified {
 #[test]
 fn proof_gen_failure_message_modified() {
     proof_gen_failure_message_modified!(
-        bls12_381_shake_256_sign,
-        bls12_381_shake_256_verify,
-        bls12_381_shake_256_proof_gen
+        bls12_381_g1_shake_256_sign,
+        bls12_381_g1_shake_256_verify,
+        bls12_381_g1_shake_256_proof_gen
     );
 
     proof_gen_failure_message_modified!(
-        bls12_381_sha_256_sign,
-        bls12_381_sha_256_verify,
-        bls12_381_sha_256_proof_gen
+        bls12_381_g1_sha_256_sign,
+        bls12_381_g1_sha_256_verify,
+        bls12_381_g1_sha_256_proof_gen
     );
 }

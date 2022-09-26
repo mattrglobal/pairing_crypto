@@ -1,8 +1,7 @@
 use crate::{
     bbs::{
-        ciphersuites::bls12_381_shake_256::Bls12381Shake256CipherSuiteParameter,
+        ciphersuites::bls12_381_g1_shake_256::Bls12381Shake256CipherSuiteParameter,
         core::{
-            constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
             generator::{
                 memory_cached_generator::MemoryCachedGenerators,
                 Generators,
@@ -13,7 +12,12 @@ use crate::{
             types::{Challenge, FiatShamirProof, Message},
         },
     },
-    curves::bls12_381::{G1Projective, Scalar},
+    curves::bls12_381::{
+        G1Projective,
+        Scalar,
+        OCTET_POINT_G1_LENGTH,
+        OCTET_SCALAR_LENGTH,
+    },
     tests::bbs::{
         create_generators_helper,
         get_random_test_key_pair,

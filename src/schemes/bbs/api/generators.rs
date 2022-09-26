@@ -11,12 +11,16 @@ use crate::{
     Error,
 };
 
-pub(crate) fn create_generators<C>(count: usize) -> Result<Vec<Vec<u8>>, Error>
+pub(crate) fn create_generators<C>(
+    count: usize,
+    private_holder_binding: Option<bool>,
+) -> Result<Vec<Vec<u8>>, Error>
 where
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
 {
     let mut result = Vec::new();
-    let mut generators = MemoryCachedGenerators::<C>::new(count)?;
+    let mut generators =
+        MemoryCachedGenerators::<C>::new(count, private_holder_binding)?;
     result.push(generators.Q_1.to_affine().to_compressed().to_vec());
     result.push(generators.Q_2.to_affine().to_compressed().to_vec());
     for i in 0..count - 2 {

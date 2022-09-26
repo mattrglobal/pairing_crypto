@@ -27,13 +27,13 @@ pub fn get_proof_size(num_undisclosed_messages: usize) -> usize {
     Proof::get_size(num_undisclosed_messages)
 }
 
-// Generate a signature proof of knowledge.
+// Generate a BBS signature proof of knowledge.
 pub(crate) fn proof_gen<T, C>(
     request: &BbsProofGenRequest<'_, T>,
 ) -> Result<Vec<u8>, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
 {
     // Parse public key from request
     let pk = PublicKey::from_octets(request.public_key)?;
@@ -42,7 +42,8 @@ where
         digest_proof_messages::<_, C>(request.messages)?;
 
     // Derive generators
-    let generators = MemoryCachedGenerators::<C>::new(digested_messages.len())?;
+    let generators =
+        MemoryCachedGenerators::<C>::new(digested_messages.len(), None)?;
     // Parse signature from request
     let signature = Signature::from_octets(request.signature)?;
 
@@ -72,13 +73,13 @@ where
     Ok(proof.to_octets())
 }
 
-// Verify a signature proof of knowledge.
+// Verify a BBS signature proof of knowledge.
 pub(crate) fn proof_verify<T, C>(
     request: &BbsProofVerifyRequest<'_, T>,
 ) -> Result<bool, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters<'static>,
+    C: BbsCiphersuiteParameters,
 {
     // Parse public key from request
     let public_key = PublicKey::from_octets(request.public_key)?;
@@ -92,7 +93,7 @@ where
 
     // Derive generators
     let mut generators =
-        MemoryCachedGenerators::<C>::new(request.total_message_count)?;
+        MemoryCachedGenerators::<C>::new(request.total_message_count, None)?;
 
     let proof = Proof::from_octets(request.proof)?;
 

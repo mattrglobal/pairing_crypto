@@ -18,7 +18,7 @@ use crate::{
     bbs::{
         ciphersuites::{
             bls12_381::{get_proof_size, PublicKey, SecretKey},
-            bls12_381_shake_256::Bls12381Shake256CipherSuiteParameter,
+            bls12_381_g1_shake_256::Bls12381Shake256CipherSuiteParameter,
         },
         core::{
             generator::memory_cached_generator::MemoryCachedGenerators,
@@ -48,7 +48,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 pub(crate) mod test_helper {
     use crate::bbs::{
-        ciphersuites::bls12_381_shake_256::Bls12381Shake256CipherSuiteParameter,
+        ciphersuites::bls12_381_g1_shake_256::Bls12381Shake256CipherSuiteParameter,
         core::{
             generator::Generators,
             types::{Message, ProofMessage},

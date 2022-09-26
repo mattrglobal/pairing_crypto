@@ -1,7 +1,7 @@
 use clap::{Parser, ValueEnum};
 use pairing_crypto::bbs::ciphersuites::{
-    bls12_381_sha_256::create_generators as bls12_381_sha_256_create_generators,
-    bls12_381_shake_256::create_generators as bls12_381_shake_256_create_generators,
+    bls12_381_g1_sha_256::create_generators as bls12_381_sha_256_create_generators,
+    bls12_381_g1_shake_256::create_generators as bls12_381_shake_256_create_generators,
 };
 use std::{
     env,
@@ -48,10 +48,10 @@ fn main() {
 
     let generators = match ciphersuite {
         Ciphersuite::Bls12381Sha256 => {
-            bls12_381_sha_256_create_generators(num_of_generators)
+            bls12_381_sha_256_create_generators(num_of_generators, None)
         }
         Ciphersuite::Bls12381Shake256 => {
-            bls12_381_shake_256_create_generators(num_of_generators)
+            bls12_381_shake_256_create_generators(num_of_generators, None)
         }
     }
     .unwrap();

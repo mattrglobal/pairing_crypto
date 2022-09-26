@@ -1,15 +1,13 @@
 use crate::{
     bbs::{
-        ciphersuites::{
-            bls12_381_shake_256::Bls12381Shake256CipherSuiteParameter,
-            BbsCiphersuiteParameters,
-        },
+        ciphersuites::bls12_381_g1_shake_256::Bls12381Shake256CipherSuiteParameter,
         core::{
             generator::memory_cached_generator::MemoryCachedGenerators,
             key_pair::KeyPair,
             types::Message,
         },
     },
+    common::hash_param::h2s::HashToScalarParameter,
     curves::bls12_381::G1Projective,
 };
 use group::Group;
@@ -72,6 +70,7 @@ fn create_generators_helper(
 ) -> MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter> {
     MemoryCachedGenerators::<Bls12381Shake256CipherSuiteParameter>::new(
         num_of_messages,
+        None,
     )
     .expect("generators creation failed")
 }

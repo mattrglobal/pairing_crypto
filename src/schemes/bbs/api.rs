@@ -4,4 +4,4 @@ pub mod generators;
 pub mod proof;
 pub mod signature;
 
-mod utils;
+pub(crate) mod utils;

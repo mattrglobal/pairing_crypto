@@ -10,8 +10,8 @@ use pairing_crypto::bbs::{
             BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
             BBS_BLS12381G1_SECRET_KEY_LENGTH,
         },
-        bls12_381_sha_256::sign as bls12_381_sha_256_sign,
-        bls12_381_shake_256::sign as bls12_381_shake_256_sign,
+        bls12_381_g1_sha_256::sign as bls12_381_sha_256_sign,
+        bls12_381_g1_shake_256::sign as bls12_381_shake_256_sign,
     },
     BbsSignRequest,
 };
