@@ -1,16 +1,15 @@
 use crate::{
     bbs::ciphersuites::BbsCiphersuiteParameters,
-    bls::ciphersuites::{
-        bls12_381::{
-            PublicKey as BlsPublicKey,
-            SecretKey as BlsSecretKey,
-            BLS_SIG_BLS12381G2_SIGNATURE_LENGTH,
+    bls::{
+        ciphersuites::{
+            bls12_381::{
+                PublicKey as BlsPublicKey,
+                SecretKey as BlsSecretKey,
+                BLS_SIG_BLS12381G2_SIGNATURE_LENGTH,
+            },
+            BlsSigAugCiphersuiteParameters,
         },
-        bls12_381_g2_sha_256_aug::{
-            sign as bls_aug_sign,
-            verify as bls_aug_verify,
-        },
-        BlsSigAugCiphersuiteParameters,
+        core::signature::Signature as BlsSignature,
     },
     common::{
         hash_param::constant::MAX_DST_SIZE,
@@ -42,7 +41,12 @@ where
         request.extra_info,
     )?;
 
-    bls_aug_sign(&bls_sk, bls_pop_message)
+    Ok(BlsSignature::new::<_, C2>(
+        &bls_sk,
+        bls_pop_message.as_ref(),
+        &C2::default_hash_to_point_dst(),
+    )?
+    .to_octets())
 }
 
 ///  Validate a proof of possession of a BLS secret key (KeyPoP) created using
@@ -68,7 +72,13 @@ where
         request.dst,
         request.extra_info,
     )?;
-    bls_aug_verify(&bls_pk, bls_pop_message, request.bls_key_pop)
+
+    let bls_signature = BlsSignature::from_octets(request.bls_key_pop)?;
+    bls_signature.verify::<_, C2>(
+        &bls_pk,
+        bls_pop_message.as_ref(),
+        &C2::default_hash_to_point_dst(),
+    )
 }
 
 fn get_bls_pop_message<C1, C2>(
