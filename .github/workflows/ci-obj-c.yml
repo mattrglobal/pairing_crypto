@@ -1,12 +1,10 @@
 name: ci-obj-c
 
 on:
-  pull_request:
-    branches:
-      - master
-  push:
-    branches:
-      - master
+  workflow_run:
+    workflows: ci-wrapper-c
+    types:
+      - completed
 
 jobs:
   build_test:

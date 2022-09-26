@@ -1,12 +1,10 @@
 name: ci-wrapper-wasm
 
 on:
-  pull_request:
-    branches:
-      - master
-  push:
-    branches:
-      - master
+  workflow_run:
+    workflows: ci-core
+    types:
+      - completed
 
 jobs:
   build_test:

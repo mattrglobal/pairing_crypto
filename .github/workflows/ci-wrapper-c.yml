@@ -2,7 +2,7 @@ name: ci-wrapper-c
 
 on:
   workflow_run:
-    workflows: [Build & Test]
+    workflows: ci-core
     types:
       - completed
 
