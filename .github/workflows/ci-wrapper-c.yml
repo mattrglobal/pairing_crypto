@@ -2,14 +2,18 @@ name: ci-wrapper-c
 
 on:
   workflow_run:
-    workflows: ci-core
+    workflows: 
+      - ci-core
     types:
       - completed
 
 jobs:
   build_test:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
     name: Build & Test C Wrapper
     runs-on: macos-latest
+
     defaults:
       run:
         working-directory: ./main/wrappers/c

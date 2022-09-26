@@ -8,6 +8,8 @@ on:
 
 jobs:
   build_test:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
     name: Build & Test Java Wrapper
     runs-on: ubuntu-latest
     defaults:
