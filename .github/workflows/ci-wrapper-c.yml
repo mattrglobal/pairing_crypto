@@ -1,12 +1,10 @@
 name: ci-wrapper-c
 
 on:
-  pull_request:
-    branches:
-      - master
-  push:
-    branches:
-      - master
+  workflow_run:
+    workflows: [Build & Test]
+    types:
+      - completed
 
 jobs:
   build_test:
