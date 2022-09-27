@@ -1,8 +1,9 @@
-name: CI Wrapper C
+name: ci-wrapper-c
 
 on:
   workflow_run:
-    workflows: [CI Core]
+    workflows: 
+      - ci-core
     types:
       - completed
 
