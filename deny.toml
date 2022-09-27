@@ -38,13 +38,13 @@ db-urls = ["https://github.com/rustsec/advisory-db"]
 # The lint level for security vulnerabilities
 vulnerability = "deny"
 # The lint level for unmaintained crates
-unmaintained = "warn"
+unmaintained = "deny"
 # The lint level for crates that have been yanked from their source registry
-yanked = "warn"
+yanked = "deny"
 # The lint level for crates with security notices. Note that as of
 # 2019-12-17 there are no security notice advisories in
 # https://github.com/rustsec/advisory-db
-notice = "warn"
+notice = "deny"
 # A list of advisory IDs to ignore. Note that ignored advisories will still
 # output a note when they are encountered.
 ignore = [
@@ -152,9 +152,9 @@ registries = [
 # https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html
 [bans]
 # Lint level for when multiple versions of the same crate are detected
-multiple-versions = "warn"
+multiple-versions = "deny"
 # Lint level for when a crate version requirement is `*`
-wildcards = "allow"
+wildcards = "deny"
 # The graph highlighting used when creating dotgraphs for crates
 # with multiple versions
 # * lowest-version - The path to the lowest versioned duplicate is highlighted
