@@ -1,4 +1,4 @@
-name: ci-java
+name: ci-wrapper-java
 
 on:
   workflow_run:

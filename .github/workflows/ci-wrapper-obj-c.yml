@@ -1,4 +1,4 @@
-name: ci-obj-c
+name: ci-wrapper-obj-c
 
 on:
   workflow_run:
