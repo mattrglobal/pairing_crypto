@@ -49,7 +49,6 @@ pub fn bls_key_pop_verify(
         Bls12381G2XmdSha256AugCipherSuiteParameter,
     >(request)
 }
-
 /// Create a BLS12-381-G1-Shake-256 BBS bound signature.
 /// Security Warning: `secret_key` and `public_key` in `request` must be related
 /// key-pair generated using `KeyPair` APIs.

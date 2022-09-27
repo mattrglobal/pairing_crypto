@@ -11,5 +11,13 @@
  * limitations under the License.
  */
 
-export { KeyPair } from "./KeyPair";
-export { KeyGenerationRequest } from "./KeyGenerationRequest";
+export { BlsKeyPopGenRequest } from "./BlsKeyPopGenRequest";
+export { BlsKeyPopVerifyRequest } from "./BlsKeyPopVerifyRequest";
+export { BbsBoundDeriveProofRequest } from "./BbsBoundDeriveProofRequest";
+export { BbsBoundSignRequest } from "./BbsBoundSignRequest";
+export { BbsBoundVerifyRequest } from "./BbsBoundVerifyRequest";
+export { BbsBoundVerifyResult } from "./BbsBoundVerifyResult";
+export { BbsBoundVerifyProofRequest } from "./BbsBoundVerifyProofRequest";
+
+export { KeyPair } from "./../KeyPair";
+export { KeyGenerationRequest } from "./../KeyGenerationRequest";

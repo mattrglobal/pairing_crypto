@@ -11,5 +11,24 @@
  * limitations under the License.
  */
 
-export { KeyPair } from "./KeyPair";
-export { KeyGenerationRequest } from "./KeyGenerationRequest";
+/**
+ * A request to generate a proof of posession for holder's BLS secret key
+ */
+export interface BlsKeyPopGenRequest {
+  /**
+   * BLS secret key of the holder
+   */
+  readonly blsSecretKey: Uint8Array;
+  /**
+   * Unique identifier of the issuer
+   */
+  readonly aud: Uint8Array;
+  /**
+   * Domain separation tag
+   */
+  readonly dst?: Uint8Array;
+  /**
+   * Extra information to bind to a KeyPoP (e.g., creation date, dst etc.)
+   */
+  readonly extraInfo?: Uint8Array;
+}

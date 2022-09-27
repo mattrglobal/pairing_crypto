@@ -11,5 +11,28 @@
  * limitations under the License.
  */
 
-export { KeyPair } from "./KeyPair";
-export { KeyGenerationRequest } from "./KeyGenerationRequest";
+/**
+ * A request to create a BBS bound signature for a set of messages
+ */
+export interface BbsBoundSignRequest {
+  /**
+   * Secret Key key of the signer
+   */
+  readonly secretKey: Uint8Array;
+  /**
+   * Public key of the signer
+   */
+  readonly publicKey: Uint8Array;
+  /**
+ * BLS public key of the holder
+ */
+  readonly blsPublicKey: Uint8Array;
+  /**
+   * Header message to sign
+   */
+  readonly header?: Uint8Array;
+  /**
+   * Messages to sign
+   */
+  readonly messages?: readonly Uint8Array[];
+}

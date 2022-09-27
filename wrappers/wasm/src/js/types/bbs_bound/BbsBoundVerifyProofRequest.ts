@@ -11,17 +11,17 @@
  * limitations under the License.
  */
 
-interface BbsVerifyProofMessageRequest {
+interface BbsBoundVerifyProofMessageRequest {
   /**
-   * Messages that was signed to produce the signature
+   * Revealed message from the messages that was signed to produce the signature
    */
   readonly [key: number]: Uint8Array;
 }
 
 /**
- * A request to verify a BBS signature proof of knowledge for a set of messages
+ * A request to verify a BBS bound signature proof of knowledge for a set of messages
  */
-export interface BbsVerifyProofRequest {
+export interface BbsBoundVerifyProofRequest {
   /**
    * Public key of the signer of the signature
    */
@@ -45,5 +45,5 @@ export interface BbsVerifyProofRequest {
   /**
    * Revealed messages
    */
-  readonly messages?: BbsVerifyProofMessageRequest;
+  readonly messages?: BbsBoundVerifyProofMessageRequest;
 }

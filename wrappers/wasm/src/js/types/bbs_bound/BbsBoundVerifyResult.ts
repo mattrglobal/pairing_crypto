@@ -11,5 +11,16 @@
  * limitations under the License.
  */
 
-export { KeyPair } from "./KeyPair";
-export { KeyGenerationRequest } from "./KeyGenerationRequest";
+/**
+ * The result returned from a bls-proof-of-posession, signature or proof verify operation
+ */
+export interface BbsBoundVerifyResult {
+  /**
+   * Indicates whether the verification was successful
+   */
+  readonly verified: boolean;
+  /**
+   * Indicates whether an error has occured during verification
+   */
+  readonly error?: string;
+}
