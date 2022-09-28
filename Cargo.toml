@@ -29,8 +29,6 @@ sha2 = "0.9"
 sha3 = "0.9"
 
 [dev-dependencies]
-[target.'cfg(unix)'.dev-dependencies]
-pprof = { version = "0.10.1", features = ["criterion", "flamegraph"] }
 criterion = { version = "0.4.0", features = ["html_reports"] }
 hex = "0.4"
 rand_xorshift = "0.3"

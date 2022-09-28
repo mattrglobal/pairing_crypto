@@ -14,12 +14,12 @@ use pairing_crypto::bbs::{
     BbsSignRequest,
     BbsVerifyRequest,
 };
+use std::time::Duration;
 
 #[macro_use]
 extern crate criterion;
 
 use criterion::{black_box, Criterion};
-use pprof::criterion::{Output, PProfProfiler};
 use rand::RngCore;
 use rand_core::OsRng;
 
@@ -268,15 +268,9 @@ fn profile_proof_verify(c: &mut Criterion) {
     );
 }
 
-#[cfg(unix)]
 criterion_group!(
     name = bbs_profile;
-    config = Criterion::default().with_profiler(PProfProfiler::new(100, Output::Flamegraph(None)));
-    targets =  profile_key_gen, profile_sign, profile_verify, profile_proof_gen, profile_proof_verify
-);
-#[cfg(not(unix))]
-criterion_group!(
-    name = bbs_profile;
+    config = Criterion::default().measurement_time(Duration::from_secs(5));
     targets =  profile_key_gen, profile_sign, profile_verify, profile_proof_gen, profile_proof_verify
 );
 criterion_main!(bbs_profile);
