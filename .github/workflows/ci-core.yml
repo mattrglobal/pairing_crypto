@@ -100,7 +100,7 @@ jobs:
           working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
           args: '--release'
 
-      - name: Build benchmarks
+      - name: Check benchmarks
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
           command: bench
