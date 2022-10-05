@@ -1,0 +1,17 @@
+{
+  "caseName": "multi-message signature",
+  "signerKeyPair": {
+    "secretKey": "47d2ede63ab4c329092b342ab526b1079dbc2595897d4f2ab2de4d841cbe7d56",
+    "publicKey": "b65b7cbff4e81b723456a13936b6bcc77a078bf6291765f3ae13170072249dd7daa7ec1bd82b818ab60198030b45b8fa159c155fc3841a9ad4045e37161c9f0d9a4f361b93cfdc67d365f3be1a398e56aa173d7a55e01b4a8dd2494e7fb90da7"
+  },
+  "header": "11223344556677889900aabbccddeeff",
+  "messages": [
+    "9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02",
+    "87a8bd656d49ee07b8110e1d8fd4f1dcef6fb9bc368c492d9bc8c4f98a739ac6"
+  ],
+  "signature": "802c45364dd52022e8d02d5ff64f8b338454528e3907ccb7cdfbd74df6a74809043019b52a629613a0430c3d55ce6b7e4244d16e06b4b6b3287cc9ac2009a60d18f4227109184d6a53848c5421e8e852065cb725e9de623c848deb74811e46485e445b838d98b0b3072a644b844e9966",
+  "result": {
+    "valid": false,
+    "reason": "missing messages"
+  }
+}

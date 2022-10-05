@@ -1,26 +1,22 @@
-pub(crate) use crate::schemes::bbs::core::{
-    constants::{
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        MAP_MESSAGE_TO_SCALAR_DST,
+use crate::curves::bls12_381::{
+    OCTET_POINT_G1_LENGTH,
+    OCTET_POINT_G2_LENGTH,
+    OCTET_SCALAR_LENGTH,
+};
+pub use crate::schemes::bbs::{
+    api::proof::get_proof_size,
+    core::{
+        constants::MIN_KEY_GEN_IKM_LENGTH,
+        key_pair::{KeyPair, PublicKey, SecretKey},
     },
-    generator::*,
-    proof::*,
-    signature::*,
-    types::{Message, ProofMessage},
 };
 
-pub use crate::schemes::bbs::core::key_pair::{KeyPair, PublicKey, SecretKey};
+/// "SecretKey" length in bytes for "BBS_BLS12381G1" ciphersuite.
+pub const BBS_BLS12381G1_SECRET_KEY_LENGTH: usize = OCTET_SCALAR_LENGTH;
 
-pub use crate::schemes::bbs::api::{
-    dtos::{
-        BbsProofGenRequest,
-        BbsProofGenRevealMessageRequest,
-        BbsProofVerifyRequest,
-        BbsSignRequest,
-        BbsVerifyRequest,
-    },
-    proof::{proof_gen, proof_verify},
-    signature::{sign, verify},
-};
+/// "PublicKey" length in bytes for "BBS_BLS12381G1" ciphersuite.
+pub const BBS_BLS12381G1_PUBLIC_KEY_LENGTH: usize = OCTET_POINT_G2_LENGTH;
+
+/// "Signature" length in bytes for "BBS_BLS12381G1" ciphersuite.
+pub const BBS_BLS12381G1_SIGNATURE_LENGTH: usize =
+    OCTET_POINT_G1_LENGTH + 2 * OCTET_SCALAR_LENGTH;

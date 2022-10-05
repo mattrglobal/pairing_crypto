@@ -15,13 +15,46 @@ Cargo.lock
 
 **/target
 
-
-# Added by cargo
-#
-# already existing elements were commented out
-
-#/target
-#Cargo.lock
-
 # VS code settings
 .vscode
+
+# Code coverage artifacts
+*.profraw
+
+# C/Obj-C build artifacts
+*.d
+*.o
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+**/build/*
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.a
+*.lai
+*.la
+*.lib
+
+*.class
+
+// Test executable generated in c-wrapper
+bbs_api_test
+
+*.DS_Store
+
+**/xcuserdata/*

@@ -3,7 +3,7 @@ use pairing_crypto::Error;
 use std::{ptr, slice};
 
 /// Wrapper to convert a string to ExternError and PairingCryptoError
-pub(crate) struct PairingCryptoFfiError(pub String);
+pub struct PairingCryptoFfiError(pub String);
 
 impl PairingCryptoFfiError {
     pub fn new(m: &str) -> Self {
@@ -96,12 +96,6 @@ impl From<&Vec<u8>> for ByteArray {
     }
 }
 
-impl From<Vec<u8>> for ByteArray {
-    fn from(b: Vec<u8>) -> Self {
-        Self::from_slice(&b)
-    }
-}
-
 impl From<&[u8]> for ByteArray {
     fn from(b: &[u8]) -> Self {
         Self::from_slice(b)
@@ -116,40 +110,15 @@ impl From<ByteBuffer> for ByteArray {
 
 define_bytebuffer_destructor!(pairing_crypto_byte_buffer_free);
 
-// TODO would be nice to drop the option here?
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-pub struct BbsSignRequestDto {
-    pub secret_key: Vec<u8>,
-    pub public_key: Vec<u8>,
-    pub header: Vec<u8>,
-    pub messages: Vec<Vec<u8>>,
-}
-
-pub struct BbsVerifyRequestDto {
-    pub public_key: Vec<u8>,
-    pub header: Vec<u8>,
-    pub messages: Vec<Vec<u8>>,
-    pub signature: Vec<u8>,
-}
-
-pub struct BbsDeriveProofRevealMessageRequestDto {
-    pub reveal: bool,
-    pub value: Vec<u8>,
-}
-
-pub struct BbsDeriveProofRequestDto {
-    pub public_key: Vec<u8>,
-    pub header: Vec<u8>,
-    pub messages: Vec<BbsDeriveProofRevealMessageRequestDto>,
-    pub signature: Vec<u8>,
-    pub presentation_message: Vec<u8>,
-}
-
-pub struct BbsVerifyProofRequestDto {
-    pub public_key: Vec<u8>,
-    pub header: Vec<u8>,
-    pub proof: Vec<u8>,
-    pub presentation_message: Vec<u8>,
-    pub total_message_count: usize,
-    pub messages: Vec<(usize, Vec<u8>)>,
+    #[test]
+    fn convert() {
+        let v = vec![1u8, 2, 3];
+        let arr = ByteArray::from(&v);
+        assert_eq!(arr.length, v.len());
+        assert_eq!(arr.to_vec(), vec![1u8, 2, 3]);
+    }
 }

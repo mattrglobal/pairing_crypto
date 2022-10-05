@@ -1,18 +1,29 @@
-use crate::bbs::core::{
-    constants::{
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+use crate::{
+    bbs::{
+        ciphersuites::bls12_381_g1_shake_256::Bls12381Shake256CipherSuiteParameter,
+        core::{
+            generator::memory_cached_generator::MemoryCachedGenerators,
+            key_pair::KeyPair,
+            types::Message,
+        },
     },
-    generator::Generators,
+    common::hash_param::h2s::HashToScalarParameter,
+    curves::bls12_381::G1Projective,
 };
+use group::Group;
+use rand_core::OsRng;
+
+mod test_data;
 
 mod generators;
 mod key_pair;
 mod proof;
 mod signature;
 
-const KEY_GEN_SEED: &[u8; 32] = b"not_A_random_seed_at_Allllllllll";
+const TEST_KEY_GEN_IKM: &[u8; 32] = b"not_A_random_seed_at_Allllllllll";
+
+const TEST_KEY_INFO: &[u8; 52] =
+    b"this-IS-some-key-metadata-to-be-used-in-test-key-gen";
 
 const TEST_KEY_INFOS: [&[u8]; 7] = [
     b"",
@@ -33,25 +44,111 @@ const TEST_CLAIMS: [&[u8]; 6] = [
 ];
 
 const TEST_HEADER: &[u8; 16] = b"some_app_context";
+const ANOTHER_TEST_HEADER: &[u8; 23] = b"some_other_test_context";
 
-const TEST_PRESENTATION_HEADER: &[u8; 20] = b"e8gxekZpmeZTU0VDL9MV";
+// Expected signature for TEST_KEY_GEN_IKM, TEST_KEY_INFO, TEST_HEADER and
+// TEST_CLAIMS
+const EXPECTED_SIGNATURE: &str = "ad644efdb0c054026042342c10ae3b52e80050b76da49f15c6a0308dd357aa2331e5e2247b0e68dc2f52a912204905a65c9f30bfe9bc8e9d7417e53ee436b94aaa26b18ec4b8fe18e9505663d4990d215a46077ee51baa8e776d7c97c99593fc5130e4c0b7751b324364ef8f14d39434";
 
-const EXPECTED_SIGS: [&str; 7] = [
-    "aeac37f08d62876ae01c0d3b244d9f457b74f928271aa84ebf730982b0d7f9e622aba85f4aec54f90714ffea69839b2c7011777eb4e89ca0cbbe7d25cc025d40bdcc15efbccd02ab25561589fc0d01c01fbd3fc8247b1a0105f5caa5fdb7c95ca2fa0ab08eeb09af048f9462a1ec5d8d",
-    "84e7ecd45f36e6eaad8863b79c290843271dbfbfc64f95288772b8999e7054248dacd2e50ec558659a66a9fbebdebfeb383f2f6f6eb960cb2ec7dc43991ed7d00c1aef095687000246f874cec690a3114787dfa98316d0bf13697d6a6d212b5d9d67bf6f390d1c24ee9daaefddeeadd5",
-    "8ea7aa0b96923c6bdee49cb507ca5feafa98145103dfb1f6fc67e9fd300d4ac49b635063482631ccc936ba0b549497fa17860d41f01e7393306691d61e895d5090d71a0e223c04de9d4f0c8054d1d8d90f24abcc2bf1fb5ba92af73ecae6fb2daa7087fda4c391e67fdbdcd46bb8ecb8",
-    "a8ea0f9fda19b21c0e71f70d01e5d6305f2df015fb97f1045d31ddea345cfcdd6f0ebd49a6a2ba5a76be257e68bffa4b5c862e5d2252fc88c0942f9f44823be3580f96104d942d1ca691ea02f42943c836e0f2a5c133e6444aa7469604dd7f134d2d91bf21545c4baee107898246e9c1",
-    "b25147bb7e6eb43dca2066ba3d910a222c0f7f9f18b3720b21216b323a5f76bd52bd0957e03dcccc7d688809d5e7cf56345973b8a25054de9d27c8479d94b036c8716a41df4afb8c8828e4e98b1cd4f434a1dd6407ee6c821bc8dc2bec46884d58177f31abb4f0d3d281ce6daa086946",
-    "b731a37212e78df0bfccfc8cad90c8e2716c670078676bb99d8863e5d7c24ede6dd6fd91b4120ab572148309c7639814627cbfe1d73960d5833bd04234d32f95ea40aeae5747e521a740058c50436ecf2bfff6fbc5206be7b0a08930ab432935882a7056fea3a52f8a3d99cdedf6edbb",
-    "a93dda896920660b9803cc880741e5c4f35609d18483e380016d3487d1bca9aefd782ba5853860f6f694957ee4dfd4a400a2ec0604a40089cae1f82d04277a8a2f32f8441b3c8e8d0958b29de38643c0547fa636902790b358c58d28c4db94a2cccbba074fd58123b3dbf488337dd707",
+// Expected signature for TEST_KEY_GEN_IKM, TEST_KEY_INFOS, TEST_HEADER and
+// TEST_CLAIMS
+const EXPECTED_SIGNATURES: [&str; 7] = [
+    "b6686e89636673c3f52d67dd39f0b39fbc7b82b4e7897bda124329a8e47efe27c984c775907c89cb34424b6a56dec2885f7c7bb68ed9c7bc06beaad407aa91b9dde1857355daf185b2d5e087d0fb966925cbeab0e69dbb58d0583383a1aafbd132129d4bde7521b35f9f459c36dd18aa",
+    "b63fd2b7b7d092af3f1b1656d60a4415c3990f9de122a023a71ca941d72ac88c734f8804f5ef23e3a0f25d77e5e0669073cdc2955b18ce5b72d6961fb7671aa57ddb40ef9bf397aa21b5a4de0dd3a3cd24bf3f9a479960493d0493fa6eaf0d06488d7c858811e4d920ff4c7b5e7dfeb7",
+    "a310d46e9ecad20c5cff4050cbe8066c93cf33496839b27eb1b8cbb91b4aac9b3e6cf6c3710097b4dfcc8208c2e775f21529099064d6a5169cdedeb03d3493ba41cdfbea998badcb2439076eca203803048760afcdf3c48098f8565070fdc504f2bcb56bb9ee8b1880be6225ebd292f7",
+    "967b60f0f42f3017872521dbc133a99d530c8db274ad9bcfb6153a7fcb5e5b587d894cca9af3b1154fbc9d62ff09b2d33d85d0b49dd22e1f63fec5a508f97cc20bbf9aa943d2b0822ab053ac402387be0875705bdd57b95318d26676bad910f445f02e40e9f146b3ddb8c06898a41a3f",
+    "a88f1503840d4a22d142b182083a4cb1ab54d40e8ceb9410958cf0804089aeb8f335728f635aa17a3ccb4d70d8bfe4774b1859b4667674e3821d00a7c40abf4b0837cc39bd3fa7faeccdc866b3bc1e6f38ee44b80aaf66db2b2bd0f1f23d5123f44bc6d4d2fddf6cf797c05165d36f3b",
+    "983bcc97b3d37e2718a344f8c140b3bf7d744cb2de20c2a8b372f0f5e6e8ac0fcc5ad4fe3057e50c0525117d2a8fefba664c4035a11f85c291257596616ec600e02a7b76a7a0d5a31d880ad9ac69017f398232378a3488c9c1d9b2a2e3e74bee57237a05c8faf9c84696fecc3f58bd31",
+    "a27cd6d07201615c8ea146d8237d5d193a3a4e9fb0cb8ce48f418a49f617da3db73a85bf86c29b3950dacd7566161cfd10e0f9353eb1642097dc08c522efc23886fd3b902bc4b58a8ace9acdeda472cb51d7302f3ea7f1a9eb05b54eea17c501d54cadca633de6a524522b22629947b6",
 ];
 
-fn create_generator_helper(num_of_messages: usize) -> Generators {
-    Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
+const TEST_PRESENTATION_HEADER_1: &[u8; 26] = b"test_presentation-header-1";
+const TEST_PRESENTATION_HEADER_2: &[u8; 26] = b"test_presentation-header-2";
+
+fn create_generators_helper(
+    num_of_messages: usize,
+) -> MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter> {
+    MemoryCachedGenerators::<Bls12381Shake256CipherSuiteParameter>::new(
         num_of_messages,
+        None,
     )
     .expect("generators creation failed")
+}
+
+fn test_generators_random_q_1(
+    num_of_messages: usize,
+) -> MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter> {
+    let mut generators = create_generators_helper(num_of_messages);
+    generators.Q_1 = G1Projective::random(&mut OsRng);
+    generators
+}
+
+fn test_generators_random_q_2(
+    num_of_messages: usize,
+) -> MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter> {
+    let mut generators = create_generators_helper(num_of_messages);
+    generators.Q_2 = G1Projective::random(&mut OsRng);
+    generators
+}
+
+fn test_generators_random_message_generators(
+    num_of_messages: usize,
+) -> MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter> {
+    let mut generators = create_generators_helper(num_of_messages);
+    generators.H_list = vec![G1Projective::random(&mut OsRng); num_of_messages];
+    generators
+}
+
+fn get_test_messages() -> Vec<Message> {
+    TEST_CLAIMS
+        .iter()
+        .map(|b| {
+            Message::from_arbitrary_data::<
+                Bls12381Shake256CipherSuiteParameter,
+            >(
+                b.as_ref(),
+                Some(&Bls12381Shake256CipherSuiteParameter::default_map_message_to_scalar_as_hash_dst())
+            )
+        })
+        .collect::<Result<Vec<Message>, _>>()
+        .expect("claims to `Message` conversion failed")
+}
+
+fn get_random_test_messages(num_messages: usize) -> Vec<Message> {
+    vec![Message::random(&mut OsRng); num_messages]
+}
+
+fn get_random_test_key_pair() -> KeyPair {
+    KeyPair::random(&mut OsRng, Some(TEST_KEY_INFO))
+        .expect("key pair generation failed")
+}
+
+#[macro_export]
+macro_rules! from_vec_deserialization_invalid_vec_size {
+    ($type:ty) => {
+        // For debug message
+        let type_string = stringify!($type);
+        let type_size = <$type>::SIZE_BYTES;
+
+        let test_data = [
+            (vec![], "empty input data"),
+            (vec![0; type_size - 1], "input data size is lesser than 1"),
+            (vec![0; type_size + 1], "input data size is greater than 1"),
+        ];
+        for (v, debug_error_message) in test_data {
+            let result = <$type>::from_vec(&v);
+            let expected_error_string = format!(
+                "source vector size {}, expected destination byte array size \
+                 {type_size}",
+                v.len()
+            );
+            assert_eq!(
+                result,
+                Err(Error::Conversion {
+                    cause: expected_error_string,
+                }),
+                "`{type_string}::from_vec` should fail - {debug_error_message}"
+            );
+        }
+    };
 }

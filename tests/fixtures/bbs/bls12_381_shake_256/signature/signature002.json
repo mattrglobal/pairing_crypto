@@ -1,0 +1,16 @@
+{
+  "caseName": "single message signature",
+  "signerKeyPair": {
+    "secretKey": "47d2ede63ab4c329092b342ab526b1079dbc2595897d4f2ab2de4d841cbe7d56",
+    "publicKey": "b65b7cbff4e81b723456a13936b6bcc77a078bf6291765f3ae13170072249dd7daa7ec1bd82b818ab60198030b45b8fa159c155fc3841a9ad4045e37161c9f0d9a4f361b93cfdc67d365f3be1a398e56aa173d7a55e01b4a8dd2494e7fb90da7"
+  },
+  "header": "11223344556677889900aabbccddeeff",
+  "messages": [
+    "c344136d9ab02da4dd5908bbba913ae6f58c2cc844b802a6f811f5fb075f9b80"
+  ],
+  "signature": "92629222b6bb5de18a273b7d7877292b393f770b0a4f0784963927c2cee962718a333d7b2f32993b717d83588b2141241bd3cda3e5e449e364bde83fe8d3551433de2e5385a93cde0dce16a0debffe3e44eea213eaf758035043a226520694d9f90651b3e4533b68b3fd4481dc4b58af",
+  "result": {
+    "valid": false,
+    "reason": "modified message"
+  }
+}

@@ -14,50 +14,6 @@
 // ------------------------------------------------------------------------------
 macro_rules! wasm_impl {
     (
-    $(#[$meta:meta])+
-    $name:ident,
-    $($field:ident:$type:ident),+
-    ) => {
-        $(#[$meta])*
-        pub struct $name {
-            $(
-                pub $field: $type,
-            )*
-        }
-
-        try_from_impl!($name);
-    };
-
-    (
-     $name:ident,
-     $($field:ident:$type:ident),+) => {
-        #[allow(non_snake_case)]
-        #[derive(Debug, Deserialize, Serialize)]
-        pub struct $name {
-            $(
-                pub $field: $type,
-            )*
-        }
-
-        try_from_impl!($name);
-    };
-
-    (
-     $(#[$meta:meta])+
-     $name:ident,
-     $($field:ident:$type:ty),*) => {
-        $(#[$meta])*
-        /// Macro declaring struct name
-        pub struct $name {
-            $(
-                /// Macro declaring field and type
-                pub $field: $type,
-            )*
-        }
-
-        try_from_impl!($name);
-    };
-    (
      $name:ident,
      $($field:ident:$type:ty),*) => {
         #[allow(non_snake_case)]
@@ -83,5 +39,18 @@ macro_rules! try_from_impl {
                 serde_wasm_bindgen::from_value::<$name>(value)
             }
         }
+    };
+}
+
+macro_rules! vec_to_u8_sized_array {
+    (
+        $value:expr,
+        $length:expr
+    ) => {
+        <[u8; $length]>::try_from($value).map_err(|_| {
+            serde_wasm_bindgen::Error::new::<&str>(
+                "vector to fixed-sized array conversion failed",
+            )
+        })?
     };
 }

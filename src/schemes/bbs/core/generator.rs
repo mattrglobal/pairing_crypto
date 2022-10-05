@@ -1,72 +1,64 @@
-use super::hash_utils::create_generators;
-use crate::{curves::bls12_381::G1Projective, error::Error};
+use crate::curves::bls12_381::G1Projective;
+use core::fmt::Debug;
+
+/// A `Generators` implementation where generators are computed in advance
+/// during instantiation of `struct` and stored in RAM.
+pub(crate) mod memory_cached_generator;
 
 /// The generators that are used to sign a vector of commitments for a BBS
-/// signature. These must be the same generators used by sign, verify, prove,
-/// and verify proof.
+/// signature. Same set of generators must be used in all BBS scheme operations
+/// - `Sign`, `Verify`, `ProofGen`, and `ProofVerify`.
 #[allow(non_snake_case)]
-#[derive(Debug, Clone)]
-pub struct Generators {
-    H_s: G1Projective,
-    H_d: G1Projective,
-    message_generators: Vec<G1Projective>,
+pub(crate) trait Generators: Debug + Clone {
+    /// Get `Q_1`, the generator point for the blinding value (s) of the
+    /// signature.
+    fn Q_1(&self) -> G1Projective;
+
+    /// Get `Q_2`, the generator point for the domain of the signature.
+    fn Q_2(&self) -> G1Projective;
+
+    /// The number of message generators this `Generators` instance
+    /// holds.
+    fn message_generators_length(&self) -> usize;
+
+    /// Get the message generator at `index`.
+    /// Note - `MessageGenerators` is zero indexed, so passed `index` value
+    /// should be in [0, `length`) range. In case of an invalid `index`, `None`
+    /// value is returned.
+    fn get_message_generator(&mut self, index: usize) -> Option<G1Projective>;
+
+    /// Get a `Iterator` for message generators.
+    fn message_generators_iter(&self) -> MessageGeneratorsIter<Self> {
+        MessageGeneratorsIter {
+            index: 0,
+            count: self.message_generators_length(),
+            generators: self.clone(),
+        }
+    }
 }
 
-#[allow(non_snake_case)]
-impl Generators {
-    /// Construct `Generators` from the given `seed` values.
-    /// The implementation follows `CreateGenerators` section as defined in <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-creategenerators>.
-    pub fn new<T: AsRef<[u8]>>(
-        blind_value_generator_seed: T,
-        sig_domain_generator_seed: T,
-        message_generator_seed: T,
-        no_of_message_generators: usize,
-    ) -> Result<Self, Error> {
-        Ok(Self {
-            H_s: create_generators(blind_value_generator_seed, 1)?[0],
-            H_d: create_generators(sig_domain_generator_seed, 1)?[0],
-            message_generators: create_generators(
-                message_generator_seed,
-                no_of_message_generators,
-            )?,
-        })
+#[derive(Clone, Debug)]
+pub(crate) struct MessageGeneratorsIter<G: Generators> {
+    index: usize,
+    count: usize,
+    generators: G,
+}
+
+impl<G: Generators> Iterator for MessageGeneratorsIter<G> {
+    type Item = G1Projective;
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let length = self.count - self.index;
+        (length, Some(length))
     }
 
-    /// Get `H_s`, the generator point for the blinding value (s) of the
-    /// signature.
-    pub fn H_s(&self) -> G1Projective {
-        self.H_s
-    }
-
-    /// Get `H_d`, the generator point for the domain of the signature.
-    pub fn H_d(&self) -> G1Projective {
-        self.H_d
-    }
-
-    /// The number of message blinding generators this `Generators` instance
-    /// holds.
-    pub fn message_blinding_points_length(&self) -> usize {
-        self.message_generators.len()
-    }
-
-    /// Get the message blinding generator at `index`.
-    /// Note `MessageGenerators` is zero indexed, so passed `index` value should
-    /// be in [0, `length`) range. In case of invalid `index`, `None` value
-    /// is returned.
-    pub fn get_message_blinding_point(
-        &self,
-        index: usize,
-    ) -> Option<G1Projective> {
-        if index >= self.message_generators.len() {
-            return None;
+    fn next(&mut self) -> Option<Self::Item> {
+        let index = self.index;
+        if index >= self.count {
+            None
+        } else {
+            self.index += 1;
+            self.generators.get_message_generator(index)
         }
-        Some(self.message_generators[index])
-    }
-
-    /// Get a `core::slice::Iter` for message blinding generators.
-    pub fn message_blinding_points_iter(
-        &self,
-    ) -> core::slice::Iter<'_, G1Projective> {
-        self.message_generators.iter()
     }
 }

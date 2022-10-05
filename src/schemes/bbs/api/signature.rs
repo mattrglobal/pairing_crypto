@@ -3,61 +3,76 @@ use super::{
     utils::digest_messages,
 };
 use crate::{
-    error::Error,
-    schemes::bbs::ciphersuites::bls12_381::{
-        Generators,
-        Message,
-        PublicKey,
-        SecretKey,
-        Signature,
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
+    bbs::{
+        ciphersuites::{
+            bls12_381::BBS_BLS12381G1_SIGNATURE_LENGTH,
+            BbsCiphersuiteParameters,
+        },
+        core::{
+            generator::memory_cached_generator::MemoryCachedGenerators,
+            key_pair::{PublicKey, SecretKey},
+            signature::Signature,
+            types::Message,
+        },
     },
+    error::Error,
 };
 
-/// Creates a signature.
-pub fn sign(request: BbsSignRequest) -> Result<[u8; 112], Error> {
+// Create a BBS signature.
+pub(crate) fn sign<T, C>(
+    request: &BbsSignRequest<'_, T>,
+) -> Result<[u8; BBS_BLS12381G1_SIGNATURE_LENGTH], Error>
+where
+    T: AsRef<[u8]>,
+    C: BbsCiphersuiteParameters,
+{
     // Parse the secret key
-    let sk = SecretKey::from_vec(request.secret_key)?;
+    let sk = SecretKey::from_bytes(request.secret_key)?;
 
     // Parse public key from request
-    let pk = PublicKey::from_vec(request.public_key)?;
+    let pk = PublicKey::from_octets(request.public_key)?;
 
     // Digest the supplied messages
-    let messages: Vec<Message> = digest_messages(request.messages.as_ref())?;
+    let messages: Vec<Message> = digest_messages::<_, C>(request.messages)?;
 
     // Derive generators
-    let generators = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        messages.len(),
-    )?;
+    let generators = MemoryCachedGenerators::<C>::new(messages.len(), None)?;
 
     // Produce the signature and return
-    Signature::new(&sk, &pk, request.header.as_ref(), &generators, &messages)
-        .map(|sig| sig.to_octets())
+    Signature::new::<_, _, _, C>(
+        &sk,
+        &pk,
+        request.header.as_ref(),
+        &generators,
+        &messages,
+    )
+    .map(|sig| sig.to_octets())
 }
 
-/// Verifies a signature.
-pub fn verify(request: BbsVerifyRequest) -> Result<bool, Error> {
+// Verify a BBS signature.
+pub(crate) fn verify<T, C>(
+    request: &BbsVerifyRequest<'_, T>,
+) -> Result<bool, Error>
+where
+    T: AsRef<[u8]>,
+    C: BbsCiphersuiteParameters,
+{
     // Parse public key from request
-    let pk = PublicKey::from_vec(request.public_key)?;
+    let pk = PublicKey::from_octets(request.public_key)?;
 
     // Digest the supplied messages
-    let messages: Vec<Message> = digest_messages(request.messages.as_ref())?;
+    let messages: Vec<Message> = digest_messages::<_, C>(request.messages)?;
 
     // Derive generators
-    let generators = Generators::new(
-        GLOBAL_BLIND_VALUE_GENERATOR_SEED,
-        GLOBAL_SIG_DOMAIN_GENERATOR_SEED,
-        GLOBAL_MESSAGE_GENERATOR_SEED,
-        messages.len(),
-    )?;
+    let generators = MemoryCachedGenerators::<C>::new(messages.len(), None)?;
 
     // Parse signature from request
-    let signature = Signature::from_vec(request.signature)?;
+    let signature = Signature::from_octets(request.signature)?;
 
-    signature.verify(&pk, request.header.as_ref(), &generators, &messages)
+    signature.verify::<_, _, _, C>(
+        &pk,
+        request.header.as_ref(),
+        &generators,
+        &messages,
+    )
 }

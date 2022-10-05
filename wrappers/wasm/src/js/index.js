@@ -17,11 +17,17 @@ const wasm = require('./wasm_module.js');
 // TODO should be able to remove this duplicate definition syntax by using ESM over index.web.js
 // in future
 
-const BBS_SIGNATURE_LENGTH = 112;
+const DEFAULT_BLS12381_BBS_SIGNATURE_LENGTH = 112;
 
 const DEFAULT_BLS12381_PRIVATE_KEY_LENGTH = 32;
 
 const DEFAULT_BLS12381_PUBLIC_KEY_LENGTH = 96;
+
+const BLS_SIG_BLS12381_G2_PRIVATE_KEY_LENGTH = 32;
+
+const BLS_SIG_BLS12381_G2_PUBLIC_KEY_LENGTH = 48;
+
+const BLS_SIG_BLS12381_G2_KEY_POP_LENGTH = 96;
 
 // Casts a rejected promise to an error rather than a
 // simple string result
@@ -53,10 +59,10 @@ const initialize = async () => {
     }
 }
 
-const bls12381_generate_key_pair = async (ikm, keyInfo) => {
+const bbs_bls12_381_generate_key_pair = async (request) => {
     await initialize();
     var result = await throwErrorOnRejectedPromise(
-        wasm.bls12381_generate_key_pair(ikm, keyInfo)
+        wasm.bbs_bls12_381_generate_key_pair(request ?? {})
     );
     return {
         secretKey: new Uint8Array(result.secretKey),
@@ -64,24 +70,96 @@ const bls12381_generate_key_pair = async (ikm, keyInfo) => {
     };
 };
 
-const bls12381_bbs_sign = async (request) => {
+const bbs_bls12_381_sha_256_sign = async (request) => {
     await initialize();
-    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bls12381_bbs_sign(request)));
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bls12_381_sha_256_sign(request)));
 };
 
-const bls12381_bbs_verify = async (request) => {
+const bbs_bls12_381_sha_256_verify = async (request) => {
     await initialize();
-    return await throwErrorOnRejectedPromise(wasm.bls12381_bbs_verify(request));
+    return await throwErrorOnRejectedPromise(wasm.bbs_bls12_381_sha_256_verify(request));
 };
 
-const bls12381_bbs_derive_proof = async (request) => {
+const bbs_bls12_381_sha_256_proof_gen = async (request) => {
     await initialize();
-    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bls12381_bbs_derive_proof(request)));
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bls12_381_sha_256_proof_gen(request)));
 }
 
-const bls12381_bbs_verify_proof = async (request) => {
+const bbs_bls12_381_sha_256_proof_verify = async (request) => {
     await initialize();
-    return await throwErrorOnRejectedPromise(wasm.bls12381_bbs_verify_proof(request));
+    return await throwErrorOnRejectedPromise(wasm.bbs_bls12_381_sha_256_proof_verify(request));
+}
+
+const bbs_bls12_381_shake_256_sign = async (request) => {
+    await initialize();
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bls12_381_shake_256_sign(request)));
+};
+
+const bbs_bls12_381_shake_256_verify = async (request) => {
+    await initialize();
+    return await throwErrorOnRejectedPromise(wasm.bbs_bls12_381_shake_256_verify(request));
+};
+
+const bbs_bls12_381_shake_256_proof_gen = async (request) => {
+    await initialize();
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bls12_381_shake_256_proof_gen(request)));
+}
+
+const bbs_bls12_381_shake_256_proof_verify = async (request) => {
+    await initialize();
+    return await throwErrorOnRejectedPromise(wasm.bbs_bls12_381_shake_256_proof_verify(request));
+}
+
+const bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bbs_key_pair = async (request) => {
+    await initialize();
+    var result = await throwErrorOnRejectedPromise(
+        wasm.bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bbs_key_pair(request ?? {})
+    );
+    return {
+        secretKey: new Uint8Array(result.secretKey),
+        publicKey: new Uint8Array(result.publicKey),
+    };
+};
+
+const bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bls_key_pair = async (request) => {
+    await initialize();
+    var result = await throwErrorOnRejectedPromise(
+        wasm.bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bls_key_pair(request ?? {})
+    );
+    return {
+        secretKey: new Uint8Array(result.secretKey),
+        publicKey: new Uint8Array(result.publicKey),
+    };
+};
+
+const bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_gen = async (request) => {
+    await initialize();
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_gen(request)));
+};
+
+const bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_verify = async (request) => {
+    await initialize();
+    return await throwErrorOnRejectedPromise(wasm.bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_verify(request));
+};
+
+const bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_sign = async (request) => {
+    await initialize();
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_sign(request)));
+};
+
+const bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_verify = async (request) => {
+    await initialize();
+    return await throwErrorOnRejectedPromise(wasm.bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_verify(request));
+};
+
+const bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_proof_gen = async (request) => {
+    await initialize();
+    return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_proof_gen(request)));
+}
+
+const bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_proof_verify = async (request) => {
+    await initialize();
+    return await throwErrorOnRejectedPromise(wasm.bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_proof_verify(request));
 }
 
 const convertToRevealMessageArray = (messages, revealedIndicies) => {
@@ -113,17 +191,49 @@ const convertRevealMessageArrayToRevealMap = (messages) => {
     );
 }
 
-module.exports.bls12381 = {
-    bbs: {
+module.exports.bbs = {
+    bls12381_sha256: {
         PRIVATE_KEY_LENGTH: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
         PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_PUBLIC_KEY_LENGTH,
-        SIGNATURE_LENGTH: BBS_SIGNATURE_LENGTH,
+        SIGNATURE_LENGTH: DEFAULT_BLS12381_BBS_SIGNATURE_LENGTH,
 
-        generateKeyPair: bls12381_generate_key_pair,
-        sign: bls12381_bbs_sign,
-        verify: bls12381_bbs_verify,
-        deriveProof: bls12381_bbs_derive_proof,
-        verifyProof: bls12381_bbs_verify_proof
+        generateKeyPair: bbs_bls12_381_generate_key_pair,
+        sign: bbs_bls12_381_sha_256_sign,
+        verify: bbs_bls12_381_sha_256_verify,
+        deriveProof: bbs_bls12_381_sha_256_proof_gen,
+        verifyProof: bbs_bls12_381_sha_256_proof_verify
+    },
+    bls12381_shake256: {
+        PRIVATE_KEY_LENGTH: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
+        PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_PUBLIC_KEY_LENGTH,
+        SIGNATURE_LENGTH: DEFAULT_BLS12381_BBS_SIGNATURE_LENGTH,
+
+        generateKeyPair: bbs_bls12_381_generate_key_pair,
+        sign: bbs_bls12_381_shake_256_sign,
+        verify: bbs_bls12_381_shake_256_verify,
+        deriveProof: bbs_bls12_381_shake_256_proof_gen,
+        verifyProof: bbs_bls12_381_shake_256_proof_verify
+    }
+}
+
+module.exports.bbs_bound = {
+    bls12381_bbs_g1_bls_sig_g2_sha256: {
+        BBS_PRIVATE_KEY_LENGTH: DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
+        BBS_PUBLIC_KEY_LENGTH: DEFAULT_BLS12381_PUBLIC_KEY_LENGTH,
+        BBS_SIGNATURE_LENGTH: DEFAULT_BLS12381_BBS_SIGNATURE_LENGTH,
+
+        BLS_PRIVATE_KEY_LENGTH: BLS_SIG_BLS12381_G2_PRIVATE_KEY_LENGTH,
+        BLS_PUBLIC_KEY_LENGTH: BLS_SIG_BLS12381_G2_PUBLIC_KEY_LENGTH,
+        BLS_KEY_POP_LENGTH: BLS_SIG_BLS12381_G2_KEY_POP_LENGTH,
+
+        generateBbsKeyPair: bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bbs_key_pair,
+        generateBlsKeyPair: bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bls_key_pair,
+        blsKeyPopGen: bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_gen,
+        blsKeyPopVerify: bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_verify,
+        sign: bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_sign,
+        verify: bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_verify,
+        deriveProof: bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_proof_gen,
+        verifyProof: bbs_bound_bls12_381_bbs_g1_bls_sig_g2_sha_256_proof_verify
     }
 }
 

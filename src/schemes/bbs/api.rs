@@ -1,5 +1,7 @@
 pub mod dtos;
+#[cfg(feature = "__private_generator_api")]
+pub mod generators;
 pub mod proof;
 pub mod signature;
 
-pub mod utils;
+pub(crate) mod utils;

@@ -1,25 +1,22 @@
 #![allow(non_snake_case)]
 use super::{
-    constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
     generator::Generators,
-    hash_utils::hash_to_scalar,
     key_pair::{PublicKey, SecretKey},
     types::Message,
-    utils::{
-        compute_B,
-        compute_domain,
-        octets_to_point_g1,
-        point_to_octets_g1,
-    },
+    utils::{compute_B, compute_domain},
 };
 use crate::{
-    common::util::vec_to_byte_array,
-    curves::bls12_381::{
-        Bls12,
-        G1Projective,
-        G2Prepared,
-        G2Projective,
-        Scalar,
+    bbs::ciphersuites::BbsCiphersuiteParameters,
+    curves::{
+        bls12_381::{
+            Bls12,
+            G1Projective,
+            G2Prepared,
+            Scalar,
+            OCTET_POINT_G1_LENGTH,
+            OCTET_SCALAR_LENGTH,
+        },
+        point_serde::{octets_to_point_g1, point_to_octets_g1},
     },
     error::Error,
     print_byte_array,
@@ -37,6 +34,8 @@ use serde::{
     Serializer,
 };
 use subtle::{Choice, ConditionallySelectable};
+
+use crate::bls::core::key_pair::PublicKey as BlsPublicKey;
 
 /// A BBS+ signature
 #[allow(non_snake_case)]
@@ -138,16 +137,20 @@ impl Signature {
     /// Generate a new `Signature` where all messages are known to the signer.
     /// This method follows `Sign` API as defined in BBS Signature spec
     /// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.4>
-    pub fn new<T, M>(
+    /// Security Warning: `SK` and `PK` paramters must be related key-pair
+    /// generated using `KeyPair` APIs.
+    pub fn new<T, M, G, C>(
         SK: &SecretKey,
         PK: &PublicKey,
         header: Option<T>,
-        generators: &Generators,
+        generators: &G,
         messages: M,
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
         M: AsRef<[Message]>,
+        G: Generators,
+        C: BbsCiphersuiteParameters,
     {
         let header = header.as_ref();
         let messages = messages.as_ref();
@@ -160,9 +163,9 @@ impl Signature {
             });
         }
         // Error out if length of messages and generators are not equal
-        if messages.len() != generators.message_blinding_points_length() {
+        if messages.len() != generators.message_generators_length() {
             return Err(Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: messages.len(),
             });
         }
@@ -172,7 +175,8 @@ impl Signature {
 
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
-        let domain = compute_domain(PK, header, messages.len(), generators)?;
+        let domain =
+            compute_domain::<_, _, C>(PK, header, messages.len(), generators)?;
 
         // (e, s) = hash_to_scalar((SK  || domain || msg_1 || ... || msg_L), 2)
         let mut data_to_hash = vec![];
@@ -181,17 +185,102 @@ impl Signature {
         for m in messages {
             data_to_hash.extend(m.to_bytes().as_ref());
         }
-        let scalars = hash_to_scalar(data_to_hash, 2)?;
+        let scalars = C::hash_to_scalar(&data_to_hash, 2, None)?;
         let (e, s) = (scalars[0], scalars[1]);
 
-        // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let B = compute_B(&s, &domain, messages, generators)?;
-        let exp = (e + SK.0).invert();
+        // B = P1 + Q_1 * s + Q_2 * domain + H_1 * msg_1 + ... + H_L * msg_L
+        let B = compute_B::<_, C>(&s, &domain, messages, generators)?;
+        let exp = (e + SK.as_scalar()).invert();
         let exp = if exp.is_some().unwrap_u8() == 1u8 {
             exp.unwrap()
         } else {
             return Err(Error::CryptoOps {
-                cause: "failed to generate `exp` for `a` component of \
+                cause: "failed to generate `exp` for `A` component of \
+                        signature"
+                    .to_owned(),
+            });
+        };
+
+        // A = B * (1 / (SK + e))
+        Ok(Self { A: B * exp, e, s })
+    }
+
+    /// Generate a bound bbs signature.
+    pub fn new_bound<T, M, G, C>(
+        SK: &SecretKey,
+        PK: &PublicKey,
+        BlsPk: &BlsPublicKey,
+        header: Option<T>,
+        generators: &G,
+        messages: M,
+    ) -> Result<Self, Error>
+    where
+        T: AsRef<[u8]>,
+        M: AsRef<[Message]>,
+        G: Generators,
+        C: BbsCiphersuiteParameters,
+    {
+        let header = header.as_ref();
+        let messages = messages.as_ref();
+
+        // Input parameter checks
+        // Error out if there is no `header` and also not any `Messages`
+        if header.is_none() && messages.is_empty() {
+            return Err(Error::BadParams {
+                cause: "nothing to sign".to_owned(),
+            });
+        }
+        // Error out if length of messages and generators are not equal
+        if messages.len() != (generators.message_generators_length() - 1) {
+            return Err(Error::MessageGeneratorsLengthMismatch {
+                generators: generators.message_generators_length(),
+                messages: messages.len(),
+            });
+        }
+        if SK.0.is_zero().unwrap_u8() == 1 {
+            return Err(Error::InvalidSecretKey);
+        }
+
+        // domain=hash_to_scalar((PK||L||generators||BP_1||Ciphersuite_ID||header),1)
+        let domain = compute_domain::<_, _, C>(
+            PK,
+            header,
+            messages.len() + 1,
+            generators,
+        )?;
+
+        // (e, s) = hash_to_scalar((SK||BlsPk||domain||msg_1||...||msg_L), 2)
+        let mut data_to_hash = vec![];
+        data_to_hash.extend(SK.to_bytes().as_ref());
+        data_to_hash.extend(BlsPk.to_octets().as_ref());
+        data_to_hash.extend(domain.to_bytes_be().as_ref());
+        for m in messages {
+            data_to_hash.extend(m.to_bytes().as_ref());
+        }
+        let scalars = C::hash_to_scalar(&data_to_hash, 2, None)?;
+        let (e, s) = (scalars[0], scalars[1]);
+
+        // B = P1 + Q_1*s + Q_2*domain + H_1*msg_1 + ... + H_L*msg_L + BlsPk
+        let mut points: Vec<_> =
+            vec![C::p1(), generators.Q_1(), generators.Q_2()];
+        points.extend(generators.message_generators_iter());
+        points.remove(2 + generators.message_generators_length());
+        let mut scalars: Vec<_> = [Scalar::one(), s, domain]
+            .iter()
+            .copied()
+            .chain(messages.iter().map(|c| c.0))
+            .collect();
+
+        points.push(BlsPk.0);
+        scalars.push(Scalar::one());
+        let B = G1Projective::multi_exp(&points, &scalars);
+
+        let exp = (e + SK.as_scalar()).invert();
+        let exp = if exp.is_some().unwrap_u8() == 1u8 {
+            exp.unwrap()
+        } else {
+            return Err(Error::CryptoOps {
+                cause: "failed to generate `exp` for `A` component of \
                         signature"
                     .to_owned(),
             });
@@ -204,18 +293,19 @@ impl Signature {
     /// Verify a signature.
     /// This method follows `Verify` API as defined in BBS Signature spec
     /// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.5>
-    pub fn verify<T, M>(
+    pub fn verify<T, M, G, C>(
         &self,
         PK: &PublicKey,
         header: Option<T>,
-        generators: &Generators,
+        generators: &G,
         messages: M,
     ) -> Result<bool, Error>
     where
         T: AsRef<[u8]>,
         M: AsRef<[Message]>,
+        G: Generators,
+        C: BbsCiphersuiteParameters,
     {
-        let header = header.as_ref();
         let messages = messages.as_ref();
 
         // Input parameter checks
@@ -226,9 +316,9 @@ impl Signature {
             });
         }
         // Error out if length of messages and generators are not equal
-        if messages.len() != generators.message_blinding_points_length() {
+        if messages.len() != generators.message_generators_length() {
             return Err(Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_blinding_points_length(),
+                generators: generators.message_generators_length(),
                 messages: messages.len(),
             });
         }
@@ -242,12 +332,13 @@ impl Signature {
 
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
-        let domain = compute_domain(PK, header, messages.len(), generators)?;
+        let domain =
+            compute_domain::<_, _, C>(PK, header, messages.len(), generators)?;
 
-        // B = P1 + H_s * s + H_d * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let B = compute_B(&self.s, &domain, messages, generators)?;
+        // B = P1 + Q_1 * s + Q_2 * domain + H_1 * msg_1 + ... + H_L * msg_L
+        let B = compute_B::<_, C>(&self.s, &domain, messages, generators)?;
 
-        let P2 = G2Projective::generator();
+        let P2 = C::p2();
         // C1 = (A, W + P2 * e)
         let C1 = (
             &self.A.to_affine(),
@@ -289,14 +380,6 @@ impl Signature {
         bytes
     }
 
-    /// Convert a vector of bytes of big-endian representation of the public key
-    pub fn from_vec(bytes: Vec<u8>) -> Result<Self, Error> {
-        match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
-            Ok(result) => Self::from_octets(&result),
-            Err(e) => Err(e),
-        }
-    }
-
     /// Get the `Signature` from a sequence of bytes in big endian
     /// format. Each member of `Signature` is deserialized from
     /// big-endian bytes as defined in BBS spec <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.11>.
@@ -307,19 +390,7 @@ impl Signature {
     /// For BLS12-381 based implementation, G1_COMPRESSED_SIZE is 48 byes, and
     /// SCALAR_SIZE is 32 bytes, then bytes sequence will be treated as
     /// [48, 32, 32] to represent (A, e, s).    
-    pub fn from_octets<T: AsRef<[u8]>>(data: T) -> Result<Self, Error> {
-        let data = data.as_ref();
-        if data.len() < Self::SIZE_BYTES {
-            return Err(Error::MalformedSignature {
-                cause: format!(
-                    "not enough data, input buffer size: {} bytes, expected \
-                     data size: {}",
-                    data.len(),
-                    Self::SIZE_BYTES
-                ),
-            });
-        }
-
+    pub fn from_octets(data: &[u8; Self::SIZE_BYTES]) -> Result<Self, Error> {
         let mut offset = 0;
         let mut end = Self::G1_COMPRESSED_SIZE;
 

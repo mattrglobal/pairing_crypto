@@ -3,7 +3,7 @@ macro_rules! set_byte_array_impl {
         #[no_mangle]
         pub extern "C" fn $name(
             handle: u64,
-            value: ByteArray,
+            value: &ByteArray,
             err: &mut ExternError,
         ) -> i32 {
             let value = value.to_vec();
@@ -37,7 +37,7 @@ macro_rules! add_byte_array_impl {
         #[no_mangle]
         pub extern "C" fn $name_bytes(
             handle: u64,
-            value: ByteArray,
+            value: &ByteArray,
             err: &mut ExternError,
         ) -> i32 {
             let value = value.to_vec();
@@ -52,6 +52,28 @@ macro_rules! add_byte_array_impl {
                 ctx.$property.push(value);
             });
             err.get_code().code()
+        }
+    };
+}
+
+macro_rules! get_array_value_from_context {
+    (
+        $value:expr,
+        $length:expr,
+        $debug_info:expr
+    ) => {
+        if $value.is_empty() {
+            return Err(PairingCryptoFfiError::new(&format!(
+                "{} must be set",
+                $debug_info
+            )));
+        } else {
+            <[u8; $length]>::try_from($value.clone()).map_err(|_| {
+                PairingCryptoFfiError::new(&format!(
+                    "{} vector to array conversion failed",
+                    $debug_info
+                ))
+            })?
         }
     };
 }

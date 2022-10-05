@@ -12,29 +12,89 @@
  */
 
 import {
+  KeyPair,
+  KeyGenerationRequest,
+} from "./types";
+
+import {
   BbsSignRequest,
   BbsVerifyRequest,
   BbsVerifyResult,
-  KeyPair,
   BbsDeriveProofRequest,
   BbsVerifyProofRequest,
-} from "./types";
+} from "./types/bbs";
+
+import {
+  BlsKeyPopGenRequest,
+  BlsKeyPopVerifyRequest,
+  BbsBoundSignRequest,
+  BbsBoundVerifyRequest,
+  BbsBoundVerifyResult,
+  BbsBoundDeriveProofRequest,
+  BbsBoundVerifyProofRequest,
+} from "./types/bbs_bound";
 
 export * from "./types";
+export * from "./types/bbs";
+export * from "./types/bbs_bound";
 
-export namespace bls12381 {
-  namespace bbs {
+export namespace bbs {
+  namespace bls12381_sha256 {
     const PRIVATE_KEY_LENGTH = 32;
     const PUBLIC_KEY_LENGTH = 96;
     const SIGNATURE_LENGTH = 112;
 
-    function generateKeyPair(ikm: Uint8Array, keyInfo: Uint8Array): Promise<Required<KeyPair>>;
+    function generateKeyPair(
+      request?: KeyGenerationRequest
+    ): Promise<Required<KeyPair>>;
     function sign(request: BbsSignRequest): Promise<Uint8Array>;
     function verify(request: BbsVerifyRequest): Promise<BbsVerifyResult>;
     function deriveProof(request: BbsDeriveProofRequest): Promise<Uint8Array>;
     function verifyProof(
       request: BbsVerifyProofRequest
     ): Promise<BbsVerifyResult>;
+  }
+
+  namespace bls12381_shake256 {
+    const PRIVATE_KEY_LENGTH = 32;
+    const PUBLIC_KEY_LENGTH = 96;
+    const SIGNATURE_LENGTH = 112;
+
+    function generateKeyPair(
+      request?: KeyGenerationRequest
+    ): Promise<Required<KeyPair>>;
+    function sign(request: BbsSignRequest): Promise<Uint8Array>;
+    function verify(request: BbsVerifyRequest): Promise<BbsVerifyResult>;
+    function deriveProof(request: BbsDeriveProofRequest): Promise<Uint8Array>;
+    function verifyProof(
+      request: BbsVerifyProofRequest
+    ): Promise<BbsVerifyResult>;
+  }
+}
+
+export namespace bbs_bound {
+  namespace bls12381_bbs_g1_bls_sig_g2_sha256 {
+    const BBS_PRIVATE_KEY_LENGTH = 32;
+    const BBS_PUBLIC_KEY_LENGTH = 96;
+    const BBS_SIGNATURE_LENGTH = 112;
+    const BLS_PRIVATE_KEY_LENGTH = 32;
+    const BLS_PUBLIC_KEY_LENGTH = 96;
+    const BLS_KEY_POP_LENGTH = 112;
+
+    function generateBbsKeyPair(
+      request?: KeyGenerationRequest
+    ): Promise<Required<KeyPair>>;
+    function generateBlsKeyPair(
+      request?: KeyGenerationRequest
+    ): Promise<Required<KeyPair>>;
+    function blsKeyPopGen(request: BlsKeyPopGenRequest): Promise<Uint8Array>;
+    function blsKeyPopVerify(request: BlsKeyPopVerifyRequest): Promise<BbsBoundVerifyResult>;
+    function sign(request: BbsBoundSignRequest): Promise<Uint8Array>;
+    function verify(request: BbsBoundVerifyRequest): Promise<BbsBoundVerifyResult>;
+    function deriveProof(request: BbsBoundDeriveProofRequest): Promise<Uint8Array>;
+    function verifyProof(
+      request: BbsBoundVerifyProofRequest
+    ): Promise<BbsBoundVerifyResult>;
   }
 }
 

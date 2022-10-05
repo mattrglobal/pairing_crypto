@@ -8,13 +8,14 @@ version = "0.1.0"
 
 [features]
 default = []
-wasm = ["getrandom"]
+alloc = []
+wasm = ["alloc", "getrandom"]
+__private_generator_api = []
 
 [dependencies]
 digest = "0.9"
 ff = "0.11.0"
 group = "0.11.0"
-hashbrown = "0.11"
 rand = { version = "0.8", features = ["getrandom"] }
 getrandom = { version = "0.2", optional = true, features = ["js"] }
 rand_core = "0.6"
@@ -22,20 +23,21 @@ pairing = "0.21.0"
 # TODO note prior to crate publication this dependency MUST be shifted to a published version of blstrs
 blstrs = { version = "0.4.2", path = "./../blstrs" }
 serde = { version = "1.0", features = ["derive"] }
-sha3 = "0.9"
 subtle = "2.4"
 zeroize = { version  ="1.3", features = ["zeroize_derive"] }
 log = "0.4"
 pretty_env_logger = "0.4"
 hex = "0.4"
 
+sha2 = "0.9"
+sha3 = "0.9"
 
 [dev-dependencies]
-[target.'cfg(unix)'.dev-dependencies]
-pprof = { version = "0.9.0", features = ["criterion", "flamegraph"] }
-criterion = { version = "0.3.5", features = ["html_reports"] }
+criterion = { version = "0.4.0", features = ["html_reports"] }
 hex = "0.4"
 rand_xorshift = "0.3"
+bbs-fixtures-generator = {version = "0.1.0", path = "tools/bbs-fixtures-generator"}
+serde_json = "1.0.82"
 
 
 [[bench]]
@@ -49,11 +51,15 @@ path = "benches/bbs/key_gen.rs"
 harness = false
 
 [[bench]]
-name = "bbs_sign"
-path = "benches/bbs/sign.rs"
+name = "bbs_api"
+path = "benches/bbs/api.rs"
 harness = false
 
-[[bench]]
-name = "bbs_proof"
-path = "benches/bbs/proof.rs"
-harness = false
+[workspace]
+members = [
+    "tools/bbs-fixtures-generator",
+    "tools/bbs-generators",
+    "wrappers/c",
+    "wrappers/java/jni",
+    "wrappers/wasm"
+]

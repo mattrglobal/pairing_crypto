@@ -1,15 +1,25 @@
 use pairing_crypto::{
-    bbs::ciphersuites::bls12_381::{
-        proof_gen,
-        proof_verify,
-        sign,
-        verify,
+    bbs::{
+        ciphersuites::{
+            bls12_381::KeyPair,
+            bls12_381_g1_sha_256::{
+                proof_gen as bls12_381_g1_sha_256_proof_gen,
+                proof_verify as bls12_381_g1_sha_256_proof_verify,
+                sign as bls12_381_g1_sha_256_sign,
+                verify as bls12_381_g1_sha_256_verify,
+            },
+            bls12_381_g1_shake_256::{
+                proof_gen as bls12_381_g1_shake_256_proof_gen,
+                proof_verify as bls12_381_g1_shake_256_proof_verify,
+                sign as bls12_381_g1_shake_256_sign,
+                verify as bls12_381_g1_shake_256_verify,
+            },
+        },
         BbsProofGenRequest,
         BbsProofGenRevealMessageRequest,
         BbsProofVerifyRequest,
         BbsSignRequest,
         BbsVerifyRequest,
-        KeyPair,
     },
     Error,
 };
@@ -35,204 +45,277 @@ const TEST_CLAIMS: [&[u8]; 6] = [
     b"credential_id",
 ];
 
-const TEST_PRESENTATION_MESSAGE: &[u8; 20] = b"e8gxekZpmeZTU0VDL9MV";
+const TEST_PRESENTATION_HEADER: &[u8; 24] = b"test-presentation-header";
 
-const EXPECTED_SIGS: [&str; 7] = [
-    "aeac37f08d62876ae01c0d3b244d9f457b74f928271aa84ebf730982b0d7f9e622aba85f4aec54f90714ffea69839b2c7011777eb4e89ca0cbbe7d25cc025d40bdcc15efbccd02ab25561589fc0d01c01fbd3fc8247b1a0105f5caa5fdb7c95ca2fa0ab08eeb09af048f9462a1ec5d8d",
-    "84e7ecd45f36e6eaad8863b79c290843271dbfbfc64f95288772b8999e7054248dacd2e50ec558659a66a9fbebdebfeb383f2f6f6eb960cb2ec7dc43991ed7d00c1aef095687000246f874cec690a3114787dfa98316d0bf13697d6a6d212b5d9d67bf6f390d1c24ee9daaefddeeadd5",
-    "8ea7aa0b96923c6bdee49cb507ca5feafa98145103dfb1f6fc67e9fd300d4ac49b635063482631ccc936ba0b549497fa17860d41f01e7393306691d61e895d5090d71a0e223c04de9d4f0c8054d1d8d90f24abcc2bf1fb5ba92af73ecae6fb2daa7087fda4c391e67fdbdcd46bb8ecb8",
-    "a8ea0f9fda19b21c0e71f70d01e5d6305f2df015fb97f1045d31ddea345cfcdd6f0ebd49a6a2ba5a76be257e68bffa4b5c862e5d2252fc88c0942f9f44823be3580f96104d942d1ca691ea02f42943c836e0f2a5c133e6444aa7469604dd7f134d2d91bf21545c4baee107898246e9c1",
-    "b25147bb7e6eb43dca2066ba3d910a222c0f7f9f18b3720b21216b323a5f76bd52bd0957e03dcccc7d688809d5e7cf56345973b8a25054de9d27c8479d94b036c8716a41df4afb8c8828e4e98b1cd4f434a1dd6407ee6c821bc8dc2bec46884d58177f31abb4f0d3d281ce6daa086946",
-    "b731a37212e78df0bfccfc8cad90c8e2716c670078676bb99d8863e5d7c24ede6dd6fd91b4120ab572148309c7639814627cbfe1d73960d5833bd04234d32f95ea40aeae5747e521a740058c50436ecf2bfff6fbc5206be7b0a08930ab432935882a7056fea3a52f8a3d99cdedf6edbb",
-    "a93dda896920660b9803cc880741e5c4f35609d18483e380016d3487d1bca9aefd782ba5853860f6f694957ee4dfd4a400a2ec0604a40089cae1f82d04277a8a2f32f8441b3c8e8d0958b29de38643c0547fa636902790b358c58d28c4db94a2cccbba074fd58123b3dbf488337dd707",
+const EXPECTED_SIGNATURES_SHAKE_256: [&str; 7] = [
+    "b6686e89636673c3f52d67dd39f0b39fbc7b82b4e7897bda124329a8e47efe27c984c775907c89cb34424b6a56dec2885f7c7bb68ed9c7bc06beaad407aa91b9dde1857355daf185b2d5e087d0fb966925cbeab0e69dbb58d0583383a1aafbd132129d4bde7521b35f9f459c36dd18aa",
+    "b63fd2b7b7d092af3f1b1656d60a4415c3990f9de122a023a71ca941d72ac88c734f8804f5ef23e3a0f25d77e5e0669073cdc2955b18ce5b72d6961fb7671aa57ddb40ef9bf397aa21b5a4de0dd3a3cd24bf3f9a479960493d0493fa6eaf0d06488d7c858811e4d920ff4c7b5e7dfeb7",
+    "a310d46e9ecad20c5cff4050cbe8066c93cf33496839b27eb1b8cbb91b4aac9b3e6cf6c3710097b4dfcc8208c2e775f21529099064d6a5169cdedeb03d3493ba41cdfbea998badcb2439076eca203803048760afcdf3c48098f8565070fdc504f2bcb56bb9ee8b1880be6225ebd292f7",
+    "967b60f0f42f3017872521dbc133a99d530c8db274ad9bcfb6153a7fcb5e5b587d894cca9af3b1154fbc9d62ff09b2d33d85d0b49dd22e1f63fec5a508f97cc20bbf9aa943d2b0822ab053ac402387be0875705bdd57b95318d26676bad910f445f02e40e9f146b3ddb8c06898a41a3f",
+    "a88f1503840d4a22d142b182083a4cb1ab54d40e8ceb9410958cf0804089aeb8f335728f635aa17a3ccb4d70d8bfe4774b1859b4667674e3821d00a7c40abf4b0837cc39bd3fa7faeccdc866b3bc1e6f38ee44b80aaf66db2b2bd0f1f23d5123f44bc6d4d2fddf6cf797c05165d36f3b",
+    "983bcc97b3d37e2718a344f8c140b3bf7d744cb2de20c2a8b372f0f5e6e8ac0fcc5ad4fe3057e50c0525117d2a8fefba664c4035a11f85c291257596616ec600e02a7b76a7a0d5a31d880ad9ac69017f398232378a3488c9c1d9b2a2e3e74bee57237a05c8faf9c84696fecc3f58bd31",
+    "a27cd6d07201615c8ea146d8237d5d193a3a4e9fb0cb8ce48f418a49f617da3db73a85bf86c29b3950dacd7566161cfd10e0f9353eb1642097dc08c522efc23886fd3b902bc4b58a8ace9acdeda472cb51d7302f3ea7f1a9eb05b54eea17c501d54cadca633de6a524522b22629947b6",    
+];
+
+const EXPECTED_SIGNATURES_SHA_256: [&str; 7] = [
+    "896f2a38de3cc0e9c95432c35b2ba2148e44b39442f0e15c13e2c2ca52a7a62695a17495d4ab3f22d88abaf456a138e20fabf832b3abfc4db0075872f459a8a9db5504f0d86abd3227483ec28224e17a685adb2af8734479ae7e47b17c368425245abc8181a8580c9094268210a277fe",
+    "8d57ace00102ff0de98d285b8dd16ccc8b82b9564b2031ec16c171db7a4fecb85b9cdb4f84023864b465b221d76534025877f74f29604a0f7ebb93ba2d723a6494d2244126efe8cd0dc4b037a2b12368297524bb3defa474550c288a8273f0c3d642b5726e3d370e5bc158c8401d9955",
+    "a0338baa7cfab2ad6475c1da980e797e49fa346bc8ea5a383b64f30309463172504cb06d4e7d54beb7984a758bb642692b7e115b189902e78012b9a8d6fb609e7d66f9dbb12eac462fa1dfb712ee65fd418660ddcb18f9e78736f4476677a0a9744fdc9832d960452c2aeb24395cb003",
+    "8b5fd9009a62b670e4712257e25900ebd8767119c4c0cdfd667e8aa1cf02cc3a9bba0aa67333e808a3eb3b2061408cbe4480b3e379dfb733094bd7b1113f312e008cabf023eb9e8668a5952be02c38490bbcd99a743ea7c132a1ee4a9b70c71bdd90525fecc808b3c17594f643ffbd03",
+    "aa8670c6a30fa3adceffd491eaa19e8dd562a19ae574bceb058c1b197797a295f899aaa2d58ad8cffa6ce481ba5ff29f23cbfe87d44320906f8b19e2d8dd86d91f8d34d442c129b56673e8cbbc40abfd5c91c5584f1fd2d9a63f412e1628f43d1ca2e6ec22276a309d51b654a5b3086e",
+    "ac8847187ed8725340d869dc76844dec8753ef02645051589b9739b910fb4b8bc78d60ecf02e94b07d4b578d8c4760e21a9d27171c8001e788e0743e4b6a46c99f7d4a835c6bb9eef2fcadcb0be92ed45589265c2b058d417c0ae882d1df38cc252b88dda075f80778dfb61613d1033e",
+    "9121cf5fe6ddefb5f94f564bfd249d3967d6304a578fa2b5ff22314d9291ecef08c44690d35f3dab236b39b4f4e7bc034250b07fdc3b8d89fa45fd59c0aba386b4d75defa665e77a0cb69cad98c32c206a737e9620737d3673ea7248e174540da01451f5911e20a24a792482ca759918",
 ];
 
 const TEST_HEADER: &[u8; 16] = b"some_app_context";
 
+macro_rules! sign_verify_e2e_nominal {
+    ($sign_fn:ident, $verify_fn:ident, $signature_test_vector:ident) => {
+        let header = TEST_HEADER.as_ref();
+        let messages = &TEST_CLAIMS;
+
+        for i in 0..TEST_KEY_INFOS.len() {
+            let (secret_key, public_key) =
+                KeyPair::new(KEY_GEN_SEED.as_ref(), Some(TEST_KEY_INFOS[i]))
+                    .map(|key_pair| {
+                        (
+                            key_pair.secret_key.to_bytes(),
+                            key_pair.public_key.to_octets(),
+                        )
+                    })
+                    .expect("key generation failed");
+
+            let signature = $sign_fn(&BbsSignRequest {
+                secret_key: &secret_key,
+                public_key: &public_key,
+                header: Some(header),
+                messages: Some(messages),
+            })
+            .expect("signature generation failed");
+
+            let expected_signature = hex::decode($signature_test_vector[i])
+                .expect("hex decoding failed");
+            assert_eq!(signature.to_vec(), expected_signature);
+            // println!("{:?},", hex::encode(signature));
+
+            assert_eq!(
+                $verify_fn(&BbsVerifyRequest {
+                    public_key: &public_key,
+                    header: Some(header),
+                    messages: Some(messages),
+                    signature: &signature,
+                })
+                .expect("error during signature verification"),
+                true
+            );
+        }
+    };
+}
+
 #[test]
 fn sign_verify_e2e_nominal() {
-    let messages = &TEST_CLAIMS
-        .iter()
-        .map(|&e| e.to_vec())
-        .collect::<Vec<Vec<u8>>>();
+    sign_verify_e2e_nominal!(
+        bls12_381_g1_shake_256_sign,
+        bls12_381_g1_shake_256_verify,
+        EXPECTED_SIGNATURES_SHAKE_256
+    );
 
-    for i in 0..TEST_KEY_INFOS.len() {
-        let (secret_key, public_key) =
-            KeyPair::new(KEY_GEN_SEED.as_ref(), TEST_KEY_INFOS[i].as_ref())
-                .map(|key_pair| {
-                    (
-                        key_pair.secret_key.to_bytes().to_vec(),
-                        key_pair.public_key.point_to_octets().to_vec(),
-                    )
-                })
-                .expect("key generation failed");
+    sign_verify_e2e_nominal!(
+        bls12_381_g1_sha_256_sign,
+        bls12_381_g1_sha_256_verify,
+        EXPECTED_SIGNATURES_SHA_256
+    );
+}
 
-        let signature = sign(BbsSignRequest {
-            secret_key,
-            public_key: public_key.clone(),
-            header: Some(TEST_HEADER.to_vec()),
-            messages: Some(messages.to_vec()),
-        })
-        .expect("signature generation failed");
+macro_rules! proof_gen_verify_e2e_nominal {
+    ($sign_fn:ident, $verify_fn:ident, $proof_gen_fn:ident, $proof_verify_fn:ident) => {
+        let header = TEST_HEADER.as_ref();
+        let presentation_header = TEST_PRESENTATION_HEADER.as_ref();
+        let messages = &TEST_CLAIMS;
 
-        let expected_signature =
-            hex::decode(EXPECTED_SIGS[i]).expect("hex decoding failed");
-        assert_eq!(signature.to_vec(), expected_signature);
+        for i in 0..TEST_KEY_INFOS.len() {
+            let (secret_key, public_key) =
+                KeyPair::new(KEY_GEN_SEED.as_ref(), Some(TEST_KEY_INFOS[i]))
+                    .map(|key_pair| {
+                        (
+                            key_pair.secret_key.to_bytes(),
+                            key_pair.public_key.to_octets(),
+                        )
+                    })
+                    .expect("key generation failed");
 
-        assert_eq!(
-            verify(BbsVerifyRequest {
-                public_key,
-                header: Some(TEST_HEADER.to_vec()),
-                messages: Some(messages.to_vec()),
-                signature: signature.to_vec(),
+            let signature = $sign_fn(&BbsSignRequest {
+                secret_key: &secret_key,
+                public_key: &public_key,
+                header: Some(header),
+                messages: Some(messages),
             })
-            .expect("error during signature verification"),
-            true
-        );
-    }
+            .expect("signature generation failed");
+
+            assert_eq!(
+                $verify_fn(&BbsVerifyRequest {
+                    public_key: &public_key,
+                    header: Some(header),
+                    messages: Some(messages),
+                    signature: &signature,
+                })
+                .expect("error during signature verification"),
+                true
+            );
+
+            // Start with all hidden messages
+            let mut proof_messages: Vec<BbsProofGenRevealMessageRequest<_>> =
+                messages
+                    .iter()
+                    .map(|value| BbsProofGenRevealMessageRequest {
+                        reveal: false,
+                        value: value.clone(),
+                    })
+                    .collect();
+
+            // Reveal 1 message at a time
+            for j in 0..proof_messages.len() {
+                let proof = &$proof_gen_fn(&BbsProofGenRequest {
+                    public_key: &public_key,
+                    header: Some(header),
+                    messages: Some(&proof_messages),
+                    signature: &signature,
+                    presentation_header: Some(presentation_header),
+                    verify_signature: None,
+                })
+                .expect("proof generation failed");
+
+                let mut revealed_msgs = Vec::new();
+                for k in 0..j {
+                    revealed_msgs.push((k as usize, TEST_CLAIMS[k]));
+                }
+
+                assert_eq!(
+                    $proof_verify_fn(&BbsProofVerifyRequest {
+                        public_key: &public_key,
+                        header: Some(header),
+                        presentation_header: Some(presentation_header),
+                        proof: &proof,
+                        total_message_count: messages.len(),
+                        messages: Some(revealed_msgs.as_slice()),
+                    })
+                    .expect("proof verification failed"),
+                    true
+                );
+                proof_messages[j].reveal = true;
+            }
+        }
+    };
 }
 
 #[test]
 fn proof_gen_verify_e2e_nominal() {
-    let messages = &TEST_CLAIMS
-        .iter()
-        .map(|&e| e.to_vec())
-        .collect::<Vec<Vec<u8>>>();
+    proof_gen_verify_e2e_nominal!(
+        bls12_381_g1_shake_256_sign,
+        bls12_381_g1_shake_256_verify,
+        bls12_381_g1_shake_256_proof_gen,
+        bls12_381_g1_shake_256_proof_verify
+    );
 
-    for i in 0..TEST_KEY_INFOS.len() {
-        let (secret_key, public_key) =
-            KeyPair::new(KEY_GEN_SEED.as_ref(), TEST_KEY_INFOS[i].as_ref())
-                .map(|key_pair| {
-                    (
-                        key_pair.secret_key.to_bytes().to_vec(),
-                        key_pair.public_key.point_to_octets().to_vec(),
-                    )
-                })
-                .expect("key generation failed");
+    proof_gen_verify_e2e_nominal!(
+        bls12_381_g1_sha_256_sign,
+        bls12_381_g1_sha_256_verify,
+        bls12_381_g1_sha_256_proof_gen,
+        bls12_381_g1_sha_256_proof_verify
+    );
+}
 
-        let signature = sign(BbsSignRequest {
-            secret_key: secret_key.clone(),
-            public_key: public_key.clone(),
-            header: Some(TEST_HEADER.to_vec()),
-            messages: Some(messages.clone()),
+macro_rules! proof_gen_failure_message_modified {
+    ($sign_fn:ident, $verify_fn:ident, $proof_gen_fn:ident) => {
+        let num_disclosed_messages = 4;
+        let header = TEST_HEADER.as_ref();
+        let presentation_header = TEST_PRESENTATION_HEADER.as_ref();
+        let messages = &TEST_CLAIMS;
+
+        let (secret_key, public_key) = KeyPair::random(&mut OsRng, None)
+            .map(|key_pair| {
+                (
+                    key_pair.secret_key.to_bytes(),
+                    key_pair.public_key.to_octets(),
+                )
+            })
+            .expect("key generation failed");
+
+        let signature = $sign_fn(&BbsSignRequest {
+            secret_key: &secret_key,
+            public_key: &public_key,
+            header: Some(header),
+            messages: Some(messages),
         })
         .expect("signature generation failed");
 
         assert_eq!(
-            verify(BbsVerifyRequest {
-                public_key: public_key.clone(),
-                header: Some(TEST_HEADER.to_vec()),
-                messages: Some(messages.clone()),
-                signature: signature.to_vec(),
+            $verify_fn(&BbsVerifyRequest {
+                public_key: &public_key,
+                header: Some(header),
+                messages: Some(messages),
+                signature: &signature,
             })
             .expect("error during signature verification"),
             true
         );
 
         // Start with all hidden messages
-        let mut proof_messages: Vec<BbsProofGenRevealMessageRequest> = messages
-            .iter()
-            .map(|value| BbsProofGenRevealMessageRequest {
-                reveal: false,
-                value: value.clone(),
-            })
-            .collect();
-
-        // Reveal 1 message at a time
-        for j in 0..proof_messages.len() {
-            let proof = &proof_gen(BbsProofGenRequest {
-                public_key: public_key.clone(),
-                header: Some(TEST_HEADER.to_vec()),
-                messages: Some(proof_messages.clone()),
-                signature: signature.to_vec(),
-                presentation_message: Some(TEST_PRESENTATION_MESSAGE.to_vec()),
-            })
-            .expect("proof generation failed");
-
-            let mut revealed_msgs = Vec::new();
-            for k in 0..j {
-                revealed_msgs.push((k as usize, TEST_CLAIMS[k].to_vec()));
-            }
-
-            assert_eq!(
-                proof_verify(BbsProofVerifyRequest {
-                    public_key: public_key.clone(),
-                    header: Some(TEST_HEADER.to_vec()),
-                    presentation_message: Some(
-                        TEST_PRESENTATION_MESSAGE.to_vec()
-                    ),
-                    proof: proof.clone(),
-                    total_message_count: messages.len(),
-                    messages: Some(revealed_msgs.as_slice().to_vec()),
+        let mut proof_messages: Vec<BbsProofGenRevealMessageRequest<_>> =
+            messages
+                .iter()
+                .map(|value| BbsProofGenRevealMessageRequest {
+                    reveal: false,
+                    value: value.clone(),
                 })
-                .expect("proof verification failed"),
-                true
-            );
-            proof_messages[j].reveal = true;
+                .collect();
+
+        let mut revealed_msgs = Vec::new();
+        for i in 0..num_disclosed_messages {
+            proof_messages[i].reveal = true;
+            revealed_msgs.push((i as usize, TEST_CLAIMS[i].to_vec()));
         }
-    }
+
+        // Modify one of the messages
+        proof_messages[1].value = &[0xA; 50];
+
+        // Proof-gen fails with tampered message when we pass `true` value for
+        // `verify_signature`.
+        let result = $proof_gen_fn(&BbsProofGenRequest {
+            public_key: &public_key,
+            header: Some(header),
+            messages: Some(&proof_messages),
+            signature: &signature,
+            presentation_header: Some(presentation_header),
+            verify_signature: Some(true),
+        });
+        assert_eq!(result, Err(Error::SignatureVerification));
+
+        // Proof-gen succeeds with tampered message when we pass `false`value
+        // for `verify_signature`.
+        $proof_gen_fn(&BbsProofGenRequest {
+            public_key: &public_key,
+            header: Some(header),
+            messages: Some(&proof_messages),
+            signature: &signature,
+            presentation_header: Some(presentation_header),
+            verify_signature: Some(false),
+        })
+        .expect("proof should be generated for tampered messages");
+    };
 }
 
 #[test]
 fn proof_gen_failure_message_modified() {
-    const NUM_REVEALED_MESSAGES: usize = 4;
-    let messages = &TEST_CLAIMS
-        .iter()
-        .map(|&e| e.to_vec())
-        .collect::<Vec<Vec<u8>>>();
-
-    let (secret_key, public_key) = KeyPair::random(&mut OsRng)
-        .map(|key_pair| {
-            (
-                key_pair.secret_key.to_bytes().to_vec(),
-                key_pair.public_key.point_to_octets().to_vec(),
-            )
-        })
-        .expect("key generation failed");
-
-    let signature = sign(BbsSignRequest {
-        secret_key: secret_key.clone(),
-        public_key: public_key.clone(),
-        header: Some(TEST_HEADER.to_vec()),
-        messages: Some(messages.clone()),
-    })
-    .expect("signature generation failed");
-
-    assert_eq!(
-        verify(BbsVerifyRequest {
-            public_key: public_key.clone(),
-            header: Some(TEST_HEADER.to_vec()),
-            messages: Some(messages.clone()),
-            signature: signature.to_vec(),
-        })
-        .expect("error during signature verification"),
-        true
+    proof_gen_failure_message_modified!(
+        bls12_381_g1_shake_256_sign,
+        bls12_381_g1_shake_256_verify,
+        bls12_381_g1_shake_256_proof_gen
     );
 
-    // Start with all hidden messages
-    let mut proof_messages: Vec<BbsProofGenRevealMessageRequest> = messages
-        .iter()
-        .map(|value| BbsProofGenRevealMessageRequest {
-            reveal: false,
-            value: value.clone(),
-        })
-        .collect();
-
-    let mut revealed_msgs = Vec::new();
-    for i in 0..NUM_REVEALED_MESSAGES {
-        proof_messages[i].reveal = true;
-        revealed_msgs.push((i as usize, TEST_CLAIMS[i].to_vec()));
-    }
-
-    // Modify one of the messages
-    proof_messages[1].value[1] = 5u8;
-
-    let result = proof_gen(BbsProofGenRequest {
-        public_key: public_key.clone(),
-        header: Some(TEST_HEADER.to_vec()),
-        messages: Some(proof_messages.clone()),
-        signature: signature.to_vec(),
-        presentation_message: Some(TEST_PRESENTATION_MESSAGE.to_vec()),
-    });
-    assert_eq!(result, Err(Error::SignatureVerification));
+    proof_gen_failure_message_modified!(
+        bls12_381_g1_sha_256_sign,
+        bls12_381_g1_sha_256_verify,
+        bls12_381_g1_sha_256_proof_gen
+    );
 }

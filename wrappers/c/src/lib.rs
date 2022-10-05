@@ -26,7 +26,7 @@ extern crate lazy_static;
 mod macros;
 
 /// FFI interface exposed by this crate
-pub mod api;
+pub mod bbs;
 
 /// Domain Transfer Objects used over the FFI interface exposed by this crate
 pub mod dtos;
