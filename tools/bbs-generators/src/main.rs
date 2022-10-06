@@ -63,7 +63,8 @@ fn main() {
 }
 
 fn print_generators(generators: &[Vec<u8>]) {
-    generators.iter().enumerate().for_each(|(i, g)| {
+    println!("G1 BP = {}", hex::encode(generators[0].clone()));
+    generators.iter().skip(1).enumerate().for_each(|(i, g)| {
         println!("G_{} = {}", i + 1, hex::encode(g));
     });
 }
