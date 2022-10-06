@@ -7,7 +7,7 @@ import java.util.HashMap;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-public class Bls12381Shake256Test {
+public class BbsTest {
        
     private void shouldThrowExceptionMessageWhenFailToGenerateKeyPairHelper(Bbs bbs) {
         byte[] ikm = null;
