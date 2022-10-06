@@ -94,7 +94,7 @@ where
         });
     }
 
-    let mut points: Vec<_> = vec![C::p1(), generators.Q_1(), generators.Q_2()];
+    let mut points: Vec<_> = vec![C::p1()?, generators.Q_1(), generators.Q_2()];
     points.extend(generators.message_generators_iter());
     let scalars: Vec<_> = [Scalar::one(), *s, *domain]
         .iter()

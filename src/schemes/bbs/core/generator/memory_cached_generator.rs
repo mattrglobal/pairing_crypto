@@ -6,6 +6,7 @@ use crate::{
     error::Error,
 };
 use core::{fmt::Debug, marker::PhantomData};
+use group::Group;
 
 /// A `Generators` implementation where generators are computed in advance
 /// during instantiation of `struct` and stored in RAM. Later when these
@@ -36,11 +37,17 @@ impl<C: BbsCiphersuiteParameters + Debug + Clone> MemoryCachedGenerators<C> {
     {
         let mut n = 1;
         let mut v = [0u8; XOF_NO_OF_BYTES];
-        let generators = C::create_generators(count + 2, &mut n, &mut v, true)?;
+        let generators = C::create_generators(
+            &C::generator_seed(),
+            count + 2,
+            &mut n,
+            &mut v,
+            true,
+        )?;
         let mut H_list = generators[2..2 + count].to_vec();
         if let Some(bound_bbs) = private_holder_binding {
             if bound_bbs {
-                H_list.push(C::p1());
+                H_list.push(G1Projective::generator());
             }
         }
 

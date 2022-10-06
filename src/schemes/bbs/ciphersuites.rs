@@ -34,9 +34,9 @@ pub(crate) trait BbsCiphersuiteParameters:
         [Self::ID.as_octets(), b"MESSAGE_GENERATOR_SEED"].concat()
     }
 
-    /// Generator DST which is used by the `create_generators ` operation.
-    fn generator_dst() -> Vec<u8> {
-        [Self::ID.as_octets(), b"SIG_GENERATOR_DST_"].concat()
+    // The G1 base point generator seed.
+    fn bp_generator_seed() -> Vec<u8> {
+        [Self::ID.as_octets(), b"BP_MESSAGE_GENERATOR_SEED"].concat()
     }
 
     /// Seed DST which is used by the `create_generators ` operation.
@@ -44,10 +44,23 @@ pub(crate) trait BbsCiphersuiteParameters:
         [Self::ID.as_octets(), b"SIG_GENERATOR_SEED_"].concat()
     }
 
+    /// Generator DST which is used by the `create_generators ` operation.
+    fn generator_dst() -> Vec<u8> {
+        [Self::ID.as_octets(), b"SIG_GENERATOR_DST_"].concat()
+    }
+
     /// Point on G1 to be used in signature and proof computation and
     /// verification.
-    fn p1() -> G1Projective {
-        G1Projective::generator()
+    fn p1() -> Result<G1Projective, Error> {
+        let mut n = 1;
+        let mut v = [0u8; XOF_NO_OF_BYTES];
+        Ok(Self::create_generators(
+            &Self::bp_generator_seed(),
+            1,
+            &mut n,
+            &mut v,
+            true,
+        )?[0])
     }
 
     /// Point on G2 to be used during signature and proof verification.
@@ -57,6 +70,7 @@ pub(crate) trait BbsCiphersuiteParameters:
 
     /// Create generators as specified in BBS specification.
     fn create_generators(
+        generator_seed: &[u8],
         count: usize,
         n: &mut u64,
         v: &mut [u8; XOF_NO_OF_BYTES],
@@ -69,7 +83,7 @@ pub(crate) trait BbsCiphersuiteParameters:
 
             //  v = expand_message(generator_seed, seed_dst, seed_len)
             let mut expander = Self::Expander::init_expand(
-                &Self::generator_seed(),
+                generator_seed,
                 &generator_seed_dst,
                 XOF_NO_OF_BYTES,
             );
@@ -94,7 +108,6 @@ pub(crate) trait BbsCiphersuiteParameters:
             let candidate = Self::hash_to_g1(v, &Self::generator_dst())?;
 
             if (candidate.is_identity().unwrap_u8() == 1)
-                || candidate == Self::p1()
                 || points.iter().any(|e| e == &candidate)
             {
                 continue;

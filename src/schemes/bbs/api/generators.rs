@@ -19,19 +19,23 @@ where
     C: BbsCiphersuiteParameters,
 {
     let mut result = Vec::new();
-    let mut generators =
-        MemoryCachedGenerators::<C>::new(count, private_holder_binding)?;
+    let generators =
+        MemoryCachedGenerators::<C>::new(count - 3, private_holder_binding)?;
+
+    result.push(C::p1()?.to_affine().to_compressed().to_vec());
     result.push(generators.Q_1.to_affine().to_compressed().to_vec());
     result.push(generators.Q_2.to_affine().to_compressed().to_vec());
-    for i in 0..count - 2 {
-        match generators.get_message_generator(i) {
-            Some(g) => result.push(g.to_affine().to_compressed().to_vec()),
-            _ => {
-                return Err(Error::CryptoOps {
-                    cause: "unexpected generator `None` value".to_owned(),
-                })
-            }
-        }
+    result.extend(
+        generators
+            .message_generators_iter()
+            .map(|g| g.to_affine().to_compressed().to_vec())
+            .collect::<Vec<Vec<u8>>>(),
+    );
+    if result.len() != count {
+        return Err(Error::CryptoOps {
+            cause: "unexpected generators creation failure".to_owned(),
+        });
     }
+
     Ok(result)
 }
