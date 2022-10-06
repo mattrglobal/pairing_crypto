@@ -363,7 +363,7 @@ impl Proof {
         let T_len = 1 + 1 + disclosed_messages.len();
         let mut T_points = Vec::with_capacity(T_len);
         let mut T_scalars = Vec::with_capacity(T_len);
-        let P1 = C::p1();
+        let P1 = C::p1()?;
         // P1
         T_points.push(P1);
         T_scalars.push(Scalar::one());

@@ -17,19 +17,20 @@ fn creation_nominal() {
 
 #[test]
 fn equality() {
+    const GENERATORS_COUNT: usize = 1000;
     let mut generators_1 = MemoryCachedGenerators::<
         Bls12381Shake256CipherSuiteParameter,
-    >::new(1000, None)
+    >::new(GENERATORS_COUNT, None)
     .expect("generators creation failed");
-    assert_eq!(generators_1.message_generators_length(), 1000);
+    assert_eq!(generators_1.message_generators_length(), GENERATORS_COUNT);
 
     let mut generators_2 = MemoryCachedGenerators::<
         Bls12381Shake256CipherSuiteParameter,
-    >::new(1000, None)
+    >::new(GENERATORS_COUNT, None)
     .expect("generators creation failed");
-    assert_eq!(generators_2.message_generators_length(), 1000);
+    assert_eq!(generators_2.message_generators_length(), GENERATORS_COUNT);
 
-    for i in 0..1000 {
+    for i in 0..GENERATORS_COUNT {
         assert_eq!(
             generators_1.get_message_generator(i),
             generators_2.get_message_generator(i)

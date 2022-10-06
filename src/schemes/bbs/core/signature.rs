@@ -262,7 +262,7 @@ impl Signature {
 
         // B = P1 + Q_1*s + Q_2*domain + H_1*msg_1 + ... + H_L*msg_L + BlsPk
         let mut points: Vec<_> =
-            vec![C::p1(), generators.Q_1(), generators.Q_2()];
+            vec![C::p1()?, generators.Q_1(), generators.Q_2()];
         points.extend(generators.message_generators_iter());
         points.remove(2 + generators.message_generators_length());
         let mut scalars: Vec<_> = [Scalar::one(), s, domain]
