@@ -59,10 +59,7 @@ where
         data_to_hash.extend(point_to_octets_g1(&generator).as_ref());
     }
 
-    data_to_hash.extend(i2osp_with_data(
-        C::ID.as_octets(),
-        NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
-    )?);
+    data_to_hash.extend(C::ID.as_octets());
     if let Some(header) = header {
         data_to_hash.extend(i2osp_with_data(
             header.as_ref(),
