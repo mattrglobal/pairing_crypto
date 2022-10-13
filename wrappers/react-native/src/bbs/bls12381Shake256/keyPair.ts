@@ -13,25 +13,25 @@
 
 import { NativeModules } from 'react-native';
 import { UInt8ArrayToArray } from '../../utilities';
-import type { KeyPair, KeyGenerationRequest } from '../../types';
+import { KeyPair, KeyGenerationRequest, PairingCryptoError } from '../../types';
 
 const { PairingCryptoRn } = NativeModules;
 
-export const generateKeyPair = async (
-  request?: KeyGenerationRequest
-): Promise<Required<KeyPair>> => {
-  const result = await PairingCryptoRn.Bls12381Shake256GenerateKeyPair(
-    request
-      ? {
-          ikm: request.ikm ? UInt8ArrayToArray(request.ikm) : undefined,
-          keyInfo: request.keyInfo
-            ? UInt8ArrayToArray(request.keyInfo)
-            : undefined,
-        }
-      : {}
-  );
-  return {
-    publicKey: new Uint8Array(result.publicKey),
-    secretKey: new Uint8Array(result.secretKey),
-  };
+export const generateKeyPair = async (request?: KeyGenerationRequest): Promise<Required<KeyPair>> => {
+  try {
+    const result = await PairingCryptoRn.Bls12381Shake256GenerateKeyPair(
+      request
+        ? {
+            ikm: request.ikm ? UInt8ArrayToArray(request.ikm) : undefined,
+            keyInfo: request.keyInfo ? UInt8ArrayToArray(request.keyInfo) : undefined,
+          }
+        : {}
+    );
+    return {
+      publicKey: new Uint8Array(result.publicKey),
+      secretKey: new Uint8Array(result.secretKey),
+    };
+  } catch (err) {
+    throw new PairingCryptoError('Failed to generate key pair', err);
+  }
 };

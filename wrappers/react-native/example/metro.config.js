@@ -13,6 +13,10 @@ module.exports = {
   projectRoot: __dirname,
   watchFolders: [root],
 
+  // Reset the cache when starting the build. This could impact the performance, but useful
+  // to make sure we are working against the correct resources.
+  resetCache: true,
+
   // We need to make sure that only one version is loaded for peerDependencies
   // So we block them at the root, and alias them to the versions in example's node_modules
   resolver: {

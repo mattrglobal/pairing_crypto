@@ -13,5 +13,8 @@ module.exports = {
         },
       },
     ],
+    [
+      "./babel.plugin.js",
+    ]
   ],
 };

@@ -13,26 +13,24 @@
 
 import { NativeModules } from 'react-native';
 import { UInt8ArrayToArray } from '../../utilities';
-import type { BbsDeriveProofRequest } from '../../types';
+import { BbsDeriveProofRequest, PairingCryptoError } from '../../types';
 
 const { PairingCryptoRn } = NativeModules;
 
-export const proofGen = async (
-  request: BbsDeriveProofRequest
-): Promise<Uint8Array> => {
-  const { publicKey, messages, header } = request;
+export const proofGen = async (request: BbsDeriveProofRequest): Promise<Uint8Array> => {
+  const { publicKey, header, presentationHeader, signature, verifySignature, messages } = request;
   try {
     return new Uint8Array(
       await PairingCryptoRn.Bls12381Shake256ProofGen({
         publicKey: UInt8ArrayToArray(publicKey),
-        messageCount: messages?.length ?? 0,
-        messages: messages
-          ? messages.map((_) => UInt8ArrayToArray(_.value))
-          : [],
-        header,
+        signature: UInt8ArrayToArray(signature),
+        header: header ? UInt8ArrayToArray(header) : undefined,
+        presentationHeader: presentationHeader ? UInt8ArrayToArray(presentationHeader) : undefined,
+        messages: messages ? messages.map((item) => ({ ...item, value: UInt8ArrayToArray(item.value) })) : [],
+        verifySignature,
       })
     );
-  } catch {
-    throw new Error('Failed to sign');
+  } catch (err) {
+    throw new PairingCryptoError('Failed to generate proof', err);
   }
 };

@@ -1,0 +1,70 @@
+{
+  "testRunner": "jest",
+  "runnerConfig": "jest.config.js",
+  "skipLegacyWorkersInjection": true,
+  "apps": {
+    "ios.release": {
+      "name": "PairingCryptoRnExample",
+      "type": "ios.app",
+      "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/PairingCryptoRnExample.app",
+      "build": "xcodebuild -workspace ios/PairingCryptoRnExample.xcworkspace -scheme PairingCryptoRnExample -configuration Release -sdk iphonesimulator -derivedDataPath ios/build ENTRY_FILE=index.tsx EXCLUDED_ARCHS=arm64 DETOX=1"
+    },
+    "android.release": {
+      "type": "android.apk",
+      "binaryPath": "android/app/build/outputs/apk/release/app-release.apk",
+      "build": "cd android && ./gradlew assembleRelease --info && ./gradlew assembleAndroidTest -DtestBuildType=release --info && cd .."
+    }
+  },
+  "devices": {
+    "simulator": {
+      "type": "ios.simulator",
+      "device": {
+        "type": "iPhone 11"
+      }
+    },
+    "emulator": {
+      "type": "android.emulator",
+      "device": {
+        "avdName": "Nexus_5X_API_29"
+      }
+    }
+  },
+  "configurations": {
+    "ios": {
+      "device": "simulator",
+      "app": "ios.release"
+    },
+    "android": {
+      "device": "emulator",
+      "app": "android.release"
+    }
+  },
+  "artifacts": {
+    "rootDir": "./detox-artifacts",
+    "plugins": {
+      "instruments": {
+        "enabled": false
+      },
+      "log": {
+        "enabled": true
+      },
+      "uiHierarchy": "enabled",
+      "screenshot": {
+        "shouldTakeAutomaticSnapshots": true,
+        "keepOnlyFailedTestsArtifacts": true,
+        "takeWhen": {
+          "testStart": true,
+          "testDone": true
+        }
+      },
+      "video": {
+        "android": {
+          "bitRate": 4000000
+        },
+        "simulator": {
+          "codec": "hevc"
+        }
+      }
+    }
+  }
+}

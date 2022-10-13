@@ -10,6 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { PairingCryptoError } from './PairingCryptoError';
 
 /**
  * The result returned from a signature or proof verify operation
@@ -22,5 +23,5 @@ export interface BbsVerifyResult {
   /**
    * Indicates whether an error has occured during verification
    */
-  readonly error?: string;
+  readonly error?: PairingCryptoError;
 }

@@ -13,26 +13,28 @@
 
 import { NativeModules } from 'react-native';
 import { UInt8ArrayToArray } from '../../utilities';
-import type { BbsDeriveProofRequest } from '../../types';
+import { BbsDeriveProofRequest, PairingCryptoError } from '../../types';
 
 const { PairingCryptoRn } = NativeModules;
 
-export const proofGen = async (
-  request: BbsDeriveProofRequest
-): Promise<Uint8Array> => {
-  const { publicKey, messages, header } = request;
+export const proofGen = async (request: BbsDeriveProofRequest): Promise<Uint8Array> => {
+  const { publicKey, header, presentationHeader, signature, verifySignature, messages } = request;
   try {
-    return new Uint8Array(
-      await PairingCryptoRn.Bls12381Sha256ProofGen({
-        publicKey: UInt8ArrayToArray(publicKey),
-        messageCount: messages?.length ?? 0,
-        messages: messages
-          ? messages.map((_) => UInt8ArrayToArray(_.value))
-          : [],
-        header,
-      })
-    );
-  } catch {
-    throw new Error('Failed to sign');
+    const result = await PairingCryptoRn.Bls12381Sha256ProofGen({
+      publicKey: UInt8ArrayToArray(publicKey),
+      signature: UInt8ArrayToArray(signature),
+      header: header ? UInt8ArrayToArray(header) : undefined,
+      presentationHeader: presentationHeader ? UInt8ArrayToArray(presentationHeader) : undefined,
+      messages: messages
+        ? messages.map((item) => ({
+            value: UInt8ArrayToArray(item.value),
+            reveal: item.reveal,
+          }))
+        : undefined,
+      verifySignature,
+    });
+    return new Uint8Array(result);
+  } catch (err) {
+    throw new PairingCryptoError('Failed to generate proof', err);
   }
 };

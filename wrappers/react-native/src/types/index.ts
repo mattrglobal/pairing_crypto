@@ -11,11 +11,13 @@
  * limitations under the License.
  */
 
-export { BbsDeriveProofRequest } from "./BbsDeriveProofRequest";
-export { BbsSignRequest } from "./BbsSignRequest";
-export { BbsVerifyRequest } from "./BbsVerifyRequest";
-export { BbsVerifyResult } from "./BbsVerifyResult";
-export { BbsVerifyProofRequest } from "./BbsVerifyProofRequest";
+export { BbsDeriveProofRequest } from './BbsDeriveProofRequest';
+export { BbsSignRequest } from './BbsSignRequest';
+export { BbsVerifyRequest } from './BbsVerifyRequest';
+export { BbsVerifyResult } from './BbsVerifyResult';
+export { BbsVerifyProofRequest } from './BbsVerifyProofRequest';
 
-export { KeyPair } from "./KeyPair";
-export { KeyGenerationRequest } from "./KeyGenerationRequest";
+export { KeyPair } from './KeyPair';
+export { KeyGenerationRequest } from './KeyGenerationRequest';
+
+export { PairingCryptoError } from './PairingCryptoError';

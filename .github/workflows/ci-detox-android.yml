@@ -1,0 +1,159 @@
+name: ci-detox-android
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+
+  java-wrapper:
+    name: Build Java Wrapper
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./main/wrappers/java
+    steps:
+      # This is a temporary build step that clones another
+      # repository as a private un-published dependency 'blstrs'
+      # it uses a GH personal access token with read only permission
+      - name: Check out mattrglobal/blstrs
+        uses: actions/checkout@v3
+        with:
+          repository: mattrglobal/blstrs
+          token: ${{ secrets.MATTR_BLSTRS_PAT }}
+          path: blstrs
+
+      - name: Checkout pairing_crypto
+        uses: actions/checkout@v3
+        with:
+          path: main # TODO remove once temp build step below is removed
+
+      - name: Setup rust toolchain
+        uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: "11"
+          distribution: "adopt"
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build Jni Libraries for Android
+        run: ./gradlew buildAndCopyJniLibraries
+
+      - name: Cleanup Gradle Cache
+        # Remove some files from the Gradle cache, so they aren't cached by GitHub Actions.
+        # Restoring these files from a GitHub Actions cache might cause problems for future builds.
+        run: |
+          rm -f ~/.gradle/caches/modules-2/modules-2.lock
+          rm -f ~/.gradle/caches/modules-2/gc.properties
+
+      - name: Archive build artifacts
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: ci-detox-android-artifacts-libs-${{ github.sha }}
+          path: main/wrappers/java/src/main/resources/META-INF/native/android
+          retention-days: 1
+
+  android:
+    name: Detox Android E2E Testing
+    needs: [java-wrapper]
+    runs-on: ${{ matrix.runners }}
+    strategy:
+      matrix:
+        runners: [[self-hosted, macos, X64, general, runner03]]
+    concurrency:
+      group: ci-detox-android-${{ matrix.runners }}-${{ github.head_ref }}
+      cancel-in-progress: true
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: wrappers/react-native
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org
+
+      - name: Download Java Wrapper Libraries
+        uses: actions/download-artifact@v3
+        with:
+          name: ci-detox-android-artifacts-libs-${{ github.sha }}
+          path: wrappers/java/src/main/resources/META-INF/native/android
+
+      - name: Inspect Java Wrapper Libraries
+        run: ls -R src/main/resources/META-INF/native/android
+        working-directory: wrappers/java
+
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Example App Install Dependencies
+        working-directory: wrappers/react-native/example
+        run: yarn install --frozen-lockfile
+
+      - name: Config self hosted env
+        run: |
+          echo "ANDROID_HOME=/Users/runner/Library/Android/sdk" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=/Users/runner/Library/Android/sdk" >> $GITHUB_ENV
+
+      - name: Download Android Build Tools
+        timeout-minutes: 5
+        run: |
+          echo "y" | $ANDROID_SDK_ROOT/tools/bin/sdkmanager --install "build-tools;31.0.0"
+          cd $ANDROID_SDK_ROOT/build-tools/31.0.0/
+          ln -sf d8 dx
+          cd lib
+          ln -sf d8.jar dx.jar
+
+      - name: Download Android Emulator Image
+        run: |
+          echo "y" | $ANDROID_HOME/tools/bin/sdkmanager --install "system-images;android-29;google_apis;x86"
+          echo "no" | $ANDROID_HOME/tools/bin/avdmanager create avd --force --name Nexus_5X_API_29 --device "Nexus 5X" -k 'system-images;android-29;google_apis;x86'
+          $ANDROID_HOME/emulator/emulator -list-avds
+
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: "11"
+          distribution: "adopt"
+
+      - name: Detox Build Android Configuration
+        working-directory: wrappers/react-native
+        run: yarn detox:build:android
+
+      - name: Inspect Linked Libraries
+        run: ls -R android/src/main/jniLibs
+
+      - name: Detox E2E Test
+        working-directory: wrappers/react-native
+        run: yarn detox:android:ci
+
+      - name: Archive detox failed test results
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: detox-artifacts-${{ github.sha }}
+          path: wrappers/react-native/example/detox-artifacts
+          retention-days: 1

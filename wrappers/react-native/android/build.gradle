@@ -41,6 +41,7 @@ android {
     targetSdkVersion getExtOrIntegerDefault('targetSdkVersion')
     buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
   }
+
   buildTypes {
     release {
       minifyEnabled false
@@ -142,13 +143,13 @@ configurations {
 configurations.implementation.canBeResolved = true
 
 dependencies {
-    //noinspection GradleDynamicVersion
-  implementation "com.facebook.react:react-native:+"
+  //noinspection GradleDynamicVersion
+  implementation "com.facebook.react:react-native:+" // From node_modules
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
   implementation ":PairingCryptoJava"
   nativeBundle ":PairingCryptoJava"
-// From node_modules
+
 }
 
 // Extract pairing crypto libs inside build folder

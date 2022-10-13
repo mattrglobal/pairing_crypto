@@ -9,4 +9,3 @@ if (settings.hasProperty("newArchEnabled") && settings.newArchEnabled == "true")
 }
 
 includeBuild '../../../java'
-

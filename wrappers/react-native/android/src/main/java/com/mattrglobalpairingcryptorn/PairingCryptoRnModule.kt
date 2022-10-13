@@ -7,11 +7,12 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.*
+import java.util.*
 
 class PairingCryptoRnModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
   override fun getName(): String {
-      return "PairingCryptoRn"
+    return "PairingCryptoRn"
   }
 
   @ReactMethod
@@ -157,6 +158,192 @@ class PairingCryptoRnModule(reactContext: ReactApplicationContext) : ReactContex
       var verified = cipherSuite.verify(publicKey, header, signature, messages)
 
       promise.resolve(verified)
+    } catch (exception: Exception) {
+      promise.reject(exception)
+    }
+  }
+
+  @ReactMethod
+  fun Bls12381Sha256ProofVerify(request: ReadableMap, promise: Promise) {
+    try {
+      var header: ByteArray? = null
+      var presentationHeader: ByteArray? = null
+      var publicKey: ByteArray? = null
+      var proof: ByteArray? = null
+      var messages: HashMap<Int, ByteArray>? = null
+      var totalMessageCount: Int? = null
+
+      if (request.hasKey("publicKey")) {
+        publicKey = request.getByteArray("publicKey")
+      }
+      if (request.hasKey("header")) {
+        header = request.getByteArray("header")
+      }
+      if (request.hasKey("presentationHeader")) {
+        presentationHeader = request.getByteArray("presentationHeader")
+      }
+      if (request.hasKey("proof")) {
+        proof = request.getByteArray("proof")
+      }
+      if (request.hasKey("messages")) {
+        messages = request.getMapOfByteArrays("messages")
+      }
+      if (request.hasKey("totalMessageCount")) {
+        totalMessageCount = request.getInt("totalMessageCount")
+      }
+
+      var cipherSuite = Bls12381Sha256()
+      var verified = cipherSuite.verifyProof(publicKey, header, presentationHeader, proof, totalMessageCount, messages)
+
+      promise.resolve(verified)
+    } catch (exception: Exception) {
+      promise.reject(exception)
+    }
+  }
+
+  @ReactMethod
+  fun Bls12381Shake256ProofVerify(request: ReadableMap, promise: Promise) {
+    try {
+      var header: ByteArray? = null
+      var presentationHeader: ByteArray? = null
+      var publicKey: ByteArray? = null
+      var proof: ByteArray? = null
+      var messages: HashMap<Int, ByteArray>? = null
+      var totalMessageCount: Int? = null
+
+      if (request.hasKey("publicKey")) {
+        publicKey = request.getByteArray("publicKey")
+      }
+      if (request.hasKey("header")) {
+        header = request.getByteArray("header")
+      }
+      if (request.hasKey("presentationHeader")) {
+        presentationHeader = request.getByteArray("presentationHeader")
+      }
+      if (request.hasKey("proof")) {
+        proof = request.getByteArray("proof")
+      }
+      if (request.hasKey("messages")) {
+        messages = request.getMapOfByteArrays("messages")
+      }
+      if (request.hasKey("totalMessageCount")) {
+        totalMessageCount = request.getInt("totalMessageCount")
+      }
+
+      var cipherSuite = Bls12381Shake256()
+      var verified = cipherSuite.verifyProof(publicKey, header, presentationHeader, proof, totalMessageCount, messages)
+
+      promise.resolve(verified)
+    } catch (exception: Exception) {
+      promise.reject(exception)
+    }
+  }
+
+  @ReactMethod
+  fun Bls12381Sha256ProofGen(request: ReadableMap, promise: Promise) {
+    try {
+      var header: ByteArray? = null
+      var presentationHeader: ByteArray? = null
+      var publicKey: ByteArray? = null
+      var signature: ByteArray? = null
+      var verifySignature: Boolean = false
+      var disclosedIndices: HashSet<Int>? = null
+      var messages: Array<ByteArray>? = null
+
+      if (request.hasKey("publicKey")) {
+        publicKey = request.getByteArray("publicKey")
+      }
+      if (request.hasKey("header")) {
+        header = request.getByteArray("header")
+      }
+      if (request.hasKey("presentationHeader")) {
+        presentationHeader = request.getByteArray("presentationHeader")
+      }
+      if (request.hasKey("signature")) {
+        signature = request.getByteArray("signature")
+      }
+      if (request.hasKey("verifySignature")) {
+        verifySignature = request.getBoolean("verifySignature")
+      }
+      if (request.hasKey("messages")) {
+        val array = request.getArray("messages") as ReadableArray
+
+        disclosedIndices = HashSet<Int>()
+        messages = Array(array.size(), init = { ByteArray(0) })
+
+        for (i in 0 until array.size() step 1) {
+          val item = array.getMap(i)
+          val reveal = item?.getBoolean("reveal") ?: false
+          val messageBytes = item?.getByteArray("value")
+
+          if (reveal) {
+            disclosedIndices.add(i)
+          }
+          if (messageBytes != null) {
+            messages[i] = messageBytes
+          }
+        }
+      }
+
+      var cipherSuite = Bls12381Sha256()
+      var proof = cipherSuite.createProof(publicKey, header, presentationHeader, signature, verifySignature, disclosedIndices, messages)
+
+      promise.resolve(proof.toReadableArray())
+    } catch (exception: Exception) {
+      promise.reject(exception)
+    }
+  }
+
+  @ReactMethod
+  fun Bls12381Shake256ProofGen(request: ReadableMap, promise: Promise) {
+    try {
+      var header: ByteArray? = null
+      var presentationHeader: ByteArray? = null
+      var publicKey: ByteArray? = null
+      var signature: ByteArray? = null
+      var verifySignature: Boolean = false
+      var disclosedIndices: HashSet<Int>? = null
+      var messages: Array<ByteArray>? = null
+
+      if (request.hasKey("publicKey")) {
+        publicKey = request.getByteArray("publicKey")
+      }
+      if (request.hasKey("header")) {
+        header = request.getByteArray("header")
+      }
+      if (request.hasKey("presentationHeader")) {
+        presentationHeader = request.getByteArray("presentationHeader")
+      }
+      if (request.hasKey("signature")) {
+        signature = request.getByteArray("signature")
+      }
+      if (request.hasKey("verifySignature")) {
+        verifySignature = request.getBoolean("verifySignature")
+      }
+      if (request.hasKey("messages")) {
+        val array = request.getArray("messages") as ReadableArray
+
+        disclosedIndices = HashSet<Int>()
+        messages = Array(array.size(), init = { ByteArray(0) })
+
+        for (i in 0 until array.size() step 1) {
+          val item = array.getMap(i)
+          val reveal = item?.getBoolean("reveal") ?: false
+          val messageBytes = item?.getByteArray("value")
+
+          if (reveal) {
+            disclosedIndices.add(i)
+          }
+          if (messageBytes != null) {
+            messages[i] = messageBytes
+          }
+        }
+      }
+
+      var cipherSuite = Bls12381Shake256()
+      var proof = cipherSuite.createProof(publicKey, header, presentationHeader, signature, verifySignature, disclosedIndices, messages)
+
+      promise.resolve(proof.toReadableArray())
     } catch (exception: Exception) {
       promise.reject(exception)
     }

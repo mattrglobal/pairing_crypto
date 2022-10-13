@@ -468,7 +468,7 @@ EXTERNAL SOURCES:
   mattrglobal-pairing-crypto-rn:
     :path: "../.."
   pairing-crypto:
-    :git: "../../../.."
+    :path: "../../../.."
   RCT-Folly:
     :podspec: "../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec"
   RCTRequired:
@@ -524,11 +524,6 @@ EXTERNAL SOURCES:
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
-CHECKOUT OPTIONS:
-  pairing-crypto:
-    :commit: bba74da8074d195d218b14dc083df9c0f8fcbfa6
-    :git: "../../../.."
-
 SPEC CHECKSUMS:
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
@@ -550,7 +545,7 @@ SPEC CHECKSUMS:
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   mattrglobal-pairing-crypto-rn: cbf8c69f313821ae4e4efc44094f73dd81ef0d54
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
-  pairing-crypto: b0e82966854647e832693bd01b9dd69416f100f0
+  pairing-crypto: e2d4736d0093c706ab7762c455f20c6b6cce2c91
   RCT-Folly: 4d8508a426467c48885f1151029bc15fa5d7b3b8
   RCTRequired: 3e917ea5377751094f38145fdece525aa90545a0
   RCTTypeSafety: c43c072a4bd60feb49a9570b0517892b4305c45e
@@ -581,6 +576,6 @@ SPEC CHECKSUMS:
   Yoga: 99652481fcd320aefa4a7ef90095b95acd181952
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: d1e65336799c6594536dd2031ff1d354ff6cfe04
+PODFILE CHECKSUM: 1a25436d1ebb65700b9fe44574f37e2c98ac11b6
 
 COCOAPODS: 1.11.3

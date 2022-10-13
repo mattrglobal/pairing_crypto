@@ -1,0 +1,66 @@
+name: ci-detox-ios
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  ios:
+    name: Detox iOS E2E Testing
+    runs-on: ${{ matrix.runners }}
+    strategy:
+      matrix:
+        runners: [[self-hosted, macos, X64, general, runner02]]
+    concurrency:
+      group: ci-detox-ios-${{ matrix.runners }}-${{ github.head_ref }}
+      cancel-in-progress: true
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: wrappers/react-native
+
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_12.4.app
+      # Do not launch packager during CI build
+      RCT_NO_LAUNCH_PACKAGER: 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          # Checkout pull request HEAD commit instead of merge commit
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org
+
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Example App Install Dependencies
+        run: yarn example --frozen-lockfile
+
+      - name: Example App Install Pods
+        run: yarn example pods
+
+      - run: brew tap wix/brew
+      - run: brew install applesimutils
+
+      - name: Detox Build iOS Configuration
+        run: yarn detox:build:ios
+
+      - name: Detox E2E Test
+        run: yarn detox:ios:ci
+
+      - name: Archive detox failed test results
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: detox-artifacts-${{ github.sha }}
+          path: wrappers/react-native/example/detox-artifacts
+          retention-days: 1

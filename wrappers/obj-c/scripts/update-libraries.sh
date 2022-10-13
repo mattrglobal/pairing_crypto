@@ -20,4 +20,5 @@ source $C_WRAPPER_DIRECTORY/scripts/build-platform-targets.sh IOS $C_WRAPPER_DIR
 echo $CURRENT_SCRIPT_DIRECTORY
 
 # Copy to the external libraries folder specified in podspec
+mkdir -p "$CURRENT_SCRIPT_DIRECTORY/../libraries"
 cp "$C_WRAPPER_DIRECTORY/out/ios/universal/$LIBRARY_FILE.a" "$CURRENT_SCRIPT_DIRECTORY/../libraries/$LIBRARY_FILE.a"

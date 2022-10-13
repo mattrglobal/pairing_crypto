@@ -19,8 +19,7 @@ import { Buffer } from 'buffer';
  *
  * @returns A Base64 string
  */
-export const UInt8ArrayToBase64String = (array: Uint8Array): string =>
-  new Buffer(array.buffer).toString('base64');
+export const UInt8ArrayToBase64String = (array: Uint8Array): string => Buffer.from(array.buffer).toString('base64');
 
 /**
  * Converts a Uint8Array to a numerical array
@@ -28,8 +27,7 @@ export const UInt8ArrayToBase64String = (array: Uint8Array): string =>
  *
  * @returns A numericalArray
  */
-export const UInt8ArrayToArray = (array: Uint8Array): Array<number> =>
-  [].slice.call(array);
+export const UInt8ArrayToArray = (array: Uint8Array): Array<number> => [].slice.call(array);
 
 /**
  * Converts a base64 string to a Uint8Array
@@ -37,5 +35,20 @@ export const UInt8ArrayToArray = (array: Uint8Array): Array<number> =>
  *
  * @returns A Uint8Array
  */
-export const base64StringToUInt8Array = (string: string): Uint8Array =>
-  new Uint8Array(new Buffer(string, 'base64'));
+export const base64StringToUInt8Array = (string: string): Uint8Array => new Uint8Array(Buffer.from(string, 'base64'));
+
+/**
+ * Convert values in the object with the given function.
+ *
+ * @returns The transformed object
+ */
+export const mapObjIndexed = <K extends number | string, V, R>(
+  fn: (value: V, key: K, obj: Record<K, V>) => R,
+  obj: Record<K, V>
+): Record<K, R> => {
+  return Object.keys(obj).reduce((accu, next) => {
+    const key = next as K;
+    accu[key] = fn(obj[key], key, obj);
+    return accu;
+  }, {} as Record<K, R>);
+};

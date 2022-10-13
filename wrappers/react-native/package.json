@@ -22,12 +22,19 @@
     "!**/__mocks__"
   ],
   "scripts": {
-    "test": "jest",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "format": "prettier --write '**/*.{js,ts,tsx}'",
     "prepare": "bob build",
     "release": "release-it",
     "example": "yarn --cwd example",
+    "detox:build": "yarn e2e:build:ios && e2e:build:android",
+    "detox:build:ios": "yarn example detox build -c ios",
+    "detox:build:android": "yarn example detox build -c android",
+    "detox:ios": "yarn example detox test -c ios",
+    "detox:ios:ci": "yarn detox:ios --cleanup --record-videos failing",
+    "detox:android": "yarn example detox test -c android",
+    "detox:android:ci": "yarn detox:android --cleanup --record-videos failing --record-logs all --headless",
     "bootstrap": "yarn install && yarn example && yarn example pods"
   },
   "keywords": [
@@ -50,15 +57,12 @@
     "@commitlint/config-conventional": "^17.0.2",
     "@react-native-community/eslint-config": "^3.0.2",
     "@release-it/conventional-changelog": "^5.0.0",
-    "@types/jest": "^28.1.2",
     "@types/react": "~17.0.21",
     "@types/react-native": "0.68.0",
     "commitlint": "^17.0.2",
     "eslint": "^8.4.1",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
-    "jest": "^28.1.1",
-    "pod-install": "^0.1.0",
     "prettier": "^2.0.5",
     "react": "17.0.2",
     "react-native": "0.68.2",
@@ -127,6 +131,7 @@
     "lib/"
   ],
   "prettier": {
+    "printWidth": 120,
     "quoteProps": "consistent",
     "singleQuote": true,
     "tabWidth": 2,

@@ -13,23 +13,21 @@
 
 import { NativeModules } from 'react-native';
 import { UInt8ArrayToArray } from '../../utilities';
-import type { BbsSignRequest } from '../../types';
+import { BbsSignRequest, PairingCryptoError } from '../../types';
 
 const { PairingCryptoRn } = NativeModules;
 
 export const sign = async (request: BbsSignRequest): Promise<Uint8Array> => {
   const { secretKey, publicKey, messages, header } = request;
   try {
-    return new Uint8Array(
-      await PairingCryptoRn.Bls12381Shake256Sign({
-        publicKey: UInt8ArrayToArray(publicKey),
-        secretKey: UInt8ArrayToArray(secretKey),
-        messageCount: messages?.length ?? 0,
-        messages: messages ? messages.map((_) => UInt8ArrayToArray(_)) : [],
-        header,
-      })
-    );
-  } catch {
-    throw new Error('Failed to sign');
+    const result = await PairingCryptoRn.Bls12381Shake256Sign({
+      secretKey: UInt8ArrayToArray(secretKey),
+      publicKey: UInt8ArrayToArray(publicKey),
+      messages: messages ? messages.map(UInt8ArrayToArray) : undefined,
+      header: header ? UInt8ArrayToArray(header) : undefined,
+    });
+    return new Uint8Array(result);
+  } catch (err) {
+    throw new PairingCryptoError('Failed to sign', err);
   }
 };

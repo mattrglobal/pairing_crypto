@@ -13,26 +13,25 @@
 
 import { NativeModules } from 'react-native';
 import { UInt8ArrayToArray } from '../../utilities';
-import type { BbsVerifyRequest, BbsVerifyResult } from '../../types';
+import { BbsVerifyRequest, BbsVerifyResult, PairingCryptoError } from '../../types';
 
 const { PairingCryptoRn } = NativeModules;
 
-export const verify = async (
-  request: BbsVerifyRequest
-): Promise<BbsVerifyResult> => {
+export const verify = async (request: BbsVerifyRequest): Promise<BbsVerifyResult> => {
   const { publicKey, messages, header, signature } = request;
   try {
     return {
       verified: await PairingCryptoRn.Bls12381Shake256Verify({
         publicKey: UInt8ArrayToArray(publicKey),
-        messages: messages
-          ? messages.map((item) => UInt8ArrayToArray(item))
-          : undefined,
+        messages: messages ? messages.map((item) => UInt8ArrayToArray(item)) : undefined,
         header: header ? UInt8ArrayToArray(header) : undefined,
         signature: UInt8ArrayToArray(signature),
       }),
     };
-  } catch {
-    throw new Error('Failed to verify');
+  } catch (err) {
+    return {
+      verified: false,
+      error: new PairingCryptoError('Failed to verify Bbls12381Shake256 signature', err),
+    };
   }
 };
