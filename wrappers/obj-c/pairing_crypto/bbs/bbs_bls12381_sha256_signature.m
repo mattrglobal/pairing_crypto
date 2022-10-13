@@ -15,7 +15,8 @@
 /** @brief BBS-Bls12381-Sha-256 Signature */
 @implementation BbsBls12381Sha256Signature
 
-- (void) createSignature:(BbsKeyPair* _Nonnull)keyPair
+- (void) createSignature:(NSData *_Nonnull)secretKey
+               publicKey:(NSData *_Nonnull)publicKey
                   header:(NSData *_Nullable)header
                 messages:(NSArray *_Nullable)messages
                withError:(NSError* _Nullable*_Nullable)errorPtr {
@@ -30,8 +31,8 @@
     }
 
     pairing_crypto_byte_buffer_t* secretKeyBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
-    secretKeyBuffer->len = keyPair.secretKey.length;
-    secretKeyBuffer->data = (uint8_t *)keyPair.secretKey.bytes;
+    secretKeyBuffer->len = secretKey.length;
+    secretKeyBuffer->data = (uint8_t *)secretKey.bytes;
 
     if (bbs_bls12_381_sha_256_sign_context_set_secret_key(createSignatureHandle, secretKeyBuffer, err) > 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
@@ -39,8 +40,8 @@
     }
     
     pairing_crypto_byte_buffer_t* publicKeyBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
-    publicKeyBuffer->len = keyPair.publicKey.length;
-    publicKeyBuffer->data = (uint8_t *)keyPair.publicKey.bytes;
+    publicKeyBuffer->len = publicKey.length;
+    publicKeyBuffer->data = (uint8_t *)publicKey.bytes;
 
     if (bbs_bls12_381_sha_256_sign_context_set_public_key(createSignatureHandle, publicKeyBuffer, err) > 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];

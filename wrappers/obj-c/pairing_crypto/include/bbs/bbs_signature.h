@@ -18,7 +18,8 @@
 /**
  * @brief Creates a BBS signature
  */
-- (nullable instancetype)sign:(BbsKeyPair *_Nonnull)keyPair
+- (nullable instancetype)sign:(NSData *_Nonnull)secretKey
+                    publicKey:(NSData *_Nonnull)publicKey
                        header:(NSData *_Nullable)header
                      messages:(NSArray *_Nullable)messages
                     withError:(NSError *_Nullable *_Nullable)errorPtr;
@@ -31,7 +32,8 @@
       messages:(NSArray *_Nullable)messages
      withError:(NSError *_Nullable *_Nullable)errorPtr;
 
-- (void)createSignature:(BbsKeyPair *_Nonnull)keyPair
+- (void)createSignature:(NSData *_Nonnull)secretKey
+              publicKey:(NSData *_Nonnull)publicKey
                  header:(NSData *_Nullable)header
                messages:(NSArray *_Nullable)messages
               withError:(NSError *_Nullable *_Nullable)errorPtr;

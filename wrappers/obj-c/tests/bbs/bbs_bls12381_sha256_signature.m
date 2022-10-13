@@ -20,7 +20,8 @@
     NSData *header = [@"Test-Header" dataUsingEncoding:NSUTF8StringEncoding];
     NSArray *messages = [NSArray arrayWithObjects:[[NSData alloc] initWithBase64EncodedString:@"H297BpoOgkfpXc==" options:0], nil];
     
-    BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] sign:keyPair
+    BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] sign:keyPair.secretKey
+                                               publicKey:keyPair.publicKey
                                                   header:header
                                                 messages:messages
                                                withError:&error];
@@ -41,7 +42,8 @@
                                                   [[NSData alloc] initWithBase64EncodedString:@"xaPXXhFBIbxeIU==" options:0],
                                                   [[NSData alloc] initWithBase64EncodedString:@"BapXXhfBIbxeIU==" options:0], nil];
     
-    BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] sign:keyPair
+    BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] sign:keyPair.secretKey
+                                               publicKey:keyPair.publicKey
                                                   header:header
                                                 messages:messages
                                                withError:&error];
@@ -60,7 +62,8 @@
     NSData *header = [@"Test-Header" dataUsingEncoding:NSUTF8StringEncoding];
     NSArray *messages = [NSArray arrayWithObjects:[[NSData alloc] initWithBase64EncodedString:@"H297BpoOgkfpXc==" options:0], nil];
     
-    BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] sign:keyPair
+    BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] sign:keyPair.secretKey
+                                               publicKey:keyPair.publicKey
                                                   header:header
                                                 messages:messages
                                                withError:&error];
@@ -87,7 +90,8 @@
                                                   [[NSData alloc] initWithBase64EncodedString:@"xaPXXhFBIbxeIU==" options:0],
                                                   [[NSData alloc] initWithBase64EncodedString:@"BapXXhfBIbxeIU==" options:0], nil];
     
-    BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] sign:keyPair
+    BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] sign:keyPair.secretKey
+                                               publicKey:keyPair.publicKey
                                                   header:header
                                                 messages:messages
                                                withError:&error];
