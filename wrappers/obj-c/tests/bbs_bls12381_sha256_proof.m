@@ -23,7 +23,8 @@
     BbsBls12381Sha256KeyPair *keyPair = [[BbsBls12381Sha256KeyPair alloc] initWithIkm:ikm keyInfo:keyInfo
                                                                withError:&error];
 
-    BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] sign:keyPair
+    BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] sign:keyPair.secretKey
+                                               publicKey:keyPair.publicKey
                                                   header:header
                                                 messages:messages
                                                withError:&error];
