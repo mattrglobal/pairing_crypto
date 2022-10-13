@@ -76,6 +76,7 @@ PODS:
   - hermes-engine (0.11.0)
   - libevent (2.1.12)
   - mattrglobal-pairing-crypto-rn (0.1.0):
+    - pairing-crypto
     - React-Core
   - OpenSSL-Universal (1.1.1100)
   - pairing-crypto (0.1.0)
@@ -543,7 +544,7 @@ SPEC CHECKSUMS:
   glog: 476ee3e89abb49e07f822b48323c51c57124b572
   hermes-engine: 84e3af1ea01dd7351ac5d8689cbbea1f9903ffc3
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
-  mattrglobal-pairing-crypto-rn: cbf8c69f313821ae4e4efc44094f73dd81ef0d54
+  mattrglobal-pairing-crypto-rn: 6a8b23137cb4edfdadf5b9d3e90882b3969ed98a
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   pairing-crypto: e2d4736d0093c706ab7762c455f20c6b6cce2c91
   RCT-Folly: 4d8508a426467c48885f1151029bc15fa5d7b3b8

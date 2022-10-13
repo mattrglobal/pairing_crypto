@@ -46,12 +46,20 @@ export interface SignatureFixture {
   };
 }
 
-const testAsset: FixtureItem<TestAsset> = FIXTURES['test_asset'];
+const resolve = <T>(path: string): T => {
+  const value = R.path(path.split('/'), FIXTURES) as T;
+  if (!value) {
+    throw new Error(`No fixtures found at ${path}`);
+  }
+  return value;
+};
 
-const bls12381Sha256Signature: Fixtures<SignatureFixture> = FIXTURES['bls12_381_sha_256']['signature'];
-const bls12381Shake256Signature: Fixtures<SignatureFixture> = FIXTURES['bls12_381_shake_256']['signature'];
-const bls12381Sha256Proof: Fixtures<ProofFixture> = FIXTURES['bls12_381_sha_256']['proof'];
-const bls12381Shake256Proof: Fixtures<ProofFixture> = FIXTURES['bls12_381_shake_256']['proof'];
+const testAsset = resolve<FixtureItem<TestAsset>>('test_asset');
+
+const bls12381Sha256Signature = resolve<Fixtures<SignatureFixture>>('bls12_381_sha_256/signature');
+const bls12381Shake256Signature = resolve<Fixtures<SignatureFixture>>('bls12_381_shake_256/signature');
+const bls12381Sha256Proof = resolve<Fixtures<ProofFixture>>('bls12_381_sha_256/proof');
+const bls12381Shake256Proof = resolve<Fixtures<ProofFixture>>('bls12_381_shake_256/proof');
 
 export const fixtures = {
   testAsset,

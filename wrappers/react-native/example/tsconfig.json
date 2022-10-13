@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "./lib",
     "jsx": "react-native",
-    "types": ["jest"],
+    "types": ["node", "jest"],
     "noEmit": true,
     "skipLibCheck": true
   },

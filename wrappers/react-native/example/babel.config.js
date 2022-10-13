@@ -13,8 +13,6 @@ module.exports = {
         },
       },
     ],
-    [
-      "./babel.plugin.js",
-    ]
+    ['./babel.plugin.js'],
   ],
 };

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { forwardRef, useImperativeHandle } from 'react';
 import type { ButtonProps } from 'react-native';
 
 import { inspect } from './utils';
 import { Button } from './Button';
 import { useTestReport } from './TestReport';
 import type { VerifyResult } from './pairing-crypto';
+import type { TestCaseInstance } from './TestGroup';
 
 export type TestWrapperProps = ButtonProps & {
   readonly testID: string;
@@ -12,7 +13,7 @@ export type TestWrapperProps = ButtonProps & {
   readonly verify: () => Promise<VerifyResult>;
 };
 
-export const TestWrapper: React.FC<TestWrapperProps> = (props) => {
+export const TestWrapper = forwardRef<TestCaseInstance, TestWrapperProps>((props, ref) => {
   const { testID, fixture, verify, ...buttonProps } = props;
 
   const reporter = useTestReport();
@@ -31,6 +32,7 @@ export const TestWrapper: React.FC<TestWrapperProps> = (props) => {
       reporter.update({ testID, error, passed: false });
     }
   };
+  useImperativeHandle(ref, () => ({ runTest: handlePress }));
 
   return <Button {...buttonProps} testID={testID} onPress={handlePress} />;
-};
+});

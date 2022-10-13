@@ -30,32 +30,32 @@ describe('signature', () => {
     await expect(element(by.id(testResultID))).toHaveText('Passed: true');
   };
 
-  it.each(R.values(fixtures.bls12381Sha256Signature).map((fixture) => [fixture.name, fixture]))(
+  it.each(R.values(fixtures.bls12381Sha256Signature).map((fixture) => [fixture.name, fixture] as const))(
     'should verify bls12_381_sha_256 signature: %s',
     runFixtureTest('SignatureVerify')
   );
 
-  it.each(R.values(fixtures.bls12381Shake256Signature).map((fixture) => [fixture.name, fixture]))(
+  it.each(R.values(fixtures.bls12381Shake256Signature).map((fixture) => [fixture.name, fixture] as const))(
     'should verify bls12_381_shake_256 signature: %s',
     runFixtureTest('SignatureVerify')
   );
 
-  it.each(R.values(fixtures.bls12381Sha256Proof).map((fixture) => [fixture.name, fixture]))(
+  it.each(R.values(fixtures.bls12381Sha256Proof).map((fixture) => [fixture.name, fixture] as const))(
     'should verify bls12_381_sha_256 proof: %s',
     runFixtureTest('ProofVerify')
   );
 
-  it.each(R.values(fixtures.bls12381Shake256Proof).map((fixture) => [fixture.name, fixture]))(
+  it.each(R.values(fixtures.bls12381Shake256Proof).map((fixture) => [fixture.name, fixture] as const))(
     'should verify bls12_381_shake_256 proof: %s',
     runFixtureTest('ProofVerify')
   );
 
-  it.each(R.values(fixtures.bls12381Sha256ProofValidCases).map((fixture) => [fixture.name, fixture]))(
+  it.each(R.values(fixtures.bls12381Sha256ProofValidCases).map((fixture) => [fixture.name, fixture] as const))(
     'should verify bls12_381_sha_256 proof: %s',
     runFixtureTest('ProofGen')
   );
 
-  it.each(R.values(fixtures.bls12381Shake256ProofValidCases).map((fixture) => [fixture.name, fixture]))(
+  it.each(R.values(fixtures.bls12381Shake256ProofValidCases).map((fixture) => [fixture.name, fixture] as const))(
     'should verify bls12_381_shake_256 proof: %s',
     runFixtureTest('ProofGen')
   );

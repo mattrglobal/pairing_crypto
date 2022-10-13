@@ -1,5 +1,5 @@
 import React, { forwardRef, createContext, useContext, useState, useRef, useImperativeHandle } from 'react';
-import { SafeAreaView, Text, View, StyleSheet } from 'react-native';
+import { SafeAreaView, TouchableOpacity, Text, View, StyleSheet } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 import { inspect } from './utils';
@@ -26,6 +26,9 @@ export const useTestReport = () => {
 export const TestReportView: React.FC = ({ children }) => {
   const instanceRef = useRef<TestReportInstance>();
 
+  const [isExpanded, setIsExpanded] = useState(false);
+  const handleToggleExpandedView = () => setIsExpanded((curr) => !curr);
+
   const proxy: TestReportInstance = {
     update: (next) => instanceRef.current?.update(next),
   };
@@ -33,20 +36,30 @@ export const TestReportView: React.FC = ({ children }) => {
   return (
     <TestReportContext.Provider value={proxy}>
       <SafeAreaView style={styles.rootWrapper}>
-        <View style={styles.reportWrapper}>
+        <TouchableOpacity
+          style={[styles.reportWrapper, isExpanded && styles.reportWrapperExpanded]}
+          onPress={handleToggleExpandedView}
+          activeOpacity={0.8}
+        >
           <TestReportInspector
+            isExpanded={isExpanded}
             ref={(instance) => {
               instanceRef.current = instance || undefined;
             }}
           />
-        </View>
+        </TouchableOpacity>
         <View style={styles.contentWrapper}>{children}</View>
       </SafeAreaView>
     </TestReportContext.Provider>
   );
 };
 
-export const TestReportInspector = forwardRef<TestReportInstance, {}>((_, ref) => {
+type TestReportInspectorProps = {
+  readonly isExpanded: boolean;
+};
+export const TestReportInspector = forwardRef<TestReportInstance, TestReportInspectorProps>((props, ref) => {
+  const { isExpanded } = props;
+
   const [state, setState] = useState<TestReport>();
   useImperativeHandle(ref, () => ({ update: setState }));
 
@@ -55,8 +68,10 @@ export const TestReportInspector = forwardRef<TestReportInstance, {}>((_, ref) =
   const testResultDataText = `Result: ${state?.result ? inspect(state?.result, 0) : 'N/A'}`;
 
   return (
-    <View testID={`${state?.testID}-TestReport`} style={styles.resultContainer}>
-      <Text style={styles.textLine}>{state?.testID ?? 'Nothing to inspect'}</Text>
+    <View testID={`${state?.testID}-TestReport`} style={styles.reportContainer}>
+      <Text style={styles.textLine} numberOfLines={1}>
+        {state?.testID ?? 'Nothing to inspect'}
+      </Text>
       <Text
         testID={`${state?.testID}-TestResult`}
         accessibilityLabel={testResultText}
@@ -77,7 +92,7 @@ export const TestReportInspector = forwardRef<TestReportInstance, {}>((_, ref) =
         testID={`${state?.testID}-TestResultData`}
         accessibilityLabel={testResultDataText}
         style={styles.textLine}
-        numberOfLines={1}
+        numberOfLines={isExpanded ? undefined : 1}
       >
         {testResultDataText}
       </Text>
@@ -100,7 +115,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.black,
     opacity: 0.85,
   },
-  resultContainer: {
+  reportWrapperExpanded: {
+    height: '100%',
+  },
+  reportContainer: {
     flex: 1,
     flexDirection: 'column',
     justifyContent: 'center',
@@ -113,7 +131,7 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.white,
   },
   textLine: {
-    flex: 1,
+    // flex: 1,
     fontSize: 12,
     color: '#007AFF',
   },
