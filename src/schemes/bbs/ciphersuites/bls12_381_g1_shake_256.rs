@@ -18,7 +18,7 @@ use crate::{
             ExpandMessageParameter,
         },
     },
-    curves::bls12_381::hash_to_curve::ExpandMsgXof,
+    curves::bls12_381::{hash_to_curve::ExpandMsgXof, OCTET_SCALAR_LENGTH},
     Error,
 };
 use sha3::Shake256;
@@ -98,4 +98,55 @@ pub fn create_generators(
     crate::bbs::api::generators::create_generators::<
         Bls12381Shake256CipherSuiteParameter,
     >(count, private_holder_binding)
+}
+
+/// Hash to scalar.
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
+pub fn hash_to_scalar(
+    msg_octets: &[u8],
+    count: usize,
+    dst: Option<&[u8]>,
+) -> Result<Vec<[u8; OCTET_SCALAR_LENGTH]>, Error> {
+    let scalars = Bls12381Shake256CipherSuiteParameter::hash_to_scalar(
+        msg_octets, count, dst,
+    );
+
+    match scalars {
+        Ok(values) => {
+            let values: Vec<[u8; OCTET_SCALAR_LENGTH]> =
+                values.iter().map(|scalar| scalar.to_bytes_be()).collect();
+
+            Ok(values)
+        }
+        Err(e) => Err(e),
+    }
+}
+
+/// Map message to scalar as hash.
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
+pub fn map_message_to_scalar_as_hash(
+    message: &[u8],
+    dst: Option<&[u8]>,
+) -> Result<[u8; OCTET_SCALAR_LENGTH], Error> {
+    let scalar =
+        Bls12381Shake256CipherSuiteParameter::map_message_to_scalar_as_hash(
+            message, dst,
+        );
+
+    match scalar {
+        Ok(val) => Ok(val.to_bytes_be()),
+        Err(e) => Err(e),
+    }
+}
+
+/// Return the default hash to scalar dst.
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
+pub fn default_hash_to_scalar_dst() -> Vec<u8> {
+    Bls12381Shake256CipherSuiteParameter::default_hash_to_scalar_dst()
+}
+
+/// Return the default map message to scalar as hash dst.
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
+pub fn default_map_message_to_scalar_as_hash_dst() -> Vec<u8> {
+    Bls12381Shake256CipherSuiteParameter::default_hash_to_scalar_dst()
 }
