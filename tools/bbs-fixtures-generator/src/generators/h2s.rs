@@ -101,17 +101,18 @@ macro_rules! h2s_make_fixture_helper {
         $dst: ident,
         $count: literal,
     ) => {{
-        let msg_scalars = $hash_to_scalar_fn($message, $count, $dst).unwrap();
+        // the dst used
+        let default_dst = $get_default_hash_to_scalar_dst_fn();
+        let dst_used = $dst.unwrap_or(default_dst);
 
-        // use collect_into it it becomes stable, see issue #94780
+        let msg_scalars =
+            $hash_to_scalar_fn($message, $count, Some(&dst_used)).unwrap();
+
+        // use collect_into if it becomes stable, see issue #94780
         let mut scalars_vec: Vec<Vec<u8>> = Vec::new();
         for msg_scalar in msg_scalars {
             scalars_vec.push(Vec::from(msg_scalar.to_owned()));
         }
-
-        // the dst used
-        let default_dst = $get_default_hash_to_scalar_dst_fn();
-        let dst_used = $dst.unwrap_or(default_dst);
 
         FixtureH2s {
             case_name: $case_name.to_owned(),

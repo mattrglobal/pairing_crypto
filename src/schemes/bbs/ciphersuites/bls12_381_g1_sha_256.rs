@@ -18,7 +18,7 @@ use crate::{
             ExpandMessageParameter,
         },
     },
-    curves::bls12_381::{hash_to_curve::ExpandMsgXmd, OCTET_SCALAR_LENGTH},
+    curves::bls12_381::hash_to_curve::ExpandMsgXmd,
     Error,
 };
 use sha2::Sha256;
@@ -98,6 +98,9 @@ pub fn create_generators(
         Bls12381Sha256CipherSuiteParameter,
     >(count, private_holder_binding)
 }
+
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
+use crate::curves::bls12_381::OCTET_SCALAR_LENGTH;
 
 /// Hash to scalar.
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
