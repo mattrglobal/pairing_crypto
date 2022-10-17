@@ -139,6 +139,44 @@ impl From<FixtureGenInput> for FixtureProof {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct MessageToScalarFixtureCase {
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub message: Vec<u8>,
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub scalar: Vec<u8>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct FixtureH2s {
+    pub case_name: String,
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub message: Vec<u8>,
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub dst: Vec<u8>,
+    pub count: usize,
+    #[serde(serialize_with = "serialize_scalars")]
+    #[serde(deserialize_with = "deserialize_scalars")]
+    pub scalars: Vec<Vec<u8>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct FixtureMapMessageToScalar {
+    pub case_name: String,
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub dst: Vec<u8>,
+    #[serde(serialize_with = "serialize_message_to_scalar_cases")]
+    pub cases: Vec<MessageToScalarFixtureCase>,
+}
+
 fn serialize_key_pair<S>(
     key_pair: &KeyPair,
     serializer: S,
@@ -344,4 +382,37 @@ where
     }
 
     deserializer.deserialize_map(DisclosedMessagesVisitor)
+}
+
+pub fn serialize_message_to_scalar_cases<S>(
+    cases: &Vec<MessageToScalarFixtureCase>,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    let mut seq = serializer.serialize_seq(Some(cases.len()))?;
+    for case in cases {
+        seq.serialize_element(&case)?;
+    }
+    seq.end()
+}
+
+fn serialize_scalars<S>(
+    scalars: &Vec<Vec<u8>>,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    serialize_messages::<S>(scalars, serializer)
+}
+
+pub fn deserialize_scalars<'de, D>(
+    deserializer: D,
+) -> Result<Vec<Vec<u8>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    deserialize_messages::<'de, D>(deserializer)
 }

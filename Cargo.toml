@@ -11,6 +11,7 @@ default = []
 alloc = []
 wasm = ["alloc", "getrandom"]
 __private_generator_api = []
+__private_bbs_fixtures_generator_api = []
 
 [dependencies]
 digest = "0.9"
