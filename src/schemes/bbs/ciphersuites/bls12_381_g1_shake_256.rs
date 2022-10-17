@@ -151,5 +151,5 @@ pub fn default_hash_to_scalar_dst() -> Vec<u8> {
 /// Return the default map message to scalar as hash dst.
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
 pub fn default_map_message_to_scalar_as_hash_dst() -> Vec<u8> {
-    Bls12381Shake256CipherSuiteParameter::default_hash_to_scalar_dst()
+    Bls12381Shake256CipherSuiteParameter::default_map_message_to_scalar_as_hash_dst()
 }
