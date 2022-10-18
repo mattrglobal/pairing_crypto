@@ -29,7 +29,7 @@ pub(crate) trait HashToScalarParameter: ExpandMessageParameter {
 
     /// Default domain separation tag to be used in [MapMessageToScalarAsHash](https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-mapmessagetoscalarashash).
     fn default_map_message_to_scalar_as_hash_dst() -> Vec<u8> {
-        [Self::ID.as_octets(), b"MAP_MESSAGE_TO_SCALAR_AS_HASH_"].concat()
+        [Self::ID.as_octets(), b"MAP_MSG_TO_SCALAR_AS_HASH_"].concat()
     }
 
     /// Hash arbitrary data to `n` number of scalars as specified in BBS
