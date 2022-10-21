@@ -407,7 +407,7 @@ macro_rules! bbs_wrapper_api_generator {
 }
 
 bbs_wrapper_api_generator!(
-    bbs_bls12_381_sha2_56_sign,
+    bbs_bls12_381_sha_256_sign,
     bls12_381_sha_256_sign,
     bbs_bls12_381_sha_256_verify,
     bls12_381_sha_256_verify,
