@@ -1,0 +1,20 @@
+[package]
+name = "key-gen"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies.pairing_crypto]
+version = "0.1.0"
+path = "../../"
+features = ["__private_generator_api"]
+
+[dependencies]
+clap = { version = "4.0.18", features = ["derive"] }
+serde = "1.0.139"
+serde_derive = "1.0.139"
+serde_json = "1.0.82"
+serde_cbor = "0.11.2"
+hex = {version = "0.4.3", features = ["serde"]}
+base64 = "0.13.0"
