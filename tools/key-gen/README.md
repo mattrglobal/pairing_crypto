@@ -53,6 +53,7 @@ Output:
   "x": "_nmYLctt4EA3jtzM_DoO72zOgJtk_7pDqXoFCfpizFE",
   "d": "tTbCV2ztXdPBQOf5ksrhZ3l2KoCBdwDk6x8hih6IWdyD3A_e1p3Yt-Vp8gt1DD8uCQO_0lntjLQ_2PAGpd5Q-ks6UgkedMroobcrt0l9RUq4__GsDzJMSQJ1bQOCC0co"
 }
+```
 
 3. Following command will use default values of the CLI arguments and prints generated BLS12381G1 curve key pair in CBOR format.
 ```sh
