@@ -47,7 +47,7 @@
   ],
   "repository": "https://github.com/mattrglobal/pairing-crypto/mattrglobal-pairing-crypto-rn",
   "author": "Tobias Looker <tobias.looker@mattr.global> (https://github.com/mattrglobal/pairing-crypto)",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/mattrglobal/pairing-crypto/mattrglobal-pairing-crypto-rn/issues"
   },
@@ -64,6 +64,7 @@
     "@types/react-native": "0.68.0",
     "eslint": "7.32.0",
     "eslint-config-prettier": "6.11.0",
+    "eslint-plugin-header": "3.1.1",
     "eslint-plugin-prettier": "3.1.3",
     "prettier": "2.7.1",
     "react": "17.0.2",
