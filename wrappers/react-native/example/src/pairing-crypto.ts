@@ -7,12 +7,13 @@ import { FixtureItem, SignatureFixture, ProofFixture, fixtures } from '../__fixt
 export interface VerifyResult {
   readonly verified: boolean;
   readonly error?: Error;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   readonly [key: string]: any;
 }
 
 const convert = {
-  byteArrayToHex: (data: Uint8Array) => Buffer.from(data).toString('hex'),
-  byteArrayFromHex: (data: string) => new Uint8Array(Buffer.from(data, 'hex')),
+  byteArrayToHex: (data: Uint8Array): string => Buffer.from(data).toString('hex'),
+  byteArrayFromHex: (data: string): Uint8Array => new Uint8Array(Buffer.from(data, 'hex')),
 };
 
 export const BbsBls12381Sha256GenerateKeyPair = async (): Promise<VerifyResult> => {

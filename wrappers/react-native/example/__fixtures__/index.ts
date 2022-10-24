@@ -3,7 +3,7 @@ import * as R from 'ramda';
 /**
  * Fixture data sets are injected via Babel plugin, folder structure will be preserved.
  */
-const FIXTURES = process.env.__FIXTURES__ as any;
+const FIXTURES = process.env.__FIXTURES__ as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 export type Fixture = ProofFixture | SignatureFixture;
 

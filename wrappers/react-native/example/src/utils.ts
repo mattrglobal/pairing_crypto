@@ -51,7 +51,7 @@ const formatPairingCryptoError = (error: PairingCryptoError): unknown => {
 };
 
 export const inspect = (value: unknown, space = 2): string => {
-  const replacer = (_key: string, value: unknown) => {
+  const replacer = (_key: string, value: unknown): unknown => {
     // The stringify function only visits the object's enumerable own properties.
     // For error instances deserialized by react-native will becomes "{}". We need
     // to properly serialize them with a nicer format.
