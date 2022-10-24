@@ -3,9 +3,16 @@ import org.gradle.internal.os.OperatingSystem
 plugins {
     // Apply the java-library plugin for API and implementation separation.
     id 'java-library'
+    id 'maven-publish'
+    id 'signing'
 }
 
-apply plugin : "java-library"
+group 'com.github.mattrglobal'
+version '0.1-SNAPSHOT'
+
+apply plugin: "java-library"
+apply plugin: "maven-publish"
+apply plugin: "signing"
 
 repositories {
     // Use Maven Central for resolving dependencies.
@@ -51,4 +58,40 @@ tasks.named('test') {
 
     // Enable logging output to stderr
     testLogging.showStandardStreams = true
+}
+
+jar {
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+signing {
+    if (project.hasProperty('signing.keyId') &&
+        project.hasProperty('signing.password') &&
+        project.hasProperty('signing.secretKeyRingFile')) {
+        sign configurations.archives
+        sign publishing.publications
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "Maven"
+            url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+            credentials {
+                username = project.properties['maven.username']
+                password = project.properties['maven.password']
+            }
+        }
+    }
+    publications {
+        register("jar", MavenPublication) {
+            from(components["java"])
+            pom {
+                url.set("git@github.com:mattrglobal/pairing_crypto.git")
+            }
+        }
+    }
 }
