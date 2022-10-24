@@ -44,8 +44,8 @@ struct Cli {
 struct KeyReprsentation {
     kty: String,
     crv: String,
-    x: String,
     d: String,
+    x: String,
 }
 
 fn main() {
@@ -89,8 +89,8 @@ fn main() {
     let key_repr = KeyReprsentation {
         kty: "OKP".to_owned(),
         crv: curve_type.to_owned(),
-        x: priv_key,
-        d: pub_key,
+        d: priv_key,
+        x: pub_key,
     };
 
     match output_type {
