@@ -1,0 +1,38 @@
+name: ci-wrapper-rn
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: Build & Test RN Wrapper
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ci-wrapper-rn-${{ matrix.runners }}-${{ github.head_ref }}
+      cancel-in-progress: true
+    defaults:
+      run:
+        working-directory: wrappers/react-native
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org
+
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Build
+        run: yarn build

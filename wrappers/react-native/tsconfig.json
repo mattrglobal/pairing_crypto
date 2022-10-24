@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "outDir": "./lib",
     "baseUrl": "./",
     "paths": {
       "@mattrglobal/pairing-crypto-rn": ["./src/index"]
