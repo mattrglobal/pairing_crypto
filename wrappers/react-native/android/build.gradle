@@ -147,9 +147,11 @@ dependencies {
   implementation "com.facebook.react:react-native:+" // From node_modules
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-  implementation ":PairingCryptoJava"
-  nativeBundle ":PairingCryptoJava"
+  // implementation ":PairingCryptoJava"
+  // nativeBundle ":PairingCryptoJava"
 
+  implementation "com.github.mattrglobal:PairingCryptoJava"
+  nativeBundle "com.github.mattrglobal:PairingCryptoJava"
 }
 
 // Extract pairing crypto libs inside build folder
