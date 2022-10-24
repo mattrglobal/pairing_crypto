@@ -30,7 +30,6 @@
     "format": "prettier --write '**/*.{js,ts,tsx}'",
     "lint": "eslint . --ext .ts --color --format=table",
     "lint:fix": "yarn lint --fix",
-    "prepare": "bob build",
     "example": "yarn --cwd example",
     "detox:build": "yarn e2e:build:ios && e2e:build:android",
     "detox:build:ios": "yarn example detox build -c ios",
@@ -39,7 +38,7 @@
     "detox:ios:ci": "yarn detox:ios --cleanup --record-videos failing",
     "detox:android": "yarn example detox test -c android",
     "detox:android:ci": "yarn detox:android --cleanup --record-videos failing --record-logs all --headless",
-    "bootstrap": "yarn install && yarn example && yarn example pods"
+    "bootstrap": "yarn install && yarn build && yarn example && yarn example pods"
   },
   "keywords": [
     "react-native",
@@ -69,7 +68,6 @@
     "prettier": "2.7.1",
     "react": "17.0.2",
     "react-native": "0.68.2",
-    "react-native-builder-bob": "0.18.3",
     "typescript": "4.5.5"
   },
   "peerDependencies": {
@@ -93,19 +91,5 @@
     "tabWidth": 2,
     "trailingComma": "es5",
     "useTabs": false
-  },
-  "react-native-builder-bob": {
-    "source": "src",
-    "output": "lib",
-    "targets": [
-      "commonjs",
-      "module",
-      [
-        "typescript",
-        {
-          "project": "tsconfig.json"
-        }
-      ]
-    ]
   }
 }
