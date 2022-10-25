@@ -1,18 +1,24 @@
 use base64::URL_SAFE_NO_PAD;
+use ciborium::cbor;
 use clap::{Parser, ValueEnum};
 use pairing_crypto::{
     bbs::ciphersuites::bls12_381::KeyPair as Bls12381G2KeyPair,
     bls::core::key_pair::KeyPair as Bls12381G1KeyPair,
 };
 use serde::Serialize;
+use strum::IntoStaticStr;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, IntoStaticStr,
+)]
 enum Curve {
-    Bls12381G1,
-    Bls12381G2,
+    BLS12381G1,
+    BLS12381G2,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, IntoStaticStr,
+)]
 enum OutputType {
     JSON,
     CBOR,
@@ -33,7 +39,7 @@ struct Cli {
     #[arg(short, long, value_parser, default_value = "test-key-info")]
     key_info: String,
     // Curve.
-    #[arg(short, long, value_parser, default_value = "bls12381-g1")]
+    #[arg(short, long, value_parser, default_value = "bls12381g1")]
     curve: Curve,
     // Output type.
     #[arg(short, long, value_parser, default_value = "json")]
@@ -41,9 +47,9 @@ struct Cli {
 }
 
 #[derive(Default, Debug, Serialize)]
-struct KeyReprsentation {
+struct KeyReprsentation<'a> {
     kty: String,
-    crv: String,
+    crv: &'a str,
     d: String,
     x: String,
 }
@@ -56,25 +62,23 @@ fn main() {
         output_type,
     } = Cli::parse();
 
-    let (mut priv_key, pub_key, curve_type) = match curve {
-        Curve::Bls12381G1 => {
-            Bls12381G1KeyPair::new(ikm, Some(key_info.as_bytes()))
+    let (mut priv_key, pub_key) = match curve {
+        Curve::BLS12381G1 => {
+            Bls12381G1KeyPair::new(ikm.clone(), Some(key_info.as_bytes()))
                 .map(|key_pair| {
                     (
                         key_pair.secret_key.to_bytes().to_vec(),
                         key_pair.public_key.to_octets().to_vec(),
-                        "BLS12381G1",
                     )
                 })
                 .expect("key generation failed")
         }
-        Curve::Bls12381G2 => {
-            Bls12381G2KeyPair::new(ikm, Some(key_info.as_bytes()))
+        Curve::BLS12381G2 => {
+            Bls12381G2KeyPair::new(ikm.clone(), Some(key_info.as_bytes()))
                 .map(|key_pair| {
                     (
                         key_pair.secret_key.to_bytes().to_vec(),
                         key_pair.public_key.to_octets().to_vec(),
-                        "BLS12381G2",
                     )
                 })
                 .unwrap()
@@ -84,25 +88,44 @@ fn main() {
     // pairing crypto outputs `KeyPair::secret_key` in big-endian format
     // reverst the vector to make representation little endian
     priv_key.reverse();
-    let priv_key = base64::encode_config(priv_key, URL_SAFE_NO_PAD);
-    let pub_key = base64::encode_config(pub_key, URL_SAFE_NO_PAD);
-    let key_repr = KeyReprsentation {
-        kty: "OKP".to_owned(),
-        crv: curve_type.to_owned(),
-        d: priv_key,
-        x: pub_key,
-    };
+    println!("IKM={}", ikm);
+    println!("Key-Info={}", key_info);
+    println!("d={:?}", hex::encode(&priv_key));
+    println!("x={:?}", hex::encode(&pub_key));
 
     match output_type {
         OutputType::JSON => {
+            println!("\nJSON Encoded Output\n");
+            let priv_key = base64::encode_config(priv_key, URL_SAFE_NO_PAD);
+            let pub_key = base64::encode_config(pub_key, URL_SAFE_NO_PAD);
+            let key_repr = KeyReprsentation {
+                kty: "OKP".to_owned(),
+                crv: curve.into(),
+                d: priv_key,
+                x: pub_key,
+            };
             println!("{}", serde_json::to_string_pretty(&key_repr).unwrap());
         }
 
         OutputType::CBOR => {
-            println!(
-                "{:?}",
-                hex::encode(&serde_cbor::to_vec(&key_repr).unwrap())
-            );
+            println!("\nCBOR Encoded Output\n");
+            let val = cbor!(
+                {
+                    1 => 1,
+                    -1 => match curve {
+                        Curve::BLS12381G1 => 13,
+                        Curve::BLS12381G2 => 14,
+                    },
+                    -2 => &priv_key,
+                    -4 => &pub_key
+                }
+            )
+            .unwrap();
+
+            let mut bytes = Vec::new();
+            ciborium::ser::into_writer(&val, &mut bytes).unwrap();
+
+            println!("{:?}", hex::encode(&bytes));
         }
     }
 }
