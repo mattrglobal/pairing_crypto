@@ -35,23 +35,23 @@ Output:
 ```json
 {
   "kty": "OKP",
-  "crv": "BLS12381G1",
-  "d": "_nmYLctt4EA3jtzM_DoO72zOgJtk_7pDqXoFCfpizFE",
-  "x": "olbufORO-VTYtXkD2k7hXc45KJONpCudrOAeIpOH3Wqu2tJ9MNUNcTze3Eqkr5dp"
+  "crv": "Bls12381G1",
+  "x": "olbufORO-VTYtXkD2k7hXc45KJONpCudrOAeIpOH3Wqu2tJ9MNUNcTze3Eqkr5dp",
+  "d": "_nmYLctt4EA3jtzM_DoO72zOgJtk_7pDqXoFCfpizFE"
 }
 ```
 
 2. Following command will use default values of the CLI arguments and prints generated BLS12381G2 curve key pair in JSON format.
 ```sh
-cargo run -- -c bls12381g2 -i test-ikm-aa-bb-cc-dd-ee-ff-ABCD-ABCD
+cargo run -- -c bls12381-g2 -i test-ikm-aa-bb-cc-dd-ee-ff-ABCD-ABCD
 ```
 Output:
 ```json
 {
   "kty": "OKP",
-  "crv": "BLS12381G2",
-  "d": "cHeieSss5qFsy7PmhAqPBNlq-38rAoooWOCTh_oaUHA",
-  "x": "iTZxTRJ_kIn6RUZ-M3y6n4gpDKUMnTkK89tXoIxOg4ZAgn7wtaNjd5sgiBiO2Pm-B3xZdNY1hroHLKa5kgwyErnnbOwYIJ2RvhCI-66SEfjOuFkVR3DtEgdduX-WP2n-"
+  "crv": "Bls12381G2",
+  "x": "iTZxTRJ_kIn6RUZ-M3y6n4gpDKUMnTkK89tXoIxOg4ZAgn7wtaNjd5sgiBiO2Pm-B3xZdNY1hroHLKa5kgwyErnnbOwYIJ2RvhCI-66SEfjOuFkVR3DtEgdduX-WP2n-",
+  "d": "cHeieSss5qFsy7PmhAqPBNlq-38rAoooWOCTh_oaUHA"
 }
 ```
 
@@ -61,16 +61,16 @@ cargo run -- -o cbor
 ```
 Output:
 ```sh
-a40101200d21982018fe18791898182d18cb186d18e018401837188e18dc18cc18fc183a0e18ef186c18ce1880189b186418ff18ba184318a9187a050918fa186218cc185123983018a2185618ee187c18e4184e18f9185418d818b518790318da184e18e1185d18ce183918281893188d18a4182b189d18ac18e0181e18221893188718dd186a18ae18da18d2187d183018d50d1871183c18de18dc184a18a418af18971869
+a40101200d215830a256ee7ce44ef954d8b57903da4ee15dce3928938da42b9dace01e229387dd6aaedad27d30d50d713cdedc4aa4af9769235820fe79982dcb6de040378edcccfc3a0eef6cce809b64ffba43a97a0509fa62cc51
 ```
 
 4. Following command will use default values of the CLI arguments and prints generated BLS12381G2 curve key pair in CBOR format.
 ```sh
-cargo run -- -c bls12381g2 -i test-ikm-aa-bb-cc-dd-ee-ff-ABCD-ABCD -o cbor
+cargo run -- -c bls12381-g2 -i test-ikm-aa-bb-cc-dd-ee-ff-ABCD-ABCD -o cbor
 ```
 Output:
 ```sh
-a40101200e2198201870187718a21879182b182c18e618a1186c18cb18b318e618840a188f0418d9186a18fb187f182b02188a1828185818e01893188718fa181a18501870239860188918361871184d12187f1890188918fa18451846187e1833187c18ba189f188818290c18a50c189d18390a18f318db185718a0188c184e1883188618401882187e18f018b518a318631877189b182018881818188e18d818f918be07187c1859187418d61835188618ba07182c18a618b918920c18321218b918e7186c18ec18181820189d189118be10188818fb18ae18921118f818ce18b81859151847187018ed1207185d18b9187f1896183f186918fe
+a40101200e2158608936714d127f9089fa45467e337cba9f88290ca50c9d390af3db57a08c4e838640827ef0b5a363779b2088188ed8f9be077c5974d63586ba072ca6b9920c3212b9e76cec18209d91be1088fbae9211f8ceb859154770ed12075db97f963f69fe2358207077a2792b2ce6a16ccbb3e6840a8f04d96afb7f2b028a2858e09387fa1a5070
 ```
 
 **Note** 

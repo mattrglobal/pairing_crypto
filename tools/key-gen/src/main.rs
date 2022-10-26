@@ -6,14 +6,15 @@ use pairing_crypto::{
     bls::core::key_pair::KeyPair as Bls12381G1KeyPair,
 };
 use serde::Serialize;
+use serde_bytes::Bytes;
 use strum::IntoStaticStr;
 
 #[derive(
     Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, IntoStaticStr,
 )]
 enum Curve {
-    BLS12381G1,
-    BLS12381G2,
+    Bls12381G1,
+    Bls12381G2,
 }
 
 #[derive(
@@ -39,7 +40,7 @@ struct Cli {
     #[arg(short, long, value_parser, default_value = "test-key-info")]
     key_info: String,
     // Curve.
-    #[arg(short, long, value_parser, default_value = "bls12381g1")]
+    #[arg(short, long, value_parser, default_value = "bls12381-g1")]
     curve: Curve,
     // Output type.
     #[arg(short, long, value_parser, default_value = "json")]
@@ -50,8 +51,8 @@ struct Cli {
 struct KeyReprsentation<'a> {
     kty: String,
     crv: &'a str,
-    d: String,
     x: String,
+    d: String,
 }
 
 fn main() {
@@ -63,7 +64,7 @@ fn main() {
     } = Cli::parse();
 
     let (mut priv_key, pub_key) = match curve {
-        Curve::BLS12381G1 => {
+        Curve::Bls12381G1 => {
             Bls12381G1KeyPair::new(ikm.clone(), Some(key_info.as_bytes()))
                 .map(|key_pair| {
                     (
@@ -73,7 +74,7 @@ fn main() {
                 })
                 .expect("key generation failed")
         }
-        Curve::BLS12381G2 => {
+        Curve::Bls12381G2 => {
             Bls12381G2KeyPair::new(ikm.clone(), Some(key_info.as_bytes()))
                 .map(|key_pair| {
                     (
@@ -101,8 +102,8 @@ fn main() {
             let key_repr = KeyReprsentation {
                 kty: "OKP".to_owned(),
                 crv: curve.into(),
-                d: priv_key,
                 x: pub_key,
+                d: priv_key,
             };
             println!("{}", serde_json::to_string_pretty(&key_repr).unwrap());
         }
@@ -113,11 +114,11 @@ fn main() {
                 {
                     1 => 1,
                     -1 => match curve {
-                        Curve::BLS12381G1 => 13,
-                        Curve::BLS12381G2 => 14,
+                        Curve::Bls12381G1 => 13,
+                        Curve::Bls12381G2 => 14,
                     },
-                    -2 => &priv_key,
-                    -4 => &pub_key
+                    -2 => &Bytes::new(&pub_key[..]),
+                    -4 => &Bytes::new(&priv_key[..]),
                 }
             )
             .unwrap();
