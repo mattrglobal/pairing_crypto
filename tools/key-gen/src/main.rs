@@ -21,8 +21,8 @@ enum Curve {
     Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, IntoStaticStr,
 )]
 enum OutputType {
-    JSON,
-    CBOR,
+    Json,
+    Cbor,
 }
 
 #[derive(Parser)]
@@ -89,13 +89,13 @@ fn main() {
     // pairing crypto outputs `KeyPair::secret_key` in big-endian format
     // reverst the vector to make representation little endian
     priv_key.reverse();
-    println!("IKM={}", ikm);
-    println!("Key-Info={}", key_info);
+    println!("IKM={ikm}");
+    println!("Key-Info={key_info}");
     println!("d={:?}", hex::encode(&priv_key));
     println!("x={:?}", hex::encode(&pub_key));
 
     match output_type {
-        OutputType::JSON => {
+        OutputType::Json => {
             println!("\nJSON Encoded Output\n");
             let priv_key = base64::encode_config(priv_key, URL_SAFE_NO_PAD);
             let pub_key = base64::encode_config(pub_key, URL_SAFE_NO_PAD);
@@ -108,7 +108,7 @@ fn main() {
             println!("{}", serde_json::to_string_pretty(&key_repr).unwrap());
         }
 
-        OutputType::CBOR => {
+        OutputType::Cbor => {
             println!("\nCBOR Encoded Output\n");
             let val = cbor!(
                 {
