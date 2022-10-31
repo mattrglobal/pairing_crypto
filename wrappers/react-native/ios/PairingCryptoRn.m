@@ -1,13 +1,13 @@
 #import <Foundation/Foundation.h>
 #import <React/RCTConvert.h>
 
-#import <pairing-crypto/bbs_signature.h>
-#import <pairing-crypto/bbs_bls12381_sha256_key_pair.h>
-#import <pairing-crypto/bbs_bls12381_shake256_key_pair.h>
-#import <pairing-crypto/bbs_bls12381_sha256_signature.h>
-#import <pairing-crypto/bbs_bls12381_shake256_signature.h>
-#import <pairing-crypto/bbs_bls12381_sha256_proof.h>
-#import <pairing-crypto/bbs_bls12381_shake256_proof.h>
+#import <bbs_signature.h>
+#import <bbs_bls12381_sha256_key_pair.h>
+#import <bbs_bls12381_shake256_key_pair.h>
+#import <bbs_bls12381_sha256_signature.h>
+#import <bbs_bls12381_shake256_signature.h>
+#import <bbs_bls12381_sha256_proof.h>
+#import <bbs_bls12381_shake256_proof.h>
 
 #import "Convert.h"
 #import "Operation.h"

@@ -12,12 +12,22 @@ Pod::Spec.new do |s|
   s.authors      = package["author"]
 
   s.platforms    = { :ios => "10.0" }
-  s.source       = { :git => "https://github.com/mattrglobal/pairing-crypto/mattrglobal-pairing-crypto-rn.git", :tag => "#{s.version}" }
+  s.source       = { :git => package["repository"]["url"], :tag => "#{s.version}" }
 
-  s.source_files = "ios/**/*.{h,m,mm}"
+  s.requires_arc = true
 
-  s.dependency "React-Core"
-  s.dependency "pairing-crypto"
+  s.default_subspec = "Default"
+
+  s.subspec "Default" do |ss|
+    ss.source_files = "ios/*.{h,m,mm}"
+    ss.dependency "React-Core"
+    ss.dependency "mattrglobal-pairing-crypto-rn/PairingCrypto"
+  end
+
+  s.subspec "PairingCrypto" do |ss|
+    ss.source_files = 'ios/lib/*.{h,m,mm}'
+    ss.vendored_libraries = "ios/lib/libpairing_crypto_c.a"
+  end
 
   # Don't install the dependencies when we run `pod install` in the old architecture.
   if ENV['RCT_NEW_ARCH_ENABLED'] == '1' then

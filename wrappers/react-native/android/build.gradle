@@ -147,42 +147,26 @@ dependencies {
   implementation "com.facebook.react:react-native:+" // From node_modules
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-  // implementation ":PairingCryptoJava"
-  // nativeBundle ":PairingCryptoJava"
-
-  implementation "com.github.mattrglobal:PairingCryptoJava"
-  nativeBundle "com.github.mattrglobal:PairingCryptoJava"
+  // Import the pairing_crypto dependency from local repository
+  implementation fileTree(dir: 'lib', includes: ['*.jar'])
 }
 
-// Extract pairing crypto libs inside build folder
-task extractJniLibs(type: Sync) {
-    dependsOn configurations.nativeBundle
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-
-    from {
-      configurations.nativeBundle.collect { zipTree(it) }
-    }
-
-    into "$buildDir/pairing-crypto/"
-}
-
-task copyJniLibsSrc(type: Copy, dependsOn: ['extractJniLibs']) {
-  from 'build/pairing-crypto/META-INF/native/android'
+task copyJniLibsSrc(type: Copy) {
+  from 'lib/native'
   into 'src/main/jniLibs'
 }
 
-task copyJniLibsDebug(type: Copy, dependsOn: ['extractJniLibs']) {
-  from 'build/pairing-crypto/META-INF/native/android'
+task copyJniLibsDebug(type: Copy) {
+  from 'lib/native'
   into 'build/intermediates/jniLibs/debug'
 }
 
-task copyJniLibsRelease(type: Copy, dependsOn: ['extractJniLibs']) {
-  from 'build/pairing-crypto/META-INF/native/android'
+task copyJniLibsRelease(type: Copy) {
+  from 'lib/native'
   into 'build/intermediates/jniLibs/release'
 }
 
-task copyJniLibs(dependsOn: ['extractJniLibs', 'copyJniLibsSrc', 'copyJniLibsDebug', 'copyJniLibsRelease']) {}
-
+task copyJniLibs(dependsOn: ['copyJniLibsSrc', 'copyJniLibsDebug', 'copyJniLibsRelease']) {}
 
 preBuild.dependsOn copyJniLibs
 

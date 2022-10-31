@@ -4,8 +4,6 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 platform :ios, '11.0'
 install! 'cocoapods', :deterministic_uuids => false
 
-pod 'pairing-crypto', :path => '../../../..'
-
 ENV['RCT_NEW_ARCH_ENABLED'] = '0'
 
 target 'PairingCryptoRnExample' do

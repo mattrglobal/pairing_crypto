@@ -32,12 +32,12 @@ dependencies {
 
 // Build and Copy the JNI libraries for current platform
 task buildAndCopyJniLibrariesCurrentPlatform(type:Exec) {
-    commandLine './scripts/build_all.sh', 'SELF', 'src/main/resources/META-INF/native'
+    commandLine './scripts/build_all.sh', 'SELF', "$buildDir/native"
 }
 
 // Build and Copy the JNI libraries for android
 task buildAndCopyJniLibrariesAndroid(type:Exec) {
-    commandLine './scripts/build_all.sh', 'ANDROID', 'src/main/resources/META-INF/native'
+    commandLine './scripts/build_all.sh', 'ANDROID', "$buildDir/native"
 }
 
 // Build and copy the JNI libraries
@@ -49,7 +49,7 @@ task buildAndCopyJniLibraries {
 tasks.named('test') {
     dependsOn buildAndCopyJniLibrariesCurrentPlatform
 
-    systemProperty("java.library.path", file("src/main/resources/META-INF/native/release").absolutePath)
+    systemProperty("java.library.path", file("$buildDir/native/release").absolutePath)
 
     // Use JUnit Platform for unit tests.
     useJUnit()
@@ -58,21 +58,6 @@ tasks.named('test') {
 
     // Enable logging output to stderr
     testLogging.showStandardStreams = true
-}
-
-jar {
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    } {
-        exclude 'META-INF/DEPENDENCIES'
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/license.txt'
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/NOTICE.txt'
-        exclude 'META-INF/notice.txt'
-        exclude 'META-INF/MANIFEST.MF'
-    }
 }
 
 signing {

@@ -24,10 +24,13 @@
   ],
   "scripts": {
     "type-check": "tsc --noEmit && yarn example tsc --noEmit",
+    "build:all": "yarn build && yarn build:ios && yarn build:android",
     "build": "rm -rf lib/ && yarn build:cjs && yarn build:esm && yarn build:types",
     "build:cjs": "tsc --pretty --outDir lib/commonjs",
     "build:esm": "tsc --pretty --module ES2015 --outDir lib/module",
     "build:types": "tsc --pretty --declaration --emitDeclarationOnly --outDir lib/typescript",
+    "build:ios": "./scripts/build-ios.sh",
+    "build:android": "./scripts/build-android.sh",
     "format": "prettier --write '**/*.{js,ts,tsx}'",
     "lint": "eslint . --ext .ts --color --format=table",
     "lint:fix": "yarn lint --fix",
@@ -46,7 +49,10 @@
     "ios",
     "android"
   ],
-  "repository": "https://github.com/mattrglobal/pairing-crypto/mattrglobal-pairing-crypto-rn",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mattrglobal/pairing-crypto/mattrglobal-pairing-crypto-rn.git"
+  },
   "author": "Tobias Looker <tobias.looker@mattr.global> (https://github.com/mattrglobal/pairing-crypto)",
   "license": "Apache-2.0",
   "bugs": {

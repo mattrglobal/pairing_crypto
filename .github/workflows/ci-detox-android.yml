@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./main/wrappers/java
+        working-directory: ./main/wrappers/react-native
     steps:
       # This is a temporary build step that clones another
       # repository as a private un-published dependency 'blstrs'
@@ -52,8 +52,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Build Jni Libraries for Android
-        run: ./gradlew buildAndCopyJniLibraries
+      - name: Build Libraries for Android
+        run: yarn build:android
 
       - name: Cleanup Gradle Cache
         # Remove some files from the Gradle cache, so they aren't cached by GitHub Actions.
@@ -67,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ci-detox-android-artifacts-libs-${{ github.sha }}
-          path: main/wrappers/java/src/main/resources/META-INF/native/android
+          path: main/wrappers/react-native/android/lib
           retention-days: 1
 
   android:
@@ -96,15 +96,14 @@ jobs:
           node-version: 16.x
           registry-url: https://registry.npmjs.org
 
-      - name: Download Java Wrapper Libraries
+      - name: Download Android Libraries
         uses: actions/download-artifact@v3
         with:
           name: ci-detox-android-artifacts-libs-${{ github.sha }}
-          path: wrappers/java/src/main/resources/META-INF/native/android
+          path: wrappers/react-native/android/lib
 
-      - name: Inspect Java Wrapper Libraries
-        run: ls -R src/main/resources/META-INF/native/android
-        working-directory: wrappers/java
+      - name: Inspect Android Libraries
+        run: ls -R android/lib
 
       - name: Install Dependencies
         run: yarn install --frozen-lockfile

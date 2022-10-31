@@ -6,4 +6,4 @@
  *
  * IMPORTANT: This file must be excluded from the published react native module.
  */
-includeBuild '../../java'
+// includeBuild '../../java'
