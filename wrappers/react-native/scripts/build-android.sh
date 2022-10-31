@@ -2,8 +2,6 @@
 
 set -e
 
-LIBRARY_FILE="PairingCryptoJava"
-
 ROOT_DIRECTORY=$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd ../../.. && pwd)
 
 # set the directory for the c wrapper
@@ -33,6 +31,7 @@ cd $JAVA_WRAPPER_DIRECTORY && ./gradlew clean buildAndCopyJniLibrariesAndroid ja
 PROJECT_PROPERTIES=$(./gradlew properties --no-daemon --console=plain -q)
 VERSION=$(echo "$PROJECT_PROPERTIES" | grep '^version:' | awk '{printf $2}')
 BUILD_DIRECTORY=$(echo "$PROJECT_PROPERTIES" | grep '^buildDir:' | awk '{printf $2}')
+LIBRARY_FILE=$(echo "$PROJECT_PROPERTIES" | grep '^archivesBaseName:' | awk '{printf $2}')
 
 # Copy class files to the external libraries folder
 cp $JAVA_WRAPPER_DIRECTORY/build/libs/$LIBRARY_FILE-$VERSION.jar \
