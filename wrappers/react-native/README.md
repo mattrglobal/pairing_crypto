@@ -39,8 +39,10 @@ yarn bootstrap
 
 To build the library run
 
+This command will build build all the dependant native wrappers and copy the build artifacts into the React Native wrapper to be available to consume.
+
 ```
-yarn build
+yarn build:all
 ```
 
 To run the local app on iOS
@@ -68,7 +70,3 @@ To run the Detox E2E tests on Android
 yarn detox:build:android
 yarn detox:android
 ```
-
-# Project setup
-
-This project was scaffolded using [Bob](https://github.com/react-native-community/bob)
