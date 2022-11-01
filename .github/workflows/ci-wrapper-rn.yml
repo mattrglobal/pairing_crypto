@@ -40,7 +40,7 @@ jobs:
   publish_unstable:
     name: Publish unstable package release
     needs: build_test
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     # TODO fred
     # if: github.ref == 'refs/heads/master'
     defaults:
