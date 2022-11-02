@@ -41,8 +41,7 @@ jobs:
     name: Publish unstable package release
     needs: build_test
     runs-on: macos-latest
-    # TODO fred
-    # if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master'
     defaults:
       run:
         working-directory: ./main/wrappers/react-native
