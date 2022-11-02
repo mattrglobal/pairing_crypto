@@ -12,7 +12,7 @@ set -e
 export PATH="$PATH:node_modules/.bin"
 
 # Minor version the current package
-yarn version --no-git-tag-version --patch
+npm version --git-tag-version=false --patch
 
 # Fetch the current version from the package.json
 new_version=$(node -pe "require('./package.json').version")
@@ -21,7 +21,11 @@ new_version=$(node -pe "require('./package.json').version")
 new_unstable_version=$new_version"-unstable.$(git rev-parse --short HEAD)"
 
 # Version to this new unstable version
-yarn publish --no-git-tag-version --new-version $new_unstable_version --tag unstable
+#
+# Must publish with NPM due to a known bug on Yarn v1 that doesn't support negation
+# rules on "files" in the package.json file.
+npm version --git-tag-version=false $new_unstable_version
+npm publish --tag unstable
 
 # Reset changes to the package.json
 git checkout -- package.json
