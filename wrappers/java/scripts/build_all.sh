@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 # exit if any commands fails
 set -e
@@ -39,16 +38,13 @@ else
 fi
 
 case $PLATFORM in
-  WINDOWS)
-      rustup target install i686-pc-windows-gnu x86_64-pc-windows-gnu
-      mkdir -p $OUTPUT_LOCATION\\windows
-      cargo build -p $PROJECT_NAME --target-dir target --release
-      cp \\target\\release\\$LIB_NAME.dll $OUTPUT_LOCATION\\windows
-    ;;
-  LINUX)
-      mkdir -p $OUTPUT_LOCATION/linux
+  SELF)
+      # Create the root directory for the release binaries
+      mkdir -p $OUTPUT_LOCATION
+
+      # Current platform build
       cargo build -p $PROJECT_NAME  --target-dir target --release
-      cp ./target/release/lib$LIB_NAME.so $OUTPUT_LOCATION/linux
+      cp -r ./target/release $OUTPUT_LOCATION
     ;;
   MACOS)
       # Create the root directory for the MacOS release binaries
@@ -60,25 +56,6 @@ case $PLATFORM in
       mkdir -p $OUTPUT_LOCATION/macos/darwin-x86_64/
       cargo build -p $PROJECT_NAME --target x86_64-apple-darwin --target-dir target --release
       cp ./target/x86_64-apple-darwin/release/lib$LIB_NAME.dylib $OUTPUT_LOCATION/macos/darwin-x86_64/
-    ;;
-  IOS)
-      # Create the root directory for the IOS release binaries
-      mkdir -p $OUTPUT_LOCATION/ios
-
-      # Create the directories at the output location for the release binaries
-      mkdir -p $OUTPUT_LOCATION/ios/x86_64
-      mkdir -p $OUTPUT_LOCATION/ios/aarch64
-      mkdir -p $OUTPUT_LOCATION/ios/universal
-
-      # Install cargo-lipo
-      # see https://github.com/TimNN/cargo-lipo
-      cargo install cargo-lipo
-      rustup target install x86_64-apple-ios aarch64-apple-ios
-      cargo lipo -p $PROJECT_NAME --release
-      cp "./target/x86_64-apple-ios/release/lib$LIB_NAME.a" $OUTPUT_LOCATION/ios/x86_64
-      cp "./target/aarch64-apple-ios/release/lib$LIB_NAME.a" $OUTPUT_LOCATION/ios/aarch64
-      cp "./target/universal/release/lib$LIB_NAME.a" $OUTPUT_LOCATION/ios/universal
-      break
     ;;
   ANDROID)
       if [ -d "$3" ]
@@ -117,7 +94,7 @@ case $PLATFORM in
 
       # Build the android aar releases
       cargo ndk --target aarch64-linux-android --platform ${MIN_VERSION} -- build -p $PROJECT_NAME --target-dir target --release
-      cargo ndk --target armv7-linux-androideabi --platform ${MIN_VERSION} -- build -p $PROJECT_NAME --target-dir target --release 
+      cargo ndk --target armv7-linux-androideabi --platform ${MIN_VERSION} -- build -p $PROJECT_NAME --target-dir target --release
       cargo ndk --target i686-linux-android --platform ${MIN_VERSION} -- build -p $PROJECT_NAME --target-dir target --release
       cargo ndk --target x86_64-linux-android --platform ${MIN_VERSION} -- build -p $PROJECT_NAME --target-dir target --release
 

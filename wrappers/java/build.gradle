@@ -5,7 +5,7 @@ plugins {
     id 'java-library'
 }
 
-apply plugin : "java-library" 
+apply plugin : "java-library"
 
 repositories {
     // Use Maven Central for resolving dependencies.
@@ -23,30 +23,32 @@ dependencies {
     implementation 'com.google.guava:guava:31.0.1-jre'
 }
 
-// Copy the JNI libraries
-task buildAndCopyJniLibrariesLinux(type:Exec) {
-    commandLine './scripts/build_all.sh', 'LINUX', 'src/main/resources/META-INF/native'
+// Build and Copy the JNI libraries for current platform
+task buildAndCopyJniLibrariesCurrentPlatform(type:Exec) {
+    commandLine './scripts/build_all.sh', 'SELF', 'src/main/resources/META-INF/native'
+}
+
+// Build and Copy the JNI libraries for android
+task buildAndCopyJniLibrariesAndroid(type:Exec) {
+    commandLine './scripts/build_all.sh', 'ANDROID', 'src/main/resources/META-INF/native'
 }
 
 // Build and copy the JNI libraries
 task buildAndCopyJniLibraries {
-    dependsOn ':buildAndCopyJniLibrariesLinux'
+    dependsOn ':buildAndCopyJniLibrariesCurrentPlatform'
+    dependsOn ':buildAndCopyJniLibrariesAndroid'
 }
 
 tasks.named('test') {
-    dependsOn buildAndCopyJniLibraries
+    dependsOn buildAndCopyJniLibrariesCurrentPlatform
 
-    def system = OperatingSystem.current()
-
-    if (system.isLinux()) {
-        systemProperty("java.library.path", file("src/main/resources/META-INF/native/linux").absolutePath)
-    }
+    systemProperty("java.library.path", file("src/main/resources/META-INF/native/release").absolutePath)
 
     // Use JUnit Platform for unit tests.
     useJUnit()
 
     maxHeapSize = '1G'
-    
+
     // Enable logging output to stderr
     testLogging.showStandardStreams = true
 }

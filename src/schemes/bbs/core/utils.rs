@@ -59,10 +59,7 @@ where
         data_to_hash.extend(point_to_octets_g1(&generator).as_ref());
     }
 
-    data_to_hash.extend(i2osp_with_data(
-        C::ID.as_octets(),
-        NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
-    )?);
+    data_to_hash.extend(C::ID.as_octets());
     if let Some(header) = header {
         data_to_hash.extend(i2osp_with_data(
             header.as_ref(),
@@ -94,7 +91,7 @@ where
         });
     }
 
-    let mut points: Vec<_> = vec![C::p1(), generators.Q_1(), generators.Q_2()];
+    let mut points: Vec<_> = vec![C::p1()?, generators.Q_1(), generators.Q_2()];
     points.extend(generators.message_generators_iter());
     let scalars: Vec<_> = [Scalar::one(), *s, *domain]
         .iter()

@@ -4,6 +4,7 @@ mod util;
 
 pub use generators::{
     generate_fixtures,
+    H2S_FIXTURES_SUBDIR,
     PROOF_FIXTURES_SUBDIR,
     SIGNATURE_FIXTURES_SUBDIR,
 };

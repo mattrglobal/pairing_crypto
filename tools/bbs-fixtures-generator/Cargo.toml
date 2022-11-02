@@ -10,6 +10,7 @@ license = "Apache-2.0"
 [dependencies.pairing_crypto]
 version = "0.1.0"
 path = "../../"
+features = ["__private_bbs_fixtures_generator_api"]
 
 [dependencies]
 clap = { version = "3.2.12", features = ["derive"] }

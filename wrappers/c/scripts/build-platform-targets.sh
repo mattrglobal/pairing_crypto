@@ -1,6 +1,6 @@
 # The following script simplifies the complex process of building
-# `pairing_crypto_c` for different targets, instead of dealing in 
-# individual rust targets e.g x86_64 the script takes the plaform 
+# `pairing_crypto_c` for different targets, instead of dealing in
+# individual rust targets e.g x86_64 the script takes the plaform
 # e.g IOS and takes care of all required targets for the target
 # platform
 
@@ -16,6 +16,7 @@ INPUT_FILE="libpairing_crypto_c"
 OUTPUT_FILE="libpairing_crypto_c"
 
 SCRIPT_DIRECTORY="$(dirname -- "${BASH_SOURCE}")"
+ROOT_DIRECTORY=$( cd "$SCRIPT_DIRECTORY/../../.." && pwd )
 
 if [ -z "$PLATFORM" ]
 then
@@ -49,9 +50,9 @@ case $PLATFORM in
       cargo install cargo-lipo
       rustup target install x86_64-apple-ios aarch64-apple-ios
       cargo lipo -p $PROJECT_NAME --release
-      cp "$SCRIPT_DIRECTORY/../../../target/x86_64-apple-ios/release/$INPUT_FILE.a" "$OUTPUT_LOCATION/ios/x86_64/$OUTPUT_FILE.a"
-      cp "$SCRIPT_DIRECTORY/../../../target/aarch64-apple-ios/release/$INPUT_FILE.a" "$OUTPUT_LOCATION/ios/aarch64/$OUTPUT_FILE.a"
-      cp "$SCRIPT_DIRECTORY/../../../target/universal/release/$INPUT_FILE.a" "$OUTPUT_LOCATION/ios/universal/$OUTPUT_FILE.a"
+      cp "$ROOT_DIRECTORY/target/x86_64-apple-ios/release/$INPUT_FILE.a"  "$OUTPUT_LOCATION/ios/x86_64/$OUTPUT_FILE.a"
+      cp "$ROOT_DIRECTORY/target/aarch64-apple-ios/release/$INPUT_FILE.a" "$OUTPUT_LOCATION/ios/aarch64/$OUTPUT_FILE.a"
+      cp "$ROOT_DIRECTORY/target/universal/release/$INPUT_FILE.a"         "$OUTPUT_LOCATION/ios/universal/$OUTPUT_FILE.a"
     ;;
     MACOS)
       # Create the root directory for the macos release binaries

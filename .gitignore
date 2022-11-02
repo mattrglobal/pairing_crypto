@@ -58,3 +58,4 @@ bbs_api_test
 *.DS_Store
 
 **/xcuserdata/*
+**/resources/META-INF/*
