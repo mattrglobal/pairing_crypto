@@ -10,8 +10,3 @@ For example,
 ```shell
 cargo run --example bbs_simple
 ```
-
-To collect logs in file,
-```shell
-RUST_LOG=trace cargo run --example bbs_simple &> bbs_log.txt
-```
