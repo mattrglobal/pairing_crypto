@@ -4,7 +4,7 @@ package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 folly_compiler_flags = '-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -Wno-comma -Wno-shorten-64-to-32'
 
 Pod::Spec.new do |s|
-  s.name         = "mattrglobal-pairing-crypto-rn"
+  s.name         = "pairing-crypto-rn"
   s.version      = package["version"]
   s.summary      = package["description"]
   s.homepage     = package["homepage"]
@@ -21,7 +21,7 @@ Pod::Spec.new do |s|
   s.subspec "Default" do |ss|
     ss.source_files = "ios/*.{h,m,mm}"
     ss.dependency "React-Core"
-    ss.dependency "mattrglobal-pairing-crypto-rn/PairingCrypto"
+    ss.dependency "pairing-crypto-rn/PairingCrypto"
   end
 
   s.subspec "PairingCrypto" do |ss|

@@ -13,7 +13,7 @@
     "android",
     "ios",
     "cpp",
-    "mattrglobal-pairing-crypto-rn.podspec",
+    "pairing-crypto-rn.podspec",
     "!lib/typescript/example",
     "!android/build",
     "!android/settings.gradle",
