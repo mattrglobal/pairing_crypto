@@ -19,7 +19,6 @@
     "!android/settings.gradle",
     "!android/local.properties",
     "!ios/build",
-    "!ios/**/*.xcodeproj",
     "!**/__tests__",
     "!**/__fixtures__",
     "!**/__mocks__"
