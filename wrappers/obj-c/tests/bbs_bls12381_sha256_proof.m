@@ -14,7 +14,7 @@
     NSError *error = nil;
     bool isVerified = false;
     NSData *header = [@"Test-Header" dataUsingEncoding:NSUTF8StringEncoding];
-    NSData *presentationMessage = [@"Test-Presentation-Message" dataUsingEncoding:NSUTF8StringEncoding];
+    NSData *presentationHeader = [@"Test-Presentation-Message" dataUsingEncoding:NSUTF8StringEncoding];
     NSArray *messages = [NSArray arrayWithObjects:[[NSData alloc] initWithBase64EncodedString:@"SjQyQXhoY2lPVmtFOXc9PQ==" options:0],
                          [[NSData alloc] initWithBase64EncodedString:@"UE5NbkFSV0lIUCtzMmc9PQ==" options:0],
                          [[NSData alloc] initWithBase64EncodedString:@"dGk5V1loaEVlajg1anc9PQ==" options:0], nil];
@@ -44,7 +44,7 @@
     for (int i = 0; i < [messages count]; i++ ) {
         BbsBls12381Sha256Proof *proof = [[BbsBls12381Sha256Proof alloc] createProof:keyPair.publicKey
                                                                header:header
-                                                  presentationMessage:presentationMessage
+                                                  presentationHeader:presentationHeader
                                                             signature:signature
                                                       verifySignature:verifySignature
                                                      disclosedIndices:disclosedIndices
@@ -59,7 +59,7 @@
         isVerified = false;
         isVerified = [proof verifyProof:keyPair.publicKey
                                   header:header
-                     presentationMessage:presentationMessage
+                     presentationHeader:presentationHeader
                      totalMessageCount:messages.count
                                 messages:disclosedMessages
                                withError:&error];

@@ -26,7 +26,7 @@
 /** @brief Create a BBS proof. */
 - (nullable instancetype)createProof:(NSData *_Nonnull)publicKey
                               header:(NSData *_Nullable)header
-                 presentationMessage:(NSData *_Nullable)presentationMessage
+                 presentationHeader:(NSData *_Nullable)presentationHeader
                            signature:(BbsSignature *_Nonnull)signature
                      verifySignature:(BOOL)verifySignature
                     disclosedIndices:(NSSet *_Nullable)disclosedIndices
@@ -35,7 +35,7 @@
 
     [self doCreateProof:publicKey
                         header:header
-           presentationMessage:presentationMessage
+           presentationHeader:presentationHeader
                      signature:signature
                verifySignature:(BOOL)verifySignature
               disclosedIndices:disclosedIndices
@@ -47,14 +47,14 @@
 /** @brief Verify a BBS proof. */
 - (bool)verifyProof:(NSData *_Nonnull)publicKey
              header:(NSData *_Nullable)header
-presentationMessage:(NSData *_Nullable)presentationMessage
+presentationHeader:(NSData *_Nullable)presentationHeader
 totalMessageCount:(NSUInteger)totalMessageCount
            messages:(NSDictionary *_Nullable)messages
           withError:(NSError *_Nullable *_Nullable)errorPtr {
 
     return [self doVerifyProof:publicKey
                                header:header
-                  presentationMessage:presentationMessage
+                  presentationHeader:presentationHeader
                   totalMessageCount:totalMessageCount
                              messages:messages
                             withError:errorPtr];
@@ -71,7 +71,7 @@ totalMessageCount:(NSUInteger)totalMessageCount
 /** @brief Create a BBS proof. */
 - (void) doCreateProof:(NSData *_Nonnull)publicKey
                        header:(NSData *_Nullable)header
-          presentationMessage:(NSData *_Nullable)presentationMessage
+          presentationHeader:(NSData *_Nullable)presentationHeader
                     signature:(BbsSignature *_Nonnull)signature
               verifySignature:(BOOL)verifySignature
              disclosedIndices:(NSSet *_Nullable)disclosedIndices
@@ -84,7 +84,7 @@ totalMessageCount:(NSUInteger)totalMessageCount
 /** @brief Verify a BBS proof. */
 - (bool)doVerifyProof:(NSData *_Nonnull)publicKey
                       header:(NSData *_Nullable)header
-         presentationMessage:(NSData *_Nullable)presentationMessage
+         presentationHeader:(NSData *_Nullable)presentationHeader
          total_message_count:(NSUInteger)total_message_count
                     messages:(NSDictionary *_Nullable)messages
                    withError:(NSError *_Nullable *_Nullable)errorPtr  {

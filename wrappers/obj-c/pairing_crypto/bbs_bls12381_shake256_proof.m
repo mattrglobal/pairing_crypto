@@ -18,7 +18,7 @@
 /** @brief Create a BBS proof. */
 - (void) doCreateProof:(NSData *_Nonnull)publicKey
                        header:(NSData *_Nullable)header
-          presentationMessage:(NSData *_Nullable)presentationMessage
+          presentationHeader:(NSData *_Nullable)presentationHeader
                     signature:(BbsSignature *_Nonnull)signature
               verifySignature:(BOOL)verifySignature
              disclosedIndices:(NSSet *_Nullable)disclosedIndices
@@ -54,12 +54,12 @@
         }
     }
 
-    if (presentationMessage) {
-        pairing_crypto_byte_buffer_t *presentationMessageBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
-        presentationMessageBuffer->len = presentationMessage.length;
-        presentationMessageBuffer->data = (uint8_t *)presentationMessage.bytes;
+    if (presentationHeader) {
+        pairing_crypto_byte_buffer_t *presentationHeaderBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
+        presentationHeaderBuffer->len = presentationHeader.length;
+        presentationHeaderBuffer->data = (uint8_t *)presentationHeader.bytes;
 
-        if (bbs_bls12_381_shake_256_proof_gen_context_set_presentation_header(deriveProofHandle, presentationMessageBuffer, err) > 0) {
+        if (bbs_bls12_381_shake_256_proof_gen_context_set_presentation_header(deriveProofHandle, presentationHeaderBuffer, err) > 0) {
             *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
             return;
         }
@@ -113,7 +113,7 @@
 /** @brief Verify a BBS proof. */
 - (bool)doVerifyProof:(NSData *_Nonnull)publicKey
                       header:(NSData *_Nullable)header
-         presentationMessage:(NSData *_Nullable)presentationMessage
+         presentationHeader:(NSData *_Nullable)presentationHeader
          totalMessageCount:(NSUInteger)totalMessageCount
                     messages:(NSDictionary *_Nullable)messages
                    withError:(NSError *_Nullable *_Nullable)errorPtr  {
@@ -147,12 +147,12 @@
         }
     }
 
-    if (presentationMessage) {
-        pairing_crypto_byte_buffer_t *presentationMessageBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
-        presentationMessageBuffer->len = presentationMessage.length;
-        presentationMessageBuffer->data = (uint8_t *)presentationMessage.bytes;
+    if (presentationHeader) {
+        pairing_crypto_byte_buffer_t *presentationHeaderBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
+        presentationHeaderBuffer->len = presentationHeader.length;
+        presentationHeaderBuffer->data = (uint8_t *)presentationHeader.bytes;
 
-        if (bbs_bls12_381_shake_256_proof_verify_context_set_presentation_header(verifyProofHandle, presentationMessageBuffer, err) > 0) {
+        if (bbs_bls12_381_shake_256_proof_verify_context_set_presentation_header(verifyProofHandle, presentationHeaderBuffer, err) > 0) {
             *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
             return false;
         }
