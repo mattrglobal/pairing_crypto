@@ -48,14 +48,14 @@
 - (bool)verifyProof:(NSData *_Nonnull)publicKey
              header:(NSData *_Nullable)header
 presentationMessage:(NSData *_Nullable)presentationMessage
-total_message_count:(NSUInteger)total_message_count
+totalMessageCount:(NSUInteger)totalMessageCount
            messages:(NSDictionary *_Nullable)messages
           withError:(NSError *_Nullable *_Nullable)errorPtr {
 
     return [self doVerifyProof:publicKey
                                header:header
                   presentationMessage:presentationMessage
-                  total_message_count:total_message_count
+                  totalMessageCount:totalMessageCount
                              messages:messages
                             withError:errorPtr];
 }

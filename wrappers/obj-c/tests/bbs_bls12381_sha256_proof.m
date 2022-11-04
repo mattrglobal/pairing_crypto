@@ -60,7 +60,7 @@
         isVerified = [proof verifyProof:keyPair.publicKey
                                   header:header
                      presentationMessage:presentationMessage
-                     total_message_count:messages.count
+                     totalMessageCount:messages.count
                                 messages:disclosedMessages
                                withError:&error];
 

@@ -114,7 +114,7 @@
 - (bool)doVerifyProof:(NSData *_Nonnull)publicKey
                       header:(NSData *_Nullable)header
          presentationMessage:(NSData *_Nullable)presentationMessage
-         total_message_count:(NSUInteger)total_message_count
+         totalMessageCount:(NSUInteger)totalMessageCount
                     messages:(NSDictionary *_Nullable)messages
                    withError:(NSError *_Nullable *_Nullable)errorPtr  {
 
@@ -158,7 +158,7 @@
         }
     }
 
-    if (bbs_bls12_381_shake_256_proof_verify_context_set_total_message_count(verifyProofHandle, total_message_count, err) != 0) {
+    if (bbs_bls12_381_shake_256_proof_verify_context_set_total_message_count(verifyProofHandle, totalMessageCount, err) != 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
         return false;
     }
