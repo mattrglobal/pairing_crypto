@@ -28,6 +28,7 @@
                               header:(NSData *_Nullable)header
                  presentationMessage:(NSData *_Nullable)presentationMessage
                            signature:(BbsSignature *_Nonnull)signature
+                     verifySignature:(BOOL)verifySignature
                     disclosedIndices:(NSSet *_Nullable)disclosedIndices
                             messages:(NSArray *_Nullable)messages
                            withError:(NSError *_Nullable *_Nullable)errorPtr {
@@ -36,6 +37,7 @@
                         header:header
            presentationMessage:presentationMessage
                      signature:signature
+               verifySignature:(BOOL)verifySignature
               disclosedIndices:disclosedIndices
                       messages:messages
                      withError:errorPtr];
@@ -71,6 +73,7 @@ total_message_count:(NSUInteger)total_message_count
                        header:(NSData *_Nullable)header
           presentationMessage:(NSData *_Nullable)presentationMessage
                     signature:(BbsSignature *_Nonnull)signature
+              verifySignature:(BOOL)verifySignature
              disclosedIndices:(NSSet *_Nullable)disclosedIndices
                      messages:(NSArray *_Nullable)messages
                     withError:(NSError *_Nullable *_Nullable)errorPtr {

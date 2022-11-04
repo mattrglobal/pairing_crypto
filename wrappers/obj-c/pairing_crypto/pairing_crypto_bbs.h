@@ -105,29 +105,33 @@ extern "C"
   uint64_t bbs_bls12_381_shake_256_proof_gen_context_init(pairing_crypto_error_t *_Nullable err);
 
   int32_t bbs_bls12_381_shake_256_proof_gen_context_set_public_key(uint64_t handle,
-                                                                      pairing_crypto_byte_buffer_t *value,
-                                                                      pairing_crypto_error_t *_Nullable err);
+                                                                   pairing_crypto_byte_buffer_t *value,
+                                                                   pairing_crypto_error_t *_Nullable err);
 
   int32_t bbs_bls12_381_shake_256_proof_gen_context_set_header(uint64_t handle,
+                                                               pairing_crypto_byte_buffer_t *value,
+                                                               pairing_crypto_error_t *_Nullable err);
+
+  int32_t bbs_bls12_381_shake_256_proof_gen_context_set_signature(uint64_t handle,
                                                                   pairing_crypto_byte_buffer_t *value,
                                                                   pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12_381_shake_256_proof_gen_context_set_signature(uint64_t handle,
-                                                                     pairing_crypto_byte_buffer_t *value,
-                                                                     pairing_crypto_error_t *_Nullable err);
-
   int32_t bbs_bls12_381_shake_256_proof_gen_context_set_presentation_header(uint64_t handle,
-                                                                                pairing_crypto_byte_buffer_t *value,
-                                                                                pairing_crypto_error_t *_Nullable err);
+                                                                            pairing_crypto_byte_buffer_t *value,
+                                                                            pairing_crypto_error_t *_Nullable err);
+
+  int32_t bbs_bls12_381_shake_256_proof_gen_context_set_verify_signature(uint64_t handle,
+                                                                         bool verify_signature,
+                                                                         pairing_crypto_error_t *_Nullable err);
 
   int32_t bbs_bls12_381_shake_256_proof_gen_context_add_message(uint64_t handle,
-                                                                   bool reveal,
-                                                                   pairing_crypto_byte_buffer_t *message,
-                                                                   pairing_crypto_error_t *_Nullable err);
+                                                                bool reveal,
+                                                                pairing_crypto_byte_buffer_t *message,
+                                                                pairing_crypto_error_t *_Nullable err);
 
   int32_t bbs_bls12_381_shake_256_proof_gen_context_finish(uint64_t handle,
-                                                              pairing_crypto_byte_buffer_t *_Nullable proof,
-                                                              pairing_crypto_error_t *_Nullable err);
+                                                           pairing_crypto_byte_buffer_t *_Nullable proof,
+                                                           pairing_crypto_error_t *_Nullable err);
 
   void bbs_bls12_381_shake_256_proof_gen_free(uint64_t v, pairing_crypto_error_t *_Nullable err);
 
@@ -146,8 +150,8 @@ extern "C"
                                                                  pairing_crypto_error_t *_Nullable err);
 
   int32_t bbs_bls12_381_shake_256_proof_verify_context_set_presentation_header(uint64_t handle,
-                                                                                pairing_crypto_byte_buffer_t *value,
-                                                                                pairing_crypto_error_t *_Nullable err);
+                                                                               pairing_crypto_byte_buffer_t *value,
+                                                                               pairing_crypto_error_t *_Nullable err);
 
   int32_t bbs_bls12_381_shake_256_proof_verify_context_set_total_message_count(uint64_t handle,
                                                                                uintptr_t value,
@@ -231,29 +235,33 @@ extern "C"
   uint64_t bbs_bls12_381_sha_256_proof_gen_context_init(pairing_crypto_error_t *_Nullable err);
 
   int32_t bbs_bls12_381_sha_256_proof_gen_context_set_public_key(uint64_t handle,
-                                                                    pairing_crypto_byte_buffer_t *value,
-                                                                    pairing_crypto_error_t *_Nullable err);
+                                                                 pairing_crypto_byte_buffer_t *value,
+                                                                 pairing_crypto_error_t *_Nullable err);
 
   int32_t bbs_bls12_381_sha_256_proof_gen_context_set_header(uint64_t handle,
+                                                             pairing_crypto_byte_buffer_t *value,
+                                                             pairing_crypto_error_t *_Nullable err);
+
+  int32_t bbs_bls12_381_sha_256_proof_gen_context_set_signature(uint64_t handle,
                                                                 pairing_crypto_byte_buffer_t *value,
                                                                 pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12_381_sha_256_proof_gen_context_set_signature(uint64_t handle,
-                                                                   pairing_crypto_byte_buffer_t *value,
-                                                                   pairing_crypto_error_t *_Nullable err);
+  int32_t bbs_bls12_381_sha_256_proof_gen_context_set_verify_signature(uint64_t handle,
+                                                                       bool verify_signature,
+                                                                       pairing_crypto_error_t *_Nullable err);
 
   int32_t bbs_bls12_381_sha_256_proof_gen_context_set_presentation_header(uint64_t handle,
-                                                                              pairing_crypto_byte_buffer_t *value,
-                                                                              pairing_crypto_error_t *_Nullable err);
+                                                                          pairing_crypto_byte_buffer_t *value,
+                                                                          pairing_crypto_error_t *_Nullable err);
 
   int32_t bbs_bls12_381_sha_256_proof_gen_context_add_message(uint64_t handle,
-                                                                 bool reveal,
-                                                                 pairing_crypto_byte_buffer_t *message,
-                                                                 pairing_crypto_error_t *_Nullable err);
+                                                              bool reveal,
+                                                              pairing_crypto_byte_buffer_t *message,
+                                                              pairing_crypto_error_t *_Nullable err);
 
   int32_t bbs_bls12_381_sha_256_proof_gen_context_finish(uint64_t handle,
-                                                            pairing_crypto_byte_buffer_t *_Nullable proof,
-                                                            pairing_crypto_error_t *_Nullable err);
+                                                         pairing_crypto_byte_buffer_t *_Nullable proof,
+                                                         pairing_crypto_error_t *_Nullable err);
 
   void bbs_bls12_381_sha_256_proof_gen_free(uint64_t v, pairing_crypto_error_t *_Nullable err);
 
@@ -272,8 +280,8 @@ extern "C"
                                                                pairing_crypto_error_t *_Nullable err);
 
   int32_t bbs_bls12_381_sha_256_proof_verify_context_set_presentation_header(uint64_t handle,
-                                                                              pairing_crypto_byte_buffer_t *value,
-                                                                              pairing_crypto_error_t *_Nullable err);
+                                                                             pairing_crypto_byte_buffer_t *value,
+                                                                             pairing_crypto_error_t *_Nullable err);
 
   int32_t bbs_bls12_381_sha_256_proof_verify_context_set_total_message_count(uint64_t handle,
                                                                              uintptr_t value,

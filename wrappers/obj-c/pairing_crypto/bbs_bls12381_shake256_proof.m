@@ -20,6 +20,7 @@
                        header:(NSData *_Nullable)header
           presentationMessage:(NSData *_Nullable)presentationMessage
                     signature:(BbsSignature *_Nonnull)signature
+              verifySignature:(BOOL)verifySignature
              disclosedIndices:(NSSet *_Nullable)disclosedIndices
                      messages:(NSArray *_Nullable)messages
                     withError:(NSError *_Nullable *_Nullable)errorPtr {
@@ -67,8 +68,12 @@
     pairing_crypto_byte_buffer_t *signatureBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
     signatureBuffer->len = signature.value.length;
     signatureBuffer->data = (uint8_t *)signature.value.bytes;
-
     if (bbs_bls12_381_shake_256_proof_gen_context_set_signature(deriveProofHandle, signatureBuffer, err) != 0) {
+        *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
+        return;
+    }
+
+    if (bbs_bls12_381_shake_256_proof_gen_context_set_verify_signature(deriveProofHandle, verifySignature, err) != 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
         return;
     }

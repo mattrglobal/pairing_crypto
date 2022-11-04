@@ -22,6 +22,7 @@
     NSData *keyInfo = [[NSData alloc] initWithBase64EncodedString:@"H297BpoOgkfpXcxr1fJyQRiNx1+ZekeQ+OU/AYV/lVxaPXXhFBIbxeIU8kIAAX68cwQ=" options:0];
     BbsBls12381Sha256KeyPair *keyPair = [[BbsBls12381Sha256KeyPair alloc] initWithIkm:ikm keyInfo:keyInfo
                                                                withError:&error];
+    BOOL verifySignature = YES;
 
     BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] sign:keyPair.secretKey
                                                publicKey:keyPair.publicKey
@@ -45,6 +46,7 @@
                                                                header:header
                                                   presentationMessage:presentationMessage
                                                             signature:signature
+                                                      verifySignature:verifySignature
                                                      disclosedIndices:disclosedIndices
                                                              messages:messages
                                                             withError:&error];
