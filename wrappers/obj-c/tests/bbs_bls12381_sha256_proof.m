@@ -14,7 +14,7 @@
     NSError *error = nil;
     bool isVerified = false;
     NSData *header = [@"Test-Header" dataUsingEncoding:NSUTF8StringEncoding];
-    NSData *presentationMessage = [@"Test-Presentation-Message" dataUsingEncoding:NSUTF8StringEncoding];
+    NSData *presentationHeader = [@"Test-Presentation-Message" dataUsingEncoding:NSUTF8StringEncoding];
     NSArray *messages = [NSArray arrayWithObjects:[[NSData alloc] initWithBase64EncodedString:@"SjQyQXhoY2lPVmtFOXc9PQ==" options:0],
                          [[NSData alloc] initWithBase64EncodedString:@"UE5NbkFSV0lIUCtzMmc9PQ==" options:0],
                          [[NSData alloc] initWithBase64EncodedString:@"dGk5V1loaEVlajg1anc9PQ==" options:0], nil];
@@ -22,6 +22,7 @@
     NSData *keyInfo = [[NSData alloc] initWithBase64EncodedString:@"H297BpoOgkfpXcxr1fJyQRiNx1+ZekeQ+OU/AYV/lVxaPXXhFBIbxeIU8kIAAX68cwQ=" options:0];
     BbsBls12381Sha256KeyPair *keyPair = [[BbsBls12381Sha256KeyPair alloc] initWithIkm:ikm keyInfo:keyInfo
                                                                withError:&error];
+    BOOL verifySignature = YES;
 
     BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] sign:keyPair.secretKey
                                                publicKey:keyPair.publicKey
@@ -43,8 +44,9 @@
     for (int i = 0; i < [messages count]; i++ ) {
         BbsBls12381Sha256Proof *proof = [[BbsBls12381Sha256Proof alloc] createProof:keyPair.publicKey
                                                                header:header
-                                                  presentationMessage:presentationMessage
+                                                  presentationHeader:presentationHeader
                                                             signature:signature
+                                                      verifySignature:verifySignature
                                                      disclosedIndices:disclosedIndices
                                                              messages:messages
                                                             withError:&error];
@@ -57,8 +59,8 @@
         isVerified = false;
         isVerified = [proof verifyProof:keyPair.publicKey
                                   header:header
-                     presentationMessage:presentationMessage
-                     total_message_count:messages.count
+                     presentationHeader:presentationHeader
+                     totalMessageCount:messages.count
                                 messages:disclosedMessages
                                withError:&error];
 

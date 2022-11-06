@@ -21,8 +21,9 @@
  */
 - (nullable instancetype)createProof:(NSData *_Nonnull)publicKey
                               header:(NSData *_Nullable)header
-                 presentationMessage:(NSData *_Nullable)presentationMessage
+                  presentationHeader:(NSData *_Nullable)presentationHeader
                            signature:(BbsSignature *_Nonnull)signature
+                     verifySignature:(BOOL)verifySignature
                     disclosedIndices:(NSSet *_Nullable)disclosedIndices
                             messages:(NSArray *_Nullable)messages
                            withError:(NSError *_Nullable *_Nullable)errorPtr;
@@ -31,26 +32,27 @@
  * @Verifies the BBS signature proof
  */
 - (bool)verifyProof:(NSData *_Nonnull)publicKey
-                 header:(NSData *_Nullable)header
-    presentationMessage:(NSData *_Nullable)presentationMessage
-    total_message_count:(NSUInteger)total_message_count
-               messages:(NSDictionary *_Nullable)messages
-              withError:(NSError *_Nullable *_Nullable)errorPtr;
+                header:(NSData *_Nullable)header
+    presentationHeader:(NSData *_Nullable)presentationHeader
+     totalMessageCount:(NSUInteger)totalMessageCount
+              messages:(NSDictionary *_Nullable)messages
+             withError:(NSError *_Nullable *_Nullable)errorPtr;
 
 - (void)doCreateProof:(NSData *_Nonnull)publicKey
-                 header:(NSData *_Nullable)header
-    presentationMessage:(NSData *_Nullable)presentationMessage
-              signature:(BbsSignature *_Nonnull)signature
-       disclosedIndices:(NSSet *_Nullable)disclosedIndices
-               messages:(NSArray *_Nullable)messages
-              withError:(NSError *_Nullable *_Nullable)errorPtr;
+                header:(NSData *_Nullable)header
+    presentationHeader:(NSData *_Nullable)presentationHeader
+             signature:(BbsSignature *_Nonnull)signature
+       verifySignature:(BOOL)verifySignature
+      disclosedIndices:(NSSet *_Nullable)disclosedIndices
+              messages:(NSArray *_Nullable)messages
+             withError:(NSError *_Nullable *_Nullable)errorPtr;
 
 - (bool)doVerifyProof:(NSData *_Nonnull)publicKey
-                 header:(NSData *_Nullable)header
-    presentationMessage:(NSData *_Nullable)presentationMessage
-    total_message_count:(NSUInteger)total_message_count
-               messages:(NSDictionary *_Nullable)messages
-              withError:(NSError *_Nullable *_Nullable)errorPtr;
+                header:(NSData *_Nullable)header
+    presentationHeader:(NSData *_Nullable)presentationHeader
+     totalMessageCount:(NSUInteger)totalMessageCount
+              messages:(NSDictionary *_Nullable)messages
+             withError:(NSError *_Nullable *_Nullable)errorPtr;
 
 @end
 
