@@ -9,6 +9,7 @@ Pod::Spec.new do |s|
   s.platforms    = { :ios => "9.0" }
   s.source       = { :git => "https://github.com/mattrglobal/pairing_crypto.git", :tag => "#{s.version}" }
 
+  # TODO: The external libraries must be commited to the repo when we decided to publish this pod.
   s.vendored_libraries = 'wrappers/obj-c/libraries/libpairing_crypto_c.a'
   s.source_files = 'wrappers/obj-c/pairing_crypto/*.{h,m,mm}'
   s.requires_arc = true

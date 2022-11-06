@@ -1,2 +1,2 @@
-# Must include vendored libraries for the Pod
-!libraries/libpairing_crypto_c.a
+# TODO Must include vendored libraries for the Pod
+# !libraries/libpairing_crypto_c.a
