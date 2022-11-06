@@ -1,9 +1,3 @@
-/*!
- * Copyright 2019 - MATTR Limited
- * All rights reserved
- * Confidential and proprietary
- */
-
 import * as keyPair from "./keyPair.json";
 
 // can't use opecore isObject, getting error: Maximum call stack size exceeded
@@ -67,15 +61,17 @@ const fetchNestedFixtures = <T>(name: string, input: any): ReadonlyArray<T> => {
   return Array.prototype.concat.apply([], extractedFixtures);
 };
 
-export const bls12381Sha256SignatureFixtures = fetchNestedFixtures<SignatureFixture>(
-  "",
-  resolveFixtures("bls12_381_sha_256/signature")
-);
+export const bls12381Sha256SignatureFixtures =
+  fetchNestedFixtures<SignatureFixture>(
+    "",
+    resolveFixtures("bls12_381_sha_256/signature")
+  );
 
-export const bls12381Shake256SignatureFixtures = fetchNestedFixtures<SignatureFixture>(
-  "",
-  resolveFixtures("bls12_381_shake_256/signature")
-);
+export const bls12381Shake256SignatureFixtures =
+  fetchNestedFixtures<SignatureFixture>(
+    "",
+    resolveFixtures("bls12_381_shake_256/signature")
+  );
 
 export const bls12381Sha256ProofFixtures = fetchNestedFixtures<ProofFixture>(
   "",

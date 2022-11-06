@@ -1,0 +1,105 @@
+{
+  "name": "@mattrglobal/pairing-crypto-rn",
+  "version": "0.1.0",
+  "description": "A native module implementation of the 'pairing crypto' crate for React Native",
+  "main": "lib/commonjs/index",
+  "module": "lib/module/index",
+  "types": "lib/typescript/index.d.ts",
+  "react-native": "src/index",
+  "source": "src/index",
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "ios",
+    "cpp",
+    "pairing-crypto-rn.podspec",
+    "!lib/typescript/example",
+    "!android/build",
+    "!android/settings.gradle",
+    "!android/local.properties",
+    "!ios/build",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__"
+  ],
+  "scripts": {
+    "type-check": "tsc --noEmit && yarn example tsc --noEmit",
+    "build:all": "yarn build && yarn build:ios && yarn build:android",
+    "build": "rm -rf lib/ && yarn build:cjs && yarn build:esm && yarn build:types",
+    "build:cjs": "tsc --pretty --outDir lib/commonjs",
+    "build:esm": "tsc --pretty --module ES2015 --outDir lib/module",
+    "build:types": "tsc --pretty --declaration --emitDeclarationOnly --outDir lib/typescript",
+    "build:ios": "./scripts/build-ios.sh",
+    "build:android": "./scripts/build-android.sh",
+    "publish:unstable": "./scripts/publish-unstable.sh",
+    "format": "prettier --write '**/*.{js,ts,tsx}'",
+    "lint": "eslint . --ext .ts --color --format=table",
+    "lint:fix": "yarn lint --fix",
+    "example": "yarn --cwd example",
+    "detox:build": "yarn e2e:build:ios && e2e:build:android",
+    "detox:build:ios": "yarn example detox build -c ios",
+    "detox:build:android": "yarn example detox build -c android",
+    "detox:ios": "yarn example detox test -c ios",
+    "detox:ios:ci": "yarn detox:ios --cleanup --record-videos failing",
+    "detox:android": "yarn example detox test -c android",
+    "detox:android:ci": "yarn detox:android --cleanup --record-videos failing --record-logs all --headless",
+    "bootstrap": "yarn install && yarn build && yarn example && yarn example pods"
+  },
+  "keywords": [
+    "react-native",
+    "ios",
+    "android"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mattrglobal/pairing-crypto/mattrglobal-pairing-crypto-rn.git"
+  },
+  "author": "Tobias Looker <tobias.looker@mattr.global> (https://github.com/mattrglobal/pairing-crypto)",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/mattrglobal/pairing-crypto/mattrglobal-pairing-crypto-rn/issues"
+  },
+  "homepage": "https://github.com/mattrglobal/pairing-crypto/mattrglobal-pairing-crypto-rn#readme",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "buffer": "5.0.3"
+  },
+  "devDependencies": {
+    "@react-native-community/eslint-config": "3.1.0",
+    "@types/react": "17.0.21",
+    "@types/react-native": "0.68.0",
+    "eslint": "7.32.0",
+    "eslint-config-prettier": "6.11.0",
+    "eslint-plugin-header": "3.1.1",
+    "eslint-plugin-prettier": "3.1.3",
+    "prettier": "2.7.1",
+    "react": "17.0.2",
+    "react-native": "0.68.2",
+    "typescript": "4.5.5"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*"
+  },
+  "resolutions": {
+    "@types/react": "17.0.21"
+  },
+  "jest": {
+    "preset": "react-native",
+    "modulePathIgnorePatterns": [
+      "<rootDir>/example/node_modules",
+      "<rootDir>/lib/"
+    ]
+  },
+  "prettier": {
+    "printWidth": 120,
+    "quoteProps": "consistent",
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "useTabs": false
+  }
+}

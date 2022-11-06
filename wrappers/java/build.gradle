@@ -5,7 +5,10 @@ plugins {
     id 'java-library'
 }
 
-apply plugin : "java-library"
+group 'com.github.mattrglobal'
+version '0.1-SNAPSHOT'
+
+apply plugin: "java-library"
 
 repositories {
     // Use Maven Central for resolving dependencies.
@@ -25,12 +28,12 @@ dependencies {
 
 // Build and Copy the JNI libraries for current platform
 task buildAndCopyJniLibrariesCurrentPlatform(type:Exec) {
-    commandLine './scripts/build_all.sh', 'SELF', 'src/main/resources/META-INF/native'
+    commandLine './scripts/build_all.sh', 'SELF', "$buildDir/native"
 }
 
 // Build and Copy the JNI libraries for android
 task buildAndCopyJniLibrariesAndroid(type:Exec) {
-    commandLine './scripts/build_all.sh', 'ANDROID', 'src/main/resources/META-INF/native'
+    commandLine './scripts/build_all.sh', 'ANDROID', "$buildDir/native"
 }
 
 // Build and copy the JNI libraries
@@ -42,7 +45,7 @@ task buildAndCopyJniLibraries {
 tasks.named('test') {
     dependsOn buildAndCopyJniLibrariesCurrentPlatform
 
-    systemProperty("java.library.path", file("src/main/resources/META-INF/native/release").absolutePath)
+    systemProperty("java.library.path", file("$buildDir/native/release").absolutePath)
 
     // Use JUnit Platform for unit tests.
     useJUnit()

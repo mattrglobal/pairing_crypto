@@ -1,0 +1,114 @@
+name: ci-detox-ios
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+
+  libraries:
+    name: Build Wrapper Libraries
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ./main/wrappers/react-native
+    steps:
+      # This is a temporary build step that clones another
+      # repository as a private un-published dependency 'blstrs'
+      # it uses a GH personal access token with read only permission
+      - name: Check out mattrglobal/blstrs
+        uses: actions/checkout@v2
+        with:
+          repository: mattrglobal/blstrs
+          token: ${{ secrets.MATTR_BLSTRS_PAT }}
+          path: blstrs
+
+      - name: Checkout pairing_crypto
+        uses: actions/checkout@v2
+        with:
+          path: main # TODO remove once temp build step below is removed
+
+      - name: Setup rust toolchain
+        uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Build Libraries for iOS
+        run: yarn build:ios
+
+      - name: Archive build artifacts
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: ci-detox-ios-artifacts-libs-${{ github.sha }}
+          path: main/wrappers/react-native/ios/lib
+          retention-days: 1
+
+  ios:
+    name: Detox iOS E2E Testing
+    needs: [libraries]
+    runs-on: ${{ matrix.runners }}
+    strategy:
+      matrix:
+        runners: [[self-hosted, macos, X64, general]]
+    concurrency:
+      group: ci-detox-ios-${{ matrix.runners }}-${{ github.head_ref }}
+      cancel-in-progress: true
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: wrappers/react-native
+
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_12.4.app
+      # Do not launch packager during CI build
+      RCT_NO_LAUNCH_PACKAGER: 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org
+
+      - name: Download iOS Libraries
+        uses: actions/download-artifact@v3
+        with:
+          name: ci-detox-ios-artifacts-libs-${{ github.sha }}
+          path: wrappers/react-native/ios/lib
+
+      - name: Inspect iOS Libraries
+        run: ls -R ios/lib
+
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Example App Install Dependencies
+        run: yarn example --frozen-lockfile
+
+      - name: Example App Install Pods
+        run: yarn example pods
+
+      - run: brew tap wix/brew
+      - run: brew install applesimutils
+
+      - name: Detox Build iOS Configuration
+        run: yarn detox:build:ios
+
+      - name: Detox E2E Test
+        run: yarn detox:ios:ci
+
+      - name: Archive detox failed test results
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: detox-artifacts-${{ github.sha }}
+          path: wrappers/react-native/example/detox-artifacts
+          retention-days: 1

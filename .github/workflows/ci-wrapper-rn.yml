@@ -1,0 +1,94 @@
+name: ci-wrapper-rn
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+jobs:
+  build_test:
+    name: Build & Test RN Wrapper
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ci-wrapper-rn-${{ matrix.runners }}-${{ github.head_ref }}
+      cancel-in-progress: true
+    defaults:
+      run:
+        working-directory: wrappers/react-native
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org
+
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Build
+        run: yarn build
+
+  publish_unstable:
+    name: Publish unstable package release
+    needs: build_test
+    runs-on: macos-latest
+    if: github.ref == 'refs/heads/master'
+    defaults:
+      run:
+        working-directory: ./main/wrappers/react-native
+    steps:
+      # This is a temporary build step that clones another
+      # repository as a private un-published dependency 'blstrs'
+      # it uses a GH personal access token with read only permission
+      - name: Check out mattrglobal/blstrs
+        uses: actions/checkout@master
+        with:
+          repository: mattrglobal/blstrs
+          token: ${{ secrets.MATTR_BLSTRS_PAT }}
+          path: blstrs
+
+      - name: Checkout pairing_crypto
+        uses: actions/checkout@v2
+        with:
+          path: main # TODO remove once temp build step below is removed
+
+      - name: Setup rust toolchain
+        uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org
+
+      - name: Run yarn install
+        run: yarn install --frozen-lockfile
+
+      - name: Run yarn build
+        run: yarn build:all
+
+      - name: Configure NPM JS User
+        run: |
+          git config user.name "Mattr CI"
+          git config user.email "npmjs_ci_mattr_public@mattr.global"
+          npm whoami
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+
+      - name: Publish unstable build
+        run: yarn publish:unstable
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
