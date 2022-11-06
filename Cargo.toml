@@ -35,6 +35,8 @@ hex = "0.4"
 rand_xorshift = "0.3"
 bbs-fixtures-generator = {version = "0.1.0", path = "tools/bbs-fixtures-generator"}
 serde_json = "1.0.82"
+log = "0.4"
+pretty_env_logger = "0.4"
 
 [[bench]]
 name = "bbs_profile"
@@ -50,6 +52,9 @@ harness = false
 name = "bbs_api"
 path = "benches/bbs/api.rs"
 harness = false
+
+[[example]]
+name = "bbs_simple"
 
 [workspace]
 members = [
