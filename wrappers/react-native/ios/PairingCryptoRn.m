@@ -255,8 +255,8 @@ RCT_EXPORT_METHOD(Bls12381Sha256ProofVerify:(NSDictionary *)request
         
         bool isVerified = [proof verifyProof:publicKey
                                       header:header
-                         presentationMessage:presentationHeader
-                         total_message_count:totalMessageCount
+                          presentationHeader:presentationHeader
+                           totalMessageCount:totalMessageCount
                                     messages:disclosedMessage
                                    withError:error];
         
@@ -301,8 +301,8 @@ RCT_EXPORT_METHOD(Bls12381Shake256ProofVerify:(NSDictionary *)request
         
         bool isVerified = [proof verifyProof:publicKey
                                       header:header
-                         presentationMessage:presentationHeader
-                         total_message_count:totalMessageCount
+                          presentationHeader:presentationHeader
+                           totalMessageCount:totalMessageCount
                                     messages:disclosedMessage
                                    withError:error];
         
@@ -325,6 +325,7 @@ RCT_EXPORT_METHOD(Bls12381Sha256ProofGen:(NSDictionary *)request
         NSData *presentationHeader = nil;
         NSData *publicKey = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"publicKey"]]];
         NSData *signatureBytes = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"signature"]]];
+        BOOL verifySignature = [request[@"verifySignature"] isEqual:@([RCTConvert BOOL:@(YES)])];
         
         if ([request valueForKey:@"header"] != nil) {
             header = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"header"]]];
@@ -352,18 +353,11 @@ RCT_EXPORT_METHOD(Bls12381Sha256ProofGen:(NSDictionary *)request
         BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] initWithBytes:signatureBytes
                                                                                         withError:error];
         
-        // TODO: This should be handled by the obj-c wrapper
-        if ([request[@"verifySignature"] isEqual:@([RCTConvert BOOL:@(YES)])]) {
-            [signature verify:publicKey
-                       header:header
-                     messages:messages
-                    withError:error];
-        }
-        
         BbsBls12381Sha256Proof *proof = [[BbsBls12381Sha256Proof alloc] createProof:publicKey
                                                                              header:header
-                                                                presentationMessage:presentationHeader
+                                                                 presentationHeader:presentationHeader
                                                                           signature:signature
+                                                                    verifySignature:verifySignature
                                                                    disclosedIndices:disclosedIndices
                                                                            messages:messages
                                                                           withError:error];
@@ -387,6 +381,7 @@ RCT_EXPORT_METHOD(Bls12381Shake256ProofGen:(NSDictionary *)request
         NSData *presentationHeader = nil;
         NSData *publicKey = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"publicKey"]]];
         NSData *signatureBytes = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"signature"]]];
+        BOOL verifySignature = [request[@"verifySignature"] isEqual:@([RCTConvert BOOL:@(YES)])];
         
         if ([request valueForKey:@"header"] != nil) {
             header = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"header"]]];
@@ -414,18 +409,11 @@ RCT_EXPORT_METHOD(Bls12381Shake256ProofGen:(NSDictionary *)request
         BbsBls12381Shake256Signature *signature = [[BbsBls12381Shake256Signature alloc] initWithBytes:signatureBytes
                                                                                             withError:error];
         
-        // TODO: This should be handled by the obj-c wrapper
-        if ([request[@"verifySignature"] isEqual:@([RCTConvert BOOL:@(YES)])]) {
-            [signature verify:publicKey
-                       header:header
-                     messages:messages
-                    withError:error];
-        }
-        
         BbsBls12381Shake256Proof *proof = [[BbsBls12381Shake256Proof alloc] createProof:publicKey
                                                                                  header:header
-                                                                    presentationMessage:presentationHeader
+                                                                     presentationHeader:presentationHeader
                                                                               signature:signature
+                                                                        verifySignature:verifySignature
                                                                        disclosedIndices:disclosedIndices
                                                                                messages:messages
                                                                               withError:error];
