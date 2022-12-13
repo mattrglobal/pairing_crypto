@@ -64,7 +64,7 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen(js_name = bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bbs_key_pair)]
 pub async fn bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bbs_key_pair(
     request: JsValue,
-) -> Result<JsValue, JsValue> {
+) -> Result<JsValue, serde_wasm_bindgen::Error> {
     // Improves error output in JS based console.log() when built with
     // debug feature enabled
     set_panic_hook();
@@ -77,21 +77,26 @@ pub async fn bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bbs_key_pair(
     let key_pair = match request.ikm {
         Some(ikm) => {
             BbsKeyPair::new(&ikm, request.keyInfo.as_ref().map(Vec::as_ref))
-                .unwrap()
+                .ok_or(serde_wasm_bindgen::Error::new(
+                    "unexpected error, failed to generate keys.",
+                ))?
         }
+
         None => BbsKeyPair::random(
             &mut OsRng::default(),
             request.keyInfo.as_ref().map(Vec::as_ref),
         )
-        .unwrap(),
+        .ok_or(serde_wasm_bindgen::Error::new(
+            "unexpected error, failed to generate random keys.",
+        ))?,
     };
 
     // Construct the JS DTO of the key pair to return
     let keypair = KeyPair {
-        secretKey: Some(key_pair.secret_key.to_bytes().to_vec()),
+        secretKey: key_pair.secret_key.to_bytes().to_vec(),
         publicKey: key_pair.public_key.to_octets().to_vec(),
     };
-    Ok(serde_wasm_bindgen::to_value(&keypair).unwrap())
+    Ok(serde_wasm_bindgen::to_value(&keypair)?)
 }
 
 /// Generate a BBS key pair on BLS 12-381 curve.
@@ -106,7 +111,7 @@ pub async fn bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bbs_key_pair(
 #[wasm_bindgen(js_name = bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bls_key_pair)]
 pub async fn bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bls_key_pair(
     request: JsValue,
-) -> Result<JsValue, JsValue> {
+) -> Result<JsValue, serde_wasm_bindgen::Error> {
     // Improves error output in JS based console.log() when built with
     // debug feature enabled
     set_panic_hook();
@@ -121,20 +126,24 @@ pub async fn bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bls_key_pair(
             &ikm,
             request.keyInfo.as_ref().map(Vec::as_ref),
         )
-        .unwrap(),
+        .ok_or(serde_wasm_bindgen::Error::new(
+            "unexpected error, failed to generate keys.",
+        ))?,
         None => BlsSigBls12381G2KeyPair::random(
             &mut OsRng::default(),
             request.keyInfo.as_ref().map(Vec::as_ref),
         )
-        .unwrap(),
+        .ok_or(serde_wasm_bindgen::Error::new(
+            "unexpected error, failed to generate random keys.",
+        ))?,
     };
 
     // Construct the JS DTO of the key pair to return
     let keypair = KeyPair {
-        secretKey: Some(key_pair.secret_key.to_bytes().to_vec()),
+        secretKey: key_pair.secret_key.to_bytes().to_vec(),
         publicKey: key_pair.public_key.to_octets().to_vec(),
     };
-    Ok(serde_wasm_bindgen::to_value(&keypair).unwrap())
+    Ok(serde_wasm_bindgen::to_value(&keypair)?)
 }
 
 macro_rules! bbs_bound_wrapper_api_generator {
@@ -183,7 +192,7 @@ macro_rules! bbs_bound_wrapper_api_generator {
 
             match $key_pop_gen_lib_fn(&api_request) {
                 Ok(pop) => {
-                    Ok(serde_wasm_bindgen::to_value(&pop.to_vec()).unwrap())
+                    Ok(serde_wasm_bindgen::to_value(&pop.to_vec())?)
                 }
                 Err(e) => Err(serde_wasm_bindgen::Error::new(e)),
             }
@@ -229,8 +238,7 @@ macro_rules! bbs_bound_wrapper_api_generator {
                             verified: result,
                             error: None,
                         },
-                    )
-                    .unwrap())
+                    )?)
                 }
                 Err(e) => {
                     return Ok(serde_wasm_bindgen::to_value(
@@ -238,8 +246,7 @@ macro_rules! bbs_bound_wrapper_api_generator {
                             verified: false,
                             error: Some(format!("{:?}", e)),
                         },
-                    )
-                    .unwrap())
+                    )?)
                 }
             }
         }
@@ -297,7 +304,7 @@ macro_rules! bbs_bound_wrapper_api_generator {
 
             match result {
                 Ok(sig) => {
-                    Ok(serde_wasm_bindgen::to_value(&sig.to_vec()).unwrap())
+                    Ok(serde_wasm_bindgen::to_value(&sig.to_vec())?)
                 }
                 Err(e) => Err(serde_wasm_bindgen::Error::new(e)),
             }
@@ -332,8 +339,7 @@ macro_rules! bbs_bound_wrapper_api_generator {
                             verified: false,
                             error: Some(format!("{:?}", e)),
                         },
-                    )
-                    .unwrap())
+                    )?)
                 }
             };
 
@@ -376,8 +382,7 @@ macro_rules! bbs_bound_wrapper_api_generator {
                             verified: result,
                             error: None,
                         },
-                    )
-                    .unwrap())
+                    )?)
                 }
                 Err(e) => {
                     return Ok(serde_wasm_bindgen::to_value(
@@ -385,8 +390,7 @@ macro_rules! bbs_bound_wrapper_api_generator {
                             verified: false,
                             error: Some(format!("{:?}", e)),
                         },
-                    )
-                    .unwrap())
+                    )?)
                 }
             }
         }
@@ -468,7 +472,7 @@ macro_rules! bbs_bound_wrapper_api_generator {
             };
 
             match result {
-                Ok(proof) => Ok(serde_wasm_bindgen::to_value(&proof).unwrap()),
+                Ok(proof) => Ok(serde_wasm_bindgen::to_value(&proof)?),
                 Err(e) => Err(serde_wasm_bindgen::Error::new(e)),
             }
         }
@@ -523,9 +527,9 @@ macro_rules! bbs_bound_wrapper_api_generator {
                     messages: Some(
                         messages
                             .iter()
-                            .map(|(key, value)| {
+                            .map(|(&key, value)| {
                                 (
-                                    key.parse::<usize>().unwrap(),
+                                    key,
                                     value.as_slice(),
                                 )
                             })
@@ -545,8 +549,7 @@ macro_rules! bbs_bound_wrapper_api_generator {
                             verified,
                             error: None,
                         },
-                    )
-                    .unwrap());
+                    )?);
                 }
                 Err(e) => {
                     return Ok(serde_wasm_bindgen::to_value(
@@ -554,8 +557,7 @@ macro_rules! bbs_bound_wrapper_api_generator {
                             verified: false,
                             error: Some(format!("{:?}", e)),
                         },
-                    )
-                    .unwrap())
+                    )?)
                 }
             }
         }

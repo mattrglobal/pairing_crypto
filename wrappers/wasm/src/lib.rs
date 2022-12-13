@@ -14,7 +14,7 @@
 // ------------------------------------------------------------------------------
 //!
 #![warn(missing_docs, missing_crate_level_docs, rust_2018_idioms)]
-#![deny(dead_code, redundant_semicolons, unused, unsafe_code, while_true)]
+#![deny(dead_code, redundant_semicolons, unused, while_true)]
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
