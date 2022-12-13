@@ -91,5 +91,5 @@ wasm_impl!(
     proof: Vec<u8>,
     presentationHeader: Option<Vec<u8>>,
     totalMessageCount: usize,
-    messages: Option<HashMap<usize, Vec<u8>>>
+    messages: Option<HashMap<String, Vec<u8>>>
 );

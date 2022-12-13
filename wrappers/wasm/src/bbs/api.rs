@@ -367,8 +367,13 @@ macro_rules! bbs_wrapper_api_generator {
                     messages: Some(
                         messages
                             .iter()
-                            .map(|(&key, value)| (key, value.as_slice()))
-                            .collect::<Vec<(usize, &[u8])>>()
+                            .map(|(key, value)| match key.parse::<usize>() {
+                                Ok(k) => Ok((k, value.as_slice())),
+                                Err(e) => {
+                                    Err(serde_wasm_bindgen::Error::new(e))
+                                }
+                            })
+                            .collect::<Result<Vec<(usize, &[u8])>, _>>()?
                             .as_slice(),
                     ),
                     ..api_request
