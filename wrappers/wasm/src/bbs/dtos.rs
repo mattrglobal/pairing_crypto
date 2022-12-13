@@ -23,7 +23,7 @@ wasm_impl!(
     keyInfo: Option<Vec<u8>>
 );
 
-wasm_impl!(KeyPair, publicKey: Vec<u8>, secretKey: Option<Vec<u8>>);
+wasm_impl!(KeyPair, publicKey: Vec<u8>, secretKey: Vec<u8>);
 
 wasm_impl!(
     BbsSignRequestDto,

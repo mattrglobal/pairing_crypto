@@ -84,16 +84,16 @@ impl core::fmt::Debug for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
             Error::BadParams { ref cause } => {
-                write!(f, "bad arguments: cause: {}", cause)
+                write!(f, "bad arguments: cause: {cause}")
             }
             Error::Conversion { ref cause } => {
-                write!(f, "data conversion failed: cause: {}", cause)
+                write!(f, "data conversion failed: cause: {cause}")
             }
             Error::CryptoOps { ref cause } => {
                 write!(
                     f,
-                    "unexpected failure in cryptographic operation: cause {}",
-                    cause
+                    "unexpected failure in cryptographic operation: cause \
+                     {cause}"
                 )
             }
             Error::MaxRetryReached => {
@@ -115,13 +115,13 @@ impl core::fmt::Debug for Error {
                 write!(f, "public key is invalid.")
             }
             Error::MalformedSignature { ref cause } => {
-                write!(f, "signature is malformed: cause: {}", cause)
+                write!(f, "signature is malformed: cause: {cause}")
             }
             Error::SignatureVerification => {
                 write!(f, "signature verification failed.")
             }
             Error::MalformedProof { ref cause } => {
-                write!(f, "proof is malformed: cause: {}", cause)
+                write!(f, "proof is malformed: cause: {cause}")
             }
             Error::MessageGeneratorsLengthMismatch {
                 generators,
@@ -129,8 +129,8 @@ impl core::fmt::Debug for Error {
             } => {
                 write!(
                     f,
-                    "length mismatch, #message-generators: {}, #messages: {}.",
-                    generators, messages
+                    "length mismatch, #message-generators: {generators}, \
+                     #messages: {messages}."
                 )
             }
             Error::PointIsIdentity => {
@@ -154,6 +154,6 @@ impl From<core::array::TryFromSliceError> for Error {
 
 impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }

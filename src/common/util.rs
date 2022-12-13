@@ -20,9 +20,8 @@ pub fn vec_to_byte_array<const N: usize>(
         Ok(result) => Ok(result),
         Err(_) => Err(Error::Conversion {
             cause: format!(
-                "source vector size {}, expected destination byte array size \
-                 {}",
-                data_len, N
+                "source vector size {data_len}, expected destination byte \
+                 array size {N}",
             ),
         }),
     }

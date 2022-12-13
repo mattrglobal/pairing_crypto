@@ -99,8 +99,7 @@ where
         return Err(Error::BadParams {
             cause: format!(
                 "revealed message index is out of bounds, total_message_count \
-                 is {}",
-                total_message_count
+                 is {total_message_count}",
             ),
         });
     }
