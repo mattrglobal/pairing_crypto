@@ -3,6 +3,7 @@ mod model;
 mod util;
 
 pub use generators::{
+    key_pair::sha256_kdf,
     generate_fixtures,
     H2S_FIXTURES_SUBDIR,
     PROOF_FIXTURES_SUBDIR,
