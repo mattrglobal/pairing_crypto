@@ -12,6 +12,7 @@ use serde::{
     Serializer,
 };
 use serde_derive::Serialize;
+use crate::sha256_bbs_key_gen_tool;
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -40,9 +41,13 @@ pub struct FixtureGenInput {
 
 impl From<TestAsset> for FixtureGenInput {
     fn from(t: TestAsset) -> Self {
-        let key_pair = KeyPair::new(&t.key_ikm, Some(&t.key_info)).unwrap();
-        let spare_key_pair =
-            KeyPair::new(&t.spare_key_ikm, Some(&t.key_info)).unwrap();
+        let key_pair = sha256_bbs_key_gen_tool(
+            &t.key_ikm, Some(&t.key_info)
+        ).unwrap();
+        
+        let spare_key_pair = sha256_bbs_key_gen_tool(
+            &t.spare_key_ikm, Some(&t.key_info)
+        ).unwrap();
 
         let messages = t
             .messages

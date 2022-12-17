@@ -3,12 +3,12 @@ mod model;
 mod util;
 
 pub use generators::{
-    key_pair::sha256_kdf,
     generate_fixtures,
     H2S_FIXTURES_SUBDIR,
     PROOF_FIXTURES_SUBDIR,
     SIGNATURE_FIXTURES_SUBDIR,
 };
+pub(crate) use generators::key_pair::sha256_bbs_key_gen_tool;
 pub use model::{
     ExpectedResult,
     FixtureGenInput,
