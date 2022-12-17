@@ -3,9 +3,9 @@ use std::path::PathBuf;
 use crate::model::FixtureGenInput;
 
 pub mod h2s;
+pub mod key_pair;
 pub mod proof;
 pub mod signature;
-pub mod key_pair;
 
 pub const SIGNATURE_FIXTURES_SUBDIR: &str = "signature";
 pub const PROOF_FIXTURES_SUBDIR: &str = "proof";

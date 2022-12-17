@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use crate::sha256_bbs_key_gen_tool;
 use pairing_crypto::bbs::{
     ciphersuites::bls12_381::KeyPair,
     core::key_pair::{PublicKey, SecretKey},
@@ -12,7 +13,6 @@ use serde::{
     Serializer,
 };
 use serde_derive::Serialize;
-use crate::sha256_bbs_key_gen_tool;
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -41,13 +41,12 @@ pub struct FixtureGenInput {
 
 impl From<TestAsset> for FixtureGenInput {
     fn from(t: TestAsset) -> Self {
-        let key_pair = sha256_bbs_key_gen_tool(
-            &t.key_ikm, Some(&t.key_info)
-        ).unwrap();
-        
-        let spare_key_pair = sha256_bbs_key_gen_tool(
-            &t.spare_key_ikm, Some(&t.key_info)
-        ).unwrap();
+        let key_pair =
+            sha256_bbs_key_gen_tool(&t.key_ikm, Some(&t.key_info)).unwrap();
+
+        let spare_key_pair =
+            sha256_bbs_key_gen_tool(&t.spare_key_ikm, Some(&t.key_info))
+                .unwrap();
 
         let messages = t
             .messages

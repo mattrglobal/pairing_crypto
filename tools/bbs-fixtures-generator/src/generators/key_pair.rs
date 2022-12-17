@@ -1,16 +1,15 @@
-use sha2::{Digest, Sha256};
+use blstrs::Scalar;
 use hkdf::Hkdf;
 use pairing_crypto::{
-    Error, 
     bbs::ciphersuites::bls12_381::{
         KeyPair,
         PublicKey,
         SecretKey,
-        BBS_BLS12381G1_SECRET_KEY_LENGTH
-    }
+        BBS_BLS12381G1_SECRET_KEY_LENGTH,
+    },
+    Error,
 };
-use blstrs::Scalar;
-
+use sha2::{Digest, Sha256};
 
 // a KDF based on the spec recommendation: [https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-01.html#name-keygen],
 // for the purpose of creating test vectors.
@@ -20,14 +19,18 @@ macro_rules! bbs_kdf {
      $input_salt: expr,
      $hash:ty
     ) => {
-        pub(crate) fn $kdf_name<T: AsRef<[u8]>>(input_ikm: T, key_info: Option<&[u8]>) -> Result<KeyPair, Error> 
-        {
+        pub(crate) fn $kdf_name<T: AsRef<[u8]>>(
+            input_ikm: T,
+            key_info: Option<&[u8]>,
+        ) -> Result<KeyPair, Error> {
             let ikm = input_ikm.as_ref();
             let key_info = key_info.unwrap_or(&[]);
 
             if (ikm.len() < BBS_BLS12381G1_SECRET_KEY_LENGTH) {
-                return Err(Error::BadParams{
-                    cause: "IKM is too short. Needs to be at least 32 bytes long".to_owned()
+                return Err(Error::BadParams {
+                    cause: "IKM is too short. Needs to be at least 32 bytes \
+                            long"
+                        .to_owned(),
                 });
             };
 
@@ -48,8 +51,11 @@ macro_rules! bbs_kdf {
             let mut okm = [0u8; 64];
 
             let key_info_prime = [&key_info, &L_BYTES[..]].concat();
-            hk.expand(&key_info_prime, &mut okm[(64-L)..])
-                .expect(&format!("The output of HKDF expand must cannot be more than {}", 255*<$hash>::output_size()));
+            hk.expand(&key_info_prime, &mut okm[(64 - L)..])
+                .expect(&format!(
+                    "The output of HKDF expand must cannot be more than {}",
+                    255 * <$hash>::output_size()
+                ));
 
             // SK = OS2IP(OKM) mod r
             let sk_scalar = Scalar::from_wide_bytes_be_mod_r(&okm);
@@ -60,10 +66,10 @@ macro_rules! bbs_kdf {
 
             Ok(KeyPair {
                 secret_key: sk,
-                public_key: pk
+                public_key: pk,
             })
         }
-    }
+    };
 }
 
 // Sha256 based BBS KDF
@@ -73,9 +79,8 @@ bbs_kdf!(
     Sha256
 );
 
-
 #[cfg(test)]
-mod tests{
+mod tests {
     use super::*;
     use pairing_crypto::bbs::ciphersuites::bls12_381::BBS_BLS12381G1_PUBLIC_KEY_LENGTH;
     use std::str;
@@ -86,7 +91,7 @@ mod tests{
     #[derive(Debug)]
     struct TestKeyPair<'a> {
         secret_key: &'a str,
-        public_key: &'a str
+        public_key: &'a str,
     }
 
     // expected bbs key pair
@@ -95,11 +100,10 @@ mod tests{
         public_key: &"aaff983278257afc45fa9d44d156c454d716fb1a250dfed132d65b2009331f618c623c14efa16245f50cc92e60334051087f1ae92669b89690f5feb92e91568f95a8e286d110b011e9ac9923fd871238f57d1295395771331ff6edee43e4ccc6"
     };
 
-
     fn get_test_asset() -> (Vec<u8>, Vec<u8>) {
         (
             hex::decode(TEST_IKM).unwrap(),
-            hex::decode(TEST_KEY_INFO).unwrap()
+            hex::decode(TEST_KEY_INFO).unwrap(),
         )
     }
 
@@ -127,7 +131,7 @@ mod tests{
 
         // BLS keyGen
         let key_pair = sha256_bls_key_gen(&key_ikm, Some(&key_info)).unwrap();
-        
+
         // native BLS keyGen
         let kay_pair_native = KeyPair::new(&key_ikm, Some(&key_info)).unwrap();
 
@@ -142,8 +146,14 @@ mod tests{
         // println!("sk = {:?}", hex::encode(key_pair.secret_key.to_bytes()));
         // println!("pk = {:?}", hex::encode(key_pair.public_key.to_octets()));
 
-        assert_eq!(hex::encode(key_pair.secret_key.to_bytes()), SHA256_TEST_KEY_PAIR.secret_key);
-        assert_eq!(hex::encode(key_pair.public_key.to_octets()), SHA256_TEST_KEY_PAIR.public_key);
+        assert_eq!(
+            hex::encode(key_pair.secret_key.to_bytes()),
+            SHA256_TEST_KEY_PAIR.secret_key
+        );
+        assert_eq!(
+            hex::encode(key_pair.public_key.to_octets()),
+            SHA256_TEST_KEY_PAIR.public_key
+        );
     }
 
     // validate that the sha256 based bbs kdf returns valid results
@@ -151,8 +161,20 @@ mod tests{
     fn valid_public_key() {
         let key_pair = kdf_test_helper();
 
-        assert_eq!(key_pair.public_key.is_valid().unwrap_u8(), 1, "Public Key is invalid");
-        assert_eq!(key_pair.public_key.to_octets().len(), BBS_BLS12381G1_PUBLIC_KEY_LENGTH, "Public Key is the wrong length");
-        assert_eq!(key_pair.secret_key.to_bytes().len(), BBS_BLS12381G1_SECRET_KEY_LENGTH, "Secret Key is the wrong length");
+        assert_eq!(
+            key_pair.public_key.is_valid().unwrap_u8(),
+            1,
+            "Public Key is invalid"
+        );
+        assert_eq!(
+            key_pair.public_key.to_octets().len(),
+            BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+            "Public Key is the wrong length"
+        );
+        assert_eq!(
+            key_pair.secret_key.to_bytes().len(),
+            BBS_BLS12381G1_SECRET_KEY_LENGTH,
+            "Secret Key is the wrong length"
+        );
     }
 }
