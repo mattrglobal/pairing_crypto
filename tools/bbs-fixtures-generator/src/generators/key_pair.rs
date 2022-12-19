@@ -1,12 +1,7 @@
 use blstrs::Scalar;
 use hkdf::Hkdf;
 use pairing_crypto::{
-    bbs::ciphersuites::bls12_381::{
-        KeyPair,
-        PublicKey,
-        SecretKey,
-        BBS_BLS12381G1_SECRET_KEY_LENGTH,
-    },
+    bbs::ciphersuites::bls12_381::{KeyPair, PublicKey, SecretKey},
     Error,
 };
 use sha2::{Digest, Sha256};
@@ -16,17 +11,20 @@ use sha2::{Digest, Sha256};
 // NOTE: this KDF is NOT a requirement for spec compatibility
 macro_rules! bbs_kdf {
     ($kdf_name:tt,
-     $input_salt: expr,
+     $input_salt:expr,
      $hash:ty
     ) => {
-        pub(crate) fn $kdf_name<T: AsRef<[u8]>>(
+        pub(crate) fn $kdf_name<T>(
             input_ikm: T,
             key_info: Option<&[u8]>,
-        ) -> Result<KeyPair, Error> {
+        ) -> Result<KeyPair, Error>
+        where
+            T: AsRef<[u8]>,
+        {
             let ikm = input_ikm.as_ref();
             let key_info = key_info.unwrap_or(&[]);
 
-            if (ikm.len() < BBS_BLS12381G1_SECRET_KEY_LENGTH) {
+            if (ikm.len() < 32) {
                 return Err(Error::BadParams {
                     cause: "IKM is too short. Needs to be at least 32 bytes \
                             long"
@@ -53,7 +51,8 @@ macro_rules! bbs_kdf {
             let key_info_prime = [&key_info, &L_BYTES[..]].concat();
             hk.expand(&key_info_prime, &mut okm[(64 - L)..])
                 .expect(&format!(
-                    "The output of HKDF expand must cannot be more than {}",
+                    "The output of HKDF expand cannot be more than {} bytes \
+                     long",
                     255 * <$hash>::output_size()
                 ));
 
@@ -82,7 +81,10 @@ bbs_kdf!(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pairing_crypto::bbs::ciphersuites::bls12_381::BBS_BLS12381G1_PUBLIC_KEY_LENGTH;
+    use pairing_crypto::bbs::ciphersuites::bls12_381::{
+        BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+        BBS_BLS12381G1_SECRET_KEY_LENGTH,
+    };
     use std::str;
 
     const TEST_IKM: &str = "746869732d49532d6a7573742d616e2d546573742d494b4d2d746f2d67656e65726174652d246528724074232d6b6579";
@@ -100,6 +102,7 @@ mod tests {
         public_key: &"aaff983278257afc45fa9d44d156c454d716fb1a250dfed132d65b2009331f618c623c14efa16245f50cc92e60334051087f1ae92669b89690f5feb92e91568f95a8e286d110b011e9ac9923fd871238f57d1295395771331ff6edee43e4ccc6"
     };
 
+    // ikm and key info to bytes
     fn get_test_asset() -> (Vec<u8>, Vec<u8>) {
         (
             hex::decode(TEST_IKM).unwrap(),
@@ -115,8 +118,8 @@ mod tests {
         key_pair
     }
 
-    // validate that the kdf will return the same result with the native
-    // blstr implementation on the BLS salt defined in
+    // validate that the kdf with the BLS salt will return the same
+    // result with the native blstr implementation.
     // [https://www.ietf.org/archive/id/draft-irtf-cfrg-bls-signature-05.html#name-keygen]
     #[test]
     fn expected_bls_key_pair() {
