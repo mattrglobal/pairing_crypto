@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use crate::model::FixtureGenInput;
 
 pub mod h2s;
+pub mod key_pair;
 pub mod proof;
 pub mod signature;
 
