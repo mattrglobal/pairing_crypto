@@ -106,6 +106,38 @@ fn sign_verify_serde_nominal() {
     );
 }
 
+
+#[test]
+fn test_no_header() {
+    let key_pair = get_random_test_key_pair();
+    let header: Option<&[u8]> = None;
+    let messages = get_test_messages();
+    let generators = create_generators_helper(messages.len());
+
+    let signature =
+        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            &key_pair.secret_key,
+            &key_pair.public_key,
+            header,
+            &generators,
+            &messages,
+        )
+        .expect("signing failed");
+
+    assert_eq!(
+        signature
+            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+                &key_pair.public_key,
+                header,
+                &generators,
+                &messages
+            )
+            .expect("verification failed"),
+        true
+    );
+}
+
+
 #[test]
 fn sign_verify_different_key_infos() {
     let messages = get_test_messages();

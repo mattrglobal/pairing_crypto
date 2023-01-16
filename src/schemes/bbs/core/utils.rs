@@ -49,6 +49,11 @@ where
 
     // domain = hash_to_scalar((PK || L || generators || Ciphersuite_ID ||
     // header), 1)
+
+    // dom_array = (Q_1, Q_2, L, H_1, ..., H_L, ciphersuite_id)
+    // dom_octs = serialize(dom_array)
+    // dom_input = PK || dom_octs || I2OSP(length(header), 8) || header
+    // hash_to_scalar(dom_input, 1)
     let mut data_to_hash = vec![];
     data_to_hash.extend(PK.to_octets().as_ref());
     data_to_hash.extend(i2osp(L as u64, NON_NEGATIVE_INTEGER_ENCODING_LENGTH)?);
@@ -60,12 +65,27 @@ where
     }
 
     data_to_hash.extend(C::ID.as_octets());
-    if let Some(header) = header {
-        data_to_hash.extend(i2osp_with_data(
-            header.as_ref(),
-            NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
-        )?);
-    }
+
+    let _header_t = header.as_ref().map_or(&[] as &[u8],|v| v.as_ref());
+    // .unwrap_or(&[] as &[u8]);
+
+
+    println!(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> len_t = {:?}", _header_t.len());
+
+    // if let Some(header) = header {
+        
+    //     let header_t = header.as_ref();
+
+    //     data_to_hash.extend(i2osp_with_data(
+    //         header_t,
+    //         NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
+    //     )?);
+    // }
+
+    data_to_hash.extend(i2osp_with_data(
+        _header_t,
+        NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
+    )?);
 
     Ok(C::hash_to_scalar(&data_to_hash, 1, None)?[0])
 }
