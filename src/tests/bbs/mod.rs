@@ -4,12 +4,14 @@ use crate::{
         core::{
             generator::memory_cached_generator::MemoryCachedGenerators,
             key_pair::KeyPair,
+            signature::Signature,
             types::Message,
         },
     },
     common::hash_param::h2s::HashToScalarParameter,
     curves::bls12_381::G1Projective,
 };
+use core::convert::TryFrom;
 use group::Group;
 use rand_core::OsRng;
 
@@ -49,6 +51,10 @@ const ANOTHER_TEST_HEADER: &[u8; 23] = b"some_other_test_context";
 // Expected signature for TEST_KEY_GEN_IKM, TEST_KEY_INFO, TEST_HEADER and
 // TEST_CLAIMS
 const EXPECTED_SIGNATURE: &str = "a3cc68e232545ae2bca1d3c82139473ebdb5be91b22b8b752ed627c5ccbba2f4f8064500262e7eb5daec48aa82fdfb9f359730ac302438858503b46dae4a4f5ef1ce91e01f830dd991ee04b656e4e9e345fe21fd42ecea51d18c6cb6c6569379f26fcb317520303e368cea405ffae7f8";
+
+// Expected signature for an empty header, TEST_KEY_GEN_IKM, TEST_KEY_INFO and
+// TEST_CLAIMS
+const EXPECTED_SIGNATURE_NO_HEADER: &str = "a77fb3e380f4326e883df6bf9ea2806aa12c5b3a10999e2b25780df01358370575bc6110442c585c2a7bb12edbf821fb16cd92e978901e4e35fd29748c2da2a62071bf43cc830544952a45b514a6e4e04e9582bf42d82124eaed110260b0e64ca7355d18b4caff36d52d50b785a01fcc";
 
 // Expected signature for TEST_KEY_GEN_IKM, TEST_KEY_INFOS, TEST_HEADER and
 // TEST_CLAIMS
@@ -121,6 +127,16 @@ fn get_random_test_messages(num_messages: usize) -> Vec<Message> {
 fn get_random_test_key_pair() -> KeyPair {
     KeyPair::random(&mut OsRng, Some(TEST_KEY_INFO))
         .expect("key pair generation failed")
+}
+
+fn get_expected_signature(expected_signature: &str) -> Signature {
+    Signature::from_octets(
+        &<[u8; Signature::SIZE_BYTES]>::try_from(
+            hex::decode(expected_signature).expect("hex decoding failed"),
+        )
+        .expect("data conversion failed"),
+    )
+    .expect("signature deserialization failed")
 }
 
 #[macro_export]

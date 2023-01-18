@@ -66,24 +66,9 @@ where
 
     data_to_hash.extend(C::ID.as_octets());
 
-    let _header_t = header.as_ref().map_or(&[] as &[u8],|v| v.as_ref());
-    // .unwrap_or(&[] as &[u8]);
-
-
-    println!(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> len_t = {:?}", _header_t.len());
-
-    // if let Some(header) = header {
-        
-    //     let header_t = header.as_ref();
-
-    //     data_to_hash.extend(i2osp_with_data(
-    //         header_t,
-    //         NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
-    //     )?);
-    // }
-
+    let _header_bytes = header.as_ref().map_or(&[] as &[u8], |v| v.as_ref());
     data_to_hash.extend(i2osp_with_data(
-        _header_t,
+        _header_bytes,
         NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
     )?);
 
@@ -160,12 +145,12 @@ where
         data_to_hash.extend(msg.to_bytes());
     }
     data_to_hash.extend(domain.to_bytes_be());
-    if let Some(ph) = ph {
-        data_to_hash.extend(i2osp_with_data(
-            ph.as_ref(),
-            NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
-        )?);
-    }
+
+    let _ph_bytes = ph.as_ref().map_or(&[] as &[u8], |v| v.as_ref());
+    data_to_hash.extend(i2osp_with_data(
+        _ph_bytes,
+        NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
+    )?);
 
     // c = hash_to_scalar(c_for_hash, 1)
     Ok(Challenge(C::hash_to_scalar(&data_to_hash, 1, None)?[0]))
