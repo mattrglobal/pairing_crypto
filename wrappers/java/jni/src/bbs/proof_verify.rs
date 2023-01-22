@@ -16,7 +16,6 @@ use pairing_crypto_c::{
             bbs_bls12_381_sha_256_proof_verify_context_set_presentation_header,
             bbs_bls12_381_sha_256_proof_verify_context_set_proof,
             bbs_bls12_381_sha_256_proof_verify_context_set_public_key,
-            bbs_bls12_381_sha_256_proof_verify_context_set_total_message_count,
             bbs_bls12_381_shake_256_proof_verify_context_add_message,
             bbs_bls12_381_shake_256_proof_verify_context_finish,
             bbs_bls12_381_shake_256_proof_verify_context_init,
@@ -24,7 +23,6 @@ use pairing_crypto_c::{
             bbs_bls12_381_shake_256_proof_verify_context_set_presentation_header,
             bbs_bls12_381_shake_256_proof_verify_context_set_proof,
             bbs_bls12_381_shake_256_proof_verify_context_set_public_key,
-            bbs_bls12_381_shake_256_proof_verify_context_set_total_message_count,
         },
         BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
     },
@@ -43,8 +41,6 @@ macro_rules! bbs_proof_gen_api_wrapper_generator {
         $set_proof_fn:ident,
         $java_wrapper_set_presentation_header_fn:ident,
         $set_presentation_header_fn:ident,
-        $java_wrapper_set_total_message_count_fn:ident,
-        $set_total_message_count_fn:ident,
         $java_wrapper_add_message_fn:ident,
         $add_message_fn:ident,
         $java_wrapper_finish_fn:ident,
@@ -151,23 +147,6 @@ macro_rules! bbs_proof_gen_api_wrapper_generator {
 
         #[allow(non_snake_case)]
         #[no_mangle]
-        pub extern "C" fn $java_wrapper_set_total_message_count_fn(
-            _: JNIEnv,
-            _: JObject,
-            handle: jlong,
-            total_message_count: jint,
-        ) -> jint {
-            match usize::try_from(total_message_count) {
-                Err(_) => 1,
-                Ok(c) => {
-                    let mut error = ExternError::success();
-                    $set_total_message_count_fn(handle as u64, c, &mut error)
-                }
-            }
-        }
-
-        #[allow(non_snake_case)]
-        #[no_mangle]
         pub extern "C" fn $java_wrapper_add_message_fn(
             env: JNIEnv,
             _: JObject,
@@ -217,8 +196,6 @@ bbs_proof_gen_api_wrapper_generator!(
     bbs_bls12_381_sha_256_proof_verify_context_set_proof,
     Java_pairing_1crypto_Bls12381Sha256_proof_1verify_1context_1set_1presentation_1header,
     bbs_bls12_381_sha_256_proof_verify_context_set_presentation_header,
-    Java_pairing_1crypto_Bls12381Sha256_proof_1verify_1context_1set_1total_1message_1count,
-    bbs_bls12_381_sha_256_proof_verify_context_set_total_message_count,
     Java_pairing_1crypto_Bls12381Sha256_proof_1verify_1context_1add_1message,
     bbs_bls12_381_sha_256_proof_verify_context_add_message,
     Java_pairing_1crypto_Bls12381Sha256_proof_1verify_1context_1finish,
@@ -236,8 +213,6 @@ bbs_proof_gen_api_wrapper_generator!(
     bbs_bls12_381_shake_256_proof_verify_context_set_proof,
     Java_pairing_1crypto_Bls12381Shake256_proof_1verify_1context_1set_1presentation_1header,
     bbs_bls12_381_shake_256_proof_verify_context_set_presentation_header,
-    Java_pairing_1crypto_Bls12381Shake256_proof_1verify_1context_1set_1total_1message_1count,
-    bbs_bls12_381_shake_256_proof_verify_context_set_total_message_count,
     Java_pairing_1crypto_Bls12381Shake256_proof_1verify_1context_1add_1message,
     bbs_bls12_381_shake_256_proof_verify_context_add_message,
     Java_pairing_1crypto_Bls12381Shake256_proof_1verify_1context_1finish,

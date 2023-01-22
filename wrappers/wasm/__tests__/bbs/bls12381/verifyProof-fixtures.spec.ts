@@ -30,7 +30,6 @@ bls12381Shake256ProofFixtures.forEach((item: ProofFixture) => {
                 presentationHeader: new Uint8Array(
                   Buffer.from(item.value.presentationHeader, "hex")
                 ),
-                totalMessageCount: item.value.totalMessageCount,
                 messages: Object.entries(item.value.revealedMessages).reduce(
                   (map, val, _) => {
                     const key = parseInt(val[0]);
@@ -58,7 +57,6 @@ bls12381Shake256ProofFixtures.forEach((item: ProofFixture) => {
                   presentationHeader: new Uint8Array(
                     Buffer.from(item.value.presentationHeader, "hex")
                   ),
-                  totalMessageCount: item.value.totalMessageCount,
                   messages: Object.entries(item.value.revealedMessages).reduce(
                     (map, val, _) => {
                       const key = parseInt(val[0]);

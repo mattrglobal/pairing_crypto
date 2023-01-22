@@ -23,6 +23,7 @@ define_handle_map_deleter!(
     bbs_bls12381_verify_proof_free
 );
 
+        // $set_total_message_count:ident,
 macro_rules! bbs_proof_verify_api_generator {
     (
         $init_wrapper_fn:ident,
@@ -30,7 +31,6 @@ macro_rules! bbs_proof_verify_api_generator {
         $set_header_wrapper_fn:ident,
         $set_proof_fn:ident,
         $set_presentation_header:ident,
-        $set_total_message_count:ident,
         $add_message_wrapper_fn:ident,
         $finish_wrapper_fn:ident,
         $proof_verify_lib_fn:ident
@@ -44,7 +44,6 @@ macro_rules! bbs_proof_verify_api_generator {
                     proof: Vec::new(),
                     presentation_header: Vec::new(),
                     messages: Vec::new(),
-                    total_message_count: 0,
                 }
             })
         }
@@ -69,17 +68,17 @@ macro_rules! bbs_proof_verify_api_generator {
             presentation_header
         );
 
-        #[no_mangle]
-        pub extern "C" fn $set_total_message_count(
-            handle: u64,
-            value: usize,
-            err: &mut ExternError,
-        ) -> i32 {
-            BBS_VERIFY_PROOF_CONTEXT.call_with_output_mut(err, handle, |ctx| {
-                ctx.total_message_count = value;
-            });
-            err.get_code().code()
-        }
+        // #[no_mangle]
+        // pub extern "C" fn $set_total_message_count(
+        //     handle: u64,
+        //     value: usize,
+        //     err: &mut ExternError,
+        // ) -> i32 {
+        //     BBS_VERIFY_PROOF_CONTEXT.call_with_output_mut(err, handle, |ctx| {
+        //         ctx.total_message_count = value;
+        //     });
+        //     err.get_code().code()
+        // }
 
         #[no_mangle]
         pub extern "C" fn $add_message_wrapper_fn(
@@ -154,7 +153,6 @@ macro_rules! bbs_proof_verify_api_generator {
                         proof: &ctx.proof,
                         presentation_header,
                         messages,
-                        total_message_count: ctx.total_message_count,
                     })? {
                         true => Ok(0),
                         false => Ok(1),
@@ -185,7 +183,6 @@ bbs_proof_verify_api_generator!(
     bbs_bls12_381_sha_256_proof_verify_context_set_header,
     bbs_bls12_381_sha_256_proof_verify_context_set_proof,
     bbs_bls12_381_sha_256_proof_verify_context_set_presentation_header,
-    bbs_bls12_381_sha_256_proof_verify_context_set_total_message_count,
     bbs_bls12_381_sha_256_proof_verify_context_add_message,
     bbs_bls12_381_sha_256_proof_verify_context_finish,
     bls12_381_sha_256_proof_verify
@@ -197,7 +194,6 @@ bbs_proof_verify_api_generator!(
     bbs_bls12_381_shake_256_proof_verify_context_set_header,
     bbs_bls12_381_shake_256_proof_verify_context_set_proof,
     bbs_bls12_381_shake_256_proof_verify_context_set_presentation_header,
-    bbs_bls12_381_shake_256_proof_verify_context_set_total_message_count,
     bbs_bls12_381_shake_256_proof_verify_context_add_message,
     bbs_bls12_381_shake_256_proof_verify_context_finish,
     bls12_381_shake_256_proof_verify

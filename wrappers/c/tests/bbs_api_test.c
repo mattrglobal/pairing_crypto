@@ -321,15 +321,6 @@ int main(int argc, char **argv)
     }
     printf("pass\n");
 
-    printf("Set total message count in verify-proof context...");
-    fflush(stdout);
-    if (bbs_bls12_381_shake_256_proof_verify_context_set_total_message_count(handle, message_count, err) != 0)
-    {
-        printf("fail\n");
-        goto Fail;
-    }
-    printf("pass\n");
-
     printf("Verifying proof...");
     fflush(stdout);
     if (bbs_bls12_381_shake_256_proof_verify_context_finish(handle, err) != 0)

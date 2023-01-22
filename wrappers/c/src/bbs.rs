@@ -31,7 +31,6 @@ pub struct BbsVerifyProofRequestDto {
     pub header: Vec<u8>,
     pub proof: Vec<u8>,
     pub presentation_header: Vec<u8>,
-    pub total_message_count: usize,
     pub messages: Vec<(usize, Vec<u8>)>,
 }
 

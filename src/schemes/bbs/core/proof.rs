@@ -289,14 +289,17 @@ impl Proof {
         ph: Option<T>,
         generators: &mut G,
         disclosed_messages: &BTreeMap<usize, Message>,
+        total_no_of_messages: Option<usize>,
     ) -> Result<bool, Error>
     where
         T: AsRef<[u8]>,
         G: Generators,
         C: BbsCiphersuiteParameters,
     {
-        let total_no_of_messages =
-            self.m_hat_list.len() + disclosed_messages.len();
+        // If total number of messages is not provided, it defaults to
+        // disclosed_messages number + m_hat number
+        let total_no_of_messages = total_no_of_messages
+            .unwrap_or(self.m_hat_list.len() + disclosed_messages.len());
 
         // Input parameter checks
         // Error out if there is no `header` and not any `ProofMessage`

@@ -77,17 +77,16 @@ where
 }
 
 pub(crate) fn digest_revealed_proof_messages<T, C>(
-    messages: Option<&[(usize, T)]>,
+    messages: &[(usize, T)],
     total_message_count: usize,
 ) -> Result<BTreeMap<usize, Message>, Error>
 where
     T: AsRef<[u8]>,
     C: BbsCiphersuiteParameters,
 {
-    if messages.is_none() {
+    if messages.is_empty() {
         return Ok(BTreeMap::new());
     }
-    let messages = messages.unwrap();
 
     let revealed_message_indices: Vec<usize> =
         messages.iter().map(|item| item.0).collect();

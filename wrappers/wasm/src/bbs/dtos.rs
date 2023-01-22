@@ -66,7 +66,6 @@ wasm_impl!(
     header: Option<Vec<u8>>,
     proof: Vec<u8>,
     presentationHeader: Option<Vec<u8>>,
-    totalMessageCount: usize,
     messages: Option<HashMap<String, Vec<u8>>> /* This has to be HashMap due
                                                 * to
                                                 * supported types in
