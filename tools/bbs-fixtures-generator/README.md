@@ -13,6 +13,11 @@ To build:
 cargo build -p bbs-fixtures-generator
 ```
 
+To test:
+```sh
+cargo test -p bbs-fixtures-generator
+```
+
 To run:
 ```sh
 cargo run -p bbs-fixtures-generator -i <TEST_ASSET_FILE> -o <FIXTURE_OUTPUT_DIR>

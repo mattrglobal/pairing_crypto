@@ -21,6 +21,7 @@ use crate::{
     curves::bls12_381::hash_to_curve::ExpandMsgXof,
     Error,
 };
+use rand::{CryptoRng, RngCore};
 use sha3::Shake256;
 
 #[derive(Debug, Clone)]
@@ -74,6 +75,24 @@ where
     crate::bbs::api::proof::proof_gen::<_, Bls12381Shake256CipherSuiteParameter>(
         request,
     )
+}
+
+/// Generate a BLS12-381-G1-Sha-256 BBS signature proof of knowledge with
+/// a given rng.
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
+pub fn proof_gen_with_rng<T, R>(
+    request: &BbsProofGenRequest<'_, T>,
+    rng: R,
+) -> Result<Vec<u8>, Error>
+where
+    T: AsRef<[u8]>,
+    R: RngCore + CryptoRng,
+{
+    crate::bbs::api::proof::proof_gen_with_rng::<
+        _,
+        _,
+        Bls12381Shake256CipherSuiteParameter,
+    >(request, rng)
 }
 
 /// Verify a BLS12-381-G1-Shake-256 BBS signature proof of knowledge.
@@ -152,4 +171,12 @@ pub fn default_hash_to_scalar_dst() -> Vec<u8> {
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
 pub fn default_map_message_to_scalar_as_hash_dst() -> Vec<u8> {
     Bls12381Shake256CipherSuiteParameter::default_map_message_to_scalar_as_hash_dst()
+}
+
+/// Get ciphersuite id.
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
+pub fn ciphersuite_id() -> Vec<u8> {
+    Bls12381Shake256CipherSuiteParameter::ID
+        .as_octets()
+        .to_vec()
 }

@@ -5,7 +5,10 @@ use super::{
 use crate::{
     bbs::{
         ciphersuites::BbsCiphersuiteParameters,
-        core::generator::memory_cached_generator::MemoryCachedGenerators,
+        core::{
+            generator::memory_cached_generator::MemoryCachedGenerators,
+            types::ProofMessage,
+        },
     },
     error::Error,
     schemes::bbs::core::{
@@ -15,6 +18,7 @@ use crate::{
         types::Message,
     },
 };
+use rand::{CryptoRng, RngCore};
 
 #[cfg(feature = "alloc")]
 use alloc::collections::BTreeMap;
@@ -27,10 +31,18 @@ pub fn get_proof_size(num_undisclosed_messages: usize) -> usize {
     Proof::get_size(num_undisclosed_messages)
 }
 
-// Generate a BBS signature proof of knowledge.
-pub(crate) fn proof_gen<T, C>(
+// helper function for parsing a BBS Proof Generation Request
+fn _parse_request_helper<T, C>(
     request: &BbsProofGenRequest<'_, T>,
-) -> Result<Vec<u8>, Error>
+) -> Result<
+    (
+        PublicKey,
+        Signature,
+        MemoryCachedGenerators<C>,
+        Vec<ProofMessage>,
+    ),
+    Error,
+>
 where
     T: AsRef<[u8]>,
     C: BbsCiphersuiteParameters,
@@ -44,6 +56,7 @@ where
     // Derive generators
     let generators =
         MemoryCachedGenerators::<C>::new(digested_messages.len(), None)?;
+
     // Parse signature from request
     let signature = Signature::from_octets(request.signature)?;
 
@@ -58,7 +71,21 @@ where
         )?) {
             return Err(Error::SignatureVerification);
         }
-    }
+    };
+
+    Ok((pk, signature, generators, proof_messages))
+}
+
+// Generate a BBS signature proof of knowledge.
+pub(crate) fn proof_gen<T, C>(
+    request: &BbsProofGenRequest<'_, T>,
+) -> Result<Vec<u8>, Error>
+where
+    T: AsRef<[u8]>,
+    C: BbsCiphersuiteParameters,
+{
+    let (pk, signature, generators, proof_messages) =
+        _parse_request_helper::<T, C>(request)?;
 
     // Generate the proof
     let proof = Proof::new::<_, _, C>(
@@ -109,4 +136,32 @@ where
         &messages,
         Some(total_message_count),
     )
+}
+
+// Generate a BBS signature proof of knowledge with a given rng.
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
+pub(crate) fn proof_gen_with_rng<T, R, C>(
+    request: &BbsProofGenRequest<'_, T>,
+    rng: R,
+) -> Result<Vec<u8>, Error>
+where
+    T: AsRef<[u8]>,
+    R: RngCore + CryptoRng,
+    C: BbsCiphersuiteParameters,
+{
+    let (pk, signature, generators, proof_messages) =
+        _parse_request_helper::<T, C>(request)?;
+
+    // Generate the proof
+    let proof = Proof::new_with_rng::<_, _, _, C>(
+        &pk,
+        &signature,
+        request.header.as_ref(),
+        request.presentation_header.as_ref(),
+        &generators,
+        &proof_messages,
+        rng,
+    )?;
+
+    Ok(proof.to_octets())
 }

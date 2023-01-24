@@ -1,4 +1,5 @@
 mod generators;
+mod mock_rng;
 mod model;
 mod util;
 
