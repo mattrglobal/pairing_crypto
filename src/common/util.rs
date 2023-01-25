@@ -1,4 +1,6 @@
-use crate::error::Error;
+use super::hash_param::constant::XOF_NO_OF_BYTES;
+use crate::{curves::bls12_381::Scalar, error::Error};
+use rand::RngCore;
 
 #[macro_export]
 /// Print an array of bytes as hex string.
@@ -25,4 +27,15 @@ pub fn vec_to_byte_array<const N: usize>(
             ),
         }),
     }
+}
+
+/// Utility function to create random `Scalar` values using `hash_to_scalar`
+/// function.
+pub(crate) fn create_random_scalar<R>(mut rng: R) -> Result<Scalar, Error>
+where
+    R: RngCore,
+{
+    let mut raw = [0u8; 64];
+    rng.fill_bytes(&mut raw[64 - XOF_NO_OF_BYTES..]);
+    Ok(Scalar::from_wide_bytes_be_mod_r(&raw))
 }
