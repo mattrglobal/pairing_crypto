@@ -11,6 +11,8 @@ pub use crate::schemes::bbs::{
     },
 };
 
+use crate::common::hash_param::constant::XOF_NO_OF_BYTES;
+
 /// "SecretKey" length in bytes for "BBS_BLS12381G1" ciphersuite.
 pub const BBS_BLS12381G1_SECRET_KEY_LENGTH: usize = OCTET_SCALAR_LENGTH;
 
@@ -20,3 +22,6 @@ pub const BBS_BLS12381G1_PUBLIC_KEY_LENGTH: usize = OCTET_POINT_G2_LENGTH;
 /// "Signature" length in bytes for "BBS_BLS12381G1" ciphersuite.
 pub const BBS_BLS12381G1_SIGNATURE_LENGTH: usize =
     OCTET_POINT_G1_LENGTH + 2 * OCTET_SCALAR_LENGTH;
+
+/// Number of random bytes required when creating random scalars.
+pub const BBS_BLS12381G1_EXPAND_LEN: usize = XOF_NO_OF_BYTES;

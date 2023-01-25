@@ -1,5 +1,5 @@
 mod generators;
-mod mock_rng;
+pub mod mock_rng;
 mod model;
 mod util;
 

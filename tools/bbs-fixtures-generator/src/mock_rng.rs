@@ -17,10 +17,10 @@ where
     E: ExpandMessage,
 {
     /// init a mocked rng.
-    /// - seed: The seed from wich to create the random numbers
+    /// - seed: The seed from which to create the random numbers
     /// - dst: The dst for expand_message
-    /// - count: The maximum number of random ellements
-    /// - expand_len: The length of each random ellement
+    /// - count: The maximum number of random elements
+    /// - expand_len: The length of each random element
     ///
     /// Note: count * expand_len is the maximum number of random bytes
     ///       the RNG can return.
@@ -71,9 +71,11 @@ where
 
     fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand::Error> {
         if dest.len() > self.v.remain() {
-            return Err(rand::Error::new(
-                "not enough random bytes remaining to fill the destination",
-            ));
+            return Err(rand::Error::new(format!(
+                "{} random byes are remaining, but {} where requested",
+                self.v.remain(),
+                dest.len()
+            )));
         }
         let len = self.fill(dest);
         if len < dest.len() {
@@ -165,7 +167,7 @@ mod tests {
                     count,
                     None,
                 );
-                
+
                 let end_idx = count / 4;
                 for i in 0..end_idx {
                     let dest = mocked_rng_next32.next_u32();

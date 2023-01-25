@@ -1,6 +1,7 @@
 use blstrs::hash_to_curve::{ExpandMsgXmd, ExpandMsgXof};
 use pairing_crypto::bbs::{
     ciphersuites::{
+        bls12_381::BBS_BLS12381G1_EXPAND_LEN,
         bls12_381_g1_sha_256::{
             ciphersuite_id as bls12_381_sha_256_ciphersuite_id,
             proof_gen_with_rng as bls12_381_sha_256_proof_gen,
@@ -34,7 +35,7 @@ use crate::{
     PROOF_FIXTURES_SUBDIR,
 };
 
-const MOCKED_RNG_SEED: &str = "I'M BATMAN";
+const MOCKED_RNG_SEED: &str = "3.141592653589793238462643383279"; // 30 first digits of pi
 const MOCKED_RNG_DST: &str = "MOCK_RANDOM_SCALARS_DST_";
 
 macro_rules! generate_proof_fixture {
@@ -368,7 +369,7 @@ macro_rules! proof_gen_helper {
             MOCKED_RNG_SEED.as_bytes(),
             dst,
             $disclosed_indices.len() + 6,
-            Some(48),
+            Some(BBS_BLS12381G1_EXPAND_LEN),
         );
 
         // Generate the proof using the mocked rng
