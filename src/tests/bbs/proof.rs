@@ -461,7 +461,6 @@ fn no_presentation_header_proof() {
         proof_messages[i] = ProofMessage::Revealed(messages[i]);
     }
 
-    println!("Proofs with a header = {:?}", proof_values_with_header);
     println!("Proofs with no header = {:?}", proof_values_no_header);
 }
 
