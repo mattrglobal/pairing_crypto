@@ -461,7 +461,6 @@ fn no_presentation_header_proof() {
         proof_messages[i] = ProofMessage::Revealed(messages[i]);
     }
 
-    println!("Proofs with no header = {:?}", proof_values_no_header);
 }
 
 // Test generated proof uniqueness although every proof-gen API call uses Rng.
