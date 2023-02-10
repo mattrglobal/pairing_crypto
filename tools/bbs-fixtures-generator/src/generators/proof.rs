@@ -279,7 +279,7 @@ macro_rules! generate_proof_fixture {
             ..fixture_negative.clone()
         };
         validate_proof_fixture!($proof_verify_fn, &fixture);
-        save_test_vector(&fixture, &$output_dir.join("proof013.json"));
+        save_test_vector(&fixture, &$output_dir.join("proof011.json"));
     };
 }
 

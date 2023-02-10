@@ -67,8 +67,6 @@ public class Bls12381Shake256 extends Bbs {
 
     private static native int proof_verify_context_set_presentation_header(long handle, byte[] presentation_header);
 
-    private static native int proof_verify_context_set_total_message_count(long handle, int total_message_count);
-
     private static native int proof_verify_context_add_message(long handle, int index, byte[] message);
 
     private static native int proof_verify_context_finish(long handle);

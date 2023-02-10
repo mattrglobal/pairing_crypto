@@ -83,7 +83,6 @@ presentationHeader:(NSData *_Nullable)presentationHeader
 - (bool)doVerifyProof:(NSData *_Nonnull)publicKey
                       header:(NSData *_Nullable)header
          presentationHeader:(NSData *_Nullable)presentationHeader
-         total_message_count:(NSUInteger)total_message_count
                     messages:(NSDictionary *_Nullable)messages
                    withError:(NSError *_Nullable *_Nullable)errorPtr  {
 

@@ -156,7 +156,6 @@
             return false;
         }
     }
-
     pairing_crypto_byte_buffer_t *proofBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
     proofBuffer->len = self.value.length;
     proofBuffer->data = (uint8_t *)self.value.bytes;

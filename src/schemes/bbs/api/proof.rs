@@ -84,7 +84,7 @@ where
     // Parse public key from request
     let public_key = PublicKey::from_octets(request.public_key)?;
 
-    // Parse proof from request
+    // Parse proof from the request
     let proof = Proof::from_octets(request.proof)?;
 
     // Deserialize the messages
@@ -95,7 +95,10 @@ where
 
     // Digest the revealed proof messages
     let messages: BTreeMap<usize, Message> =
-        digest_revealed_proof_messages::<_, C>(messages, total_message_count)?;
+        digest_revealed_proof_messages::<_, C>(
+            request.messages,
+            total_message_count,
+        )?;
 
     // Derive generators
     let mut generators =

@@ -205,13 +205,6 @@ extern "C"
 
   /*
    * Class:     pairing_crypto_Bls12381Shake256
-   * Method:    proof_verify_context_set_total_message_count
-   * Signature: (JI)I
-   */
-  JNIEXPORT jint JNICALL Java_pairing_1crypto_Bls12381Shake256_proof_1verify_1context_1set_1total_1message_1count(JNIEnv *, jclass, jlong, jint);
-
-  /*
-   * Class:     pairing_crypto_Bls12381Shake256
    * Method:    proof_verify_context_add_message
    * Signature: (JI[B)I
    */

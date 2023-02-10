@@ -286,7 +286,6 @@ macro_rules! proof_verify_benchmark_generator {
                                     presentation_header
                                 )),
                                 proof: black_box(&proof),
-                                total_message_count: black_box(num_messages),
                                 messages: black_box(Some(
                                     revealed_messages.as_slice()
                                 )),
