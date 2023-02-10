@@ -175,7 +175,7 @@ fn gen_verify_serde_nominal() {
                 &key_pair.public_key,
                 header,
                 &generators,
-                &messages
+                &messages,
             )
             .expect("verification failed"),
         true
@@ -412,7 +412,8 @@ fn no_presentation_header_proof() {
                     Some(TEST_HEADER),
                     None,
                     &mut generators,
-                    &revealed_messages
+                    &revealed_messages,
+                    None
                 )
                 .unwrap(),
             true
@@ -447,7 +448,8 @@ fn no_presentation_header_proof() {
                     None::<&[u8]>,
                     None,
                     &mut generators,
-                    &revealed_messages
+                    &revealed_messages,
+                    None
                 )
                 .unwrap(),
             true
