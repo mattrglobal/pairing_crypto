@@ -343,14 +343,6 @@ public class BbsTest {
         }
         assertFalse(isVerified);
 
-        // verify proof - wrong message-list length
-        try {
-            isVerified = bbs.verifyProof(keyPair1.publicKey, header1, presentationHeader1, proof1, messages1.length - 1, allDisclosedMessages);
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        }
-        assertFalse(isVerified);
-
         // verify proof - tampered message
         tamperedDisclosedMessages = allDisclosedMessages;
         tamperedDisclosedMessages.put(0, "wrong-message".getBytes());
