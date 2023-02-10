@@ -95,10 +95,7 @@ where
 
     // Digest the revealed proof messages
     let messages: BTreeMap<usize, Message> =
-        digest_revealed_proof_messages::<_, C>(
-            request.messages,
-            total_message_count,
-        )?;
+        digest_revealed_proof_messages::<_, C>(messages, total_message_count)?;
 
     // Derive generators
     let mut generators =
