@@ -303,7 +303,7 @@ public class BbsTest {
         allDisclosedMessages.put(1, messages1[1]);
         allDisclosedMessages.put(2, messages1[2]);
         try {
-            isVerified = bbs.verifyProof(keyPair1.publicKey, header1, presentationHeader1, proof1, messages1.length, allDisclosedMessages);
+            isVerified = bbs.verifyProof(keyPair1.publicKey, header1, presentationHeader1, proof1, allDisclosedMessages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -311,7 +311,7 @@ public class BbsTest {
 
         // verify proof - wrong public key
         try {
-            isVerified = bbs.verifyProof(keyPair2.publicKey, header1, presentationHeader1, proof1, messages1.length, allDisclosedMessages);
+            isVerified = bbs.verifyProof(keyPair2.publicKey, header1, presentationHeader1, proof1, allDisclosedMessages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -319,7 +319,7 @@ public class BbsTest {
 
         // verify proof - wrong header
         try {
-            isVerified = bbs.verifyProof(keyPair1.publicKey, header2, presentationHeader1, proof1, messages1.length, allDisclosedMessages);
+            isVerified = bbs.verifyProof(keyPair1.publicKey, header2, presentationHeader1, proof1, allDisclosedMessages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -327,7 +327,7 @@ public class BbsTest {
 
         // verify proof - wrong presentation header
         try {
-            isVerified = bbs.verifyProof(keyPair1.publicKey, header1, presentationHeader2, proof1, messages1.length, allDisclosedMessages);
+            isVerified = bbs.verifyProof(keyPair1.publicKey, header1, presentationHeader2, proof1, allDisclosedMessages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -337,7 +337,7 @@ public class BbsTest {
         byte[] proof2 = proof1;
         proof2[proof2.length - 1] += 1;
         try {
-            isVerified = bbs.verifyProof(keyPair1.publicKey, header1, presentationHeader1, proof2, messages1.length, allDisclosedMessages);
+            isVerified = bbs.verifyProof(keyPair1.publicKey, header1, presentationHeader1, proof2, allDisclosedMessages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -355,7 +355,7 @@ public class BbsTest {
         tamperedDisclosedMessages = allDisclosedMessages;
         tamperedDisclosedMessages.put(0, "wrong-message".getBytes());
         try {
-            isVerified = bbs.verifyProof(keyPair1.publicKey, header1, presentationHeader1, proof1, messages1.length, tamperedDisclosedMessages);
+            isVerified = bbs.verifyProof(keyPair1.publicKey, header1, presentationHeader1, proof1, tamperedDisclosedMessages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -366,7 +366,7 @@ public class BbsTest {
         tamperedDisclosedMessages.put(1, messages1[2]);
         tamperedDisclosedMessages.put(2, messages1[0]);
         try {
-            isVerified = bbs.verifyProof(keyPair1.publicKey, header1, presentationHeader1, proof1, messages1.length, tamperedDisclosedMessages);
+            isVerified = bbs.verifyProof(keyPair1.publicKey, header1, presentationHeader1, proof1, tamperedDisclosedMessages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -378,7 +378,7 @@ public class BbsTest {
         tamperedDisclosedMessages.put(2, messages1[2]);
         tamperedDisclosedMessages.put(3, "message4".getBytes());
         try {
-            isVerified = bbs.verifyProof(keyPair1.publicKey, header1, presentationHeader1, proof1, messages1.length, tamperedDisclosedMessages);
+            isVerified = bbs.verifyProof(keyPair1.publicKey, header1, presentationHeader1, proof1, tamperedDisclosedMessages);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
