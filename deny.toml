@@ -164,7 +164,6 @@ wildcards = "deny"
 highlight = "all"
 # List of crates that are allowed. Use with care!
 allow = [
-    { name = "hermit-abi", version = "=0.1.19" } # TODO(DEBT): Remove exception for atty as an 'unmaintained' dependency
     #{ name = "ansi_term", version = "=0.11.0" },
 ]
 # List of crates to deny
@@ -179,6 +178,7 @@ deny = [
 ]
 # Certain crates/versions that will be skipped when doing duplicate detection.
 skip = [
+    { name = "hermit-abi" } # TODO(DEBT): Remove exception for atty as an 'unmaintained' dependency
     #{ name = "ansi_term", version = "=0.11.0" },
 ]
 # Similarly to `skip` allows you to skip certain crates during duplicate
