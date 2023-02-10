@@ -121,7 +121,6 @@ pub struct FixtureProof {
     #[serde(deserialize_with = "deserialize_disclosed_messages")]
     #[serde(rename = "revealedMessages")]
     pub disclosed_messages: Vec<(usize, Vec<u8>)>,
-    pub total_message_count: usize,
     #[serde(serialize_with = "hex::serde::serialize")]
     #[serde(deserialize_with = "hex::serde::deserialize")]
     pub proof: Vec<u8>,
@@ -136,7 +135,6 @@ impl From<FixtureGenInput> for FixtureProof {
             header: val.header,
             presentation_header: val.presentation_header,
             disclosed_messages: Default::default(),
-            total_message_count: Default::default(),
             proof: Default::default(),
             result: Default::default(),
         }

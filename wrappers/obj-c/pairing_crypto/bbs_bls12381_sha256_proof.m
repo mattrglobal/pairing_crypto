@@ -115,7 +115,6 @@
 - (bool)doVerifyProof:(NSData *_Nonnull)publicKey
                       header:(NSData *_Nullable)header
          presentationHeader:(NSData *_Nullable)presentationHeader
-         totalMessageCount:(NSUInteger)totalMessageCount
                     messages:(NSDictionary *_Nullable)messages
                    withError:(NSError *_Nullable *_Nullable)errorPtr  {
 
@@ -157,11 +156,6 @@
             *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
             return false;
         }
-    }
-
-    if (bbs_bls12_381_sha_256_proof_verify_context_set_total_message_count(verifyProofHandle, totalMessageCount, err) != 0) {
-        *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
-        return false;
     }
 
     pairing_crypto_byte_buffer_t *proofBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));

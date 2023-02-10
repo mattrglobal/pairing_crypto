@@ -12,12 +12,17 @@
  */
 
 import { randomBytes } from "@stablelib/random";
-import { BbsBoundSignRequest, BbsBoundDeriveProofRequest, BbsBoundVerifyProofRequest, bbs_bound, KeyPair } from "../../../lib";
+import {
+  BbsBoundSignRequest,
+  BbsBoundDeriveProofRequest,
+  BbsBoundVerifyProofRequest,
+  bbs_bound,
+  KeyPair,
+} from "../../../lib";
 import { stringToBytes } from "../../utilities";
 
 describe("bbs_bound", () => {
   describe("bls12381_bbs_g1_bls_sig_g2_sha256", () => {
-
     let bbsKeyPair: KeyPair;
     let blsKeyPair: KeyPair;
 
@@ -28,7 +33,6 @@ describe("bbs_bound", () => {
           keyInfo: randomBytes(32),
         }
       );
-
 
       blsKeyPair = await bbs_bound.bls12381_bbs_g1_bls_sig_g2_sha256.generateBlsKeyPair(
         {
@@ -51,10 +55,13 @@ describe("bbs_bound", () => {
             stringToBytes("ExampleMessage3"),
           ],
         };
-        const signature = await bbs_bound.bls12381_bbs_g1_bls_sig_g2_sha256.sign(signRequest);
+        const signature = await bbs_bound.bls12381_bbs_g1_bls_sig_g2_sha256.sign(
+          signRequest
+        );
         expect(signature).toBeInstanceOf(Uint8Array);
-        expect(signature.length).toEqual(bbs_bound.bls12381_bbs_g1_bls_sig_g2_sha256.BBS_SIGNATURE_LENGTH);
-
+        expect(signature.length).toEqual(
+          bbs_bound.bls12381_bbs_g1_bls_sig_g2_sha256.BBS_SIGNATURE_LENGTH
+        );
 
         const deriveProofRequest: BbsBoundDeriveProofRequest = {
           publicKey: bbsKeyPair.publicKey,
@@ -79,15 +86,15 @@ describe("bbs_bound", () => {
           ],
         };
 
-        const proof = await bbs_bound.bls12381_bbs_g1_bls_sig_g2_sha256.deriveProof(deriveProofRequest);
+        const proof = await bbs_bound.bls12381_bbs_g1_bls_sig_g2_sha256.deriveProof(
+          deriveProofRequest
+        );
         expect(proof).toBeInstanceOf(Uint8Array);
-
 
         const verifyProofRequest: BbsBoundVerifyProofRequest = {
           publicKey: bbsKeyPair.publicKey,
           header: stringToBytes("Its a header"),
           presentationHeader: stringToBytes("Its a presentation header"),
-          totalMessageCount: 3,
           proof,
           messages: {
             0: stringToBytes("ExampleMessage1"),

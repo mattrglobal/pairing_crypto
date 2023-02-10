@@ -99,20 +99,25 @@ where
     // Parse public key from request
     let public_key = PublicKey::from_octets(request.public_key)?;
 
+    // Parse proof from request
+    let proof = Proof::from_octets(request.proof)?;
+
+    // Deserialize the messages
+    let messages = request.messages.unwrap_or(&[] as &[(usize, T)]);
+
+    // Calculate total messages count
+    let total_message_count = proof.m_hat_list.len() + messages.len();
+
     // Digest the revealed proof messages
     let messages: BTreeMap<usize, Message> =
-        digest_revealed_proof_messages::<_, C>(
-            request.messages,
-            request.total_message_count,
-        )?;
+        digest_revealed_proof_messages::<_, C>(messages, total_message_count)?;
 
     // Derive generators
     let mut generators = MemoryCachedGenerators::<C>::new(
-        request.total_message_count,
+        total_message_count - 1, /* total_message_count also includes the
+                                  * prover's commitment */
         Some(true),
     )?;
-
-    let proof = Proof::from_octets(request.proof)?;
 
     proof.verify::<_, _, C>(
         &public_key,
@@ -120,5 +125,6 @@ where
         request.presentation_header.as_ref(),
         &mut generators,
         &messages,
+        Some(total_message_count),
     )
 }

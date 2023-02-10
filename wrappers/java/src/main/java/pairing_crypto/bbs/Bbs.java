@@ -8,5 +8,5 @@ abstract class Bbs {
     abstract byte[] sign(byte[] secretKey, byte[] publicKey, byte[] header, byte[][] messages) throws Exception;
     abstract boolean verify(byte[] publicKey, byte[] header, byte[] signature, byte[][] messages) throws Exception;
     abstract byte[] createProof(byte[] publicKey, byte[] header, byte[] presentationHeader, byte[] signature, boolean verifySignature, HashSet<Integer> disclosedIndices, byte[][] messages) throws Exception;
-    abstract boolean verifyProof(byte[] publicKey, byte[] header, byte[] presentationHeader, byte[] proof, Integer totalMessageCount, HashMap<Integer, byte[]> messages) throws Exception;
+    abstract boolean verifyProof(byte[] publicKey, byte[] header, byte[] presentationHeader, byte[] proof, HashMap<Integer, byte[]> messages) throws Exception;
 }

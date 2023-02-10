@@ -35,10 +35,6 @@ export interface BbsVerifyProofRequest {
    */
   readonly presentationHeader?: Uint8Array;
   /**
-   * The total number of messages that were originally signed by the underlying signature
-   */
-  readonly totalMessageCount: number;
-  /**
    * Raw proof value
    */
   readonly proof: Uint8Array;

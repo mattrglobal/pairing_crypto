@@ -128,7 +128,6 @@ macro_rules! example {
                 header: Some(EXAMPLE_HEADER.as_ref()),
                 presentation_header: Some(EXAMPLE_PRESENTATION_HEADER.as_ref()),
                 proof: &proof,
-                total_message_count: NUM_MESSAGES,
                 messages: Some(&disclosed_messages),
             })
             .unwrap());

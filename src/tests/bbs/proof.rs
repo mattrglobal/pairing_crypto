@@ -196,7 +196,8 @@ fn gen_verify_serde_nominal() {
                 header,
                 ph,
                 &mut generators,
-                &revealed_messages
+                &revealed_messages,
+                None
             )
             .expect("proof verification failed"),
         true
@@ -217,7 +218,8 @@ fn gen_verify_serde_nominal() {
                 header,
                 ph,
                 &mut generators,
-                &revealed_messages
+                &revealed_messages,
+                None
             )
             .expect("roundtrip deserialized proof verification failed"),
         true
@@ -320,7 +322,8 @@ fn gen_verify_different_key_pairs() {
                         header,
                         ph,
                         &mut generators,
-                        &revealed_msgs
+                        &revealed_msgs,
+                        None
                     )
                     .expect("proof verification failed"),
                 true
@@ -411,7 +414,8 @@ fn proof_gen_verify_valid_cases() {
                     header,
                     ph,
                     &mut generators,
-                    &revealed_messages
+                    &revealed_messages,
+                    None
                 )
                 .expect(&format!(
                     "proof verification failed - {failure_debug_message}"
@@ -443,7 +447,8 @@ fn proof_gen_verify_valid_cases() {
                         header,
                         ph,
                         &mut generators,
-                        &revealed_messages
+                        &revealed_messages,
+                        None
                     )
                     .expect(&format!(
                         "proof verification failed - {failure_debug_message}, \
@@ -515,7 +520,8 @@ fn proof_gen_verify_all_revealed_shuffled_indices() {
                 header,
                 ph,
                 &mut generators,
-                &revealed_messages_same_but_shuffled_indices
+                &revealed_messages_same_but_shuffled_indices,
+                None
             )
             .expect("proof-verification should not fail"),
         true
@@ -565,7 +571,8 @@ fn proof_gen_with_invalid_public_key() {
                 header,
                 ph,
                 &mut generators,
-                &revealed_messages
+                &revealed_messages,
+                None
             )
             .expect(&format!("proof verification failed ")),
         false
@@ -579,7 +586,8 @@ fn proof_gen_with_invalid_public_key() {
             header,
             ph,
             &mut generators,
-            &revealed_messages
+            &revealed_messages,
+            None
         ),
         Err(Error::InvalidPublicKey)
     );
@@ -633,7 +641,8 @@ fn proof_verify_invalid_parameters() {
                 header,
                 ph,
                 &mut generators,
-                &revealed_messages
+                &revealed_messages,
+                None
             ),
             Err(error),
             "proof-verification should return error - {}",
@@ -667,7 +676,8 @@ fn verify_proof_helper<const N: usize>(
                     header,
                     ph,
                     &mut generators,
-                    &revealed_messages
+                    &revealed_messages,
+                    None
                 )
                 .expect(&format!(
                     "proof-verification should not return error - {}",

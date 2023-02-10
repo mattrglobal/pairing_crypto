@@ -102,7 +102,6 @@ macro_rules! generate_proof_fixture {
             let fixture = FixtureProof {
                 case_name,
                 disclosed_messages,
-                total_message_count: messages.len(),
                 proof,
                 result,
                 ..fixture_scratch.clone()
@@ -134,8 +133,7 @@ macro_rules! generate_proof_fixture {
             case_name: "multi-message signature, all messages revealed proof"
                 .to_owned(),
             disclosed_messages: disclosed_messages.clone(),
-            total_message_count: messages.len(),
-            proof,
+            proof: proof.clone(),
             result: ExpectedResult {
                 valid: true,
                 reason: None,
@@ -243,7 +241,6 @@ macro_rules! generate_proof_fixture {
         extra_disclosed_messages.push((9, messages[9].clone()));
         let fixture = FixtureProof {
             disclosed_messages: extra_disclosed_messages,
-            total_message_count: messages.len() + 1,
             result: ExpectedResult {
                 valid: false,
                 reason: Some(
@@ -256,12 +253,14 @@ macro_rules! generate_proof_fixture {
         validate_proof_fixture!($proof_verify_fn, &fixture);
         save_test_vector(&fixture, &$output_dir.join("proof011.json"));
 
+        // truncated proof, one less undisclosed message
+        let truncated_proof = &proof.clone()[..proof.len() - 32];
         let fixture = FixtureProof {
-            total_message_count: messages.len() - 1,
+            proof: truncated_proof.to_vec(),
             result: ExpectedResult {
                 valid: false,
                 reason: Some(
-                    "modified total message count less than actual".to_owned(),
+                    "truncated proof, one less undisclosed message".to_owned(),
                 ),
             },
             ..fixture_negative.clone()
@@ -280,7 +279,7 @@ macro_rules! generate_proof_fixture {
             ..fixture_negative.clone()
         };
         validate_proof_fixture!($proof_verify_fn, &fixture);
-        save_test_vector(&fixture, &$output_dir.join("proof013.json"));
+        save_test_vector(&fixture, &$output_dir.join("proof011.json"));
     };
 }
 
@@ -364,7 +363,6 @@ macro_rules! proof_gen_helper {
                 header: Some($header.clone()),
                 presentation_header: Some($presentation_header.clone()),
                 messages: Some(&disclosed_messages),
-                total_message_count: $messages.len(),
                 proof: &proof,
             })
             .unwrap(),
@@ -383,7 +381,6 @@ macro_rules! validate_proof_fixture {
             header: Some($fixture.header.clone()),
             presentation_header: Some($fixture.presentation_header.clone()),
             messages: Some(&$fixture.disclosed_messages),
-            total_message_count: $fixture.total_message_count,
             proof: &$fixture.proof,
         });
 

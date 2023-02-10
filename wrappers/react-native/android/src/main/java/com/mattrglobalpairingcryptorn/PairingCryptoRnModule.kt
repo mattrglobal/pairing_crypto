@@ -171,7 +171,6 @@ class PairingCryptoRnModule(reactContext: ReactApplicationContext) : ReactContex
       var publicKey: ByteArray? = null
       var proof: ByteArray? = null
       var messages: HashMap<Int, ByteArray>? = null
-      var totalMessageCount: Int? = null
 
       if (request.hasKey("publicKey")) {
         publicKey = request.getByteArray("publicKey")
@@ -188,12 +187,9 @@ class PairingCryptoRnModule(reactContext: ReactApplicationContext) : ReactContex
       if (request.hasKey("messages")) {
         messages = request.getMapOfByteArrays("messages")
       }
-      if (request.hasKey("totalMessageCount")) {
-        totalMessageCount = request.getInt("totalMessageCount")
-      }
 
       var cipherSuite = Bls12381Sha256()
-      var verified = cipherSuite.verifyProof(publicKey, header, presentationHeader, proof, totalMessageCount, messages)
+      var verified = cipherSuite.verifyProof(publicKey, header, presentationHeader, proof, messages)
 
       promise.resolve(verified)
     } catch (exception: Exception) {
@@ -209,7 +205,6 @@ class PairingCryptoRnModule(reactContext: ReactApplicationContext) : ReactContex
       var publicKey: ByteArray? = null
       var proof: ByteArray? = null
       var messages: HashMap<Int, ByteArray>? = null
-      var totalMessageCount: Int? = null
 
       if (request.hasKey("publicKey")) {
         publicKey = request.getByteArray("publicKey")
@@ -226,12 +221,9 @@ class PairingCryptoRnModule(reactContext: ReactApplicationContext) : ReactContex
       if (request.hasKey("messages")) {
         messages = request.getMapOfByteArrays("messages")
       }
-      if (request.hasKey("totalMessageCount")) {
-        totalMessageCount = request.getInt("totalMessageCount")
-      }
 
       var cipherSuite = Bls12381Shake256()
-      var verified = cipherSuite.verifyProof(publicKey, header, presentationHeader, proof, totalMessageCount, messages)
+      var verified = cipherSuite.verifyProof(publicKey, header, presentationHeader, proof, messages)
 
       promise.resolve(verified)
     } catch (exception: Exception) {

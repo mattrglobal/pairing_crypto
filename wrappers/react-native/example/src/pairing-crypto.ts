@@ -89,7 +89,6 @@ export const BbsBls12381Sha256ProofGen = async (fixture: FixtureItem<ProofFixtur
     proof,
     header,
     presentationHeader,
-    totalMessageCount: messages.length,
     messages: fixture.value.revealedMessages
       ? R.mapObjIndexed(convert.byteArrayFromHex, fixture.value.revealedMessages)
       : undefined,
@@ -135,7 +134,6 @@ export const BbsBls12381Shake256ProofGen = async (fixture: FixtureItem<ProofFixt
     proof,
     header,
     presentationHeader,
-    totalMessageCount: messages.length,
     messages: fixture.value.revealedMessages
       ? R.mapObjIndexed(convert.byteArrayFromHex, fixture.value.revealedMessages)
       : undefined,
@@ -165,7 +163,6 @@ export const BbsBls12381Sha256ProofVerify = async (fixture: FixtureItem<ProofFix
     publicKey: convert.byteArrayFromHex(fixture.value.signerPublicKey),
     header: convert.byteArrayFromHex(fixture.value.header),
     presentationHeader: convert.byteArrayFromHex(fixture.value.presentationHeader),
-    totalMessageCount: fixture.value.totalMessageCount,
     messages: fixture.value.revealedMessages
       ? R.mapObjIndexed(convert.byteArrayFromHex, fixture.value.revealedMessages)
       : undefined,
@@ -178,7 +175,6 @@ export const BbsBls12381Shake256ProofVerify = async (fixture: FixtureItem<ProofF
     publicKey: convert.byteArrayFromHex(fixture.value.signerPublicKey),
     header: convert.byteArrayFromHex(fixture.value.header),
     presentationHeader: convert.byteArrayFromHex(fixture.value.presentationHeader),
-    totalMessageCount: fixture.value.totalMessageCount,
     messages: fixture.value.revealedMessages
       ? R.mapObjIndexed(convert.byteArrayFromHex, fixture.value.revealedMessages)
       : undefined,

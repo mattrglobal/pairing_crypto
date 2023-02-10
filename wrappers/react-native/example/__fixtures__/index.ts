@@ -40,7 +40,6 @@ export interface ProofFixture {
   readonly proof: string;
   readonly header: string;
   readonly presentationHeader: string;
-  readonly totalMessageCount: number;
   readonly result: { valid: false; reason: string } | { valid: true };
   readonly revealedMessages: { [key: number]: string };
   readonly signerPublicKey: string;

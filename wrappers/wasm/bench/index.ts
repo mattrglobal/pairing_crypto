@@ -75,7 +75,6 @@ const runBbsBenchmark = async (
     publicKey: keyPair.publicKey,
     header,
     messages: utilities.convertRevealMessageArrayToRevealMap(messagesToReveal),
-    totalMessageCount: messages.length,
     presentationHeader,
   };
 
@@ -86,17 +85,23 @@ const runBbsBenchmark = async (
 
   report(
     `BBS-BLS12381-Shake256 Verify ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
-    await benchmarkPromise(() => bbs.bls12381_shake256.verify(messageVerifyRequest))
+    await benchmarkPromise(() =>
+      bbs.bls12381_shake256.verify(messageVerifyRequest)
+    )
   );
 
   report(
     `BBS-BLS12381-Shake256 Derive Proof ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
-    await benchmarkPromise(() => bbs.bls12381_shake256.deriveProof(messageDeriveProof))
+    await benchmarkPromise(() =>
+      bbs.bls12381_shake256.deriveProof(messageDeriveProof)
+    )
   );
 
   report(
     `BBS-BLS12381-Shake256 Verify Proof ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
-    await benchmarkPromise(() => bbs.bls12381_shake256.verifyProof(verifyProofRequest))
+    await benchmarkPromise(() =>
+      bbs.bls12381_shake256.verifyProof(verifyProofRequest)
+    )
   );
 };
 

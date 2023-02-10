@@ -258,7 +258,6 @@ fn profile_proof_verify(c: &mut Criterion) {
                             presentation_header
                         )),
                         proof: black_box(&proof),
-                        total_message_count: black_box(NUM_MESSAGES),
                         messages: black_box(Some(revealed_messages.as_slice())),
                     }
                 )

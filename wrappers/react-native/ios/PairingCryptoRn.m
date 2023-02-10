@@ -30,7 +30,7 @@ RCT_EXPORT_METHOD(Bls12381Sha256GenerateKeyPair:(NSDictionary *)request
     Operation<NSDictionary*, NSDictionary*> *operation = [Operation new:^NSDictionary*(NSDictionary* request, NSError** error) {
         NSData *ikm = nil;
         NSData *keyInfo = nil;
-        
+
         if ([request valueForKey:@"ikm"] != nil) {
             ikm = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"ikm"]]];
         }
@@ -45,16 +45,16 @@ RCT_EXPORT_METHOD(Bls12381Sha256GenerateKeyPair:(NSDictionary *)request
         if ([request valueForKey:@"keyInfo"] != nil) {
             ikm = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"keyInfo"]]];
         }
-        
+
         BbsBls12381Sha256KeyPair *keyPair = [[BbsBls12381Sha256KeyPair alloc] initWithIkm:ikm keyInfo:keyInfo
                                                                                 withError:error];
-        
+
         return [NSDictionary dictionaryWithObjects:@[[Convert byteArrayFromData:keyPair.publicKey],
                                                      [Convert byteArrayFromData:keyPair.secretKey]]
                                            forKeys:@[@"publicKey",
                                                      @"secretKey"]];
     }];
-    
+
     [operation exec:request
        withResolver:resolve
        withRejecter:reject];
@@ -67,7 +67,7 @@ RCT_EXPORT_METHOD(Bls12381Shake256GenerateKeyPair:(NSDictionary *)request
     Operation<NSDictionary*, NSDictionary*> *operation = [Operation new:^NSDictionary*(NSDictionary* request, NSError** error) {
         NSData *ikm = nil;
         NSData *keyInfo = nil;
-        
+
         if ([request valueForKey:@"ikm"] != nil) {
             ikm = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"ikm"]]];
         }
@@ -82,16 +82,16 @@ RCT_EXPORT_METHOD(Bls12381Shake256GenerateKeyPair:(NSDictionary *)request
         if ([request valueForKey:@"keyInfo"] != nil) {
             ikm = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"keyInfo"]]];
         }
-        
+
         BbsBls12381Shake256KeyPair *keyPair = [[BbsBls12381Shake256KeyPair alloc] initWithIkm:ikm keyInfo:keyInfo
                                                                                     withError:error];
-        
+
         return [NSDictionary dictionaryWithObjects:@[[Convert byteArrayFromData:keyPair.publicKey],
                                                      [Convert byteArrayFromData:keyPair.secretKey]]
                                            forKeys:@[@"publicKey",
                                                      @"secretKey"]];
     }];
-    
+
     [operation exec:request
        withResolver:resolve
        withRejecter:reject];
@@ -106,14 +106,14 @@ RCT_EXPORT_METHOD(Bls12381Sha256Sign:(NSDictionary *)request
         NSData *header = nil;
         NSData *secretKey = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"secretKey"]]];
         NSData *publicKey = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"publicKey"]]];
-        
+
         if ([request valueForKey:@"header"] != nil) {
             header = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"header"]]];
         }
         if ([request valueForKey:@"messages"] != nil) {
             messages = [Convert dataArrayFromArrayOfByteArrays:[RCTConvert NSArray:request[@"messages"]]];
         }
-        
+
         BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] sign:secretKey
                                                                                publicKey:publicKey
                                                                                   header:header
@@ -121,7 +121,7 @@ RCT_EXPORT_METHOD(Bls12381Sha256Sign:(NSDictionary *)request
                                                                                withError:error];
         return [Convert byteArrayFromData:signature.value];
     }];
-    
+
     [operation exec:request
        withResolver:resolve
        withRejecter:reject];
@@ -136,14 +136,14 @@ RCT_EXPORT_METHOD(Bls12381Shake256Sign:(NSDictionary *)request
         NSData *header = nil;
         NSData *secretKey = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"secretKey"]]];
         NSData *publicKey = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"publicKey"]]];
-        
+
         if ([request valueForKey:@"header"] != nil) {
             header = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"header"]]];
         }
         if ([request valueForKey:@"messages"] != nil) {
             messages = [Convert dataArrayFromArrayOfByteArrays:[RCTConvert NSArray:request[@"messages"]]];
         }
-        
+
         BbsBls12381Shake256Signature *signature = [[BbsBls12381Shake256Signature alloc] sign:secretKey
                                                                                    publicKey:publicKey
                                                                                       header:header
@@ -151,7 +151,7 @@ RCT_EXPORT_METHOD(Bls12381Shake256Sign:(NSDictionary *)request
                                                                                    withError:error];
         return [Convert byteArrayFromData:signature.value];
     }];
-    
+
     [operation exec:request
        withResolver:resolve
        withRejecter:reject];
@@ -166,14 +166,14 @@ RCT_EXPORT_METHOD(Bls12381Sha256Verify:(NSDictionary *)request
         NSData *header = nil;
         NSData *publicKey = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"publicKey"]]];
         NSData *signatureBytes = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"signature"]]];
-        
+
         if ([request valueForKey:@"header"] != nil) {
             header = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"header"]]];
         }
         if ([request valueForKey:@"messages"] != nil) {
             messages = [Convert dataArrayFromArrayOfByteArrays:[RCTConvert NSArray:request[@"messages"]]];
         }
-        
+
         BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] initWithBytes:signatureBytes
                                                                                         withError:error];
         return [[NSNumber alloc] initWithBool:[signature verify:publicKey
@@ -181,7 +181,7 @@ RCT_EXPORT_METHOD(Bls12381Sha256Verify:(NSDictionary *)request
                                                        messages:messages
                                                       withError:error]];
     }];
-    
+
     [operation exec:request
        withResolver:resolve
        withRejecter:reject];
@@ -196,25 +196,25 @@ RCT_EXPORT_METHOD(Bls12381Shake256Verify:(NSDictionary *)request
         NSData *header = nil;
         NSData *publicKey = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"publicKey"]]];
         NSData *signatureBytes = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"signature"]]];
-        
+
         if ([request valueForKey:@"header"] != nil) {
             header = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"header"]]];
         }
         if ([request valueForKey:@"messages"] != nil) {
             messages = [Convert dataArrayFromArrayOfByteArrays:[RCTConvert NSArray:request[@"messages"]]];
         }
-        
+
         BbsBls12381Shake256Signature *signature = [[BbsBls12381Shake256Signature alloc] initWithBytes:signatureBytes
                                                                                             withError:error];
-        
+
         bool isVerified = [signature verify:publicKey
                                      header:header
                                    messages:messages
                                   withError:error];
-        
+
         return [[NSNumber alloc] initWithBool:isVerified];
     }];
-    
+
     [operation exec:request
        withResolver:resolve
        withRejecter:reject];
@@ -230,8 +230,7 @@ RCT_EXPORT_METHOD(Bls12381Sha256ProofVerify:(NSDictionary *)request
         NSData *presentationHeader = nil;
         NSData *publicKey = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"publicKey"]]];
         NSData *proofBytes = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"proof"]]];
-        NSInteger totalMessageCount = [RCTConvert NSInteger:request[@"totalMessageCount"]];
-        
+
         if ([request valueForKey:@"header"] != nil) {
             header = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"header"]]];
         }
@@ -241,28 +240,27 @@ RCT_EXPORT_METHOD(Bls12381Sha256ProofVerify:(NSDictionary *)request
         if ([request valueForKey:@"messages"] != nil) {
             disclosedMessage = [[NSMutableDictionary alloc] init];
             NSDictionary *messagesInput = [RCTConvert NSDictionary:request[@"messages"]];
-            
+
             for (NSString *key in messagesInput) {
                 NSArray *messageBytes = [RCTConvert NSArray:[messagesInput valueForKey:key]];
-                
+
                 [disclosedMessage setObject:[Convert dataFromByteArray:messageBytes]
                                      forKey:[[NSNumber alloc] initWithLong:[key integerValue]]];
             }
         }
-        
+
         BbsBls12381Sha256Proof *proof = [[BbsBls12381Sha256Proof alloc] initWithBytes:proofBytes
                                                                             withError:error];
-        
+
         bool isVerified = [proof verifyProof:publicKey
                                       header:header
                           presentationHeader:presentationHeader
-                           totalMessageCount:totalMessageCount
                                     messages:disclosedMessage
                                    withError:error];
-        
+
         return [[NSNumber alloc] initWithBool:isVerified];
     }];
-    
+
     [operation exec:request
        withResolver:resolve
        withRejecter:reject];
@@ -278,8 +276,7 @@ RCT_EXPORT_METHOD(Bls12381Shake256ProofVerify:(NSDictionary *)request
         NSData *presentationHeader = nil;
         NSData *publicKey = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"publicKey"]]];
         NSData *proofBytes = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"proof"]]];
-        NSInteger totalMessageCount = [RCTConvert NSInteger:request[@"totalMessageCount"]];
-        
+
         if ([request valueForKey:@"header"] != nil) {
             header = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"header"]]];
         }
@@ -289,26 +286,25 @@ RCT_EXPORT_METHOD(Bls12381Shake256ProofVerify:(NSDictionary *)request
         if ([request valueForKey:@"messages"] != nil) {
             NSDictionary *messagesInput = [RCTConvert NSDictionary:request[@"messages"]];
             disclosedMessage = [[NSMutableDictionary alloc] init];
-            
+
             for (NSString *key in messagesInput) {
                 NSArray *messageBytes = [RCTConvert NSArray:[messagesInput valueForKey:key]];
                 [disclosedMessage setObject:[Convert dataFromByteArray:messageBytes] forKey:key];
             }
         }
-        
+
         BbsBls12381Shake256Proof *proof = [[BbsBls12381Shake256Proof alloc] initWithBytes:proofBytes
                                                                                 withError:error];
-        
+
         bool isVerified = [proof verifyProof:publicKey
                                       header:header
                           presentationHeader:presentationHeader
-                           totalMessageCount:totalMessageCount
                                     messages:disclosedMessage
                                    withError:error];
-        
+
         return [[NSNumber alloc] initWithBool:isVerified];
     }];
-    
+
     [operation exec:request
        withResolver:resolve
        withRejecter:reject];
@@ -326,7 +322,7 @@ RCT_EXPORT_METHOD(Bls12381Sha256ProofGen:(NSDictionary *)request
         NSData *publicKey = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"publicKey"]]];
         NSData *signatureBytes = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"signature"]]];
         BOOL verifySignature = [request[@"verifySignature"] isEqual:@([RCTConvert BOOL:@(YES)])];
-        
+
         if ([request valueForKey:@"header"] != nil) {
             header = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"header"]]];
         }
@@ -335,24 +331,24 @@ RCT_EXPORT_METHOD(Bls12381Sha256ProofGen:(NSDictionary *)request
         }
         if ([request valueForKey:@"messages"] != nil) {
             NSArray *messagesInput = [RCTConvert NSArray:request[@"messages"]];
-            
+
             disclosedIndices = [[NSMutableSet alloc] init];
             messages = [[NSMutableArray alloc] init];
-            
+
             for (int idx = 0; idx < [messagesInput count]; idx++) {
                 NSDictionary *input = [RCTConvert NSDictionary:messagesInput[idx]];
                 NSArray *messageBytes = [RCTConvert NSArray:input[@"value"]];
-                
+
                 if ([input[@"reveal"] isEqual:@([RCTConvert BOOL:@(YES)])]) {
                     [disclosedIndices addObject:[NSNumber numberWithInt:idx]];
                 }
                 [messages addObject:[Convert dataFromByteArray:messageBytes]];
             }
         }
-        
+
         BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] initWithBytes:signatureBytes
                                                                                         withError:error];
-        
+
         BbsBls12381Sha256Proof *proof = [[BbsBls12381Sha256Proof alloc] createProof:publicKey
                                                                              header:header
                                                                  presentationHeader:presentationHeader
@@ -361,10 +357,10 @@ RCT_EXPORT_METHOD(Bls12381Sha256ProofGen:(NSDictionary *)request
                                                                    disclosedIndices:disclosedIndices
                                                                            messages:messages
                                                                           withError:error];
-        
+
         return [Convert byteArrayFromData:proof.value];
     }];
-    
+
     [operation exec:request
        withResolver:resolve
        withRejecter:reject];
@@ -382,7 +378,7 @@ RCT_EXPORT_METHOD(Bls12381Shake256ProofGen:(NSDictionary *)request
         NSData *publicKey = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"publicKey"]]];
         NSData *signatureBytes = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"signature"]]];
         BOOL verifySignature = [request[@"verifySignature"] isEqual:@([RCTConvert BOOL:@(YES)])];
-        
+
         if ([request valueForKey:@"header"] != nil) {
             header = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"header"]]];
         }
@@ -391,24 +387,24 @@ RCT_EXPORT_METHOD(Bls12381Shake256ProofGen:(NSDictionary *)request
         }
         if ([request valueForKey:@"messages"] != nil) {
             NSArray *messagesInput = [RCTConvert NSArray:request[@"messages"]];
-            
+
             disclosedIndices = [[NSMutableSet alloc] init];
             messages = [[NSMutableArray alloc] init];
-            
+
             for (int idx = 0; idx < [messagesInput count]; idx++) {
                 NSDictionary *input = [RCTConvert NSDictionary:messagesInput[idx]];
                 NSArray *messageBytes = [RCTConvert NSArray:input[@"value"]];
-                
+
                 if ([input[@"reveal"] isEqual:@([RCTConvert BOOL:@(YES)])]) {
                     [disclosedIndices addObject:[NSNumber numberWithInt:idx]];
                 }
                 [messages addObject:[Convert dataFromByteArray:messageBytes]];
             }
         }
-        
+
         BbsBls12381Shake256Signature *signature = [[BbsBls12381Shake256Signature alloc] initWithBytes:signatureBytes
                                                                                             withError:error];
-        
+
         BbsBls12381Shake256Proof *proof = [[BbsBls12381Shake256Proof alloc] createProof:publicKey
                                                                                  header:header
                                                                      presentationHeader:presentationHeader
@@ -417,10 +413,10 @@ RCT_EXPORT_METHOD(Bls12381Shake256ProofGen:(NSDictionary *)request
                                                                        disclosedIndices:disclosedIndices
                                                                                messages:messages
                                                                               withError:error];
-        
+
         return [Convert byteArrayFromData:proof.value];
     }];
-    
+
     [operation exec:request
        withResolver:resolve
        withRejecter:reject];

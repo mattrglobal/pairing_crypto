@@ -106,9 +106,6 @@ pub struct BbsProofVerifyRequest<'a, T: AsRef<[u8]>> {
     pub presentation_header: Option<T>,
     /// Proof to verify
     pub proof: &'a [u8],
-    /// Total message count of the messages signed in the original signature
-    /// (including unrevealed messages)
-    pub total_message_count: usize,
     /// Revealed messages to validate against the signature proof of knowledge
     pub messages: Option<&'a [(usize, T)]>,
 }
@@ -121,7 +118,6 @@ impl<'a, T: AsRef<[u8]>> Default for BbsProofVerifyRequest<'a, T> {
             messages: Default::default(),
             presentation_header: Default::default(),
             proof: &[0u8; 0],
-            total_message_count: Default::default(),
         }
     }
 }

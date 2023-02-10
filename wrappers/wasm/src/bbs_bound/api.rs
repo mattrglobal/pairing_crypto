@@ -486,7 +486,6 @@ macro_rules! bbs_bound_wrapper_api_generator {
         /// public key     "header": Vec<u8>,
         ///     "proof": Vec<u8>,
         ///     "presentationHeader": Vec<u8>,
-        ///     "totalMessageCount": usize,
         ///     "messages": {
         ///         number: {
         ///            "value": Vec<u8> // Uint8Array of raw bytes representing
@@ -518,7 +517,6 @@ macro_rules! bbs_bound_wrapper_api_generator {
                     .presentationHeader
                     .as_ref()
                     .map(|pm| pm.as_slice()),
-                total_message_count: request.totalMessageCount,
                 messages: None,
             };
 

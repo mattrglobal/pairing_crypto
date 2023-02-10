@@ -153,10 +153,6 @@ extern "C"
                                                                                pairing_crypto_byte_buffer_t *value,
                                                                                pairing_crypto_error_t *_Nullable err);
 
-  int32_t bbs_bls12_381_shake_256_proof_verify_context_set_total_message_count(uint64_t handle,
-                                                                               uintptr_t value,
-                                                                               pairing_crypto_error_t *_Nullable err);
-
   int32_t bbs_bls12_381_shake_256_proof_verify_context_add_message(uint64_t handle,
                                                                    uintptr_t index,
                                                                    pairing_crypto_byte_buffer_t *message,
@@ -281,10 +277,6 @@ extern "C"
 
   int32_t bbs_bls12_381_sha_256_proof_verify_context_set_presentation_header(uint64_t handle,
                                                                              pairing_crypto_byte_buffer_t *value,
-                                                                             pairing_crypto_error_t *_Nullable err);
-
-  int32_t bbs_bls12_381_sha_256_proof_verify_context_set_total_message_count(uint64_t handle,
-                                                                             uintptr_t value,
                                                                              pairing_crypto_error_t *_Nullable err);
 
   int32_t bbs_bls12_381_sha_256_proof_verify_context_add_message(uint64_t handle,

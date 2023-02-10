@@ -67,8 +67,6 @@ public class Bls12381Shake256 extends Bbs {
 
     private static native int proof_verify_context_set_presentation_header(long handle, byte[] presentation_header);
 
-    private static native int proof_verify_context_set_total_message_count(long handle, int total_message_count);
-
     private static native int proof_verify_context_add_message(long handle, int index, byte[] message);
 
     private static native int proof_verify_context_finish(long handle);
@@ -187,7 +185,7 @@ public class Bls12381Shake256 extends Bbs {
         return proof;
     }
 
-    public boolean verifyProof(byte[] publicKey, byte[] header, byte[] presentationHeader, byte[] proof, Integer totalMessageCount, HashMap<Integer, byte[]> messages) throws Exception {
+    public boolean verifyProof(byte[] publicKey, byte[] header, byte[] presentationHeader, byte[] proof, HashMap<Integer, byte[]> messages) throws Exception {
         long handle = proof_verify_context_init();
         if (0 == handle) {
             throw new Exception("Unable to create verify signature context");
@@ -203,9 +201,6 @@ public class Bls12381Shake256 extends Bbs {
         }
         if (0 != proof_verify_context_set_proof(handle, proof)) {
             throw new Exception("Unable to set proof");
-        }
-        if (0 != proof_verify_context_set_total_message_count(handle, totalMessageCount)) {
-            throw new Exception("Unable to set total-message-count");
         }
         for (Map.Entry<Integer, byte[]> message : messages.entrySet()) {
             if (0 != proof_verify_context_add_message(handle, message.getKey(), message.getValue())) {
