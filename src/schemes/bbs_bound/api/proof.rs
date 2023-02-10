@@ -114,7 +114,8 @@ where
 
     // Derive generators
     let mut generators = MemoryCachedGenerators::<C>::new(
-        total_message_count - 1, // total_message_count also includes the prover's commitment
+        total_message_count - 1, /* total_message_count also includes the
+                                  * prover's commitment */
         Some(true),
     )?;
 

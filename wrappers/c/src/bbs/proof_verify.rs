@@ -23,7 +23,6 @@ define_handle_map_deleter!(
     bbs_bls12381_verify_proof_free
 );
 
-        // $set_total_message_count:ident,
 macro_rules! bbs_proof_verify_api_generator {
     (
         $init_wrapper_fn:ident,
@@ -67,18 +66,6 @@ macro_rules! bbs_proof_verify_api_generator {
             BBS_VERIFY_PROOF_CONTEXT,
             presentation_header
         );
-
-        // #[no_mangle]
-        // pub extern "C" fn $set_total_message_count(
-        //     handle: u64,
-        //     value: usize,
-        //     err: &mut ExternError,
-        // ) -> i32 {
-        //     BBS_VERIFY_PROOF_CONTEXT.call_with_output_mut(err, handle, |ctx| {
-        //         ctx.total_message_count = value;
-        //     });
-        //     err.get_code().code()
-        // }
 
         #[no_mangle]
         pub extern "C" fn $add_message_wrapper_fn(
