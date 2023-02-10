@@ -43,7 +43,6 @@ use crate::{
     },
     Error,
 };
-// use core::convert::TryFrom;
 use ff::Field;
 use group::{Curve, Group};
 use rand::{prelude::SliceRandom, thread_rng, SeedableRng};
@@ -460,7 +459,6 @@ fn no_presentation_header_proof() {
 
         proof_messages[i] = ProofMessage::Revealed(messages[i]);
     }
-
 }
 
 // Test generated proof uniqueness although every proof-gen API call uses Rng.
