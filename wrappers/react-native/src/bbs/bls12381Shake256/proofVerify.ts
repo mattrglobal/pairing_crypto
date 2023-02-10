@@ -18,7 +18,7 @@ import { BbsVerifyProofRequest, BbsVerifyResult, PairingCryptoError } from '../.
 const { PairingCryptoRn } = NativeModules;
 
 export const proofVerify = async (request: BbsVerifyProofRequest): Promise<BbsVerifyResult> => {
-  const { publicKey, header, presentationHeader, totalMessageCount, proof, messages } = request;
+  const { publicKey, header, presentationHeader, proof, messages } = request;
   try {
     return {
       verified: await PairingCryptoRn.Bls12381Shake256ProofVerify({
@@ -27,7 +27,6 @@ export const proofVerify = async (request: BbsVerifyProofRequest): Promise<BbsVe
         header: header ? UInt8ArrayToArray(header) : undefined,
         presentationHeader: presentationHeader ? UInt8ArrayToArray(presentationHeader) : undefined,
         messages: messages ? mapObjIndexed(UInt8ArrayToArray, messages) : undefined,
-        totalMessageCount,
       }),
     };
   } catch (err) {

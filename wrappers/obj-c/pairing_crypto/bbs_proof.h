@@ -34,7 +34,6 @@
 - (bool)verifyProof:(NSData *_Nonnull)publicKey
                 header:(NSData *_Nullable)header
     presentationHeader:(NSData *_Nullable)presentationHeader
-     totalMessageCount:(NSUInteger)totalMessageCount
               messages:(NSDictionary *_Nullable)messages
              withError:(NSError *_Nullable *_Nullable)errorPtr;
 
@@ -50,7 +49,6 @@
 - (bool)doVerifyProof:(NSData *_Nonnull)publicKey
                 header:(NSData *_Nullable)header
     presentationHeader:(NSData *_Nullable)presentationHeader
-     totalMessageCount:(NSUInteger)totalMessageCount
               messages:(NSDictionary *_Nullable)messages
              withError:(NSError *_Nullable *_Nullable)errorPtr;
 
