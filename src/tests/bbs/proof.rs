@@ -1,5 +1,6 @@
 use super::{
     create_generators_helper,
+    get_expected_signature,
     test_data::proof::{
         test_data_from_octets_invalid_parameters,
         test_data_proof_gen_invalid_parameters,
@@ -9,9 +10,12 @@ use super::{
         test_data_verify_tampered_parameters,
         test_data_verify_tampered_proof,
     },
+    EXPECTED_SIGNATURE,
     EXPECTED_SIGNATURES,
+    EXPECTED_SIGNATURE_NO_HEADER,
     TEST_HEADER,
     TEST_KEY_GEN_IKM,
+    TEST_KEY_INFO,
     TEST_KEY_INFOS,
 };
 use crate::{
@@ -39,10 +43,9 @@ use crate::{
     },
     Error,
 };
-use core::convert::TryFrom;
 use ff::Field;
 use group::{Curve, Group};
-use rand::{prelude::SliceRandom, thread_rng};
+use rand::{prelude::SliceRandom, thread_rng, SeedableRng};
 use rand_core::OsRng;
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -172,7 +175,7 @@ fn gen_verify_serde_nominal() {
                 &key_pair.public_key,
                 header,
                 &generators,
-                &messages
+                &messages,
             )
             .expect("verification failed"),
         true
@@ -236,7 +239,6 @@ fn proof_size() {
 
 #[test]
 fn gen_verify_different_key_pairs() {
-    use rand::SeedableRng;
     let mut rng = MockRng::from_seed([1u8; 16]);
 
     let header = Some(TEST_HEADER.as_ref());
@@ -264,14 +266,7 @@ fn gen_verify_different_key_pairs() {
         let mut proof_msgs: Vec<ProofMessage> =
             messages.iter().map(|a| ProofMessage::Hidden(*a)).collect();
 
-        let signature = Signature::from_octets(
-            &<[u8; Signature::SIZE_BYTES]>::try_from(
-                hex::decode(EXPECTED_SIGNATURES[i])
-                    .expect("hex decoding failed"),
-            )
-            .expect("data conversion failed"),
-        )
-        .expect("signature deserialization failed");
+        let signature = get_expected_signature(EXPECTED_SIGNATURES[i]);
         assert_eq!(
             signature
                 .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
@@ -331,6 +326,140 @@ fn gen_verify_different_key_pairs() {
             proof_msgs[j] = ProofMessage::Revealed(messages[j]);
         }
         println!("{:?},", proof_values);
+    }
+}
+
+// Test no header and no presentation header proof
+#[allow(unused_variables)]
+#[test]
+fn no_presentation_header_proof() {
+    let mut rng = MockRng::from_seed([1u8; 16]);
+
+    let pk = PublicKey::from(
+        &SecretKey::new(TEST_KEY_GEN_IKM.as_ref(), Some(TEST_KEY_INFO))
+            .expect("secret key generation failed"),
+    );
+
+    let messages = get_test_messages();
+    let mut generators = create_generators_helper(messages.len());
+    let expected_proof_with_header = ["b492a3e384c948e0a736e0b6524c49436e696e8ca71108e4a5a0ba37f4784128e27d86d42f0990bffbadd599499641d4a5de66517ebf818b3df33a2d51f44c9d9fbffc366945d04a89ca7bb22d17d6f9b3867b91baeea979c242177d31dbbee0b4c21f7cbd6c299d1f47229ea20821e8706da2ee85609dc550448862081a33493dcc35729825a172f5f03025359ccfb5062e19a1bf507e7aaaf80845174f0e95ded1ad4b9568a3d9fce8908bc6bd5d97338711cf8279acc6ef3c049de483ef4177543fe3c556b411cbcd0ce5058a407450874c7acf0ab502a3d4192492a7d570ea6cf314d510a08764f519836ce9eb2b5548fe967fb02312dcc45449814f4a3aa1a3ebdca2e1db7e1319d7314f30be2932e08c33538d4fcbaa59495c00e4527b5d1c10499a781f1de0fed71f2a6c8a792e602c7e0b2b91500ae3ec6c427a7c8a7772a241e1aeaa1d74c432c0698e1ea24a9b7f812a31c0972bb93070720242a2ed8b72814fa3c3b06e0cbe0b081abef30b985e44582d9f39ed4de30eadc200bbca1e3ecb5c56e741ed162f056f8d6e7344ec4355434c0b257e6235b5afbd20e4bfcf722f286f6ed423e2e5bf0967d17c32c0e2c06fb234597d59a5880186fd8aa26c22635b068c88508280e794dcbf72067b1f7e5308926d9372ad173572933d88aab99c26eb070a9a47e37ab7cd4616", "a0b4c3954472dd8b910ac5995253d479e9a46b20707583481d41d22c3e6b4002377f61b9311bbe1efdda11661933576e94ede911e1181f841cc05c7454e185f6d1f65d0779ee6a898bb2309e44bd8f060a490ae1ad957aebe93f297f51ddabcab70e1f1c2d93f99da96706a34a9412710fd283c532469c04cd7a2fda1412433ff9a5791403f2fffdf65e5611ab1027284cb036e82fb8a6dd66be1a85e36b264b0ddacb86e7dd07c6eb1752d89ac348b54aff4c0a0d93f08101f508f99b68837d0400f45035d95f3d69316238e76f35c163c9bb933574e6f72ec19c01d423eb326b04018fceabe938f369284d0028d4f51286a5a6e31b7a5d2750c89547d1675fd0b974768f13dbd52adbb09f2580621a71d69aadf2a14e6fe37cdc1722dde7f07e2e87c378bc1cf1c121e4f4f42c48904e02d0e1c05ee23e6a4d1753f387ed8ffd2697acbf84b316748f3f9becd7ed114873a0937ae43b19a644d2f9f81368dc3f42b280fa3630f8c8a890d722b8f9e866f4edc997f62771aa7a41fc83c11c6351926425ae25c5239bf7e2072a6ce866495686951f58420e940cba3025324ed7e56450e1b9e3d4490ebd4779e7c1a3a54b570ea0748a0edf584c50ed3c1cfc0f0b7523a860f3845f538fc7b8da92c7d5", "91524ab541bd975b5d9475c216d3a512e5de3205b31d5fd09dee5fccbd6d1594976226a18fe68e7d4ac159ba5f51857f92284c9e8aa130f8a053ef71646c134b16713ebd0780a1c52c90476df44ac0ca4749b1af40be2506fed02bf7a0f4e881a165c9aa0cfb5abd49c71d60ff1829d0159ee1555e92da062f779c1f0202d7e7b7fbcacc56ee7a11e166a3e5be711145191ae6111dd3a59d7be6366151592a0c855d73d3f4e85fe2ccf21680f6bb358d2f624e5a0496116e9433f0b933564f520371c8f094aab24879a9a2a01ec639075da446acce8eae0b21718a1165c624b430e4cee9f64c9a398f9cfea88c44b1f05f6df33a2c300d66a262bede51d5315999dc7c1820bc416f13daa82dc5b6661434384f240f1c310cf68a90f3f58bf8107c3a170a23076e0c3f13298bbe8465193bf69bf064429b18d8071f2e64ac0eac1343fa12249e15bd030fc4074a94d54a2608588f883d1142183350439714daa0b9d533ae43a2b50e17f2cea1db64ffdd0e3f393fccda965ac351388d16ee3cb56198f96adf738967385c0e64bfdea9ed2df7ee89bef85f09e9a5ab61ea25b14b542d4c9d7d70d92f1c174eb11ef297a7", "ac51ee17c4a271a075d00c9bbdb4def9aa72b87458f4b2c1eb8a885b097fd6317f7b93ef3e8bb749a12f4a1db5cf88dd8b72a209c015a7e03e6fc9302e472559f90d49a21731ccac59391443095b1e896fa997186c71718a2ffc5fbf907714dfafebfdd30bdf1e30d74de8f44d5e32f8b6e521aed20a99d796d7e187ac487753d9de60fd6164f338a03ae543124cfb3871d111ec2c122e6399abf05573afd2520f485adeeda12d5d5b0833304b4f9dca0019fb075e978704d2c042c474f80bfe84988f2106dac25dbca268d6faae3c4102f3fd4f65b5d07224a882184fd5a00286900049cb5234a5b898ba41f969ba235f2f0e54360822709cb3389275d697ed3c2e259812113457a13837767f5d3f700301125611f8c040fe42c75c1b42374132cac51e071ff6aa684cfa76b056d6a0317004d857dbb5534a1e63321f468c53b4d3cdeb4a44f2c2420877ff183e6be835e34b1172ad7b50eb0810a6f431914d66b00584d9b5d41a61387894584168984b8321cd570f352e522c99d95847325148d980cf260a948ee2466715a081d7e3", "8900e2a5716640cb2c510139b895277d0f86592959b2375a0b1a059fa497bb6eab1c45627a3d334622a9139e6ac3e3c3a3348bc512f5538aa1aa03352176859baee7852c6a32f7febdba859ff4c2eb30bf5c93b5dc5ae35c7615376e2b78ffd091db295a4dc3c05922bbf964b1c0b625d90d2c2a728dffd12ec6d79a9abc050bb49412d6983442e4f3e045cbaafb86e206b828a3af3f9838e453b23bc536d0b8a71cb067c4c4ad2c44b6d77a3a783c1c0f26f864df58610bfb57a0469da7cbadd96721fcd89272fdf49911c030140fd9313082d6ab9ba5e8a9134606484aa2e5bf0d78a0e52b2ffd24a1dffa989857220288f3a0ce7a7469a5ef318e71f3e653dbda55a8c3588a5fe442f7c9bbb1f3270f79ea96ac3dabcbb8ce65061d5f4718f79de9017f501e6791462485e40ac13e5c5c0313fabc50c6a7ff620f8d823d3068e635d813c26324e24d7445b5ae09ba1474326c8c15670edd8caf8777e53564b8b3764b83a329444a1f04e8bce3d282", "b0fdf1caa7aa47cbc73c9b8d9e48f10ba4aec2cf79e15002faa15f311f80360fedd6b1dd6f4280b144295510c77f2e79b435bd63e012eb0937c8fb5751976966772b6ca539955edf6c7b97fbc33332fa8731cdf99f4903ff1d9a77656853208ca0e116d26728695b43251847c6aaf54057563ee765736c751502c0fc0f64d869fc86fca92503320fc0179032331f589b07e0a1b1d040d20097aa99bfbc808eed6ba4c7d58686301c7e4d8056938068032a3d6e3f7c3421c2c9bd67e33c5a63cd0c0dbda078a60e4efcffabbf8680b3e83eef2b98137959f0c01ae9ba3b43c4552279c8dfb587222ac8bbdc7eec3653c4140bca0e97c7c041ca492882dbd4f369d71d195d24cfdd4ede466470fc2b95602783a8713dea3667290c6cd5525749cb04feb9c4c67e67c2fdb5322cd773fba1579e98eda9f696e86942dbd57db130c018b10bfe051bd9f810d68751c2865528"];
+    let expected_proof_no_header = ["859db0e56433cd44d59342a187e6f6aa9516a215821c19dd8a1c93a8f62f312acc4c261a315454f77604d2e954515cc4b5c771e166584128f2d4cf6587d301f5420b1249c566fafcc54196d5e54ff2765bc2bc009197b70d12febc81c4e156c090617113af740edabcd8d2c97e6be68a3889baaf7386ea3c01268c27c86771d416333c4944bf85ac3852803db69e123a15e47597b5bdcb37f992be15a6347c131858e89ffc03ac42511132adf8f1f6592c14c49f6b9530410466db0278d514d6b99e5f97134d0562e93ecdab02ff331e09eefd1f57349596a0d020d327c21f2a9da645f209e48e66094b27b4e62ecf632701840d4cfb2e05086e6588e421c78a7c60cca24f88722c1b24eb9da132dcee52f3a9ada522cb747e6592ecc8277e561a0683b90746f1c1570a8977c767a2fe315177d5b1d14369a0df7801949ef21379f9c2082aaea1f4b697dc7e5bfc0375424a838aaab0c899764defc2370b08ca30476ec565efbd052c8203cdaa59bfcd1eb63d695f5372764b64a92d8525d788f741447b75d42c3d2bdab9a160ad35cc102cf23982013cfa9a912b0e8f826321cbfa2bff12482db1c6538636d5b52b6528a11537fb973706ed063c05288a70592e91bffefcb4be34574e46ab2df834d4365f10677fd1c2c34d1c6dc1f1716b4c6436749163919107d7ba2b1cb0004e46", "8c30e3e0ee356e723c3c0ae89f8a1412bbca997d679bac253c40b153d0ee87d4b4421ed8d5b91cae81fbf08b997581aca0f89cc380d9d54f86a159045eb8ec2e19dee09147680d6903e214006ebd23f59be65e6b276c8d5775f5d18057f639a88573b3f088df23a95448a52464637d3ca5ee5e240c84960df5aec48cd722847f6ca9f7c82d58cd6d7304b7ccb2a910fe3c425477dac4f03245c545d4662f3dca250301432908d19cc1a30ddab4ce745e07022c8d46183d9290ef23941b96952d66b0488501fd368dd417034f71d972460b31dcc2237e19a3b291e4d925f39729ed37531b5205f247c7ef8d0d543df50a1d3384e9f04d6d20832b7ed8845f18349697765dc13aeecfeab98dacb0a9785a0c0890490f4e9dfb66ce6e78548145636039526fc59ef244a8aa01e8195d3fad172246792faa502c66d41897d8864084445748c8e56b633c54571f170f5d8c815ed35a686e4f7ae7e36bb67767c5d0a46998013defbe28f371d8855cd7aa5027612f82af3ac7074ce40fa6b14700bf8747b822860e96f4bc04499d5f4d5d2dc05492c3a6c5e5cf1a8144ebee850f7dc730930b4d46ebbe16e0ae3dc4348ab2f823cb8bb83dc9632546dee574a4335e9c218c17f5b31ca74af9fc948353b32bf6", "88caeaacf9f23ca648c33203126e99627431ea7fda6851f0f085533aa3830445213922f1e1b468844d07710d843e83d38884c82fa03d09d6bbf0a720ba7ff15bdf852a4d2d4e5d33d5385ce1da06fecc050271ea7804ac5c5a8d6cbc541dda8cb515a10023362d7fdc1ae20790c0a9cacc402bf245974668d8a24ba52e9bdd18649139e9b228ebe701ab6c5bb0d032cd73073920268bf135a0d3c354992ed63e6d30d78d4122d0483bf72968f26e347a7093417081be4e6408b71385c5650e01f106b59324e0f426b919697ec1be32b41c2d7692c88a53e7402029d2676dcee89e119bfa59b6288fc8347d2ec7b0073f093760a5a7b3939eeaad4115bdf2b5475c9cb924ebe530ad2b267884a45ae7552be0c2d9a98e79087298178d77dacd1c1b919e275b20a150bd1fc1e6517592be2efebc9beeef4a041b9ee02c96c328d9837db524cffee3ac595db3ae346bb6152b48d1afdbea27c2c50afb94e30f1ec90dad0735a125bb89a33f4f4bd10e04a3382a6be5dfc01044680ed93fc9cab8772bb2b4f58547c126b9745548bc168f7d26b365e27cfb7daa0a816a685a63ef0c9829fda1a03ca4762a281164146b6244", "94125755da2941000b319acb1b314d4eedde81ef470d69ae38a15d34a7b5be3b5fc0b448a4808226ebd62e1d9a8e7802801c697ee4495d0530ae111a0aa6d141a267d8f7afe3cb68e2e22474b3829acbcef33ea4c3b1041a699e4047fa9f7976b6389cbe8975961380a2b50ffef966dbaaf4685757d0afcb291d9af07a932970ca8acefb2aa13a1b669218c8ce8da45a0913bd81490f9c61d9b6489c2c204f39e0b8fe8840a0518214e7e9da972538fd42b7653be094c18216993ecb0b4c263179b7ee61cf25d10295dfa43445edc7f648cde360eb15836925bfbbc2399177c3fec1a472b281ba065fe71d1e87ddf800404b72724da5f1544450cca518d03f8462db189f58cb1e17d36dc1c2898384f438d3b7c345539e750023063dda9a4501d0e4fefd0777cb4adc9af50effa8f27d4629dc3e6fc40e264cc36ea2b9509b026cd3f5a436666c58bfeef95d014128b012f31a93061d2d91b2ef2068b6e6e1ea62ee37e73209a4cab3a8a23d5b13e915602f86971d0dd6f2956a36ef7b5b24b854308bb9d4ef79142bbd891134cff109", "af73d3b6b775486238324906ee9ae5c38b96d9f14c8bb63eeebdb7340562183743a9f42fde79182cd2aefa26e0be5afd85311936ae8e9713916d4f0689d85438f6a179dcb3faca503b832855363bd20fa071bfeae33ed8cd2b674283a1c3190ba8fc2017f2631e372639d96e09073c0402490759b6017732c518afaa82a2ad296cbc4f7c5da829eb6b12cb3e6b3f70ff315b551648ed7629c950d9e7d2b48e1422ff5ae71caf16980d925204d986c39e131d8df4161e3284cbb28a2e1c524516c2784c32770b58693a0732ca04d562bf4a5fba7c1dbeaad491ca796ff8ae5051ed1c18c445476cea64e2c3b64153c2160cb998a652c285601a466cb8c7ca084ee62718854373093bd3dd60f8641b42220795d471382ba87217552f283c60e747c07b846e144f627510a5ff78bc60217907c7fa3ef724be4e75d14f119c42fd2ac8a6c40deb59b83f6c9bf917ce3a936c66c39780ec530508acc7c6980e77e0c8365f4dbdd11a576c8b6f07effadf01a0", "99d0bcb1d7a866a79c8e007638a5a7b022a2f2d46e1694d231d1e2dc66b4216401eb1ac2b6f33919a4d0de0b16f723b09218df02038ce38fca8168d4bcfed8c26bfadffd8326e3cac35936041c72ccc6c85709e7eab93cf18818379f97825b17ae0e63fbc9acf46eab76bb2d24742658950e44edaf68f6872de95deda2d6071c0bba256aab77e21c51de7491beb2e7bd526534b3a4e59bd65019be3c7c3a617018e5b0291621cf4d38b9ee7b8f7bda044e98a4a4f2337f6412b29cd3bee5a6de56ead0eb3d3472314718fd08c48baa102b4983bbe93c95de083ed6a3d0e09680b85cec81a7467d604c46c1c027d3af8a042e4a09556c7a5db38c1985af02dd57072ab5ec2dc2e6228454d743dc168f4a5055458c749f514e5ff9cc8111046eab0dc79b0dca6535513acf67dbea7cf15b15b36f7001c95b27fd58e968eb711fb0f4b4fc88afca7afdcc05091901088b8e"];
+
+    let mut proof_messages: Vec<ProofMessage> =
+        messages.iter().map(|a| ProofMessage::Hidden(*a)).collect();
+
+    let signature_with_header = get_expected_signature(EXPECTED_SIGNATURE);
+    assert_eq!(
+        signature_with_header
+            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+                &pk,
+                Some(TEST_HEADER),
+                &generators,
+                &messages
+            )
+            .unwrap(),
+        true
+    );
+
+    let mut proof_values_with_header: Vec<String> = Vec::new();
+    let mut proof_values_no_header: Vec<String> = Vec::new();
+    for i in 0..proof_messages.len() {
+        let signature_no_header =
+            get_expected_signature(EXPECTED_SIGNATURE_NO_HEADER);
+        assert_eq!(
+            signature_no_header
+                .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+                    &pk,
+                    None::<&[u8]>,
+                    &generators,
+                    &messages
+                )
+                .unwrap(),
+            true
+        );
+
+        let mut revealed_messages = BTreeMap::new();
+        for (j, proof_msg) in proof_messages.iter().take(i).enumerate() {
+            revealed_messages.insert(j, proof_msg.get_message());
+        }
+
+        // Proof including a header and no presentation header
+        let proof_with_header = Proof::new_with_rng::<
+            _,
+            _,
+            _,
+            Bls12381Shake256CipherSuiteParameter,
+        >(
+            &pk,
+            &signature_with_header,
+            Some(TEST_HEADER),
+            None,
+            &generators,
+            &proof_messages,
+            &mut rng,
+        )
+        .expect("proof generation failed");
+
+        assert_eq!(
+            proof_with_header.to_octets(),
+            hex::decode(expected_proof_with_header[i])
+                .expect("expected proof decoding failed")
+        );
+        assert_eq!(
+            proof_with_header
+                .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+                    &pk,
+                    Some(TEST_HEADER),
+                    None,
+                    &mut generators,
+                    &revealed_messages,
+                    None
+                )
+                .unwrap(),
+            true
+        );
+
+        // Proof with no header and no presentation header
+        let proof_no_header = Proof::new_with_rng::<
+            _,
+            _,
+            _,
+            Bls12381Shake256CipherSuiteParameter,
+        >(
+            &pk,
+            &signature_no_header,
+            None::<&[u8]>,
+            None,
+            &generators,
+            &proof_messages,
+            &mut rng,
+        )
+        .expect("proof generation failed");
+
+        assert_eq!(
+            proof_no_header.to_octets(),
+            hex::decode(expected_proof_no_header[i])
+                .expect("expected proof decoding failed")
+        );
+        assert_eq!(
+            proof_no_header
+                .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+                    &pk,
+                    None::<&[u8]>,
+                    None,
+                    &mut generators,
+                    &revealed_messages,
+                    None
+                )
+                .unwrap(),
+            true
+        );
+
+        proof_values_with_header
+            .push(hex::encode(proof_with_header.to_octets()));
+        proof_values_no_header.push(hex::encode(proof_no_header.to_octets()));
+
+        proof_messages[i] = ProofMessage::Revealed(messages[i]);
     }
 }
 

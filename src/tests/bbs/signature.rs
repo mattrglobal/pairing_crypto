@@ -1,5 +1,6 @@
 use super::{
     create_generators_helper,
+    get_expected_signature,
     ANOTHER_TEST_HEADER,
     EXPECTED_SIGNATURES,
     TEST_HEADER,
@@ -34,6 +35,7 @@ use crate::{
         test_generators_random_q_1,
         test_generators_random_q_2,
         EXPECTED_SIGNATURE,
+        EXPECTED_SIGNATURE_NO_HEADER,
     },
     Error,
 };
@@ -107,6 +109,39 @@ fn sign_verify_serde_nominal() {
 }
 
 #[test]
+fn sign_verify_no_header() {
+    let sk = SecretKey::new(TEST_KEY_GEN_IKM.as_ref(), Some(TEST_KEY_INFO))
+        .expect("key generation failed");
+    let pk = PublicKey::from(&sk);
+    let messages = get_test_messages();
+    let generators = create_generators_helper(messages.len());
+
+    let signature = Signature::new::<
+        _,
+        _,
+        _,
+        Bls12381Shake256CipherSuiteParameter,
+    >(&sk, &pk, None::<&[u8]>, &generators, &messages)
+    .expect("signing failed");
+
+    let expected_signature =
+        get_expected_signature(EXPECTED_SIGNATURE_NO_HEADER);
+    assert_eq!(signature, expected_signature);
+
+    assert_eq!(
+        signature
+            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+                &pk,
+                None::<&[u8]>,
+                &generators,
+                &messages
+            )
+            .expect("verification failed"),
+        true
+    );
+}
+
+#[test]
 fn sign_verify_different_key_infos() {
     let messages = get_test_messages();
 
@@ -138,15 +173,9 @@ fn sign_verify_different_key_infos() {
                 .unwrap(),
             true
         );
-        let expected_signature = Signature::from_octets(
-            &<[u8; Signature::SIZE_BYTES]>::try_from(
-                hex::decode(EXPECTED_SIGNATURES[i])
-                    .expect("hex decoding failed"),
-            )
-            .expect("data conversion failed"),
-        )
-        .expect("signature deserialization failed");
-        assert_eq!(signature, expected_signature);
+        let expected_signature_i =
+            get_expected_signature(EXPECTED_SIGNATURES[i]);
+        assert_eq!(signature, expected_signature_i);
     }
 }
 
