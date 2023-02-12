@@ -18,6 +18,8 @@ use crate::{
         types::Message,
     },
 };
+
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
 use rand::{CryptoRng, RngCore};
 
 #[cfg(feature = "alloc")]

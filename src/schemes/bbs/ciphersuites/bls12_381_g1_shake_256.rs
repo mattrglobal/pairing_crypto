@@ -21,8 +21,10 @@ use crate::{
     curves::bls12_381::hash_to_curve::ExpandMsgXof,
     Error,
 };
-use rand::{CryptoRng, RngCore};
 use sha3::Shake256;
+
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
+use rand::{CryptoRng, RngCore};
 
 #[derive(Debug, Clone)]
 pub(crate) struct Bls12381Shake256CipherSuiteParameter;
