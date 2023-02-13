@@ -18,7 +18,7 @@ fn main() {
     } = Cli::parse();
 
     let test_asset = {
-        let test_asset = std::fs::read_to_string(&test_asset_file).unwrap();
+        let test_asset = std::fs::read_to_string(test_asset_file).unwrap();
         serde_json::from_str::<TestAsset>(&test_asset).unwrap()
     };
 

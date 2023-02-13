@@ -297,7 +297,7 @@ where
 {
     let mut seq = serializer.serialize_seq(Some(messages.len()))?;
     for m in messages {
-        seq.serialize_element(&hex::encode(&m))?;
+        seq.serialize_element(&hex::encode(m))?;
     }
     seq.end()
 }
@@ -342,7 +342,7 @@ where
 {
     let mut map = serializer.serialize_map(Some(disclosed_messages.len()))?;
     for (i, m) in disclosed_messages {
-        map.serialize_entry(i, &hex::encode(&m))?;
+        map.serialize_entry(i, &hex::encode(m))?;
     }
     map.end()
 }

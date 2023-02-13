@@ -1,13 +1,17 @@
+use blstrs::hash_to_curve::{ExpandMsgXmd, ExpandMsgXof};
 use pairing_crypto::bbs::{
     ciphersuites::{
+        bls12_381::BBS_BLS12381G1_EXPAND_LEN,
         bls12_381_g1_sha_256::{
-            proof_gen as bls12_381_sha_256_proof_gen,
+            ciphersuite_id as bls12_381_sha_256_ciphersuite_id,
+            proof_gen_with_rng as bls12_381_sha_256_proof_gen,
             proof_verify as bls12_381_sha_256_proof_verify,
             sign as bls12_381_sha_256_sign,
             verify as bls12_381_sha_256_verify,
         },
         bls12_381_g1_shake_256::{
-            proof_gen as bls12_381_shake_256_proof_gen,
+            ciphersuite_id as bls12_381_shake_256_ciphersuite_id,
+            proof_gen_with_rng as bls12_381_shake_256_proof_gen,
             proof_verify as bls12_381_shake_256_proof_verify,
             sign as bls12_381_shake_256_sign,
             verify as bls12_381_shake_256_verify,
@@ -20,21 +24,29 @@ use pairing_crypto::bbs::{
     BbsVerifyRequest,
 };
 use rand::RngCore;
+use sha2::Sha256;
+use sha3::Shake256;
 use std::{collections::BTreeSet, path::PathBuf};
 
 use crate::{
+    mock_rng::MockRng,
     model::{ExpectedResult, FixtureGenInput, FixtureProof},
     util::save_test_vector,
     PROOF_FIXTURES_SUBDIR,
 };
+
+const MOCKED_RNG_SEED: &str = "3.141592653589793238462643383279"; // 30 first digits of pi
+const MOCKED_RNG_DST: &str = "MOCK_RANDOM_SCALARS_DST_";
 
 macro_rules! generate_proof_fixture {
     ($sign_fn:ident,
      $verify_fn:ident,
      $proof_gen_fn:ident,
      $proof_verify_fn:ident,
+     $ciphersuite_id:ident,
      $fixture_gen_input:ident,
-     $output_dir:expr) => {
+     $output_dir:expr,
+     $expander:ty) => {
         let secret_key = &$fixture_gen_input.key_pair.secret_key.to_bytes();
         let public_key = &$fixture_gen_input.key_pair.public_key.to_octets();
         let header = &$fixture_gen_input.header.clone();
@@ -97,7 +109,9 @@ macro_rules! generate_proof_fixture {
                 header,
                 presentation_header,
                 messages,
+                $ciphersuite_id,
                 &disclosed_indices,
+                $expander
             );
             let fixture = FixtureProof {
                 case_name,
@@ -127,7 +141,9 @@ macro_rules! generate_proof_fixture {
             header,
             presentation_header,
             messages,
+            $ciphersuite_id,
             &disclosed_indices,
+            $expander
         );
         let fixture_negative = FixtureProof {
             case_name: "multi-message signature, all messages revealed proof"
@@ -279,7 +295,7 @@ macro_rules! generate_proof_fixture {
             ..fixture_negative.clone()
         };
         validate_proof_fixture!($proof_verify_fn, &fixture);
-        save_test_vector(&fixture, &$output_dir.join("proof011.json"));
+        save_test_vector(&fixture, &$output_dir.join("proof013.json"));
     };
 }
 
@@ -294,7 +310,9 @@ macro_rules! proof_gen_helper {
     $header:ident,
     $presentation_header:ident,
     $messages:ident,
+    $ciphersuite_id:ident,
     $disclosed_indices:expr,
+    $expander:ty
 ) => {{
         if $disclosed_indices.len() > $messages.len() {
             panic!("more disclosed indices than messages");
@@ -345,15 +363,27 @@ macro_rules! proof_gen_helper {
             }
         }
 
-        // Generate the proof
-        let proof = $proof_gen_fn(&BbsProofGenRequest {
-            $public_key,
-            header: Some($header.clone()),
-            presentation_header: Some($presentation_header.clone()),
-            messages: Some(&proof_messages),
-            signature: &signature,
-            verify_signature: None,
-        })
+        // Mocked rng based on expand_message
+        let dst = &[&$ciphersuite_id(), MOCKED_RNG_DST.as_bytes()].concat();
+        let mocked_rng = MockRng::<'_, $expander>::new(
+            MOCKED_RNG_SEED.as_bytes(),
+            dst,
+            $disclosed_indices.len() + 6,
+            Some(BBS_BLS12381G1_EXPAND_LEN),
+        );
+
+        // Generate the proof using the mocked rng
+        let proof = $proof_gen_fn(
+            &BbsProofGenRequest {
+                $public_key,
+                header: Some($header.clone()),
+                presentation_header: Some($presentation_header.clone()),
+                messages: Some(&proof_messages),
+                signature: &signature,
+                verify_signature: None,
+            },
+            mocked_rng,
+        )
         .unwrap();
 
         // Verify the generated proof - just for validation
@@ -415,10 +445,12 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         bls12_381_sha_256_verify,
         bls12_381_sha_256_proof_gen,
         bls12_381_sha_256_proof_verify,
+        bls12_381_sha_256_ciphersuite_id,
         fixture_gen_input,
         output_dir
             .join("bls12_381_sha_256")
-            .join(PROOF_FIXTURES_SUBDIR)
+            .join(PROOF_FIXTURES_SUBDIR),
+        ExpandMsgXmd<Sha256>
     );
 
     generate_proof_fixture!(
@@ -426,9 +458,11 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         bls12_381_shake_256_verify,
         bls12_381_shake_256_proof_gen,
         bls12_381_shake_256_proof_verify,
+        bls12_381_shake_256_ciphersuite_id,
         fixture_gen_input,
         output_dir
             .join("bls12_381_shake_256")
-            .join(PROOF_FIXTURES_SUBDIR)
+            .join(PROOF_FIXTURES_SUBDIR),
+        ExpandMsgXof<Shake256>
     );
 }
