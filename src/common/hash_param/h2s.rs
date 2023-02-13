@@ -102,6 +102,6 @@ pub(crate) trait HashToScalarParameter: ExpandMessageParameter {
         }
 
         // hash_to_scalar(msg_prime || dst_prime, 1)
-        Ok(Self::hash_to_scalar(&message, 1, Some(dst))?[0])
+        Ok(Self::hash_to_scalar(message, 1, Some(dst))?[0])
     }
 }
