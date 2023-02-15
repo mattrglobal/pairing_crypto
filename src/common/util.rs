@@ -38,7 +38,7 @@ where
     // Init a 64 bytes buffer required by the Scalar interface (we will
     // need a buffer with at least 48 bytes).
     let mut raw = [0u8; 64];
-    // Populate the 48 leftmost bytes (the buffer will need to be in
+    // Populate the 48 rightmost bytes (the buffer will need to be in
     // big endian order). 48 bytes are needed to avoid biased results.
     rng.fill_bytes(&mut raw[64 - XOF_NO_OF_BYTES..]);
     // Calculate the random scalar by mapping the buffer to an integer
