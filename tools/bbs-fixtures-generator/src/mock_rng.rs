@@ -91,7 +91,14 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use blstrs::hash_to_curve::{ExpandMsgXmd, ExpandMsgXof};
+    use blstrs::{
+        hash_to_curve::{ExpandMsgXmd, ExpandMsgXof},
+        Scalar,
+    };
+    use pairing_crypto::bbs::ciphersuites::{
+        bls12_381_g1_sha_256::ciphersuite_id as sha_256_ciphersuite_id,
+        bls12_381_g1_shake_256::ciphersuite_id as shake_256_ciphersuite_id,
+    };
     use sha2::Sha256;
     use sha3::Shake256;
 
@@ -227,5 +234,94 @@ mod tests {
             128,
             EXPECTED_SHAKE256_UNIFORM_BYTES_LONG
         );
+    }
+
+    // hex encoded seed used to create the mocked random scalars
+    const SEED: &str =
+        "332e313431353932363533353839373933323338343632363433333833323739";
+
+    const EXPECTED_SHA256_MOCKED_SCALARS: [&str; 10] = [
+        "41b5e116922813fab50e1bcafd5a68f38c977fe4b01b3992424bc4ff1f1490bc",
+        "57062c3eb0b030cbb45535bc7e8b3756288cfeee52ab6e2d1a56aedcfee668ba",
+        "20a1f16c18342bc8650655783cd87b4491ce3986d0942e863d62053914bb3da1",
+        "21ba43b4e1da365c6062b8cb00e3c22b0d49d68e30fae8a21ff9a476912a49ee",
+        "2d34df08a57d8d7c6d3a8bdd34f45f0db539a4fc17b3e8948cb36360190248ed",
+        "4840669faf2ab03e2b8a80d3ebc597cabfe35642680cec12f622daf63529be52",
+        "3151326acfc6ec15b68ce67d52ce75abbe17d4224e78abb1c31f410f5664fc1a",
+        "4cb74272bc2673959a3c72d992485057b1312cd8d2bf32747741324a92152c81",
+        "2af0ebadecd3e43aefaafcfd3f426dca179140cdaf356a838381e584dfa0e4d1",
+        "3aa6190cb2ae26ba433c3f6ff01504088cead97687f417f4bc80ac906201356c",
+    ];
+
+    const EXPECTED_SHAKE256_MOCKED_SCALARS: [&str; 10] = [
+        "01b6e08fc79e13fad32d67f961ddb2e78d71efc3535ca36a5ff473f48266ce64",
+        "0cdd099ab5ed28de45eccfff6ef8aca07572c771bcea4540ae1bd946c4f08824",
+        "43353ad073f69d394b60a74ff6c3ec776fdb2d5ef3c74e5e2e1608fb108621a9",
+        "035cec79e2a2f8110e521d5d58b8b905799505a87f287e80ec7b5597b278b3c1",
+        "3fef09ffc2157bac6bebbd27f6a8fcea7d2220c319514aa23f3e7ea0c13307a4",
+        "12a5e44260a0da4ce2e05fb02c7d004990f89cd30c80eca9fabe2f3ca09c5d6c",
+        "5329ef2334622fde7f10c1963e19bd0a4fdaf39477b377be19cdcdc4b8b95fa9",
+        "3fc6ae2d0c872e17be8444e6eb8197923c3f91372e5261e59d79b49983ef62d5",
+        "732d59e95be946b589ffaa98f096bc51a8c0babf99f903303db1aca0645e4eee",
+        "50ef4ed6a0aee7fda4d21df7a566bea1fc4eb1efe567affbc41795c9f044fa09",
+    ];
+
+    macro_rules! test_mock_rng_expected_values {
+        (
+            $seed:ident,
+            $dst:ident,
+            $expected_scalars:ident,
+            $expander:ty) => {{
+            let mut mocked_rng =
+                MockRng::<'_, $expander>::new($seed, &$dst, 10, Some(48));
+
+            let mut mocked_scalars: Vec<String> = Vec::new();
+            for i in 0..10 {
+                let mut buff = [0u8; 64];
+                mocked_rng.fill_bytes(&mut buff[16..]);
+                let scalar_i = Scalar::from_wide_bytes_be_mod_r(&buff);
+                mocked_scalars.push(hex::encode(scalar_i.to_bytes_be()));
+
+                assert_eq!(
+                    hex::encode(scalar_i.to_bytes_be()),
+                    $expected_scalars[i]
+                );
+            }
+            // println!("{:?}", mocked_scalars);
+        }};
+    }
+
+    #[test]
+    fn test_sha256_expected_random_scalars() {
+        let seed = hex::decode(SEED).unwrap();
+        let dst = [
+            sha_256_ciphersuite_id(),
+            b"MOCK_RANDOM_SCALARS_DST_".to_vec(),
+        ]
+        .concat();
+
+        test_mock_rng_expected_values!(
+            seed,
+            dst,
+            EXPECTED_SHA256_MOCKED_SCALARS,
+            ExpandMsgXmd<Sha256>
+        )
+    }
+
+    #[test]
+    fn test_shake256_expected_ranbom_scalars() {
+        let seed = hex::decode(SEED).unwrap();
+        let dst = [
+            shake_256_ciphersuite_id(),
+            b"MOCK_RANDOM_SCALARS_DST_".to_vec(),
+        ]
+        .concat();
+
+        test_mock_rng_expected_values!(
+            seed,
+            dst,
+            EXPECTED_SHAKE256_MOCKED_SCALARS,
+            ExpandMsgXof<Shake256>
+        )
     }
 }
