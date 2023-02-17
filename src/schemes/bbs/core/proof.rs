@@ -219,7 +219,7 @@ impl Proof {
                 }
                 ProofMessage::Hidden(m) => {
                     H_points.push(generator);
-                    m_tilde_scalars.push(Scalar::random(&mut rng));
+                    m_tilde_scalars.push(create_random_scalar(&mut rng)?);
                     hidden_messages.push(m.0);
                 }
             }

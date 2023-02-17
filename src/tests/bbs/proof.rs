@@ -325,7 +325,7 @@ fn gen_verify_different_key_pairs() {
             );
             proof_msgs[j] = ProofMessage::Revealed(messages[j]);
         }
-        println!("{:?},", proof_values);
+        // println!("{:?},", proof_values);
     }
 }
 
