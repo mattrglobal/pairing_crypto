@@ -1,5 +1,4 @@
 use ff::Field;
-use rand::RngCore;
 
 use crate::{
     common::serialization::{i2osp, i2osp_with_data},
@@ -110,16 +109,4 @@ pub(crate) trait HashToScalarParameter: ExpandMessageParameter {
         // hash_to_scalar(msg_prime || dst_prime, 1)
         Ok(Self::hash_to_scalar(&msg_prime, 1, Some(dst))?[0])
     }
-}
-
-/// Utility function to create random `Scalar` values using `hash_to_scalar`
-/// function.
-pub(crate) fn create_random_scalar<R, C>(mut rng: R) -> Result<Scalar, Error>
-where
-    R: RngCore,
-    C: HashToScalarParameter,
-{
-    let mut raw = [0u8; 32];
-    rng.fill_bytes(&mut raw[..]);
-    Ok(C::hash_to_scalar(&raw, 1, None)?[0])
 }
