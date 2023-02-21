@@ -124,6 +124,9 @@ fn sign_verify_no_header() {
     >(&sk, &pk, None::<&[u8]>, &generators, &messages)
     .expect("signing failed");
 
+    // println!("signature no header = {:?}",
+    // hex::encode(signature.to_octets()));
+
     let expected_signature =
         get_expected_signature(EXPECTED_SIGNATURE_NO_HEADER);
     assert_eq!(signature, expected_signature);
