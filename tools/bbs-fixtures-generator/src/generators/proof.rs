@@ -368,7 +368,7 @@ macro_rules! proof_gen_helper {
         let mocked_rng = MockRng::<'_, $expander>::new(
             MOCKED_RNG_SEED.as_bytes(),
             dst,
-            $disclosed_indices.len() + 6,
+            $messages.len() - $disclosed_indices.len() + 6,
             Some(BBS_BLS12381G1_EXPAND_LEN),
         );
 
