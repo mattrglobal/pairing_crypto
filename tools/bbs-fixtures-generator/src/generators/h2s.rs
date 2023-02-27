@@ -21,7 +21,6 @@ use crate::{
         MessageToScalarFixtureCase,
     },
     util::save_test_vector,
-    H2S_FIXTURES_SUBDIR,
 };
 
 use std::path::PathBuf;
@@ -48,7 +47,7 @@ macro_rules! generate_hash_fixtures {
             scalar: msg_scalar.to_vec(),
         };
 
-        save_test_vector(&h2s_fixture, &$output_dir.join("h2s001.json"));
+        save_test_vector(&h2s_fixture, &$output_dir.join("h2s.json"));
     };
 }
 
@@ -93,7 +92,6 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         fixture_gen_input,
         output_dir
             .join("bls12_381_shake_256")
-            .join(H2S_FIXTURES_SUBDIR)
     );
 
     generate_map_message_to_scalar_fixtures!(
@@ -110,7 +108,6 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         fixture_gen_input,
         output_dir
             .join("bls12_381_sha_256")
-            .join(H2S_FIXTURES_SUBDIR)
     );
 
     generate_map_message_to_scalar_fixtures!(
