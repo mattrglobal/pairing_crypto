@@ -96,7 +96,7 @@ pub(crate) trait HashToScalarParameter: ExpandMessageParameter {
         }
 
         // hash_to_scalar(message || dst_prime, 1)
-        Ok(Self::hash_to_scalar(message, Some(dst))?)
+        Self::hash_to_scalar(message, Some(dst))
     }
 
     /// Hash the input octets to 2 scalar values representing the e and s
