@@ -90,8 +90,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         bls12_381_shake_256_default_hash_to_scalar_dst,
         None,
         fixture_gen_input,
-        output_dir
-            .join("bls12_381_shake_256")
+        output_dir.join("bls12_381_shake_256")
     );
 
     generate_map_message_to_scalar_fixtures!(
@@ -106,8 +105,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         bls12_381_sha_256_default_hash_to_scalar_dst,
         None,
         fixture_gen_input,
-        output_dir
-            .join("bls12_381_sha_256")
+        output_dir.join("bls12_381_sha_256")
     );
 
     generate_map_message_to_scalar_fixtures!(
