@@ -178,15 +178,20 @@ impl Signature {
         let domain =
             compute_domain::<_, _, C>(PK, header, messages.len(), generators)?;
 
-        // (e, s) = hash_to_scalar((SK  || domain || msg_1 || ... || msg_L), 2)
+        // e_s_octs = serialize((SK, domain, msg_1, ..., msg_L))
         let mut data_to_hash = vec![];
         data_to_hash.extend(SK.to_bytes().as_ref());
         data_to_hash.extend(domain.to_bytes_be().as_ref());
         for m in messages {
             data_to_hash.extend(m.to_bytes().as_ref());
         }
-        let scalars = C::hash_to_scalar(&data_to_hash, 2, None)?;
-        let (e, s) = (scalars[0], scalars[1]);
+
+        // if e_s_octs is INVALID, return INVALID
+        // e_s_expand = expand_message(e_s_octs, expand_dst, expand_len * 2)
+        // if e_s_expand is INVALID, return INVALID
+        // e = hash_to_scalar(e_s_expand[0..(expand_len - 1)])
+        // s = hash_to_scalar(e_s_expand[expand_len..(expand_len * 2 - 1)])
+        let (e, s) = C::hash_to_e_s(&data_to_hash)?;
 
         // B = P1 + Q_1 * s + Q_2 * domain + H_1 * msg_1 + ... + H_L * msg_L
         let B = compute_B::<_, C>(&s, &domain, messages, generators)?;
@@ -257,8 +262,8 @@ impl Signature {
         for m in messages {
             data_to_hash.extend(m.to_bytes().as_ref());
         }
-        let scalars = C::hash_to_scalar(&data_to_hash, 2, None)?;
-        let (e, s) = (scalars[0], scalars[1]);
+
+        let (e, s) = C::hash_to_e_s(&data_to_hash)?;
 
         // B = P1 + Q_1*s + Q_2*domain + H_1*msg_1 + ... + H_L*msg_L + BlsPk
         let mut points: Vec<_> =

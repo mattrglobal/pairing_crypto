@@ -127,20 +127,13 @@ use crate::curves::bls12_381::OCTET_SCALAR_LENGTH;
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
 pub fn hash_to_scalar(
     msg_octets: &[u8],
-    count: usize,
     dst: Option<&[u8]>,
-) -> Result<Vec<[u8; OCTET_SCALAR_LENGTH]>, Error> {
-    let scalars = Bls12381Sha256CipherSuiteParameter::hash_to_scalar(
-        msg_octets, count, dst,
-    );
+) -> Result<[u8; OCTET_SCALAR_LENGTH], Error> {
+    let scalars =
+        Bls12381Sha256CipherSuiteParameter::hash_to_scalar(msg_octets, dst);
 
     match scalars {
-        Ok(values) => {
-            let values: Vec<[u8; OCTET_SCALAR_LENGTH]> =
-                values.iter().map(|scalar| scalar.to_bytes_be()).collect();
-
-            Ok(values)
-        }
+        Ok(scalar) => Ok(scalar.to_bytes_be()),
         Err(e) => Err(e),
     }
 }

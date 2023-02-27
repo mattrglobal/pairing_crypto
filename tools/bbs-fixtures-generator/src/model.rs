@@ -162,10 +162,9 @@ pub struct FixtureH2s {
     #[serde(serialize_with = "hex::serde::serialize")]
     #[serde(deserialize_with = "hex::serde::deserialize")]
     pub dst: Vec<u8>,
-    pub count: usize,
-    #[serde(serialize_with = "serialize_scalars")]
-    #[serde(deserialize_with = "deserialize_scalars")]
-    pub scalars: Vec<Vec<u8>>,
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub scalar: Vec<u8>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -398,23 +397,4 @@ where
         seq.serialize_element(&case)?;
     }
     seq.end()
-}
-
-fn serialize_scalars<S>(
-    scalars: &Vec<Vec<u8>>,
-    serializer: S,
-) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    serialize_messages::<S>(scalars, serializer)
-}
-
-pub fn deserialize_scalars<'de, D>(
-    deserializer: D,
-) -> Result<Vec<Vec<u8>>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    deserialize_messages::<'de, D>(deserializer)
 }
