@@ -13,6 +13,9 @@ use crate::{
 
 use super::{
     constant::{
+        DEFAULT_DST_SUFFIX_H2S,
+        DEFAULT_DST_SUFFIX_MESSAGE_TO_SCALAR,
+        DST_SUFFIX_HASH_TO_E_S,
         MAX_DST_SIZE,
         MAX_MESSAGE_SIZE,
         MAX_VALUE_GENERATION_RETRY_COUNT,
@@ -24,12 +27,16 @@ use super::{
 pub(crate) trait HashToScalarParameter: ExpandMessageParameter {
     /// Default domain separation tag for `hash_to_scalar` operation.
     fn default_hash_to_scalar_dst() -> Vec<u8> {
-        [Self::ID.as_octets(), b"H2S_"].concat()
+        [Self::ID.as_octets(), DEFAULT_DST_SUFFIX_H2S.as_bytes()].concat()
     }
 
     /// Default domain separation tag to be used in [MapMessageToScalarAsHash](https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-mapmessagetoscalarashash).
     fn default_map_message_to_scalar_as_hash_dst() -> Vec<u8> {
-        [Self::ID.as_octets(), b"MAP_MSG_TO_SCALAR_AS_HASH_"].concat()
+        [
+            Self::ID.as_octets(),
+            DEFAULT_DST_SUFFIX_MESSAGE_TO_SCALAR.as_bytes(),
+        ]
+        .concat()
     }
 
     /// Hash arbitrary data to `n` number of scalars as specified in BBS
@@ -47,12 +54,12 @@ pub(crate) trait HashToScalarParameter: ExpandMessageParameter {
             });
         }
 
-        let mut t = 0;
+        let mut counter = 0;
         loop {
-            if t == MAX_VALUE_GENERATION_RETRY_COUNT {
+            if counter == MAX_VALUE_GENERATION_RETRY_COUNT {
                 return Err(Error::MaxRetryReached);
             }
-            let msg_prime = [msg_octets, &i2osp(t as u64, 1)?].concat();
+            let msg_prime = [msg_octets, &i2osp(counter as u64, 1)?].concat();
 
             let mut expander = Self::Expander::init_expand(
                 &msg_prime,
@@ -65,7 +72,7 @@ pub(crate) trait HashToScalarParameter: ExpandMessageParameter {
             let out_scalar = Scalar::from_wide_bytes_be_mod_r(&buf);
 
             if out_scalar.is_zero().unwrap_u8() == 1u8 {
-                t += 1;
+                counter += 1;
                 continue;
             }
             return Ok(out_scalar);
@@ -102,7 +109,8 @@ pub(crate) trait HashToScalarParameter: ExpandMessageParameter {
     /// Hash the input octets to 2 scalar values representing the e and s
     /// components of a BBS signature.
     fn hash_to_e_s(input_octets: &[u8]) -> Result<(Scalar, Scalar), Error> {
-        let e_s_dst = [Self::ID.as_octets(), b"SIG_DET_DST_"].concat();
+        let e_s_dst =
+            [Self::ID.as_octets(), DST_SUFFIX_HASH_TO_E_S.as_bytes()].concat();
         let mut expander = Self::Expander::init_expand(
             input_octets,
             &e_s_dst,
