@@ -21,7 +21,6 @@ use crate::{
         MessageToScalarFixtureCase,
     },
     util::save_test_vector,
-    H2S_FIXTURES_SUBDIR,
 };
 
 use std::path::PathBuf;
@@ -29,33 +28,26 @@ use std::path::PathBuf;
 macro_rules! generate_hash_fixtures {
     ($hash_to_scalar_fn:ident,
      $get_default_hash_to_scalar_dst_fn:ident,
+     $dst:ident,
      $fixture_gen_input:ident,
      $output_dir:expr) => {
         let msg = &$fixture_gen_input.messages[0];
 
-        // Hash to scalar with output count 1
-        let h2s_fixture = h2s_make_fixture_helper!(
-            "Hash to curve, 1 scalar output",
-            $hash_to_scalar_fn,
-            $get_default_hash_to_scalar_dst_fn,
-            msg,
-            None,
-            1,
-        );
+        // the dst used
+        let default_dst = $get_default_hash_to_scalar_dst_fn();
+        let dst_used = $dst.unwrap_or(default_dst);
 
-        save_test_vector(&h2s_fixture, &$output_dir.join("h2s001.json"));
+        let msg_scalar =
+            $hash_to_scalar_fn(msg, Some(&dst_used)).unwrap().to_owned();
 
-        // Hash to scalar with output count 10
-        let h2s_fixture = h2s_make_fixture_helper!(
-            "Hash to curve, 10 scalar output",
-            $hash_to_scalar_fn,
-            $get_default_hash_to_scalar_dst_fn,
-            msg,
-            None,
-            10,
-        );
+        let h2s_fixture = FixtureH2s {
+            case_name: "Hash to scalar output".to_owned(),
+            message: msg.to_owned(),
+            dst: dst_used,
+            scalar: msg_scalar.to_vec(),
+        };
 
-        save_test_vector(&h2s_fixture, &$output_dir.join("h2s002.json"));
+        save_test_vector(&h2s_fixture, &$output_dir.join("h2s.json"));
     };
 }
 
@@ -92,46 +84,13 @@ macro_rules! generate_map_message_to_scalar_fixtures {
     }};
 }
 
-macro_rules! h2s_make_fixture_helper {
-    (
-        $case_name:literal,
-        $hash_to_scalar_fn:ident,
-        $get_default_hash_to_scalar_dst_fn:ident,
-        $message: ident,
-        $dst: ident,
-        $count: literal,
-    ) => {{
-        // the dst used
-        let default_dst = $get_default_hash_to_scalar_dst_fn();
-        let dst_used = $dst.unwrap_or(default_dst);
-
-        let msg_scalars =
-            $hash_to_scalar_fn($message, $count, Some(&dst_used)).unwrap();
-
-        // use collect_into if it becomes stable, see issue #94780
-        let mut scalars_vec: Vec<Vec<u8>> = Vec::new();
-        for msg_scalar in msg_scalars {
-            scalars_vec.push(Vec::from(msg_scalar.to_owned()));
-        }
-
-        FixtureH2s {
-            case_name: $case_name.to_owned(),
-            message: $message.to_owned(),
-            dst: dst_used,
-            count: $count,
-            scalars: scalars_vec,
-        }
-    }};
-}
-
 pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
     generate_hash_fixtures!(
         bls12_381_shake_256_h2s,
         bls12_381_shake_256_default_hash_to_scalar_dst,
+        None,
         fixture_gen_input,
-        output_dir
-            .join("bls12_381_shake_256")
-            .join(H2S_FIXTURES_SUBDIR)
+        output_dir.join("bls12_381_shake_256")
     );
 
     generate_map_message_to_scalar_fixtures!(
@@ -144,10 +103,9 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
     generate_hash_fixtures!(
         bls12_381_sha_256_h2s,
         bls12_381_sha_256_default_hash_to_scalar_dst,
+        None,
         fixture_gen_input,
-        output_dir
-            .join("bls12_381_sha_256")
-            .join(H2S_FIXTURES_SUBDIR)
+        output_dir.join("bls12_381_sha_256")
     );
 
     generate_map_message_to_scalar_fixtures!(

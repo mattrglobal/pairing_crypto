@@ -72,7 +72,7 @@ where
         NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
     )?);
 
-    Ok(C::hash_to_scalar(&data_to_hash, 1, None)?[0])
+    C::hash_to_scalar(&data_to_hash, None)
 }
 
 /// Computes `B` value.
@@ -153,5 +153,5 @@ where
     )?);
 
     // c = hash_to_scalar(c_for_hash, 1)
-    Ok(Challenge(C::hash_to_scalar(&data_to_hash, 1, None)?[0]))
+    Ok(Challenge(C::hash_to_scalar(&data_to_hash, None)?))
 }
