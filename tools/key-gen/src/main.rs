@@ -1,13 +1,69 @@
 use base64::URL_SAFE_NO_PAD;
 use ciborium::cbor;
 use clap::{Parser, ValueEnum};
+#[allow(unused)]
+use mcore::bls48581::{
+    big::{BIG, NLEN},
+    bls256,
+    ecp::ECP,
+    ecp8::ECP8,
+    pair8::{g1mul, g2mul},
+    rom,
+};
 use pairing_crypto::{
     bbs::ciphersuites::bls12_381::KeyPair as Bls12381G2KeyPair,
     bls::core::key_pair::KeyPair as Bls12381G1KeyPair,
 };
+use rand::{self, Rng};
+use rand_chacha::ChaCha8Rng;
+use rand_seeder::Seeder;
 use serde::Serialize;
 use serde_bytes::Bytes;
 use strum::IntoStaticStr;
+
+macro_rules! bls48581_key_pair {
+    (
+        $seed:ident,
+        $generator:ident,
+        $field_size:ident,
+        $group_size:ident,
+        $mul_fun:ident
+    ) => {{
+        // random secret key generation from seed
+        // TODO: use a secure KDF.
+        let mut rng: ChaCha8Rng = Seeder::from($seed).make_rng();
+        let mut sk = [0u8; $field_size];
+        rng.fill(&mut sk[..]);
+
+        // secret key to scalar
+        let sk_scalar = BIG::frombytes(&sk);
+
+        // public key calculation
+        let pk = $mul_fun(&$generator, &sk_scalar);
+
+        // public key to bytes
+        let mut pk_bytes = [0u8; $group_size];
+        pk.tobytes(&mut pk_bytes, true); // true for compressed
+
+        (sk.to_vec(), pk_bytes.to_vec())
+    }};
+}
+
+fn bls48581_g2_key_pair(seed: &str) -> (Vec<u8>, Vec<u8>) {
+    const BFS: usize = bls256::BFS;
+    const G2S: usize = 8 * BFS + 1; // Group 2 Size  - compressed
+
+    let g = ECP8::generator();
+    bls48581_key_pair!(seed, g, BFS, G2S, g2mul)
+}
+
+fn bls48581_g1_key_pair(seed: &str) -> (Vec<u8>, Vec<u8>) {
+    const BFS: usize = bls256::BFS;
+    const G1S: usize = BFS + 1; // Group 1 Size  - compressed
+
+    let g = ECP::generator();
+    bls48581_key_pair!(seed, g, BFS, G1S, g1mul)
+}
 
 #[derive(
     Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, IntoStaticStr,
@@ -15,6 +71,8 @@ use strum::IntoStaticStr;
 enum Curve {
     Bls12381G1,
     Bls12381G2,
+    Bls48581G1,
+    Bls48581G2,
 }
 
 #[derive(
@@ -84,6 +142,22 @@ fn main() {
                 })
                 .unwrap()
         }
+        Curve::Bls48581G1 => {
+            println!(
+                "Note: the created secret key is NOT cryptographically secure \
+                 and is only used for testing purposes"
+            );
+            // TODO: Include key_info to the seed
+            bls48581_g1_key_pair(&ikm)
+        }
+        Curve::Bls48581G2 => {
+            println!(
+                "Note: the created secret key is NOT cryptographically secure \
+                 and is only used for testing purposes"
+            );
+            // TODO: Include key_info to the seed
+            bls48581_g2_key_pair(&ikm)
+        }
     };
 
     // pairing crypto outputs `KeyPair::secret_key` in big-endian format
@@ -116,6 +190,8 @@ fn main() {
                     -1 => match curve {
                         Curve::Bls12381G1 => 13,
                         Curve::Bls12381G2 => 14,
+                        Curve::Bls48581G1 => 15,
+                        Curve::Bls48581G2 => 16
                     },
                     -2 => &Bytes::new(&pub_key[..]),
                     -4 => &Bytes::new(&priv_key[..]),

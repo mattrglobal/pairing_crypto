@@ -12,7 +12,7 @@ Usage: key-gen [OPTIONS]
 Options:
   -i, --ikm <IKM>                  [default: test-ikm-aa-bb-cc-dd-ee-ff-12345678]
   -k, --key-info <KEY_INFO>        [default: test-key-info]
-  -c, --curve <CURVE>              [default: bls12381g1] [possible values: bls12381g1, bls12381g2]
+  -c, --curve <CURVE>              [default: bls12381g1] [possible values: bls12381g1, bls12381g2, bls48581g1, bls48581g2]
   -o, --output-type <OUTPUT_TYPE>  [default: json] [possible values: json, cbor]
   -h, --help                       Print help information
   -V, --version                    Print version information
@@ -20,6 +20,8 @@ Options:
 ```
 
 ## Build
+
+This tool makes use of the [MIRACL](https://github.com/miracl/core) library to generate key pairs in the Bls48581 curve. Make sure you build the [Rust package of MIRACL](https://github.com/miracl/core/tree/master/rust) and that you add the path to the package to the cargo.toml file of this tool. See the MIRACL Rust package [README](https://github.com/miracl/core/blob/master/rust/readme.md) for more details.
 
 ```sh
 cargo build
