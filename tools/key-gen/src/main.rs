@@ -12,7 +12,7 @@ use mcore::bls48581::{
 };
 use pairing_crypto::{
     bbs::ciphersuites::bls12_381::KeyPair as Bls12381G2KeyPair,
-    bls::core::key_pair::KeyPair as Bls12381G1KeyPair,
+    bls::core::key_pair::KeyPair as Bls12381G1KeyPair
 };
 use rand::{self, Rng};
 use rand_chacha::ChaCha8Rng;
@@ -20,6 +20,7 @@ use rand_seeder::Seeder;
 use serde::Serialize;
 use serde_bytes::Bytes;
 use strum::IntoStaticStr;
+use group::Curve;
 
 macro_rules! bls48581_key_pair {
     (
@@ -33,33 +34,49 @@ macro_rules! bls48581_key_pair {
         // TODO: use a secure KDF.
         let mut rng: ChaCha8Rng = Seeder::from($seed).make_rng();
         let mut sk = [0u8; $field_size];
-        rng.fill(&mut sk[..]);
+
+        // secret key is 65 bytes long. However, MIRACL interface expects a 73 be byte array.
+        // Populate the 65 last bytes of the 
+        rng.fill(&mut sk[$field_size-65..]);
 
         // secret key to scalar
         let sk_scalar = BIG::frombytes(&sk);
 
+        let mut sk_scalar_bytes = [0u8; $field_size];
+        sk_scalar.tobytes(&mut sk_scalar_bytes);
+
         // public key calculation
         let pk = $mul_fun(&$generator, &sk_scalar);
 
-        // public key to bytes
-        let mut pk_bytes = [0u8; $group_size];
-        pk.tobytes(&mut pk_bytes, true); // true for compressed
+        // public key coordinates to bytes
+        let x = pk.getx();
+        let y = pk.gety();
 
-        (sk.to_vec(), pk_bytes.to_vec())
+        let mut x_bytes = [0u8; $group_size];
+        x.tobytes(&mut x_bytes);
+
+        let mut y_bytes = [0u8; $group_size];
+        y.tobytes(&mut y_bytes);
+
+        // keep the 65 bytes of the private key
+        let sk_vec = sk.to_vec();
+        let priv_key = sk_vec[$field_size-65..].to_vec();
+
+        (priv_key.to_vec(), x_bytes.to_vec(), y_bytes.to_vec())
     }};
 }
 
-fn bls48581_g2_key_pair(seed: &str) -> (Vec<u8>, Vec<u8>) {
+fn bls48581_g2_key_pair(seed: &str) -> (Vec<u8>, Vec<u8>, Vec<u8>) {
     const BFS: usize = bls256::BFS;
-    const G2S: usize = 8 * BFS + 1; // Group 2 Size  - compressed
+    const G2S: usize = 8 * BFS;
 
     let g = ECP8::generator();
     bls48581_key_pair!(seed, g, BFS, G2S, g2mul)
 }
 
-fn bls48581_g1_key_pair(seed: &str) -> (Vec<u8>, Vec<u8>) {
+fn bls48581_g1_key_pair(seed: &str) -> (Vec<u8>,  Vec<u8>, Vec<u8>) {
     const BFS: usize = bls256::BFS;
-    const G1S: usize = BFS + 1; // Group 1 Size  - compressed
+    const G1S: usize = BFS;
 
     let g = ECP::generator();
     bls48581_key_pair!(seed, g, BFS, G1S, g1mul)
@@ -68,7 +85,7 @@ fn bls48581_g1_key_pair(seed: &str) -> (Vec<u8>, Vec<u8>) {
 #[derive(
     Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, IntoStaticStr,
 )]
-enum Curve {
+enum Curves {
     Bls12381G1,
     Bls12381G2,
     Bls48581G1,
@@ -99,7 +116,7 @@ struct Cli {
     key_info: String,
     // Curve.
     #[arg(short, long, value_parser, default_value = "bls12381-g1")]
-    curve: Curve,
+    curve: Curves,
     // Output type.
     #[arg(short, long, value_parser, default_value = "json")]
     output_type: OutputType,
@@ -110,7 +127,42 @@ struct KeyReprsentation<'a> {
     kty: String,
     crv: &'a str,
     x: String,
+    y: String,
     d: String,
+}
+
+fn get_bls12381_g2_key_pair(seed: &str) -> (Vec<u8>, Vec<u8>, Vec<u8>){
+    let mut bls12381_seed = seed.clone().to_owned();
+    bls12381_seed.push_str("BLS12381-G2");
+    let key_pair = Bls12381G2KeyPair::new(&bls12381_seed.as_bytes(), Some("test-key-info".as_bytes())).unwrap();
+
+    let pk = key_pair.public_key.0;
+    let pk_affine = pk.to_affine();
+
+    let bls12381_pk_x_c0 = pk_affine.x().c0().to_bytes_be();
+    let bls12381_pk_x_c1 = pk_affine.x().c1().to_bytes_be();
+    let bls12381_pk_x = [bls12381_pk_x_c0, bls12381_pk_x_c1].concat();
+
+    let bls12381_pk_y_c0 = pk_affine.y().c0().to_bytes_be();
+    let bls12381_pk_y_c1 = pk_affine.y().c1().to_bytes_be();
+    let bls12381_pk_y= [bls12381_pk_y_c0, bls12381_pk_y_c1].concat();
+
+    (key_pair.secret_key.to_bytes().to_vec(), bls12381_pk_x.to_vec(), bls12381_pk_y.to_vec())
+}
+
+fn get_bls12381_g1_key_pair(seed: &str) -> (Vec<u8>, Vec<u8>, Vec<u8>){
+    let mut bls12381_seed = seed.clone().to_owned();
+    bls12381_seed.push_str("BLS12381-G1");
+    let key_pairs = Bls12381G1KeyPair::new(&bls12381_seed.as_bytes(), Some("test-key-info".as_bytes()));
+
+    let key_pair = key_pairs.unwrap();
+
+    let pk = key_pair.public_key.0;
+    let pk_affine = pk.to_affine();
+    let bls12381_pk_x = pk_affine.x().to_bytes_be();
+    let bls12381_pk_y = pk_affine.y().to_bytes_be();
+
+    (key_pair.secret_key.to_bytes().to_vec(), bls12381_pk_x.to_vec(), bls12381_pk_y.to_vec())
 }
 
 fn main() {
@@ -121,28 +173,14 @@ fn main() {
         output_type,
     } = Cli::parse();
 
-    let (mut priv_key, pub_key) = match curve {
-        Curve::Bls12381G1 => {
-            Bls12381G1KeyPair::new(ikm.clone(), Some(key_info.as_bytes()))
-                .map(|key_pair| {
-                    (
-                        key_pair.secret_key.to_bytes().to_vec(),
-                        key_pair.public_key.to_octets().to_vec(),
-                    )
-                })
-                .expect("key generation failed")
+    let (mut priv_key, pub_key_x, pub_key_y) = match curve {
+        Curves::Bls12381G1 => {
+            get_bls12381_g1_key_pair(&ikm)
         }
-        Curve::Bls12381G2 => {
-            Bls12381G2KeyPair::new(ikm.clone(), Some(key_info.as_bytes()))
-                .map(|key_pair| {
-                    (
-                        key_pair.secret_key.to_bytes().to_vec(),
-                        key_pair.public_key.to_octets().to_vec(),
-                    )
-                })
-                .unwrap()
+        Curves::Bls12381G2 => {
+            get_bls12381_g2_key_pair(&ikm)
         }
-        Curve::Bls48581G1 => {
+        Curves::Bls48581G1 => {
             println!(
                 "Note: the created secret key is NOT cryptographically secure \
                  and is only used for testing purposes"
@@ -150,7 +188,7 @@ fn main() {
             // TODO: Include key_info to the seed
             bls48581_g1_key_pair(&ikm)
         }
-        Curve::Bls48581G2 => {
+        Curves::Bls48581G2 => {
             println!(
                 "Note: the created secret key is NOT cryptographically secure \
                  and is only used for testing purposes"
@@ -166,17 +204,20 @@ fn main() {
     println!("IKM={ikm}");
     println!("Key-Info={key_info}");
     println!("d={:?}", hex::encode(&priv_key));
-    println!("x={:?}", hex::encode(&pub_key));
+    println!("x={:?}", hex::encode(&pub_key_x));
+    println!("y={:?}", hex::encode(&pub_key_y));
 
     match output_type {
         OutputType::Json => {
             println!("\nJSON Encoded Output\n");
             let priv_key = base64::encode_config(priv_key, URL_SAFE_NO_PAD);
-            let pub_key = base64::encode_config(pub_key, URL_SAFE_NO_PAD);
+            let pub_key_x_encoded = base64::encode_config(pub_key_x, URL_SAFE_NO_PAD);
+            let pub_key_y_encoded = base64::encode_config(pub_key_y, URL_SAFE_NO_PAD);
             let key_repr = KeyReprsentation {
                 kty: "OKP".to_owned(),
                 crv: curve.into(),
-                x: pub_key,
+                x: pub_key_x_encoded,
+                y: pub_key_y_encoded,
                 d: priv_key,
             };
             println!("{}", serde_json::to_string_pretty(&key_repr).unwrap());
@@ -188,12 +229,13 @@ fn main() {
                 {
                     1 => 1,
                     -1 => match curve {
-                        Curve::Bls12381G1 => 13,
-                        Curve::Bls12381G2 => 14,
-                        Curve::Bls48581G1 => 15,
-                        Curve::Bls48581G2 => 16
+                        Curves::Bls12381G1 => 13,
+                        Curves::Bls12381G2 => 14,
+                        Curves::Bls48581G1 => 15,
+                        Curves::Bls48581G2 => 16
                     },
-                    -2 => &Bytes::new(&pub_key[..]),
+                    -2 => &Bytes::new(&pub_key_x[..]),
+                    -3 => &Bytes::new(&pub_key_y[..]),
                     -4 => &Bytes::new(&priv_key[..]),
                 }
             )
