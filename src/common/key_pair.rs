@@ -125,7 +125,7 @@ macro_rules! bbs_bls_key_pair_impl {
 
         /// A BBS public key.
         #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-        pub struct PublicKey(pub(crate) $point_projective_type);
+        pub struct PublicKey(pub $point_projective_type);
 
         impl Default for PublicKey {
             fn default() -> Self {
