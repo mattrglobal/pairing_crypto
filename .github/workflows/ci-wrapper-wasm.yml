@@ -14,22 +14,16 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./main/wrappers/wasm
+        working-directory: ./wrappers/wasm
     steps:
-      # This is a temporary build step that clones another
-      # repository as a private un-published dependency 'blstrs'
-      # it uses a GH personal access token with read only permission
-      - name: Check out mattrglobal/blstrs
-        uses: actions/checkout@master
-        with:
-          repository: mattrglobal/blstrs
-          token: ${{ secrets.MATTR_BLSTRS_PAT }}
-          path: blstrs
+      - name: Checkout
+        uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
 
-      - name: Checkout pairing_crypto
-        uses: actions/checkout@v2
+      # Needed to resolve any private git based dependencies like https://github.com/mattrglobal/blstrs
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@836c84ec59a0e7bc0eabc79988384eb567561ee2 # pin@v0.7.0
         with:
-          path: main # TODO remove once temp build step below is removed
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Setup rust toolchain
         uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
@@ -60,22 +54,16 @@ jobs:
     if: "github.ref == 'refs/heads/master' && !contains(github.event.head_commit.message, 'chore(release): publish')"
     defaults:
       run:
-        working-directory: ./main/wrappers/wasm
+        working-directory: ./wrappers/wasm
     steps:
-      # This is a temporary build step that clones another
-      # repository as a private un-published dependency 'blstrs'
-      # it uses a GH personal access token with read only permission
-      - name: Check out mattrglobal/blstrs
-        uses: actions/checkout@master
-        with:
-          repository: mattrglobal/blstrs
-          token: ${{ secrets.MATTR_BLSTRS_PAT }}
-          path: blstrs
+      - name: Checkout
+        uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
 
-      - name: Checkout pairing_crypto
-        uses: actions/checkout@v2
+      # Needed to resolve any private git based dependencies like https://github.com/mattrglobal/blstrs
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@836c84ec59a0e7bc0eabc79988384eb567561ee2 # pin@v0.7.0
         with:
-          path: main # TODO remove once temp build step below is removed
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Setup rust toolchain
         uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
@@ -120,22 +108,16 @@ jobs:
     if: "github.ref == 'refs/heads/master' && contains(github.event.head_commit.message, 'chore(release): publish')"
     defaults:
       run:
-        working-directory: ./main/wrappers/wasm
+        working-directory: ./wrappers/wasm
     steps:
-      # This is a temporary build step that clones another
-      # repository as a private un-published dependency 'blstrs'
-      # it uses a GH personal access token with read only permission
-      - name: Check out mattrglobal/blstrs
-        uses: actions/checkout@master
-        with:
-          repository: mattrglobal/blstrs
-          token: ${{ secrets.MATTR_BLSTRS_PAT }}
-          path: blstrs
+      - name: Checkout
+        uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
 
-      - name: Checkout pairing_crypto
-        uses: actions/checkout@v2
+      # Needed to resolve any private git based dependencies like https://github.com/mattrglobal/blstrs
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@836c84ec59a0e7bc0eabc79988384eb567561ee2 # pin@v0.7.0
         with:
-          path: main # TODO remove once temp build step below is removed
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Setup rust toolchain
         uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
