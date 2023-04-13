@@ -13,20 +13,14 @@ jobs:
     name: Build & Test
     runs-on: ubuntu-latest
     steps:
-      # This is a temporary build step that clones another
-      # repository as a private un-published dependency 'blstrs'
-      # it uses a GH personal access token with read only permission
-      - name: Check out mattrglobal/blstrs
-        uses: actions/checkout@master
-        with:
-          repository: mattrglobal/blstrs
-          token: ${{ secrets.MATTR_BLSTRS_PAT }}
-          path: blstrs
+      - name: Checkout
+        uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
 
-      - name: Checkout pairing_crypto
-        uses: actions/checkout@v2
+      # Needed to resolve any private git based dependencies like https://github.com/mattrglobal/blstrs
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@836c84ec59a0e7bc0eabc79988384eb567561ee2 # pin@v0.7.0
         with:
-          path: main # TODO remove once temp build step below is removed
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Setup stable rust toolchain
         uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
@@ -48,31 +42,27 @@ jobs:
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
           command: fmt
-          toolchain: nightly # Note some of the rules we use for fmt are only available with the nightly toolchain
-          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
           args: --all -- --check
+          toolchain: nightly # Note some of the rules we use for fmt are only available with the nightly toolchain
 
       - name: Run cargo clippy
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
           command: clippy
-          toolchain: nightly # Note some of the rules we use for clippy are only available with the nightly toolchain
-          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
           args: -- -D warnings
+          toolchain: nightly # Note some of the rules we use for clippy are only available with the nightly toolchain
 
       - name: Run cargo check
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
           command: check
           toolchain: stable
-          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
 
       - name: Run cargo audit
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
           command: audit
           toolchain: stable
-          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
 
       - name: Install cargo-deny
         run: cargo install cargo-deny
@@ -83,22 +73,19 @@ jobs:
           command: deny
           args: check
           toolchain: stable
-          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
 
       - name: Run cargo build
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
           command: build
           toolchain: stable
-          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
 
       - name: Run cargo test
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
           command: test
-          toolchain: stable
-          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
           args: '--release'
+          toolchain: stable
 
       - name: Check benchmarks
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
@@ -106,7 +93,6 @@ jobs:
           command: bench
           args: --no-run
           toolchain: stable
-          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
 
       - name: Generate fixtures
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
@@ -114,13 +100,11 @@ jobs:
           command: run
           args: -p bbs-fixtures-generator -- -i  tests/fixtures/bbs/test_asset.json -o tests/fixtures/bbs/
           toolchain: stable
-          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
 
       - name: Test after generating fixtures
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
           command: test
-          toolchain: stable
-          working-directory: main # TODO remove once temp build step below is removed, revert to actions-rs/cargo action
           args: '--release'
+          toolchain: stable
      
