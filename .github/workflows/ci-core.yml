@@ -76,19 +76,25 @@ jobs:
 
       - name: Run cargo build
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
+        env:
+          CARGO_INCREMENTAL: 0
         with:
           command: build
           toolchain: stable
 
       - name: Run cargo test
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
+        env:
+          CARGO_INCREMENTAL: 0
         with:
           command: test
-          args: '--release'
+          args: "--release"
           toolchain: stable
 
       - name: Check benchmarks
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
+        env:
+          CARGO_INCREMENTAL: 0
         with:
           command: bench
           args: --no-run
@@ -96,6 +102,8 @@ jobs:
 
       - name: Generate fixtures
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
+        env:
+          CARGO_INCREMENTAL: 0
         with:
           command: run
           args: -p bbs-fixtures-generator -- -i  tests/fixtures/bbs/test_asset.json -o tests/fixtures/bbs/
@@ -103,8 +111,9 @@ jobs:
 
       - name: Test after generating fixtures
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
+        env:
+          CARGO_INCREMENTAL: 0
         with:
           command: test
-          args: '--release'
+          args: "--release"
           toolchain: stable
-     
