@@ -116,6 +116,7 @@ jobs:
       - name: Test after generating fixtures
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         env:
+          # Disabling incremental builds as this feature isn't used in this GH job and with it enabled an overhead is in-cured see https://github.com/dtolnay/rust-toolchain/issues/26 for more information
           CARGO_INCREMENTAL: 0
         with:
           command: test
