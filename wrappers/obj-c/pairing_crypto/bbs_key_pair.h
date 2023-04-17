@@ -13,11 +13,11 @@
 /**
  * @brief Generates a new BBS BLS 12-381 key pair by using an IKM and optionally supplied key-info
  */
-- (nullable instancetype)initWithIkm:(NSData *_Nonnull)ikm
+- (nullable instancetype)initWithIkm:(NSData *_Nullable)ikm
                              keyInfo:(NSData *_Nullable)keyInfo
                            withError:(NSError *_Nullable *_Nullable)errorPtr;
 
-- (void)generateKeyPair:(NSData *_Nonnull)ikm
+- (void)generateKeyPair:(NSData *_Nullable)ikm
                 keyInfo:(NSData *_Nullable)keyInfo
               withError:(NSError *_Nullable *_Nullable)errorPtr;
 

@@ -17,14 +17,14 @@
 
 @implementation BbsKeyPair
 
-- (nullable instancetype)initWithIkm:(NSData *_Nonnull)ikm
+- (nullable instancetype)initWithIkm:(NSData *_Nullable)ikm
                              keyInfo:(NSData *_Nullable)keyInfo
                            withError:(NSError *_Nullable *_Nullable)errorPtr {
     [self generateKeyPair:ikm keyInfo:keyInfo withError:errorPtr];
     return self;
 }
 
-- (void) generateKeyPair:(NSData *_Nonnull)ikm
+- (void) generateKeyPair:(NSData *_Nullable)ikm
                  keyInfo:(NSData *_Nullable)keyInfo
                 withError:(NSError *_Nullable *_Nullable)errorPtr {
 
