@@ -34,14 +34,7 @@ RCT_EXPORT_METHOD(Bls12381Sha256GenerateKeyPair:(NSDictionary *)request
         if ([request valueForKey:@"ikm"] != nil) {
             ikm = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"ikm"]]];
         }
-        // TODO: Remove this fallback when obj-c wrapper supports nullable ikm
-        else {
-            int ikmLength = 32;
-            NSMutableData* bytes = [NSMutableData dataWithLength:ikmLength];
-            int result = SecRandomCopyBytes(kSecRandomDefault, ikmLength, [bytes mutableBytes]);
-            NSAssert(result == errSecSuccess, @"Error generating random bytes: %d", result);
-            ikm = bytes;
-        }
+
         if ([request valueForKey:@"keyInfo"] != nil) {
             ikm = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"keyInfo"]]];
         }
@@ -71,14 +64,7 @@ RCT_EXPORT_METHOD(Bls12381Shake256GenerateKeyPair:(NSDictionary *)request
         if ([request valueForKey:@"ikm"] != nil) {
             ikm = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"ikm"]]];
         }
-        // TODO: Remove this fallback when obj-c wrapper supports nullable ikm
-        else {
-            int ikmLength = 32;
-            NSMutableData* bytes = [NSMutableData dataWithLength:ikmLength];
-            int result = SecRandomCopyBytes(kSecRandomDefault, ikmLength, [bytes mutableBytes]);
-            NSAssert(result == errSecSuccess, @"Error generating random bytes: %d", result);
-            ikm = bytes;
-        }
+
         if ([request valueForKey:@"keyInfo"] != nil) {
             ikm = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"keyInfo"]]];
         }
