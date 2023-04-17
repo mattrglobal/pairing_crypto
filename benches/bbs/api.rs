@@ -35,7 +35,7 @@ const TEST_HEADER: &[u8; 16] = b"some_app_context";
 const TEST_PRESENTATION_HEADER: &[u8; 24] = b"test-presentation-header";
 
 fn get_random_key_pair() -> ([u8; 32], [u8; 96]) {
-    KeyPair::random(&mut OsRng, Some(TEST_KEY_INFOS))
+    KeyPair::random(&mut OsRng, TEST_KEY_INFOS)
         .map(|key_pair| {
             (
                 key_pair.secret_key.to_bytes(),

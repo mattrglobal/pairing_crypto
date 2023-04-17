@@ -66,24 +66,21 @@ pub async fn bbs_bls12_381_generate_key_pair(
     // Cast the supplied JSON request into a rust struct
     let request: KeyGenerationRequestDto = request.try_into()?;
 
+    let key_info = request.keyInfo.unwrap_or(Vec::new());
+
     // // Derive secret key from supplied IKM and key information
     // metadata.
     let key_pair = match request.ikm {
-        Some(ikm) => Bls12381BbsKeyPair::new(
-            &ikm,
-            request.keyInfo.as_ref().map(Vec::as_ref),
-        )
-        .ok_or(serde_wasm_bindgen::Error::new(
-            "unexpected error, failed to generate keys.",
-        ))?,
+        Some(ikm) => Bls12381BbsKeyPair::new(&ikm, &key_info).ok_or(
+            serde_wasm_bindgen::Error::new(
+                "unexpected error, failed to generate keys.",
+            ),
+        )?,
 
-        None => Bls12381BbsKeyPair::random(
-            &mut OsRng::default(),
-            request.keyInfo.as_ref().map(Vec::as_ref),
-        )
-        .ok_or(serde_wasm_bindgen::Error::new(
-            "unexpected error, failed to generate random keys.",
-        ))?,
+        None => Bls12381BbsKeyPair::random(&mut OsRng::default(), &key_info)
+            .ok_or(serde_wasm_bindgen::Error::new(
+                "unexpected error, failed to generate random keys.",
+            ))?,
     };
 
     // Construct the JS DTO of the key pair to return

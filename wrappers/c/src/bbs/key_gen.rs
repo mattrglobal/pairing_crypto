@@ -19,10 +19,9 @@ macro_rules! bbs_key_gen_api_generator {
             err: &mut ExternError,
         ) -> i32 {
             // Derive secret key from supplied IKM and key information metadata.
-            if let Some(key_pair) = KeyPair::new(
-                ikm.to_vec(),
-                key_info.to_opt_vec().as_ref().map(Vec::as_ref),
-            ) {
+            if let Some(key_pair) =
+                KeyPair::new(&ikm.to_vec(), &key_info.to_vec())
+            {
                 *secret_key = ByteBuffer::from_vec(
                     key_pair.secret_key.to_bytes().to_vec(),
                 );

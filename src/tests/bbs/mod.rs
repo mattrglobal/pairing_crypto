@@ -125,7 +125,7 @@ fn get_random_test_messages(num_messages: usize) -> Vec<Message> {
 }
 
 fn get_random_test_key_pair() -> KeyPair {
-    KeyPair::random(&mut OsRng, Some(TEST_KEY_INFO))
+    KeyPair::random(&mut OsRng, TEST_KEY_INFO)
         .expect("key pair generation failed")
 }
 

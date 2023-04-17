@@ -72,23 +72,22 @@ pub async fn bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bbs_key_pair(
     // Cast the supplied JSON request into a rust struct
     let request: KeyGenerationRequestDto = request.try_into()?;
 
+    let key_info = request.keyInfo.unwrap_or(Vec::new());
+
     // // Derive secret key from supplied IKM and key information
     // metadata.
     let key_pair = match request.ikm {
-        Some(ikm) => {
-            BbsKeyPair::new(&ikm, request.keyInfo.as_ref().map(Vec::as_ref))
-                .ok_or(serde_wasm_bindgen::Error::new(
-                    "unexpected error, failed to generate keys.",
-                ))?
-        }
+        Some(ikm) => BbsKeyPair::new(&ikm, &key_info).ok_or(
+            serde_wasm_bindgen::Error::new(
+                "unexpected error, failed to generate keys.",
+            ),
+        )?,
 
-        None => BbsKeyPair::random(
-            &mut OsRng::default(),
-            request.keyInfo.as_ref().map(Vec::as_ref),
-        )
-        .ok_or(serde_wasm_bindgen::Error::new(
-            "unexpected error, failed to generate random keys.",
-        ))?,
+        None => BbsKeyPair::random(&mut OsRng::default(), &key_info).ok_or(
+            serde_wasm_bindgen::Error::new(
+                "unexpected error, failed to generate random keys.",
+            ),
+        )?,
     };
 
     // Construct the JS DTO of the key pair to return
@@ -119,23 +118,22 @@ pub async fn bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bls_key_pair(
     // Cast the supplied JSON request into a rust struct
     let request: KeyGenerationRequestDto = request.try_into()?;
 
+    let key_info = request.keyInfo.unwrap_or(Vec::new());
+
     // // Derive secret key from supplied IKM and key information
     // metadata.
     let key_pair = match request.ikm {
-        Some(ikm) => BlsSigBls12381G2KeyPair::new(
-            &ikm,
-            request.keyInfo.as_ref().map(Vec::as_ref),
-        )
-        .ok_or(serde_wasm_bindgen::Error::new(
-            "unexpected error, failed to generate keys.",
-        ))?,
-        None => BlsSigBls12381G2KeyPair::random(
-            &mut OsRng::default(),
-            request.keyInfo.as_ref().map(Vec::as_ref),
-        )
-        .ok_or(serde_wasm_bindgen::Error::new(
-            "unexpected error, failed to generate random keys.",
-        ))?,
+        Some(ikm) => BlsSigBls12381G2KeyPair::new(&ikm, &key_info).ok_or(
+            serde_wasm_bindgen::Error::new(
+                "unexpected error, failed to generate keys.",
+            ),
+        )?,
+        None => {
+            BlsSigBls12381G2KeyPair::random(&mut OsRng::default(), &key_info)
+                .ok_or(serde_wasm_bindgen::Error::new(
+                    "unexpected error, failed to generate random keys.",
+                ))?
+        }
     };
 
     // Construct the JS DTO of the key pair to return

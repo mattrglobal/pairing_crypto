@@ -35,7 +35,7 @@ const NUM_MESSAGES: usize = 10;
 const NUM_REVEALED_MESSAGES: usize = 5;
 
 fn get_random_key_pair() -> ([u8; 32], [u8; 96]) {
-    KeyPair::random(&mut OsRng, Some(TEST_KEY_INFOS))
+    KeyPair::random(&mut OsRng, TEST_KEY_INFOS)
         .map(|key_pair| {
             (
                 key_pair.secret_key.to_bytes(),
@@ -48,17 +48,14 @@ fn get_random_key_pair() -> ([u8; 32], [u8; 96]) {
 fn profile_key_gen(c: &mut Criterion) {
     c.bench_function(&format!("profile - key_gen"), |b| {
         b.iter(|| {
-            KeyPair::new(
-                black_box(KEY_GEN_SEED.as_ref()),
-                black_box(Some(TEST_KEY_INFOS)),
-            )
-            .map(|key_pair| {
-                (
-                    key_pair.secret_key.to_bytes(),
-                    key_pair.public_key.to_octets(),
-                )
-            })
-            .expect("key generation failed");
+            KeyPair::new(black_box(KEY_GEN_SEED), black_box(TEST_KEY_INFOS))
+                .map(|key_pair| {
+                    (
+                        key_pair.secret_key.to_bytes(),
+                        key_pair.public_key.to_octets(),
+                    )
+                })
+                .expect("key generation failed");
         });
     });
 }
