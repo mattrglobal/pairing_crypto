@@ -48,8 +48,6 @@ use pairing_crypto::{
         BLS_SIG_BLS12381G2_SIGNATURE_LENGTH,
     },
 };
-
-use rand_core::OsRng;
 use wasm_bindgen::prelude::*;
 
 /// Generate a BBS key pair on BLS 12-381 curve.
@@ -72,30 +70,23 @@ pub async fn bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bbs_key_pair(
     // Cast the supplied JSON request into a rust struct
     let request: KeyGenerationRequestDto = request.try_into()?;
 
+    let ikm = request.ikm.unwrap_or(Vec::new());
     let key_info = request.keyInfo.unwrap_or(Vec::new());
 
     // // Derive secret key from supplied IKM and key information
     // metadata.
-    let key_pair = match request.ikm {
-        Some(ikm) => BbsKeyPair::new(&ikm, &key_info).ok_or(
-            serde_wasm_bindgen::Error::new(
-                "unexpected error, failed to generate keys.",
-            ),
-        )?,
-
-        None => BbsKeyPair::random(&mut OsRng::default(), &key_info).ok_or(
-            serde_wasm_bindgen::Error::new(
-                "unexpected error, failed to generate random keys.",
-            ),
-        )?,
-    };
+    let key_pair = BbsKeyPair::new(&ikm, &key_info).ok_or(
+        serde_wasm_bindgen::Error::new(
+            "unexpected error, failed to generate keys.",
+        ),
+    )?;
 
     // Construct the JS DTO of the key pair to return
     let keypair = KeyPair {
         secretKey: key_pair.secret_key.to_bytes().to_vec(),
         publicKey: key_pair.public_key.to_octets().to_vec(),
     };
-    Ok(serde_wasm_bindgen::to_value(&keypair)?)
+    serde_wasm_bindgen::to_value(&keypair)
 }
 
 /// Generate a BBS key pair on BLS 12-381 curve.
@@ -118,30 +109,23 @@ pub async fn bls12_381_bbs_g1_bls_sig_g2_sha_256_generate_bls_key_pair(
     // Cast the supplied JSON request into a rust struct
     let request: KeyGenerationRequestDto = request.try_into()?;
 
+    let ikm = request.ikm.unwrap_or(Vec::new());
     let key_info = request.keyInfo.unwrap_or(Vec::new());
 
     // // Derive secret key from supplied IKM and key information
     // metadata.
-    let key_pair = match request.ikm {
-        Some(ikm) => BlsSigBls12381G2KeyPair::new(&ikm, &key_info).ok_or(
-            serde_wasm_bindgen::Error::new(
-                "unexpected error, failed to generate keys.",
-            ),
-        )?,
-        None => {
-            BlsSigBls12381G2KeyPair::random(&mut OsRng::default(), &key_info)
-                .ok_or(serde_wasm_bindgen::Error::new(
-                    "unexpected error, failed to generate random keys.",
-                ))?
-        }
-    };
+    let key_pair = BlsSigBls12381G2KeyPair::new(&ikm, &key_info).ok_or(
+        serde_wasm_bindgen::Error::new(
+            "unexpected error, failed to generate keys.",
+        ),
+    )?;
 
     // Construct the JS DTO of the key pair to return
     let keypair = KeyPair {
         secretKey: key_pair.secret_key.to_bytes().to_vec(),
         publicKey: key_pair.public_key.to_octets().to_vec(),
     };
-    Ok(serde_wasm_bindgen::to_value(&keypair)?)
+    serde_wasm_bindgen::to_value(&keypair)
 }
 
 macro_rules! bbs_bound_wrapper_api_generator {
@@ -231,20 +215,20 @@ macro_rules! bbs_bound_wrapper_api_generator {
 
             match $key_pop_verify_lib_fn(&api_request) {
                 Ok(result) => {
-                    return Ok(serde_wasm_bindgen::to_value(
+                    return serde_wasm_bindgen::to_value(
                         &BbsBoundVerifyResponse {
                             verified: result,
                             error: None,
                         },
-                    )?)
+                    )
                 }
                 Err(e) => {
-                    return Ok(serde_wasm_bindgen::to_value(
+                    return serde_wasm_bindgen::to_value(
                         &BbsBoundVerifyResponse {
                             verified: false,
                             error: Some(format!("{:?}", e)),
                         },
-                    )?)
+                    )
                 }
             }
         }

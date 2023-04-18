@@ -43,7 +43,6 @@ use pairing_crypto::bbs::{
     BbsSignRequest,
     BbsVerifyRequest,
 };
-use rand_core::OsRng;
 use wasm_bindgen::prelude::*;
 
 /// Generate a BBS key pair on BLS 12-381 curve.
@@ -66,29 +65,23 @@ pub async fn bbs_bls12_381_generate_key_pair(
     // Cast the supplied JSON request into a rust struct
     let request: KeyGenerationRequestDto = request.try_into()?;
 
+    let ikm = request.ikm.unwrap_or(Vec::new());
     let key_info = request.keyInfo.unwrap_or(Vec::new());
 
     // // Derive secret key from supplied IKM and key information
     // metadata.
-    let key_pair = match request.ikm {
-        Some(ikm) => Bls12381BbsKeyPair::new(&ikm, &key_info).ok_or(
-            serde_wasm_bindgen::Error::new(
-                "unexpected error, failed to generate keys.",
-            ),
-        )?,
-
-        None => Bls12381BbsKeyPair::random(&mut OsRng::default(), &key_info)
-            .ok_or(serde_wasm_bindgen::Error::new(
-                "unexpected error, failed to generate random keys.",
-            ))?,
-    };
+    let key_pair = Bls12381BbsKeyPair::new(&ikm, &key_info).ok_or(
+        serde_wasm_bindgen::Error::new(
+            "unexpected error, failed to generate keys.",
+        ),
+    )?;
 
     // Construct the JS DTO of the key pair to return
     let keypair = KeyPair {
         secretKey: key_pair.secret_key.to_bytes().to_vec(),
         publicKey: key_pair.public_key.to_octets().to_vec(),
     };
-    Ok(serde_wasm_bindgen::to_value(&keypair)?)
+    serde_wasm_bindgen::to_value(&keypair)
 }
 
 macro_rules! bbs_wrapper_api_generator {
@@ -379,20 +372,16 @@ macro_rules! bbs_wrapper_api_generator {
 
             match result {
                 Ok(verified) => {
-                    return Ok(serde_wasm_bindgen::to_value(
-                        &BbsVerifyResponse {
-                            verified, // TODO need to check test cases here
-                            error: None,
-                        },
-                    )?);
+                    return serde_wasm_bindgen::to_value(&BbsVerifyResponse {
+                        verified, // TODO need to check test cases here
+                        error: None,
+                    });
                 }
                 Err(e) => {
-                    return Ok(serde_wasm_bindgen::to_value(
-                        &BbsVerifyResponse {
-                            verified: false,
-                            error: Some(format!("{:?}", e)),
-                        },
-                    )?)
+                    return serde_wasm_bindgen::to_value(&BbsVerifyResponse {
+                        verified: false,
+                        error: Some(format!("{:?}", e)),
+                    })
                 }
             }
         }
