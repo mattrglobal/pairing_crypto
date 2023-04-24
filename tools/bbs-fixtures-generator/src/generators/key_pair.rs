@@ -14,15 +14,11 @@ macro_rules! bbs_kdf {
      $input_salt:expr,
      $hash:ty
     ) => {
-        pub(crate) fn $kdf_name<T>(
-            input_ikm: T,
-            key_info: Option<&[u8]>,
-        ) -> Result<KeyPair, Error>
-        where
-            T: AsRef<[u8]>,
-        {
+        pub(crate) fn $kdf_name(
+            input_ikm: &[u8],
+            key_info: &[u8],
+        ) -> Result<KeyPair, Error> {
             let ikm = input_ikm.as_ref();
-            let key_info = key_info.unwrap_or(&[]);
 
             if (ikm.len() < 32) {
                 return Err(Error::BadParams {
@@ -112,7 +108,7 @@ mod tests {
 
     fn kdf_test_helper() -> KeyPair {
         let (key_ikm, key_info) = get_test_asset();
-        let key_pair = sha256_bbs_key_gen_tool(key_ikm, Some(&key_info))
+        let key_pair = sha256_bbs_key_gen_tool(&key_ikm, &key_info)
             .expect("Key pair generation failed");
 
         key_pair
@@ -133,10 +129,10 @@ mod tests {
         );
 
         // BLS keyGen
-        let key_pair = sha256_bls_key_gen(&key_ikm, Some(&key_info)).unwrap();
+        let key_pair = sha256_bls_key_gen(&key_ikm, &key_info).unwrap();
 
         // native BLS keyGen
-        let kay_pair_native = KeyPair::new(&key_ikm, Some(&key_info)).unwrap();
+        let kay_pair_native = KeyPair::new(&key_ikm, &key_info).unwrap();
 
         assert_eq!(key_pair, kay_pair_native)
     }

@@ -48,11 +48,18 @@ macro_rules! bbs_bls_key_pair_impl {
             /// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.3
             /// Note this procedure does not follow
             /// https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-keygen
-            pub fn new<T>(ikm: T, key_info: Option<&[u8]>) -> Option<Self>
-            where
-                T: AsRef<[u8]>,
-            {
-                let key_info = key_info.unwrap_or(&[]);
+            pub fn new(ikm_in: &[u8], key_info: &[u8]) -> Option<Self> {
+                let mut random_ikm = [0u8; $min_key_gen_ikm_length];
+
+                let ikm = if ikm_in.is_empty() {
+                    let mut rng = rand_core::OsRng::default();
+                    if rng.try_fill_bytes(&mut random_ikm).is_err() {
+                        return None;
+                    }
+                    &random_ikm
+                } else {
+                    ikm_in
+                };
 
                 if let Some(out) = $generate_sk(ikm.as_ref(), key_info) {
                     // Extra assurance
@@ -65,10 +72,7 @@ macro_rules! bbs_bls_key_pair_impl {
             }
 
             /// Compute a secret key from a CS-PRNG.
-            pub fn random<R>(
-                rng: &mut R,
-                key_info: Option<&[u8]>,
-            ) -> Option<Self>
+            pub fn random<R>(rng: &mut R, key_info: &[u8]) -> Option<Self>
             where
                 R: RngCore + CryptoRng,
             {
@@ -231,10 +235,7 @@ macro_rules! bbs_bls_key_pair_impl {
 
         impl KeyPair {
             /// Generate a BBS key pair from provided IKM.
-            pub fn new<T>(ikm: T, key_info: Option<&[u8]>) -> Option<Self>
-            where
-                T: AsRef<[u8]>,
-            {
+            pub fn new(ikm: &[u8], key_info: &[u8]) -> Option<Self> {
                 if let Some(secret_key) = SecretKey::new(ikm.as_ref(), key_info)
                 {
                     return Some(Self {
@@ -246,10 +247,7 @@ macro_rules! bbs_bls_key_pair_impl {
             }
 
             /// Compute a secret key from a CS-PRNG.
-            pub fn random<R>(
-                rng: &mut R,
-                key_info: Option<&[u8]>,
-            ) -> Option<Self>
+            pub fn random<R>(rng: &mut R, key_info: &[u8]) -> Option<Self>
             where
                 R: RngCore + CryptoRng,
             {

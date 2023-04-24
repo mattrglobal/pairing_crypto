@@ -17,13 +17,18 @@
 
 @implementation BbsBls12381Shake256KeyPair
 
-- (void) generateKeyPair:(NSData *_Nonnull)ikm
+- (void) generateKeyPair:(NSData *_Nullable)ikm
                  keyInfo:(NSData *_Nullable)keyInfo
                 withError:(NSError *_Nullable *_Nullable)errorPtr {
 
     pairing_crypto_byte_buffer_t ikmBuffer;
-    ikmBuffer.len = ikm.length;
-    ikmBuffer.data = (uint8_t *)ikm.bytes;
+    if (ikm != nil) {
+        ikmBuffer.len = ikm.length;
+        ikmBuffer.data = (uint8_t *)ikm.bytes;
+    }
+    else {
+        ikmBuffer.len = 0;
+    }
 
     pairing_crypto_byte_buffer_t keyInfoBuffer;
     if (keyInfo != nil) {

@@ -110,7 +110,7 @@ fn sign_verify_serde_nominal() {
 
 #[test]
 fn sign_verify_no_header() {
-    let sk = SecretKey::new(TEST_KEY_GEN_IKM.as_ref(), Some(TEST_KEY_INFO))
+    let sk = SecretKey::new(TEST_KEY_GEN_IKM, TEST_KEY_INFO)
         .expect("key generation failed");
     let pk = PublicKey::from(&sk);
     let messages = get_test_messages();
@@ -149,9 +149,8 @@ fn sign_verify_different_key_infos() {
     let messages = get_test_messages();
 
     for i in 0..TEST_KEY_INFOS.len() {
-        let sk =
-            SecretKey::new(TEST_KEY_GEN_IKM.as_ref(), Some(TEST_KEY_INFOS[i]))
-                .expect("secret key generation failed");
+        let sk = SecretKey::new(TEST_KEY_GEN_IKM, TEST_KEY_INFOS[i])
+            .expect("secret key generation failed");
         let pk = PublicKey::from(&sk);
         let generators = create_generators_helper(messages.len());
         let signature = Signature::new::<
@@ -343,7 +342,7 @@ fn signature_uniqueness() {
 
 #[test]
 fn sign_verify_valid_cases() {
-    let sk = SecretKey::random(&mut OsRng, Some(TEST_KEY_INFO))
+    let sk = SecretKey::random(&mut OsRng, TEST_KEY_INFO)
         .expect("secret key generation failed");
     let pk = PublicKey::from(&sk);
     let header = Some(&TEST_HEADER);
@@ -409,7 +408,7 @@ fn sign_verify_valid_cases() {
 // Test `Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(...)`
 // implementation's returned errors by passing invalid paramter values.
 fn signature_new_invalid_parameters() {
-    let sk = SecretKey::random(&mut OsRng, Some(TEST_KEY_INFO))
+    let sk = SecretKey::random(&mut OsRng, TEST_KEY_INFO)
         .expect("secret key generation failed");
     let pk = PublicKey::from(&sk);
     let header = Some(&TEST_HEADER);
@@ -695,7 +694,7 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
     );
 
     // Another set of variables to be used as tampered values
-    let different_key_pair = KeyPair::random(&mut OsRng, Some(TEST_KEY_INFO))
+    let different_key_pair = KeyPair::random(&mut OsRng, TEST_KEY_INFO)
         .expect("key pair generation failed");
     let different_header = Some(b"another-set-of-header".as_ref());
     let generators_different_q_1 = test_generators_random_q_1(messages.len());
@@ -929,7 +928,7 @@ fn verify_tampered_signature_parameters_no_header_signature() {
     );
 
     // Another set of variables to be used as tampered values
-    let different_key_pair = KeyPair::random(&mut OsRng, Some(TEST_KEY_INFO))
+    let different_key_pair = KeyPair::random(&mut OsRng, TEST_KEY_INFO)
         .expect("key pair generation failed");
     let different_header = Some(b"another-set-of-header".as_ref());
     let generators_different_q_1 = test_generators_random_q_1(messages.len());
@@ -1053,7 +1052,7 @@ fn verify_tampered_signature_parameters_no_messages_signature() {
     );
 
     // Another set of variables to be used as tampered values
-    let different_key_pair = KeyPair::random(&mut OsRng, Some(TEST_KEY_INFO))
+    let different_key_pair = KeyPair::random(&mut OsRng, TEST_KEY_INFO)
         .expect("key pair generation failed");
     let different_header = Some(b"another-set-of-header".as_ref());
     let generators_different_q_1 = test_generators_random_q_1(messages.len());
@@ -1106,7 +1105,7 @@ fn verify_tampered_signature_parameters_no_messages_signature() {
 
 #[test]
 fn verify_invalid_parameters() {
-    let sk = SecretKey::random(&mut OsRng, Some(TEST_KEY_INFO))
+    let sk = SecretKey::random(&mut OsRng, TEST_KEY_INFO)
         .expect("secret key generation failed");
     let pk = PublicKey::from(&sk);
     let header = Some(&TEST_HEADER);
@@ -1231,7 +1230,7 @@ macro_rules! concat_a_e_s {
 
 #[test]
 fn to_octets() {
-    let key_pair = KeyPair::new(TEST_KEY_GEN_IKM.as_ref(), Some(TEST_KEY_INFO))
+    let key_pair = KeyPair::new(TEST_KEY_GEN_IKM, TEST_KEY_INFO)
         .expect("key pair generation failed");
     let header = Some(&TEST_HEADER);
     let messages = get_test_messages();

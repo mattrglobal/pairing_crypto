@@ -44,9 +44,8 @@ macro_rules! example {
         let messages = &EXAMPLE_MESSAGES;
 
         let (secret_key, public_key) = KeyPair::new(
-        EXAMPLE_KEY_GEN_IKM.as_ref(),
-        Some(EXAMPLE_KEY_INFO.as_ref()),
-        )
+        EXAMPLE_KEY_GEN_IKM,
+        EXAMPLE_KEY_INFO)
         .map(|key_pair| {
             (
                 key_pair.secret_key.to_bytes(),

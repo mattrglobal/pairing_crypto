@@ -43,17 +43,15 @@ const TEST_EXTRA_INFO: &[u8] = b"sample-app-100-apac";
 
 #[test]
 fn bls_key_pop_gen_verify_e2e_nominal() {
-    let (bls_secret_key, bls_public_key) = BlsSigBls12381G2KeyPair::new(
-        TEST_KEY_GEN_SEED.as_ref(),
-        Some(TEST_KEY_INFO),
-    )
-    .map(|key_pair| {
-        (
-            key_pair.secret_key.to_bytes(),
-            key_pair.public_key.to_octets(),
-        )
-    })
-    .expect("key generation failed");
+    let (bls_secret_key, bls_public_key) =
+        BlsSigBls12381G2KeyPair::new(TEST_KEY_GEN_SEED, TEST_KEY_INFO)
+            .map(|key_pair| {
+                (
+                    key_pair.secret_key.to_bytes(),
+                    key_pair.public_key.to_octets(),
+                )
+            })
+            .expect("key generation failed");
 
     let bls_key_pop = bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop(
         &&BlsKeyPopGenRequest {
@@ -83,7 +81,7 @@ macro_rules! bound_sign_verify_e2e_nominal {
         let messages = &TEST_CLAIMS;
 
         let (bbs_secret_key, bbs_public_key) =
-            BbsKeyPair::new(TEST_KEY_GEN_SEED.as_ref(), Some(TEST_KEY_INFO))
+            BbsKeyPair::new(TEST_KEY_GEN_SEED, TEST_KEY_INFO)
                 .map(|key_pair| {
                     (
                         key_pair.secret_key.to_bytes(),
@@ -92,17 +90,15 @@ macro_rules! bound_sign_verify_e2e_nominal {
                 })
                 .expect("key generation failed");
 
-        let (bls_secret_key, bls_public_key) = BlsSigBls12381G2KeyPair::new(
-            TEST_KEY_GEN_SEED.as_ref(),
-            Some(TEST_KEY_INFO),
-        )
-        .map(|key_pair| {
-            (
-                key_pair.secret_key.to_bytes(),
-                key_pair.public_key.to_octets(),
-            )
-        })
-        .expect("key generation failed");
+        let (bls_secret_key, bls_public_key) =
+            BlsSigBls12381G2KeyPair::new(TEST_KEY_GEN_SEED, TEST_KEY_INFO)
+                .map(|key_pair| {
+                    (
+                        key_pair.secret_key.to_bytes(),
+                        key_pair.public_key.to_octets(),
+                    )
+                })
+                .expect("key generation failed");
 
         let bls_key_pop = $key_pop_gen_fn(&&BlsKeyPopGenRequest {
             bls_secret_key: &bls_secret_key,
@@ -161,7 +157,7 @@ macro_rules! bound_proof_gen_verify_e2e_nominal {
         let messages = &TEST_CLAIMS;
 
         let (bbs_secret_key, bbs_public_key) =
-            BbsKeyPair::new(TEST_KEY_GEN_SEED.as_ref(), Some(TEST_KEY_INFO))
+            BbsKeyPair::new(TEST_KEY_GEN_SEED, TEST_KEY_INFO)
                 .map(|key_pair| {
                     (
                         key_pair.secret_key.to_bytes(),
@@ -170,17 +166,15 @@ macro_rules! bound_proof_gen_verify_e2e_nominal {
                 })
                 .expect("key generation failed");
 
-        let (bls_secret_key, bls_public_key) = BlsSigBls12381G2KeyPair::new(
-            TEST_KEY_GEN_SEED.as_ref(),
-            Some(TEST_KEY_INFO),
-        )
-        .map(|key_pair| {
-            (
-                key_pair.secret_key.to_bytes(),
-                key_pair.public_key.to_octets(),
-            )
-        })
-        .expect("key generation failed");
+        let (bls_secret_key, bls_public_key) =
+            BlsSigBls12381G2KeyPair::new(TEST_KEY_GEN_SEED, TEST_KEY_INFO)
+                .map(|key_pair| {
+                    (
+                        key_pair.secret_key.to_bytes(),
+                        key_pair.public_key.to_octets(),
+                    )
+                })
+                .expect("key generation failed");
 
         let bls_key_pop = $key_pop_gen_fn(&&BlsKeyPopGenRequest {
             bls_secret_key: &bls_secret_key,

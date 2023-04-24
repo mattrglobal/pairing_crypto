@@ -258,7 +258,7 @@ fn gen_verify_different_key_pairs() {
 
     for i in 0..TEST_KEY_INFOS.len() {
         let pk = PublicKey::from(
-            &SecretKey::new(TEST_KEY_GEN_IKM.as_ref(), Some(TEST_KEY_INFOS[i]))
+            &SecretKey::new(TEST_KEY_GEN_IKM, TEST_KEY_INFOS[i])
                 .expect("secret key generation failed"),
         );
 
@@ -335,7 +335,7 @@ fn no_presentation_header_proof() {
     let mut rng = MockRng::from_seed([1u8; 16]);
 
     let pk = PublicKey::from(
-        &SecretKey::new(TEST_KEY_GEN_IKM.as_ref(), Some(TEST_KEY_INFO))
+        &SecretKey::new(TEST_KEY_GEN_IKM, TEST_KEY_INFO)
             .expect("secret key generation failed"),
     );
 

@@ -42,11 +42,10 @@ pub struct FixtureGenInput {
 impl From<TestAsset> for FixtureGenInput {
     fn from(t: TestAsset) -> Self {
         let key_pair =
-            sha256_bbs_key_gen_tool(&t.key_ikm, Some(&t.key_info)).unwrap();
+            sha256_bbs_key_gen_tool(&t.key_ikm, &t.key_info).unwrap();
 
         let spare_key_pair =
-            sha256_bbs_key_gen_tool(&t.spare_key_ikm, Some(&t.key_info))
-                .unwrap();
+            sha256_bbs_key_gen_tool(&t.spare_key_ikm, &t.key_info).unwrap();
 
         let messages = t
             .messages
@@ -188,11 +187,11 @@ where
     let mut state = serializer.serialize_struct("KeyPair", 2)?;
     state.serialize_field(
         "secretKey",
-        &hex::encode(&key_pair.secret_key.to_bytes()),
+        &hex::encode(key_pair.secret_key.to_bytes()),
     )?;
     state.serialize_field(
         "publicKey",
-        &hex::encode(&key_pair.public_key.to_octets()),
+        &hex::encode(key_pair.public_key.to_octets()),
     )?;
     state.end()
 }
@@ -263,7 +262,7 @@ where
             })
         }
     }
-    const FIELDS: &'static [&'static str] = &["secretKey", "publicKey"];
+    const FIELDS: &[&str] = &["secretKey", "publicKey"];
     deserializer.deserialize_struct("KeyPair", FIELDS, KeyPairVisitor)
 }
 
@@ -274,7 +273,7 @@ fn serialize_public_key<S>(
 where
     S: Serializer,
 {
-    serializer.serialize_str(&hex::encode(&public_key.to_octets()))
+    serializer.serialize_str(&hex::encode(public_key.to_octets()))
 }
 
 pub fn deserialize_public_key<'de, D>(

@@ -24,9 +24,8 @@ const TEST_MESSAGE: &[u8] = b"test-message";
 
 macro_rules! sign_verify_e2e_nominal {
     ($sign_fn:ident, $verify_fn:ident) => {
-        let key_pair =
-            KeyPair::new(TEST_KEY_GEN_SEED.as_ref(), Some(TEST_KEY_INFO))
-                .expect("key generation must succeed");
+        let key_pair = KeyPair::new(TEST_KEY_GEN_SEED, TEST_KEY_INFO)
+            .expect("key generation must succeed");
 
         let signature = $sign_fn(&key_pair.secret_key, &TEST_MESSAGE)
             .expect("siging must succeed");
@@ -55,9 +54,8 @@ fn sign_verify_e2e_nominal() {
 
 #[test]
 fn pop_prove_verify_e2e_nominal() {
-    let key_pair =
-        KeyPair::new(TEST_KEY_GEN_SEED.as_ref(), Some(TEST_KEY_INFO))
-            .expect("key generation must succeed");
+    let key_pair = KeyPair::new(TEST_KEY_GEN_SEED, TEST_KEY_INFO)
+        .expect("key generation must succeed");
 
     let proof = bls12_381_g2_shake_256_pop_pop_prove(&key_pair.secret_key)
         .expect("PoP generation must succeed");
