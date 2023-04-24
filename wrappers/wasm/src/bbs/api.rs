@@ -373,7 +373,7 @@ macro_rules! bbs_wrapper_api_generator {
             match result {
                 Ok(verified) => {
                     return serde_wasm_bindgen::to_value(&BbsVerifyResponse {
-                        verified, // TODO need to check test cases here
+                        verified,
                         error: None,
                     });
                 }

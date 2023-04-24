@@ -524,20 +524,20 @@ macro_rules! bbs_bound_wrapper_api_generator {
 
             match result {
                 Ok(verified) => {
-                    return Ok(serde_wasm_bindgen::to_value(
+                    return serde_wasm_bindgen::to_value(
                         &BbsBoundVerifyResponse {
                             verified,
                             error: None,
                         },
-                    )?);
+                    );
                 }
                 Err(e) => {
-                    return Ok(serde_wasm_bindgen::to_value(
+                    return serde_wasm_bindgen::to_value(
                         &BbsBoundVerifyResponse {
                             verified: false,
                             error: Some(format!("{:?}", e)),
                         },
-                    )?)
+                    )
                 }
             }
         }
