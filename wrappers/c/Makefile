@@ -10,6 +10,8 @@ audit:
 	@cargo audit
 build:
 	@cargo build --release
+build_debug:
+	@cargo build
 build_ios:
 	@./scripts/build-platform-targets.sh IOS out
 generate_headers:
@@ -18,9 +20,13 @@ generate_headers:
 
 	@rustup run nightly cbindgen --config cbindgen.toml --crate pairing_crypto_c --output include/pairing_crypto.h
 test:
-	@${CC} tests/bbs_api_test.c -o bbs_api_test -Iinclude -L../../target/release -lpairing_crypto_c
+	@${CC} -g -O0 tests/bbs_api_test.c -o bbs_api_test -Iinclude -L../../target/debug -lpairing_crypto_c
 	@chmod +x bbs_api_test
 	@./bbs_api_test
+test_leaks:
+	@leaks --atExit -- ./bbs_api_test
+test_valgrind:
+	@valgrind --leak-check=yes ./bbs_api_test
 clean:
 	@cargo clean
 	@rm -rf target
