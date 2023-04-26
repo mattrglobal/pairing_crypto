@@ -51,10 +51,4 @@
     free(err);
 }
 
-- (void)dealloc {
-    [self.secretKey release];
-    [self.publicKey release];
-    [super dealloc];
-}
-
 @end
