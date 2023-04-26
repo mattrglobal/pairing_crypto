@@ -83,9 +83,4 @@ presentationHeader:(NSData *_Nullable)presentationHeader
     return false;
 }
 
--(void) dealloc {
-  [self.value release];
-  [super dealloc];
-}
-
 @end
