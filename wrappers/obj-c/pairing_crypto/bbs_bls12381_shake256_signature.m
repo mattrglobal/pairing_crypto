@@ -120,8 +120,8 @@ exit:
         goto exit;
     }
 
+    headerBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
     if (header) {
-        pairing_crypto_byte_buffer_t *headerBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
         headerBuffer->len = header.length;
         headerBuffer->data = (uint8_t *)header.bytes;
         if (bbs_bls12_381_shake_256_verify_context_set_header(verifySignatureHandle, headerBuffer, err) > 0) {
