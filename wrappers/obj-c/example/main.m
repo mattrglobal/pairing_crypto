@@ -32,11 +32,10 @@ int main(int argc, const char * argv[]) {
                                   messages:messages
                                  withError:&error];
 
-    // NSLog(@"Signature verified:  %@", isVerified ? @"YES" : @"NO");
+    NSLog(@"Signature verified:  %@", isVerified ? @"YES" : @"NO");
 
     // Start with all hidden messages
     NSMutableSet *disclosedIndices = [[NSMutableSet alloc] init];
-
     for (int i = 0; i < [messages count]; i++ ) {
         BbsBls12381Sha256Proof *proof = [[BbsBls12381Sha256Proof alloc] createProof:keyPair.publicKey
                                                                   header:header
@@ -59,11 +58,13 @@ int main(int argc, const char * argv[]) {
                                    messages:disclosedMessages
                                   withError:&error];
 
-        // NSLog(@"Proof verified:  %@", isVerified ? @"YES" : @"NO");
+        NSLog(@"Proof verified:  %@", isVerified ? @"YES" : @"NO");
+        [proof release];
+        [disclosedMessages release];
         [disclosedIndices addObject:[NSNumber numberWithInt:i]];
     }
-    
 
+    [disclosedIndices release];
     [keyPair release];
     [keyInfo release];
     [ikm release];

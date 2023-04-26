@@ -8,7 +8,7 @@
 @interface BbsProof : NSObject
 
 /** @brief proof */
-@property(nonatomic, readonly) NSData *_Nonnull value;
+@property(strong, atomic, readwrite) NSData *_Nonnull value;
 
 /**
  * @brief Creates a BBS signature proof from the raw bytes

@@ -5,14 +5,6 @@
 #import "bbs_signature.h"
 
 /** @brief BBS Signature */
-@interface BbsSignature ()
-
-/** @brief signature */
-@property(nonatomic, readwrite) NSData *value;
-
-@end
-
-/** @brief BBS Signature */
 @implementation BbsSignature
 
 /**
@@ -80,6 +72,11 @@
 
                 [self doesNotRecognizeSelector:_cmd];
     return false;
+}
+
+-(void) dealloc {
+  [self.value release];
+  [super dealloc];
 }
 
 @end

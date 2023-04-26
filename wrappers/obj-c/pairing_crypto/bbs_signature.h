@@ -7,7 +7,7 @@
 @interface BbsSignature : NSObject
 
 /** @brief signature */
-@property(nonatomic, readonly) NSData *_Nonnull value;
+@property(strong, atomic, readwrite) NSData *_Nonnull value;
 
 /**
  * @brief Creates a BBS signature from the raw bytes

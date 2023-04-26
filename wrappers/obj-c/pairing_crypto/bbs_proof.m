@@ -4,13 +4,6 @@
 #import "pairing_crypto_bbs.h"
 #import "bbs_proof.h"
 
-@interface BbsProof ()
-
-/** @brief A BBS Proof */
-@property(nonatomic, readwrite) NSData *value;
-
-@end
-
 /** @brief A BBS Proof */
 @implementation BbsProof
 
@@ -88,6 +81,11 @@ presentationHeader:(NSData *_Nullable)presentationHeader
 
                    [self doesNotRecognizeSelector:_cmd];
     return false;
+}
+
+-(void) dealloc {
+  [self.value release];
+  [super dealloc];
 }
 
 @end

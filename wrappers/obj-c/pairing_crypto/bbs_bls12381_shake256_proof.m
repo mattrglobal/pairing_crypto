@@ -5,15 +5,10 @@
 #import "bbs_bls12381_shake256_proof.h"
 #import "bbs_signature.h"
 
-@interface BbsBls12381Shake256Proof ()
-
-/** @brief proof */
-@property(nonatomic, readwrite) NSData *value;
-
-@end
-
 /** @brief BBS-Bls12381-Shake-256 Proof */
 @implementation BbsBls12381Shake256Proof
+
+@synthesize value;
 
 /** @brief Create a BBS proof. */
 - (void) doCreateProof:(NSData *_Nonnull)publicKey
@@ -24,64 +19,66 @@
              disclosedIndices:(NSSet *_Nullable)disclosedIndices
                      messages:(NSArray *_Nullable)messages
                     withError:(NSError *_Nullable *_Nullable)errorPtr {
+    pairing_crypto_byte_buffer_t *publicKeyBuffer = nil;
+    pairing_crypto_byte_buffer_t* headerBuffer = nil;
+    pairing_crypto_byte_buffer_t* presentationHeaderBuffer = nil;
+    pairing_crypto_byte_buffer_t* signatureBuffer = nil;
+    pairing_crypto_byte_buffer_t* messageBuffer = nil;
+    pairing_crypto_byte_buffer_t* proof = nil;
 
     pairing_crypto_error_t *err = (pairing_crypto_error_t*) malloc(sizeof(pairing_crypto_error_t));
 
     uint64_t deriveProofHandle = bbs_bls12_381_shake_256_proof_gen_context_init(err);
-
     if (deriveProofHandle == 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
-        return;
+        goto exit;
     }
 
-    pairing_crypto_byte_buffer_t *publicKeyBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
+    publicKeyBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
     publicKeyBuffer->len = publicKey.length;
     publicKeyBuffer->data = (uint8_t *)publicKey.bytes;
-
     if (bbs_bls12_381_shake_256_proof_gen_context_set_public_key(deriveProofHandle, publicKeyBuffer, err) != 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
-        return;
+        goto exit;
     }
 
     if (header) {
-        pairing_crypto_byte_buffer_t *headerBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
+        headerBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
         headerBuffer->len = header.length;
         headerBuffer->data = (uint8_t *)header.bytes;
-
         if (bbs_bls12_381_shake_256_proof_gen_context_set_header(deriveProofHandle, headerBuffer, err) > 0) {
             *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
-            return;
+            goto exit;
         }
     }
 
     if (presentationHeader) {
-        pairing_crypto_byte_buffer_t *presentationHeaderBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
+        presentationHeaderBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
         presentationHeaderBuffer->len = presentationHeader.length;
         presentationHeaderBuffer->data = (uint8_t *)presentationHeader.bytes;
-
         if (bbs_bls12_381_shake_256_proof_gen_context_set_presentation_header(deriveProofHandle, presentationHeaderBuffer, err) > 0) {
             *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
-            return;
+            goto exit;
         }
     }
 
-    pairing_crypto_byte_buffer_t *signatureBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
+    signatureBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
     signatureBuffer->len = signature.value.length;
     signatureBuffer->data = (uint8_t *)signature.value.bytes;
     if (bbs_bls12_381_shake_256_proof_gen_context_set_signature(deriveProofHandle, signatureBuffer, err) != 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
-        return;
+        goto exit;
     }
 
     if (bbs_bls12_381_shake_256_proof_gen_context_set_verify_signature(deriveProofHandle, verifySignature, err) != 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
-        return;
+        goto exit;
     }
 
+    messageBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
     if (disclosedIndices && messages && [messages count] != 0) {
         int i = 0;
         for (NSData *message in messages) {
-            pairing_crypto_byte_buffer_t *messageBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
             messageBuffer->len = message.length;
             messageBuffer->data = (uint8_t *)message.bytes;
 
@@ -89,18 +86,17 @@
 
             if (bbs_bls12_381_shake_256_proof_gen_context_add_message(deriveProofHandle, isDisclosed, messageBuffer, err) > 0) {
                 *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
-                return;
+                goto exit;
             }
 
             i++;
         }
     }
 
-    pairing_crypto_byte_buffer_t *proof = (pairing_crypto_byte_buffer_t*) malloc(sizeof(pairing_crypto_byte_buffer_t));
-
+    proof = (pairing_crypto_byte_buffer_t*) malloc(sizeof(pairing_crypto_byte_buffer_t));
     if (bbs_bls12_381_shake_256_proof_gen_context_finish(deriveProofHandle, proof, err) != 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
-        return;
+        goto exit;
     }
 
     self.value = [[NSData alloc] initWithBytesNoCopy:proof->data
@@ -108,6 +104,26 @@
                                         freeWhenDone:true];
 
     free(err);
+
+exit:
+    if (proof != nil) {
+        free(proof);
+    }
+    if (messageBuffer != nil) {
+        free(messageBuffer);
+    }
+    if (signatureBuffer != nil) {
+        free(signatureBuffer);
+    }
+    if (presentationHeaderBuffer != nil) {
+        free(presentationHeaderBuffer);
+    }
+    if (headerBuffer != nil) {
+        free(headerBuffer);
+    }
+    if (publicKeyBuffer != nil) {
+        free(publicKeyBuffer);
+    }
 }
 
 /** @brief Verify a BBS proof. */
@@ -116,76 +132,95 @@
          presentationHeader:(NSData *_Nullable)presentationHeader
                     messages:(NSDictionary *_Nullable)messages
                    withError:(NSError *_Nullable *_Nullable)errorPtr  {
+    bool result = false;
+    pairing_crypto_byte_buffer_t *publicKeyBuffer = nil;
+    pairing_crypto_byte_buffer_t* headerBuffer = nil;
+    pairing_crypto_byte_buffer_t* presentationHeaderBuffer = nil;
+    pairing_crypto_byte_buffer_t* proofBuffer = nil;
+    pairing_crypto_byte_buffer_t* messageBuffer = nil;
 
     pairing_crypto_error_t *err = (pairing_crypto_error_t*) malloc(sizeof(pairing_crypto_error_t));
 
     uint64_t verifyProofHandle = bbs_bls12_381_shake_256_proof_verify_context_init(err);
-
     if (verifyProofHandle == 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
-        return false;
+        goto exit;
     }
 
-    pairing_crypto_byte_buffer_t *publicKeyBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
+    publicKeyBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
     publicKeyBuffer->len = publicKey.length;
     publicKeyBuffer->data = (uint8_t *)publicKey.bytes;
-
     if (bbs_bls12_381_shake_256_proof_verify_context_set_public_key(verifyProofHandle, publicKeyBuffer, err) != 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
-        return false;
+        goto exit;
     }
 
     if (header) {
-        pairing_crypto_byte_buffer_t *headerBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
+        headerBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
         headerBuffer->len = header.length;
         headerBuffer->data = (uint8_t *)header.bytes;
-
         if (bbs_bls12_381_shake_256_proof_verify_context_set_header(verifyProofHandle, headerBuffer, err) > 0) {
             *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
-            return false;
+            goto exit;
         }
     }
 
     if (presentationHeader) {
-        pairing_crypto_byte_buffer_t *presentationHeaderBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
+        presentationHeaderBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
         presentationHeaderBuffer->len = presentationHeader.length;
         presentationHeaderBuffer->data = (uint8_t *)presentationHeader.bytes;
-
         if (bbs_bls12_381_shake_256_proof_verify_context_set_presentation_header(verifyProofHandle, presentationHeaderBuffer, err) > 0) {
             *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
-            return false;
+            goto exit;
         }
     }
-    pairing_crypto_byte_buffer_t *proofBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
+
+    proofBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
     proofBuffer->len = self.value.length;
     proofBuffer->data = (uint8_t *)self.value.bytes;
-
     if (bbs_bls12_381_shake_256_proof_verify_context_set_proof(verifyProofHandle, proofBuffer, err) != 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
-        return false;
+        goto exit;
     }
 
+    messageBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
     if (messages && [messages count] != 0) {
         for (id index in messages) {
             NSData* message = [messages objectForKey: index];
-            pairing_crypto_byte_buffer_t *messageBuffer = (pairing_crypto_byte_buffer_t *)malloc(sizeof(pairing_crypto_byte_buffer_t));
             messageBuffer->len = message.length;
             messageBuffer->data = (uint8_t *)message.bytes;
-
             if (bbs_bls12_381_shake_256_proof_verify_context_add_message(verifyProofHandle, [index intValue], messageBuffer, err) > 0) {
                 *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
-                return false;
+                goto exit;
             }
         }
     }
 
     if (bbs_bls12_381_shake_256_proof_verify_context_finish(verifyProofHandle, err) != 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
-        return false;
+        goto exit;
     }
 
     free(err);
-    return true;
+    result = true;
+
+exit:
+    if (messageBuffer != nil) {
+        free(messageBuffer);
+    }
+    if (proofBuffer != nil) {
+        free(proofBuffer);
+    }
+    if (presentationHeaderBuffer != nil) {
+        free(presentationHeaderBuffer);
+    }
+    if (headerBuffer != nil) {
+        free(headerBuffer);
+    }
+    if (publicKeyBuffer != nil) {
+        free(publicKeyBuffer);
+    }
+    return result;
 }
 
 @end
