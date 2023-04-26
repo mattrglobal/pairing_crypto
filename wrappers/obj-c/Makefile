@@ -1,8 +1,7 @@
 TARGET=example
 
 CC=clang
-#CFLAGS+=-O0 -g -Wall -Werror 
-CFLAGS+=-O0 -g
+CFLAGS+=-O0 -g -Wall -Werror 
 FRAMEWORKS:= -framework Foundation
 
 LIB_SOURCES=pairing_crypto/*.m
