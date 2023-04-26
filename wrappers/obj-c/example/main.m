@@ -63,5 +63,9 @@ int main(int argc, const char * argv[]) {
         [disclosedIndices addObject:[NSNumber numberWithInt:i]];
     }
     
+
+    [keyPair release];
+    [keyInfo release];
+    [ikm release];
     return 0;
 }
