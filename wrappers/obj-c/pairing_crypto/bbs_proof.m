@@ -4,13 +4,6 @@
 #import "pairing_crypto_bbs.h"
 #import "bbs_proof.h"
 
-@interface BbsProof ()
-
-/** @brief A BBS Proof */
-@property(nonatomic, readwrite) NSData *value;
-
-@end
-
 /** @brief A BBS Proof */
 @implementation BbsProof
 

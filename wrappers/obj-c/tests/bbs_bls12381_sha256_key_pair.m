@@ -35,9 +35,6 @@
     BbsBls12381Sha256KeyPair *keyPair = [[BbsBls12381Sha256KeyPair alloc] initWithIkm:ikm keyInfo:keyInfo
                                                                withError:&error];
 
-    NSString *test = [keyPair.secretKey base64EncodedStringWithOptions:kNilOptions];
-    NSString *tester = [keyPair.publicKey base64EncodedStringWithOptions:kNilOptions];
-
     XCTAssertEqualObjects(keyPair.publicKey, expectedPublicKey);
     XCTAssertEqualObjects(keyPair.secretKey, expectedSecretKey);
 

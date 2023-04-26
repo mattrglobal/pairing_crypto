@@ -3,9 +3,25 @@
 #include <string.h>
 #include "pairing_crypto.h"
 
+#define FREE_BYTE_ARRAY(p) \
+    do \
+    { \
+        if (NULL != p) { \
+            if (NULL != p->data) { \
+                free(p->data); \
+                p->data = NULL; \
+            } \
+            free(p); \
+            p = NULL; \
+        } \
+    } \
+    while(0)
+
 int main(int argc, char **argv)
 {
+    const int MESSAGE_COUNT = 5;
     const uint8_t *IKM = "12345678123456781234567812345678";
+
     ByteArray *ikm = (ByteArray *)malloc(sizeof(ByteArray));
     ByteArray *key_info = (ByteArray *)malloc(sizeof(ByteArray));
     ByteArray *secret_key = (ByteArray *)malloc(sizeof(ByteArray));
@@ -13,9 +29,8 @@ int main(int argc, char **argv)
 
     ByteArray *header = (ByteArray *)malloc(sizeof(ByteArray));
 
-    const int message_count = 5;
     ByteArray *message;
-    ByteArray **messages = (ByteArray **)malloc(message_count * sizeof(ByteArray *));
+    ByteArray **messages = (ByteArray **)malloc(MESSAGE_COUNT * sizeof(ByteArray *));
     ByteArray *signature = (ByteArray *)malloc(sizeof(ByteArray));
 
     ByteArray *presentation_header = (ByteArray *)malloc(sizeof(ByteArray));
@@ -51,7 +66,7 @@ int main(int argc, char **argv)
         goto Fail;
     }
     printf("pass\n");
-    for (i = 0; i < message_count; i++)
+    for (i = 0; i < MESSAGE_COUNT; i++)
     {
         message = (ByteArray *)malloc(sizeof(ByteArray));
         message->length = 10;
@@ -100,7 +115,7 @@ int main(int argc, char **argv)
 
     printf("Set messages sign context...");
     fflush(stdout);
-    for (i = 0; i < message_count; i++)
+    for (i = 0; i < MESSAGE_COUNT; i++)
     {
         if (bbs_bls12_381_shake_256_sign_context_add_message(handle, messages[i], err) != 0)
         {
@@ -110,7 +125,7 @@ int main(int argc, char **argv)
     }
     printf("pass\n");
 
-    printf("Sign %d messages ...", message_count);
+    printf("Sign %d messages ...", MESSAGE_COUNT);
     fflush(stdout);
     if (bbs_bls12_381_shake_256_sign_context_finish(handle, (ByteBuffer *)signature, err) != 0)
     {
@@ -158,7 +173,7 @@ int main(int argc, char **argv)
 
     printf("Set messages in verify signature context...");
     fflush(stdout);
-    for (i = 0; i < message_count; i++)
+    for (i = 0; i < MESSAGE_COUNT; i++)
     {
         if (bbs_bls12_381_shake_256_verify_context_add_message(handle, messages[i], err) != 0)
         {
@@ -207,7 +222,7 @@ int main(int argc, char **argv)
 
     printf("Adding messages to proof context...");
     fflush(stdout);
-    for (i = 0; i < message_count; i++)
+    for (i = 0; i < MESSAGE_COUNT; i++)
     {
         if (bbs_bls12_381_shake_256_proof_gen_context_add_message(handle, true, messages[i], err) != 0)
         {
@@ -284,7 +299,7 @@ int main(int argc, char **argv)
     printf("Adding messages to verify-proof context...");
     // All revealed messages
     fflush(stdout);
-    for (i = 0; i < message_count; i++)
+    for (i = 0; i < MESSAGE_COUNT; i++)
     {
         if (bbs_bls12_381_shake_256_proof_verify_context_add_message(handle, i, messages[i], err) != 0)
         {
@@ -338,11 +353,20 @@ Fail:
     printf("Tests Failed\n");
 Exit:
     pairing_crypto_byte_buffer_free(*(ByteBuffer *)public_key);
-    pairing_crypto_byte_buffer_free(*(ByteBuffer *)secret_key);
-
-    free(err);
-    free(ikm);
-    free(key_info);
     free(public_key);
+    pairing_crypto_byte_buffer_free(*(ByteBuffer *)secret_key);
     free(secret_key);
+    free(err);
+
+    FREE_BYTE_ARRAY(ikm);
+    FREE_BYTE_ARRAY(key_info);
+    FREE_BYTE_ARRAY(header);
+    FREE_BYTE_ARRAY(presentation_header);
+    for (i = 0; i < MESSAGE_COUNT; i++)
+    {
+        FREE_BYTE_ARRAY(messages[i]);
+    }
+    free(messages);
+    FREE_BYTE_ARRAY(signature);
+    FREE_BYTE_ARRAY(proof); 
 }

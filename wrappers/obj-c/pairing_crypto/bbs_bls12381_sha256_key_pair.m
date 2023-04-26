@@ -4,23 +4,17 @@
 #import "pairing_crypto_bbs.h"
 #import "bbs_bls12381_sha256_key_pair.h"
 
-/** @brief BBS-Bls12381-Shake256 key pair */
-@interface BbsBls12381Sha256KeyPair ()
-
-/** @brief secret key */
-@property(nonatomic, readwrite) NSData *secretKey;
-
-/** @brief public key */
-@property(nonatomic, readwrite) NSData *publicKey;
-
-@end
-
 @implementation BbsBls12381Sha256KeyPair
+
+@synthesize publicKey;
+
+@synthesize secretKey;
 
 - (void) generateKeyPair:(NSData *_Nullable)ikm
                  keyInfo:(NSData *_Nullable)keyInfo
                 withError:(NSError *_Nullable *_Nullable)errorPtr {
 
+    pairing_crypto_error_t *err = (pairing_crypto_error_t*) malloc(sizeof(pairing_crypto_error_t));
     pairing_crypto_byte_buffer_t ikmBuffer;
     if (ikm != nil) {
         ikmBuffer.len = ikm.length;
@@ -39,20 +33,21 @@
         keyInfoBuffer.len = 0;
     }
 
-    pairing_crypto_byte_buffer_t *publicKey = (pairing_crypto_byte_buffer_t*) malloc(sizeof(pairing_crypto_byte_buffer_t));
-    pairing_crypto_byte_buffer_t *secretKey = (pairing_crypto_byte_buffer_t*) malloc(sizeof(pairing_crypto_byte_buffer_t));
-    pairing_crypto_error_t *err = (pairing_crypto_error_t*) malloc(sizeof(pairing_crypto_error_t));
+    pairing_crypto_byte_buffer_t *sk = (pairing_crypto_byte_buffer_t*) malloc(sizeof(pairing_crypto_byte_buffer_t));
+    pairing_crypto_byte_buffer_t *pk = (pairing_crypto_byte_buffer_t*) malloc(sizeof(pairing_crypto_byte_buffer_t));
 
-    int32_t ret = bbs_bls12_381_sha_256_generate_key_pair(ikmBuffer, keyInfoBuffer, secretKey, publicKey, err);
+    int32_t ret = bbs_bls12_381_sha_256_generate_key_pair(ikmBuffer, keyInfoBuffer, sk, pk, err);
 
     if (ret > 0) {
         *errorPtr = [PairingCryptoError errorFromPairingCryptoError:err];
         return;
     }
 
-    self.publicKey = [[NSData alloc] initWithBytesNoCopy:publicKey->data length:(NSUInteger)publicKey->len freeWhenDone:true];
-    self.secretKey = [[NSData alloc] initWithBytesNoCopy:secretKey->data length:(NSUInteger)secretKey->len freeWhenDone:true];
+    self.secretKey = [[NSData alloc] initWithBytesNoCopy:sk->data length:(NSUInteger)sk->len freeWhenDone:true];
+    self.publicKey = [[NSData alloc] initWithBytesNoCopy:pk->data length:(NSUInteger)pk->len freeWhenDone:true];
 
+    free(pk);
+    free(sk);
     free(err);
 }
 

@@ -4,16 +4,6 @@
 #import "pairing_crypto_bbs.h"
 #import "bbs_key_pair.h"
 
-/** @brief BBS key pair */
-@interface BbsKeyPair ()
-
-/** @brief secret key */
-@property(nonatomic, readwrite) NSData *secretKey;
-
-/** @brief public key */
-@property(nonatomic, readwrite) NSData *publicKey;
-
-@end
 
 @implementation BbsKeyPair
 

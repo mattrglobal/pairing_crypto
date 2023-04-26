@@ -5,10 +5,10 @@
 @interface BbsKeyPair : NSObject
 
 /** @brief secret key */
-@property(nonatomic, readonly) NSData *_Nullable secretKey;
+@property(strong, atomic, readwrite) NSData *_Nullable secretKey;
 
 /** @brief public key */
-@property(nonatomic, readonly) NSData *_Nonnull publicKey;
+@property(strong, atomic, readwrite) NSData *_Nullable publicKey;
 
 /**
  * @brief Generates a new BBS BLS 12-381 key pair by using an IKM and optionally supplied key-info
