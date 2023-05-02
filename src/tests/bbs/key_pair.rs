@@ -341,9 +341,9 @@ fn key_gen_from_erroneous_rng() {
             &mut self,
             _dest: &mut [u8],
         ) -> Result<(), rand::Error> {
-            return Err(rand::Error::new(Error::CryptoOps {
+            Err(rand::Error::new(Error::CryptoOps {
                 cause: "rng error".to_owned(),
-            }));
+            }))
         }
     }
 
@@ -511,4 +511,20 @@ fn public_key_is_valid() {
     assert_eq!(pk.0.to_affine().is_torsion_free().unwrap_u8(), 1u8);
 
     assert_eq!(pk.is_valid().unwrap_u8(), 1u8);
+}
+
+#[test]
+fn test_secret_key_masked_debug_output() {
+    // Secret key gen from IKM
+    let sk = SecretKey::new(TEST_IKM, TEST_KEY_INFO)
+        .expect("secret key gen from IKM failed");
+
+    assert_eq!(format!("{sk:?}"), "****");
+
+    let key_pair = KeyPair::random(&mut OsRng::default(), TEST_KEY_INFO)
+        .expect("random key pair generation failed");
+
+    let key_pair_debug_str = format!("{key_pair:?}");
+
+    assert!(key_pair_debug_str.starts_with("KeyPair { secret_key: ****"));
 }

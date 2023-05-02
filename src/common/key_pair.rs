@@ -13,12 +13,21 @@ macro_rules! bbs_bls_key_pair_impl {
         /// The secret key is field element 0 < `x` < `r`
         /// where `r` is the curve order. See Section 4.3 in
         /// <https://eprint.iacr.org/2016/663.pdf>.
-        #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+        #[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
         pub struct SecretKey(pub Box<Scalar>);
 
         impl Default for SecretKey {
             fn default() -> Self {
                 Self(Box::new(Scalar::zero()))
+            }
+        }
+
+        impl core::fmt::Debug for SecretKey {
+            fn fmt(
+                &self,
+                f: &mut std::fmt::Formatter<'_>,
+            ) -> std::result::Result<(), std::fmt::Error> {
+                write!(f, "****")
             }
         }
 
