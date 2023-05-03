@@ -26,3 +26,9 @@ Compiler will create `pairing_crypto_Bbs.h` with new JNI Methods matching Rust m
 ```bash
 ./gradlew test
 ```
+
+Test with output garbage collection info, useful in detecting memory leaks,
+
+```bash
+./gradlew test -Dorg.gradle.jvmargs=-Xlog:gc+heap=trace:stderr
+```
