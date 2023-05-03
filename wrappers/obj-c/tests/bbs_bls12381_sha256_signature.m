@@ -116,7 +116,7 @@
     NSData *header = [@"Test-Header" dataUsingEncoding:NSUTF8StringEncoding];
     NSArray *messages = [NSArray arrayWithObjects:[[NSData alloc] initWithBase64EncodedString:@"H297BpoOgkfpXc==" options:0], nil];
 
-    NSData *signatureBuffer = [[NSData alloc] initWithBase64EncodedString:@"kTV8dar9xLWQZ5EzaWYqTRmgA6dw6wcrUw5c///crRD2QQPXX9Di+lgCPCLXAA5D8Pytuh6bNSx6k4NZTR9KfSNdaejKl2zTU9poRfzZ2SIskdgSHTZ2y7jLm/UEGKsAs3tticBVj1Pm2GNhQI/OlXQ==" options:0];
+    NSData *signatureBuffer = [[NSData alloc] initWithBase64EncodedString:@"kTV8dar9xLWQZ5EzaWYqTRmgA6dw6wcrUw5c///crRD2QQPXX9Di+lgCPCXAA5D8Pytuh6bNSx6k4NZTR9KfSNdaejKl2zTU9poRfzZ2SIskdgSHTZ2y7jLm/UEGKsAs3tticBVj1Pm2GNhQI/OlXQ==" options:0];
     PCLBbsBls12381Sha256Signature *signature = [[PCLBbsBls12381Sha256Signature alloc] initWithBytes:signatureBuffer
                                                         withError:&error];
 
@@ -125,8 +125,8 @@
                                messages:messages
                               withError:&error];
 
-    XCTAssertEqual(signature.value.length, BBS_BLS12381_SIGNATURE_SIZE);
     XCTAssertFalse(isVerified);
+    XCTAssertEqual(signature.value.length, BBS_BLS12381_SIGNATURE_SIZE);
 }
 
 - (void)testSignThrowErrorWithWrongMessages {
