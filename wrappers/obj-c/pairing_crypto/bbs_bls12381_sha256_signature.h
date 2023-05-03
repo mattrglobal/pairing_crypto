@@ -4,7 +4,7 @@
 #include "bbs_signature.h"
 
 /** @brief BBS-Bls12381-Sha-256 Signature */
-@interface BbsBls12381Sha256Signature : BbsSignature
+@interface PCLBbsBls12381Sha256Signature : PCLBbsSignature
 
 @end
 

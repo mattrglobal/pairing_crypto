@@ -4,7 +4,7 @@
 #include "bbs_key_pair.h"
 
 /** @brief BBS-Bls12381-Sha256 key pair */
-@interface BbsBls12381Sha256KeyPair : BbsKeyPair
+@interface PCLBbsBls12381Sha256KeyPair : PCLPCLBbsKeyPair
 
 @end
 

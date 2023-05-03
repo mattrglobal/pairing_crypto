@@ -5,7 +5,7 @@
 #import "bbs_signature.h"
 
 /** @brief BBS Signature Proof */
-@interface BbsProof : NSObject
+@interface PCLBbsProof : NSObject
 
 /** @brief proof */
 @property(strong, atomic, readwrite) NSData *_Nonnull value;
@@ -22,7 +22,7 @@
 - (nullable instancetype)createProof:(NSData *_Nonnull)publicKey
                               header:(NSData *_Nullable)header
                   presentationHeader:(NSData *_Nullable)presentationHeader
-                           signature:(BbsSignature *_Nonnull)signature
+                           signature:(PCLBbsSignature *_Nonnull)signature
                      verifySignature:(BOOL)verifySignature
                     disclosedIndices:(NSSet *_Nullable)disclosedIndices
                             messages:(NSArray *_Nullable)messages
@@ -40,7 +40,7 @@
 - (void)doCreateProof:(NSData *_Nonnull)publicKey
                 header:(NSData *_Nullable)header
     presentationHeader:(NSData *_Nullable)presentationHeader
-             signature:(BbsSignature *_Nonnull)signature
+             signature:(PCLBbsSignature *_Nonnull)signature
        verifySignature:(BOOL)verifySignature
       disclosedIndices:(NSSet *_Nullable)disclosedIndices
               messages:(NSArray *_Nullable)messages

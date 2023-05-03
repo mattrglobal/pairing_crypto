@@ -2,7 +2,7 @@
 #define bbs_key_pair_h
 
 /** @brief BBS key pair */
-@interface BbsKeyPair : NSObject
+@interface PCLBbsKeyPair : NSObject
 
 /** @brief secret key */
 @property(strong, atomic, readwrite) NSData *_Nullable secretKey;

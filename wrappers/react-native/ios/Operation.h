@@ -5,7 +5,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface RnBaseOperation<In, Out> : NSObject
+@interface RnPairingCryptoBaseOperation<In, Out> : NSObject
 
 - (Out)exec:(In)param error:(NSError **)error;
 
@@ -13,9 +13,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface Operation<In, Out> : RnBaseOperation<In, Out>
+@interface Operation<In, Out> : RnPairingCryptoBaseOperation<In, Out>
 
-+ (RnBaseOperation<In, Out> *)new:(Out(^)(In param, NSError** error))cb;
++ (RnPairingCryptoBaseOperation<In, Out> *)new:(Out(^)(In param, NSError** error))cb;
 
 @end
 

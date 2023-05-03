@@ -4,7 +4,7 @@
 #include "bbs_proof.h"
 
 /** @brief BBS-Bls12381-Shake-256 Proof */
-@interface BbsBls12381Shake256Proof : BbsProof
+@interface PCLBbsBls12381Shake256Proof : PCLBbsProof
 
 @end
 

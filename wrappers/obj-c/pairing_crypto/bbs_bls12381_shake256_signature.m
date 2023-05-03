@@ -5,7 +5,7 @@
 #import "bbs_bls12381_shake256_signature.h"
 
 /** @brief BBS-Bls12381-Shake-256 Signature */
-@implementation BbsBls12381Shake256Signature
+@implementation PCLBbsBls12381Shake256Signature
 
 - (void) createSignature:(NSData *_Nonnull)secretKey
                publicKey:(NSData *_Nonnull)publicKey

@@ -5,7 +5,7 @@
 #import "bbs_signature.h"
 
 /** @brief BBS Signature */
-@implementation BbsSignature
+@implementation PCLBbsSignature
 
 /**
 * @brief Create a BBS signature from the raw bytes.

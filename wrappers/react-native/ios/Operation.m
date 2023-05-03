@@ -3,7 +3,7 @@
 #import "Operation.h"
 #import <React/RCTConvert.h>
 
-@implementation RnBaseOperation
+@implementation RnPairingCryptoBaseOperation
 
 - (void)exec:(id)param withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject {
     NSError* error = nil;
@@ -32,7 +32,7 @@
 
 @implementation Operation
 
-+ (RnBaseOperation *)new:(_Nullable id (^)(_Nullable id param, NSError** error))cb {
++ (RnPairingCryptoBaseOperation *)new:(_Nullable id (^)(_Nullable id param, NSError** error))cb {
     return [[Operation alloc] initWithCallback: cb];
 }
 

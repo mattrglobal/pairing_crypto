@@ -6,7 +6,7 @@
 #import "bbs_signature.h"
 
 /** @brief BBS-Bls12381-Shake-256 Proof */
-@implementation BbsBls12381Shake256Proof
+@implementation PCLBbsBls12381Shake256Proof
 
 @synthesize value;
 
@@ -14,7 +14,7 @@
 - (void) doCreateProof:(NSData *_Nonnull)publicKey
                        header:(NSData *_Nullable)header
           presentationHeader:(NSData *_Nullable)presentationHeader
-                    signature:(BbsSignature *_Nonnull)signature
+                    signature:(PCLBbsSignature *_Nonnull)signature
               verifySignature:(BOOL)verifySignature
              disclosedIndices:(NSSet *_Nullable)disclosedIndices
                      messages:(NSArray *_Nullable)messages

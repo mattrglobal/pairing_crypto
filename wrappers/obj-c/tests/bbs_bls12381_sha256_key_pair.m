@@ -2,11 +2,11 @@
 #import "../pairing_crypto/pairing_crypto_bbs.h"
 #import "../pairing_crypto/bbs_bls12381_sha256_key_pair.h"
 
-@interface BbsKeyPairTests : XCTestCase
+@interface PCLBbsKeyPairTests : XCTestCase
 
 @end
 
-@implementation BbsKeyPairTests
+@implementation PCLBbsKeyPairTests
 
 - (void)testGenerateKeyPairWithKeyInfo {
     NSError *error = nil;
@@ -15,7 +15,7 @@
     NSData *ikm = [[NSData alloc] initWithBase64EncodedString:@"H297BpoOgkfpXcxr1fJyQRiNx1+ZekeQ+OU/AYV/lVxaPXXhFBIbxeIU8kIAAX68cwQ=" options:0];
     NSData *keyInfo = [[NSData alloc] initWithBase64EncodedString:@"H297BpoOgkfpXcxr1fJyQRiNx1+ZekeQ+OU/AYV/lVxaPXXhFBIbxeIU8kIAAX68cwQ=" options:0];
 
-    BbsBls12381Sha256KeyPair *keyPair = [[BbsBls12381Sha256KeyPair alloc] initWithIkm:ikm keyInfo:keyInfo
+    PCLBbsBls12381Sha256KeyPair *keyPair = [[PCLBbsBls12381Sha256KeyPair alloc] initWithIkm:ikm keyInfo:keyInfo
                                                                withError:&error];
 
     XCTAssertEqualObjects(keyPair.publicKey, expectedPublicKey);
@@ -32,7 +32,7 @@
     NSData *ikm = [[NSData alloc] initWithBase64EncodedString:@"H297BpoOgkfpXcxr1fJyQRiNx1+ZekeQ+OU/AYV/lVxaPXXhFBIbxeIU8kIAAX68cwQ=" options:0];
     NSData *keyInfo = nil;
 
-    BbsBls12381Sha256KeyPair *keyPair = [[BbsBls12381Sha256KeyPair alloc] initWithIkm:ikm keyInfo:keyInfo
+    PCLBbsBls12381Sha256KeyPair *keyPair = [[PCLBbsBls12381Sha256KeyPair alloc] initWithIkm:ikm keyInfo:keyInfo
                                                                withError:&error];
 
     XCTAssertEqualObjects(keyPair.publicKey, expectedPublicKey);

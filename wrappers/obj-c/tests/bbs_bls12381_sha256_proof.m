@@ -4,11 +4,11 @@
 #import "../pairing_crypto/bbs_bls12381_sha256_signature.h"
 #import "../pairing_crypto/bbs_bls12381_sha256_proof.h"
 
-@interface BbsProofTests : XCTestCase
+@interface PCLBbsProofTests : XCTestCase
 
 @end
 
-@implementation BbsProofTests
+@implementation PCLBbsProofTests
 
 - (void) testProof {
     NSError *error = nil;
@@ -20,11 +20,11 @@
                          [[NSData alloc] initWithBase64EncodedString:@"dGk5V1loaEVlajg1anc9PQ==" options:0], nil];
     NSData *ikm = [[NSData alloc] initWithBase64EncodedString:@"H297BpoOgkfpXcxr1fJyQRiNx1+ZekeQ+OU/AYV/lVxaPXXhFBIbxeIU8kIAAX68cwQ=" options:0];
     NSData *keyInfo = [[NSData alloc] initWithBase64EncodedString:@"H297BpoOgkfpXcxr1fJyQRiNx1+ZekeQ+OU/AYV/lVxaPXXhFBIbxeIU8kIAAX68cwQ=" options:0];
-    BbsBls12381Sha256KeyPair *keyPair = [[BbsBls12381Sha256KeyPair alloc] initWithIkm:ikm keyInfo:keyInfo
+    PCLBbsBls12381Sha256KeyPair *keyPair = [[PCLBbsBls12381Sha256KeyPair alloc] initWithIkm:ikm keyInfo:keyInfo
                                                                withError:&error];
     BOOL verifySignature = YES;
 
-    BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] sign:keyPair.secretKey
+    PCLBbsBls12381Sha256Signature *signature = [[PCLBbsBls12381Sha256Signature alloc] sign:keyPair.secretKey
                                                publicKey:keyPair.publicKey
                                                   header:header
                                                 messages:messages
@@ -42,7 +42,7 @@
     NSMutableSet *disclosedIndices = [[NSMutableSet alloc] init];
 
     for (int i = 0; i < [messages count]; i++ ) {
-        BbsBls12381Sha256Proof *proof = [[BbsBls12381Sha256Proof alloc] createProof:keyPair.publicKey
+        PCLBbsBls12381Sha256Proof *proof = [[PCLBbsBls12381Sha256Proof alloc] createProof:keyPair.publicKey
                                                                header:header
                                                   presentationHeader:presentationHeader
                                                             signature:signature
