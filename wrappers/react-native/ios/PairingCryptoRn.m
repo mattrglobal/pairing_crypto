@@ -39,7 +39,7 @@ RCT_EXPORT_METHOD(Bls12381Sha256GenerateKeyPair:(NSDictionary *)request
             ikm = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"keyInfo"]]];
         }
 
-        BbsBls12381Sha256KeyPair *keyPair = [[BbsBls12381Sha256KeyPair alloc] initWithIkm:ikm keyInfo:keyInfo
+        PCLBbsBls12381Sha256KeyPair *keyPair = [[PCLBbsBls12381Sha256KeyPair alloc] initWithIkm:ikm keyInfo:keyInfo
                                                                                 withError:error];
 
         return [NSDictionary dictionaryWithObjects:@[[Convert byteArrayFromData:keyPair.publicKey],
@@ -69,7 +69,7 @@ RCT_EXPORT_METHOD(Bls12381Shake256GenerateKeyPair:(NSDictionary *)request
             ikm = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"keyInfo"]]];
         }
 
-        BbsBls12381Shake256KeyPair *keyPair = [[BbsBls12381Shake256KeyPair alloc] initWithIkm:ikm keyInfo:keyInfo
+        PCLBbsBls12381Shake256KeyPair *keyPair = [[PCLBbsBls12381Shake256KeyPair alloc] initWithIkm:ikm keyInfo:keyInfo
                                                                                     withError:error];
 
         return [NSDictionary dictionaryWithObjects:@[[Convert byteArrayFromData:keyPair.publicKey],
@@ -100,7 +100,7 @@ RCT_EXPORT_METHOD(Bls12381Sha256Sign:(NSDictionary *)request
             messages = [Convert dataArrayFromArrayOfByteArrays:[RCTConvert NSArray:request[@"messages"]]];
         }
 
-        BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] sign:secretKey
+        PCLBbsBls12381Sha256Signature *signature = [[PCLBbsBls12381Sha256Signature alloc] sign:secretKey
                                                                                publicKey:publicKey
                                                                                   header:header
                                                                                 messages:messages
@@ -130,7 +130,7 @@ RCT_EXPORT_METHOD(Bls12381Shake256Sign:(NSDictionary *)request
             messages = [Convert dataArrayFromArrayOfByteArrays:[RCTConvert NSArray:request[@"messages"]]];
         }
 
-        BbsBls12381Shake256Signature *signature = [[BbsBls12381Shake256Signature alloc] sign:secretKey
+        PCLBbsBls12381Shake256Signature *signature = [[PCLBbsBls12381Shake256Signature alloc] sign:secretKey
                                                                                    publicKey:publicKey
                                                                                       header:header
                                                                                     messages:messages
@@ -160,7 +160,7 @@ RCT_EXPORT_METHOD(Bls12381Sha256Verify:(NSDictionary *)request
             messages = [Convert dataArrayFromArrayOfByteArrays:[RCTConvert NSArray:request[@"messages"]]];
         }
 
-        BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] initWithBytes:signatureBytes
+        PCLBbsBls12381Sha256Signature *signature = [[PCLBbsBls12381Sha256Signature alloc] initWithBytes:signatureBytes
                                                                                         withError:error];
         return [[NSNumber alloc] initWithBool:[signature verify:publicKey
                                                          header:header
@@ -190,7 +190,7 @@ RCT_EXPORT_METHOD(Bls12381Shake256Verify:(NSDictionary *)request
             messages = [Convert dataArrayFromArrayOfByteArrays:[RCTConvert NSArray:request[@"messages"]]];
         }
 
-        BbsBls12381Shake256Signature *signature = [[BbsBls12381Shake256Signature alloc] initWithBytes:signatureBytes
+        PCLBbsBls12381Shake256Signature *signature = [[PCLBbsBls12381Shake256Signature alloc] initWithBytes:signatureBytes
                                                                                             withError:error];
 
         bool isVerified = [signature verify:publicKey
@@ -235,7 +235,7 @@ RCT_EXPORT_METHOD(Bls12381Sha256ProofVerify:(NSDictionary *)request
             }
         }
 
-        BbsBls12381Sha256Proof *proof = [[BbsBls12381Sha256Proof alloc] initWithBytes:proofBytes
+        PCLBbsBls12381Sha256Proof *proof = [[PCLBbsBls12381Sha256Proof alloc] initWithBytes:proofBytes
                                                                             withError:error];
 
         bool isVerified = [proof verifyProof:publicKey
@@ -279,7 +279,7 @@ RCT_EXPORT_METHOD(Bls12381Shake256ProofVerify:(NSDictionary *)request
             }
         }
 
-        BbsBls12381Shake256Proof *proof = [[BbsBls12381Shake256Proof alloc] initWithBytes:proofBytes
+        PCLBbsBls12381Shake256Proof *proof = [[PCLBbsBls12381Shake256Proof alloc] initWithBytes:proofBytes
                                                                                 withError:error];
 
         bool isVerified = [proof verifyProof:publicKey
@@ -332,10 +332,10 @@ RCT_EXPORT_METHOD(Bls12381Sha256ProofGen:(NSDictionary *)request
             }
         }
 
-        BbsBls12381Sha256Signature *signature = [[BbsBls12381Sha256Signature alloc] initWithBytes:signatureBytes
+        PCLBbsBls12381Sha256Signature *signature = [[PCLBbsBls12381Sha256Signature alloc] initWithBytes:signatureBytes
                                                                                         withError:error];
 
-        BbsBls12381Sha256Proof *proof = [[BbsBls12381Sha256Proof alloc] createProof:publicKey
+        PCLBbsBls12381Sha256Proof *proof = [[PCLBbsBls12381Sha256Proof alloc] createProof:publicKey
                                                                              header:header
                                                                  presentationHeader:presentationHeader
                                                                           signature:signature
@@ -388,10 +388,10 @@ RCT_EXPORT_METHOD(Bls12381Shake256ProofGen:(NSDictionary *)request
             }
         }
 
-        BbsBls12381Shake256Signature *signature = [[BbsBls12381Shake256Signature alloc] initWithBytes:signatureBytes
+        PCLBbsBls12381Shake256Signature *signature = [[PCLBbsBls12381Shake256Signature alloc] initWithBytes:signatureBytes
                                                                                             withError:error];
 
-        BbsBls12381Shake256Proof *proof = [[BbsBls12381Shake256Proof alloc] createProof:publicKey
+        PCLBbsBls12381Shake256Proof *proof = [[PCLBbsBls12381Shake256Proof alloc] createProof:publicKey
                                                                                  header:header
                                                                      presentationHeader:presentationHeader
                                                                               signature:signature

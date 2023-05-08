@@ -4,7 +4,7 @@
 #include "bbs_key_pair.h"
 
 /** @brief BBS Signature */
-@interface BbsSignature : NSObject
+@interface PCLBbsSignature : NSObject
 
 /** @brief signature */
 @property(strong, atomic, readwrite) NSData *_Nonnull value;

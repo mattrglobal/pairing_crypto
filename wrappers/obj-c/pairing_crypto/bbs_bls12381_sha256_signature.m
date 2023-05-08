@@ -5,7 +5,7 @@
 #import "bbs_bls12381_sha256_signature.h"
 
 /** @brief BBS-Bls12381-Sha-256 Signature */
-@implementation BbsBls12381Sha256Signature
+@implementation PCLBbsBls12381Sha256Signature
 
 @synthesize value;
 

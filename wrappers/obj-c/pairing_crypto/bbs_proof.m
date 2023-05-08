@@ -5,7 +5,7 @@
 #import "bbs_proof.h"
 
 /** @brief A BBS Proof */
-@implementation BbsProof
+@implementation PCLBbsProof
 
 /** @brief Create a BBS proof from the raw bytes. */
 - (nullable instancetype)initWithBytes:(NSData* _Nonnull)bytes
@@ -20,7 +20,7 @@
 - (nullable instancetype)createProof:(NSData *_Nonnull)publicKey
                               header:(NSData *_Nullable)header
                  presentationHeader:(NSData *_Nullable)presentationHeader
-                           signature:(BbsSignature *_Nonnull)signature
+                           signature:(PCLBbsSignature *_Nonnull)signature
                      verifySignature:(BOOL)verifySignature
                     disclosedIndices:(NSSet *_Nullable)disclosedIndices
                             messages:(NSArray *_Nullable)messages
@@ -63,7 +63,7 @@ presentationHeader:(NSData *_Nullable)presentationHeader
 - (void) doCreateProof:(NSData *_Nonnull)publicKey
                        header:(NSData *_Nullable)header
           presentationHeader:(NSData *_Nullable)presentationHeader
-                    signature:(BbsSignature *_Nonnull)signature
+                    signature:(PCLBbsSignature *_Nonnull)signature
               verifySignature:(BOOL)verifySignature
              disclosedIndices:(NSSet *_Nullable)disclosedIndices
                      messages:(NSArray *_Nullable)messages

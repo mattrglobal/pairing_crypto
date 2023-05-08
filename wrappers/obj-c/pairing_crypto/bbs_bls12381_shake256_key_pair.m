@@ -4,7 +4,7 @@
 #import "pairing_crypto_bbs.h"
 #import "bbs_bls12381_shake256_key_pair.h"
 
-@implementation BbsBls12381Shake256KeyPair
+@implementation PCLBbsBls12381Shake256KeyPair
 
 @synthesize publicKey;
 

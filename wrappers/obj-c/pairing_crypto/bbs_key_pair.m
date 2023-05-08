@@ -5,7 +5,7 @@
 #import "bbs_key_pair.h"
 
 
-@implementation BbsKeyPair
+@implementation PCLBbsKeyPair
 
 - (nullable instancetype)initWithIkm:(NSData *_Nullable)ikm
                              keyInfo:(NSData *_Nullable)keyInfo
