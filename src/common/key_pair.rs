@@ -1,5 +1,4 @@
-#[macro_export]
-/// Key-pair implementation.
+// Key-pair implementation.
 macro_rules! bbs_bls_key_pair_impl {
     (
         $min_key_gen_ikm_length:ident,
@@ -54,9 +53,9 @@ macro_rules! bbs_bls_key_pair_impl {
             pub const SIZE_BYTES: usize = $octet_scalar_length;
 
             /// Computes a secret key from an IKM, as defined by
-            /// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.3
+            /// <https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.3>
             /// Note this procedure does not follow
-            /// https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-keygen
+            /// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-keygen>
             pub fn new(ikm_in: &[u8], key_info: &[u8]) -> Option<Self> {
                 let mut random_ikm = [0u8; $min_key_gen_ikm_length];
 
@@ -270,3 +269,5 @@ macro_rules! bbs_bls_key_pair_impl {
         }
     };
 }
+
+pub(crate) use bbs_bls_key_pair_impl;

@@ -1,8 +1,10 @@
 use crate::{
     bbs::ciphersuites::BbsCiphersuiteParameters,
-    curves::bls12_381::{Scalar, OCTET_SCALAR_LENGTH},
+    curves::{
+        bls12_381::{Scalar, OCTET_SCALAR_LENGTH},
+        scalar_type::scalar_wrapper,
+    },
     error::Error,
-    scalar_wrapper,
 };
 use serde::{Deserialize, Serialize};
 use subtle::CtOption;
