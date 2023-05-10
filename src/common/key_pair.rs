@@ -9,9 +9,10 @@ macro_rules! bbs_bls_key_pair_impl {
         $generate_sk:ident,
         $sk_to_pk_fn:ident
     ) => {
-        /// The secret key is field element 0 < `x` < `r`
-        /// where `r` is the curve order. See Section 4.3 in
-        /// <https://eprint.iacr.org/2016/663.pdf>.
+        /// Secret key type.
+        // The secret key is field element 0 < `x` < `r`
+        // where `r` is the curve order. See Section 4.3 in
+        // <https://eprint.iacr.org/2016/663.pdf>.
         #[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
         pub struct SecretKey(pub Box<Scalar>);
 
@@ -135,7 +136,7 @@ macro_rules! bbs_bls_key_pair_impl {
             }
         }
 
-        /// A BBS public key.
+        /// Public key type.
         #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
         pub struct PublicKey(pub(crate) $point_projective_type);
 

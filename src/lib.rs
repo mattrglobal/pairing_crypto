@@ -12,7 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ------------------------------------------------------------------------------
+//! This library is a simple and easy to use one stop shop
+//! for some of the [pairing-based cryptography](https://en.wikipedia.org/wiki/Pairing-based_cryptography) primitives
+//! written in [Rust](rust-lang.org).
 //!
+//! This example shows a quick way to get started with BBS Signature from
+//! Pairing Crypto Library.
+//!
+//! ```toml
+//! [dependencies]
+//! pairing_crypto = { version = "0.2.0", default-features = false }
+//! ```
+//!
+//! ```rust
+#![doc = include_str!("../examples/bbs_simple.rs")]
+//! ```
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![warn(missing_docs, rustdoc::missing_crate_level_docs, rust_2018_idioms)]
