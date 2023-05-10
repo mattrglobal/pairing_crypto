@@ -1,3 +1,5 @@
+[![MATTR](./docs/assets/mattr-logo-square.svg)](https://github.com/mattrglobal)
+
 # Pairing Cryptography
 
 This library is a simple and easy to use one stop shop for [pairing-based cryptography](https://en.wikipedia.org/wiki/Pairing-based_cryptography) written in [Rust](rust-lang.org).
@@ -35,3 +37,12 @@ Below is an outline of the repositories structure
 ├── wrappers - Bindings to other languages
 ├── benches - Benchmarks
 ```
+
+## Security Policy
+
+Please see our [security policy](./SECURITY.md) for additional details about responsible disclosure of security related
+issues.
+
+---
+
+<p align="center"><a href="https://mattr.global" target="_blank"><img height="40px" src ="./docs/assets/mattr-logo-tm.svg"></a></p><p align="center">Copyright © MATTR Limited. <a href="./LICENSE">Some rights reserved.</a><br/>“MATTR” is a trademark of MATTR Limited, registered in New Zealand and other countries.</p>
