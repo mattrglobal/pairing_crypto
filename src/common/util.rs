@@ -17,7 +17,6 @@ pub(crate) use print_byte_array;
 pub fn vec_to_byte_array<const N: usize>(
     vec: &Vec<u8>,
 ) -> Result<[u8; N], Error> {
-    use core::convert::TryFrom;
     let data_len = vec.len();
     match <[u8; N]>::try_from(vec.clone()) {
         Ok(result) => Ok(result),

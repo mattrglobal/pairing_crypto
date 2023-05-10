@@ -46,7 +46,7 @@ fn get_random_key_pair() -> ([u8; 32], [u8; 96]) {
 }
 
 fn profile_key_gen(c: &mut Criterion) {
-    c.bench_function(&format!("profile - key_gen"), |b| {
+    c.bench_function("profile - key_gen", |b| {
         b.iter(|| {
             KeyPair::new(black_box(KEY_GEN_SEED), black_box(TEST_KEY_INFOS))
                 .map(|key_pair| {
