@@ -61,7 +61,7 @@ macro_rules! bbs_bls_key_pair_impl {
                 let mut random_ikm = [0u8; $min_key_gen_ikm_length];
 
                 let ikm = if ikm_in.is_empty() {
-                    let mut rng = rand_core::OsRng::default();
+                    let mut rng = rand_core::OsRng;
                     if rng.try_fill_bytes(&mut random_ikm).is_err() {
                         return None;
                     }

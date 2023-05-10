@@ -107,13 +107,7 @@ impl Proof {
         C: BbsCiphersuiteParameters,
     {
         Self::new_with_rng::<_, _, _, C>(
-            PK,
-            signature,
-            header,
-            ph,
-            generators,
-            messages,
-            OsRng::default(),
+            PK, signature, header, ph, generators, messages, OsRng,
         )
     }
     /// Generates the zero-knowledge proof-of-knowledge of a signature, while
