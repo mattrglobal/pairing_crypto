@@ -58,11 +58,20 @@ jobs:
           command: check
           toolchain: stable
 
+      - name: Run cargo doc
+        uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
+        with:
+          command: doc
+          args: --no-deps --all-features
+          toolchain: nightly
+
       - name: Run cargo audit
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
           command: audit
           toolchain: stable
+        env:
+          RUSTDOCFLAGS: --cfg docsrs
 
       - name: Install cargo-deny
         run: cargo install cargo-deny
@@ -84,7 +93,7 @@ jobs:
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
           command: test
-          args: '--release'
+          args: "--release"
           toolchain: stable
 
       - name: Check benchmarks
@@ -105,6 +114,5 @@ jobs:
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
           command: test
-          args: '--release'
+          args: "--release"
           toolchain: stable
-     
