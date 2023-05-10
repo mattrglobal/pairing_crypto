@@ -10,7 +10,7 @@ version = "0.2.0"
 default = []
 alloc = []
 wasm = ["alloc", "getrandom"]
-__private_generator_api = []
+# feature to expose internal APIs to build fixture-generation tools
 __private_bbs_fixtures_generator_api = []
 
 [dependencies]
@@ -63,3 +63,7 @@ members = [
     "wrappers/java/jni",
     "wrappers/wasm"
 ]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

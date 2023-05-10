@@ -82,6 +82,7 @@ where
 /// Generate a BLS12-381-G1-Sha-256 BBS signature proof of knowledge with
 /// a given rng.
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
+#[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
 pub fn proof_gen_with_rng<T, R>(
     request: &BbsProofGenRequest<'_, T>,
     rng: R,
@@ -111,7 +112,8 @@ where
 }
 
 /// Create generators.
-#[cfg(feature = "__private_generator_api")]
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
+#[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
 pub fn create_generators(
     count: usize,
     private_holder_binding: Option<bool>,
@@ -126,6 +128,7 @@ use crate::curves::bls12_381::OCTET_SCALAR_LENGTH;
 
 /// Hash to scalar.
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
+#[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
 pub fn hash_to_scalar(
     msg_octets: &[u8],
     dst: Option<&[u8]>,
@@ -141,6 +144,7 @@ pub fn hash_to_scalar(
 
 /// Map message to scalar as hash.
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
+#[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
 pub fn map_message_to_scalar_as_hash(
     message: &[u8],
     dst: Option<&[u8]>,
@@ -158,18 +162,21 @@ pub fn map_message_to_scalar_as_hash(
 
 /// Return the default hash to scalar dst.
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
+#[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
 pub fn default_hash_to_scalar_dst() -> Vec<u8> {
     Bls12381Shake256CipherSuiteParameter::default_hash_to_scalar_dst()
 }
 
 /// Return the default map message to scalar as hash dst.
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
+#[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
 pub fn default_map_message_to_scalar_as_hash_dst() -> Vec<u8> {
     Bls12381Shake256CipherSuiteParameter::default_map_message_to_scalar_as_hash_dst()
 }
 
 /// Get ciphersuite id.
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
+#[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
 pub fn ciphersuite_id() -> Vec<u8> {
     Bls12381Shake256CipherSuiteParameter::ID
         .as_octets()

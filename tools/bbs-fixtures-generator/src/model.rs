@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 
 use crate::sha256_bbs_key_gen_tool;
-use pairing_crypto::bbs::{
-    ciphersuites::bls12_381::KeyPair,
-    core::key_pair::{PublicKey, SecretKey},
+use pairing_crypto::bbs::ciphersuites::bls12_381::{
+    KeyPair,
+    PublicKey,
+    SecretKey,
 };
 use serde::{
     de::{self, MapAccess},

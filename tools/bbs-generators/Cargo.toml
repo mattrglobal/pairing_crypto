@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies.pairing_crypto]
 version = "0.2.0"
 path = "../../"
-features = ["__private_generator_api"]
+features = ["__private_bbs_fixtures_generator_api"]
 
 [dependencies]
 clap = { version = "3.2.12", features = ["derive"] }

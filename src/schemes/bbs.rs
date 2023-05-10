@@ -1,8 +1,4 @@
 pub(crate) mod api;
-
-/// Core implementation of BBS scheme.
-pub mod core;
-
 pub use crate::schemes::bbs::api::dtos::{
     BbsProofGenRequest,
     BbsProofGenRevealMessageRequest,
@@ -10,6 +6,9 @@ pub use crate::schemes::bbs::api::dtos::{
     BbsSignRequest,
     BbsVerifyRequest,
 };
+
+// Core implementation of BBS scheme.
+pub(crate) mod core;
 
 /// BBS ciphersuites abstraction over core implementation.
 pub mod ciphersuites;
