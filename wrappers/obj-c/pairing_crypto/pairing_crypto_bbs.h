@@ -19,7 +19,7 @@
 #define BBS_BLS12381_PUBLIC_KEY_SIZE (96)
 
 /** BBS BLS12-381 Signature Size */
-#define BBS_BLS12381_SIGNATURE_SIZE (112)
+#define BBS_BLS12381_SIGNATURE_SIZE (80)
 
 /* Used for receiving a pairing_crypto_byte_buffer_t from C that was allocated by either C or Rust.
  *  If Rust allocated, then the outgoing struct is `ffi_support::pairing_crypto_byte_buffer_t`

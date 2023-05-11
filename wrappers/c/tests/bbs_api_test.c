@@ -138,7 +138,7 @@ int main(int argc, char **argv)
     if (signature->length != 90)
     { // TODO dont hardcode
         printf("fail\n");
-        printf("Expected %d, found %lu\n", 90, signature->length);
+        printf("Expected %d, found %lu\n", 80, signature->length);
         goto Exit;
     }
     printf("pass\n");

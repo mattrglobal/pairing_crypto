@@ -17,7 +17,7 @@ const wasm = require('./wasm_module.js');
 // TODO should be able to remove this duplicate definition syntax by using ESM over index.web.js
 // in future
 
-const DEFAULT_BLS12381_BBS_SIGNATURE_LENGTH = 112;
+const DEFAULT_BLS12381_BBS_SIGNATURE_LENGTH = 80;
 
 const DEFAULT_BLS12381_PRIVATE_KEY_LENGTH = 32;
 

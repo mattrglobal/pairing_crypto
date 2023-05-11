@@ -58,7 +58,7 @@ export namespace bbs {
   namespace bls12381_shake256 {
     const PRIVATE_KEY_LENGTH = 32;
     const PUBLIC_KEY_LENGTH = 96;
-    const SIGNATURE_LENGTH = 90;
+    const SIGNATURE_LENGTH = 80;
 
     function generateKeyPair(
       request?: KeyGenerationRequest
@@ -76,10 +76,10 @@ export namespace bbs_bound {
   namespace bls12381_bbs_g1_bls_sig_g2_sha256 {
     const BBS_PRIVATE_KEY_LENGTH = 32;
     const BBS_PUBLIC_KEY_LENGTH = 96;
-    const BBS_SIGNATURE_LENGTH = 90;
+    const BBS_SIGNATURE_LENGTH = 80;
     const BLS_PRIVATE_KEY_LENGTH = 32;
     const BLS_PUBLIC_KEY_LENGTH = 96;
-    const BLS_KEY_POP_LENGTH = 90;
+    const BLS_KEY_POP_LENGTH = 96;
 
     function generateBbsKeyPair(
       request?: KeyGenerationRequest
