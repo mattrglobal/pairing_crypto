@@ -74,8 +74,7 @@ fn write_generators_to_file(generators: &[Vec<u8>], file_name: PathBuf) {
     let file_path = path.join(file_name);
     let file = File::create(file_path).unwrap();
 
-    let result: Vec<String> =
-        generators.iter().map(|item| hex::encode(item)).collect();
+    let result: Vec<String> = generators.iter().map(hex::encode).collect();
 
     let mut writer = BufWriter::new(file);
     serde_json::to_writer_pretty(&mut writer, &result).unwrap();

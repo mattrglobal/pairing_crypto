@@ -33,9 +33,9 @@ where
     where
         T: AsRef<[u8]>,
     {
-        let dst = dst.as_ref();
+        let dst = dst;
         let seed = seed.as_ref();
-        let expand_len = expand_len.unwrap_or(1 as usize);
+        let expand_len = expand_len.unwrap_or(1_usize);
         let expand_len = count * expand_len;
         let init_v = E::init_expand(seed, dst, expand_len);
         MockRng { v: init_v }

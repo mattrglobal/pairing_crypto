@@ -94,8 +94,8 @@ mod tests {
 
     // expected bbs key pair
     const SHA256_TEST_KEY_PAIR: TestKeyPair = TestKeyPair {
-        secret_key: &"4a39afffd624d69e81808b2e84385cc80bf86adadf764e030caa46c231f2a8d7",
-        public_key: &"aaff983278257afc45fa9d44d156c454d716fb1a250dfed132d65b2009331f618c623c14efa16245f50cc92e60334051087f1ae92669b89690f5feb92e91568f95a8e286d110b011e9ac9923fd871238f57d1295395771331ff6edee43e4ccc6"
+        secret_key: "4a39afffd624d69e81808b2e84385cc80bf86adadf764e030caa46c231f2a8d7",
+        public_key: "aaff983278257afc45fa9d44d156c454d716fb1a250dfed132d65b2009331f618c623c14efa16245f50cc92e60334051087f1ae92669b89690f5feb92e91568f95a8e286d110b011e9ac9923fd871238f57d1295395771331ff6edee43e4ccc6"
     };
 
     // ikm and key info to bytes
@@ -108,10 +108,9 @@ mod tests {
 
     fn kdf_test_helper() -> KeyPair {
         let (key_ikm, key_info) = get_test_asset();
-        let key_pair = sha256_bbs_key_gen_tool(&key_ikm, &key_info)
-            .expect("Key pair generation failed");
 
-        key_pair
+        sha256_bbs_key_gen_tool(&key_ikm, &key_info)
+            .expect("Key pair generation failed")
     }
 
     // validate that the kdf with the BLS salt will return the same

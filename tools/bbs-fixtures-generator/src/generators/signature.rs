@@ -14,7 +14,7 @@ use pairing_crypto::bbs::{
     BbsVerifyRequest,
 };
 use rand::{prelude::SliceRandom, thread_rng};
-use std::path::PathBuf;
+use std::path::Path;
 
 use crate::{
     model::{ExpectedResult, FixtureGenInput, FixtureSignature},
@@ -215,7 +215,7 @@ macro_rules! validate_signature_fixture {
     };
 }
 
-pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
+pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &Path) {
     generate_signature_fixture!(
         bls12_381_sha_256_sign,
         bls12_381_sha_256_verify,

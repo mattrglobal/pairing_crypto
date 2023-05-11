@@ -52,9 +52,9 @@ macro_rules! sign_benchmark_generator {
             let header = TEST_HEADER.as_ref();
             let (secret_key, public_key) = get_random_key_pair();
 
-            for num_messages in vec![1, 10, 100, 1000] {
+            for num_messages in &[1, 10, 100, 1000] {
                 // generating random 100 bytes messages
-                let mut messages = vec![[0u8; 100]; num_messages];
+                let mut messages = vec![[0u8; 100]; *num_messages];
                 for m in messages.iter_mut() {
                     rand::thread_rng().fill_bytes(m);
                 }
@@ -89,9 +89,9 @@ macro_rules! verify_benchmark_generator {
             let (secret_key, public_key) = get_random_key_pair();
 
             let mut group = c.benchmark_group("BBS-Verify");
-            for num_messages in vec![1, 10, 100, 1000] {
+            for num_messages in &[1, 10, 100, 1000] {
                 // generating random 100 bytes messages
-                let mut messages = vec![[0u8; 100]; num_messages];
+                let mut messages = vec![[0u8; 100]; *num_messages];
                 for m in messages.iter_mut() {
                     rand::thread_rng().fill_bytes(m);
                 }
@@ -136,10 +136,10 @@ macro_rules! proof_gen_benchmark_generator {
 
             let mut group =
                 c.benchmark_group("BBS-Proof-Gen-Half-Disclosed-Messages");
-            for num_messages in vec![1, 10, 100, 1000] {
+            for num_messages in &[1, 10, 100, 1000] {
                 let num_revealed_messages = num_messages / 2;
                 // generating random 100 bytes messages
-                let mut messages = vec![[0u8; 100]; num_messages];
+                let mut messages = vec![[0u8; 100]; *num_messages];
                 for m in messages.iter_mut() {
                     rand::thread_rng().fill_bytes(m);
                 }
@@ -214,10 +214,10 @@ macro_rules! proof_verify_benchmark_generator {
 
             let mut group =
                 c.benchmark_group("BBS-Proof-Verify-Half-Disclosed-Messages");
-            for num_messages in vec![1, 10, 100, 1000] {
+            for num_messages in &[1, 10, 100, 1000] {
                 let num_revealed_messages = num_messages / 2;
                 // generating random 100 bytes messages
-                let mut messages = vec![[0u8; 100]; num_messages];
+                let mut messages = vec![[0u8; 100]; *num_messages];
                 for m in messages.iter_mut() {
                     rand::thread_rng().fill_bytes(m);
                 }
