@@ -39,6 +39,11 @@ pub(crate) trait BbsCiphersuiteParameters:
         [Self::ID.as_octets(), b"BP_MESSAGE_GENERATOR_SEED"].concat()
     }
 
+    // The Q_r base point generator seed.
+    fn qr_generator_seed() -> Vec<u8> {
+        [Self::ID.as_octets(), b"QR_GENERATOR_POINT_SEED"].concat()
+    }
+
     /// Seed DST which is used by the `create_generators ` operation.
     fn generator_seed_dst() -> Vec<u8> {
         [Self::ID.as_octets(), b"SIG_GENERATOR_SEED_"].concat()
@@ -66,6 +71,19 @@ pub(crate) trait BbsCiphersuiteParameters:
     /// Point on G2 to be used during signature and proof verification.
     fn p2() -> G2Projective {
         G2Projective::generator()
+    }
+
+    /// Point on G1 to be used in proof generation and verification.
+    fn q_r() -> Result<G1Projective, Error> {
+        let mut n = 1;
+        let mut v = [0u8; XOF_NO_OF_BYTES];
+        Ok(Self::create_generators(
+            &Self::qr_generator_seed(),
+            1,
+            &mut n,
+            &mut v,
+            true,
+        )?[0])
     }
 
     /// Create generators as specified in BBS specification.

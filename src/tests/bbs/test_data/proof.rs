@@ -24,8 +24,7 @@ use crate::{
         get_random_test_messages,
         proof::test_helper,
         test_generators_random_message_generators,
-        test_generators_random_q_1,
-        test_generators_random_q_2,
+        test_generators_random_q,
         ANOTHER_TEST_HEADER,
         TEST_HEADER,
         TEST_PRESENTATION_HEADER_1,
@@ -1149,15 +1148,14 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
         BTreeMap<usize, Message>,
     ),
     &'static str,
-); 15] {
+); 14] {
     const NUM_MESSAGES: usize = 5;
     let key_pair = get_random_test_key_pair();
     let header = Some(TEST_HEADER.as_ref());
     let ph = Some(TEST_PRESENTATION_HEADER_1.as_ref());
     let messages = get_random_test_messages(NUM_MESSAGES);
     let mut generators = create_generators_helper(messages.len());
-    let generators_different_q_1 = test_generators_random_q_1(messages.len());
-    let generators_different_q_2 = test_generators_random_q_2(messages.len());
+    let generators_different_q = test_generators_random_q(messages.len());
     let generators_different_message_generators =
         test_generators_random_message_generators(messages.len());
 
@@ -1413,21 +1411,10 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 key_pair.public_key,
                 header,
                 ph,
-                generators_different_q_1,
+                generators_different_q,
                 revealed_messages.clone(),
             ),
-            "Q_1 value of generators is different",
-        ),
-        (
-            (
-                proof_all_hidden_messages.clone(),
-                key_pair.public_key,
-                header,
-                ph,
-                generators_different_q_2,
-                revealed_messages.clone(),
-            ),
-            "Q_2 value of generators is different",
+            "Q value of generators is different",
         ),
         (
             (

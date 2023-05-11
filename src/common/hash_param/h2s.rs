@@ -106,9 +106,9 @@ pub(crate) trait HashToScalarParameter: ExpandMessageParameter {
         Self::hash_to_scalar(message, Some(dst))
     }
 
-    /// Hash the input octets to 2 scalar values representing the e and s
-    /// components of a BBS signature.
-    fn hash_to_e_s(input_octets: &[u8]) -> Result<(Scalar, Scalar), Error> {
+    /// Hash the input octets to scalar values representing the e component of a
+    /// BBS signature.
+    fn hash_to_e(input_octets: &[u8]) -> Result<Scalar, Error> {
         let e_s_dst =
             [Self::ID.as_octets(), DST_SUFFIX_HASH_TO_E_S.as_bytes()].concat();
         let mut expander = Self::Expander::init_expand(
@@ -124,10 +124,6 @@ pub(crate) trait HashToScalarParameter: ExpandMessageParameter {
         expander.read_into(&mut buf);
         let e = Self::hash_to_scalar(&buf, None)?;
 
-        // calculate s
-        expander.read_into(&mut buf);
-        let s = Self::hash_to_scalar(&buf, None)?;
-
-        Ok((e, s))
+        Ok(e)
     }
 }

@@ -32,8 +32,7 @@ use crate::{
         get_random_test_key_pair,
         get_test_messages,
         test_generators_random_message_generators,
-        test_generators_random_q_1,
-        test_generators_random_q_2,
+        test_generators_random_q,
         EXPECTED_SIGNATURE,
         EXPECTED_SIGNATURE_NO_HEADER,
     },
@@ -48,13 +47,13 @@ use subtle::{Choice, ConditionallySelectable};
 
 #[test]
 fn debug_display() {
-    let mut signature = Signature::default();
-    signature.A = G1Projective::identity();
-    signature.e = Scalar::one();
-    signature.s = Scalar::zero();
+    let signature = Signature {
+        A: G1Projective::identity(),
+        e: Scalar::one(),
+    };
 
-    assert_eq!(format!("{:?}", signature), "Signature { A: G1Projective { x: Fp(0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000), y: Fp(0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000), z: Fp(0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000) }, e: Scalar(0x0000000000000000000000000000000000000000000000000000000000000001), s: Scalar(0x0000000000000000000000000000000000000000000000000000000000000000) }");
-    assert_eq!(format!("{}", signature), "Signature(A: 0xc00x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x00, e: Scalar(0x0000000000000000000000000000000000000000000000000000000000000001), s: Scalar(0x0000000000000000000000000000000000000000000000000000000000000000))");
+    assert_eq!(format!("{:?}", signature), "Signature { A: G1Projective { x: Fp(0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000), y: Fp(0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000), z: Fp(0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000) }, e: Scalar(0x0000000000000000000000000000000000000000000000000000000000000001) }");
+    assert_eq!(format!("{}", signature), "Signature(A: 0xc00x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x000x00, e: Scalar(0x0000000000000000000000000000000000000000000000000000000000000001))");
 }
 
 #[test]
@@ -74,17 +73,14 @@ fn sign_verify_serde_nominal() {
         )
         .expect("signing failed");
 
-    assert_eq!(
-        signature
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                &key_pair.public_key,
-                header,
-                &generators,
-                &messages
-            )
-            .expect("verification failed"),
-        true
-    );
+    assert!(signature
+        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            &key_pair.public_key,
+            header,
+            &generators,
+            &messages
+        )
+        .expect("verification failed"),);
 
     let signature_octets = signature.to_octets();
     let signature_from_deserialization =
@@ -95,17 +91,14 @@ fn sign_verify_serde_nominal() {
         "signature serde failed"
     );
 
-    assert_eq!(
-        signature_from_deserialization
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                &key_pair.public_key,
-                header,
-                &generators,
-                &messages
-            )
-            .expect("signature verification failed after serde"),
-        true
-    );
+    assert!(signature_from_deserialization
+        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            &key_pair.public_key,
+            header,
+            &generators,
+            &messages
+        )
+        .expect("signature verification failed after serde"),);
 }
 
 #[test]
@@ -131,17 +124,14 @@ fn sign_verify_no_header() {
         get_expected_signature(EXPECTED_SIGNATURE_NO_HEADER);
     assert_eq!(signature, expected_signature);
 
-    assert_eq!(
-        signature
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                &pk,
-                None::<&[u8]>,
-                &generators,
-                &messages
-            )
-            .expect("verification failed"),
-        true
-    );
+    assert!(signature
+        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            &pk,
+            None::<&[u8]>,
+            &generators,
+            &messages
+        )
+        .expect("verification failed"),);
 }
 
 #[test]
@@ -164,17 +154,14 @@ fn sign_verify_different_key_infos() {
         .expect("signing failed");
         // println!("{:?},", hex::encode(signature.to_octets()));
 
-        assert_eq!(
-            signature
-                .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                    &pk,
-                    Some(&TEST_HEADER),
-                    &generators,
-                    &messages
-                )
-                .unwrap(),
-            true
-        );
+        assert!(signature
+            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+                &pk,
+                Some(&TEST_HEADER),
+                &generators,
+                &messages
+            )
+            .unwrap());
         let expected_signature_i =
             get_expected_signature(EXPECTED_SIGNATURES[i]);
         assert_eq!(signature, expected_signature_i);
@@ -375,19 +362,18 @@ fn sign_verify_valid_cases() {
     {
         let signature =
             Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                sk, &pk, header, generators, &messages,
+                sk, pk, header, generators, &messages,
             )
-            .expect(&format!("signing should pass - {failure_debug_message}"));
-        assert_eq!(
-            signature
-                .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                    &pk, header, generators, &messages
-                )
-                .expect(&format!(
-                    "verification should pass - {failure_debug_message}"
-                )),
-            true
-        );
+            .unwrap_or_else(|_| {
+                panic!("signing should pass - {failure_debug_message}")
+            });
+        assert!(signature
+            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+                pk, header, generators, &messages
+            )
+            .unwrap_or_else(|_| panic!(
+                "verification should pass - {failure_debug_message}"
+            )),);
     }
 
     // Public key validity is not checked during signing
@@ -398,10 +384,10 @@ fn sign_verify_valid_cases() {
         &generators,
         &messages,
     )
-    .expect(&format!(
+    .expect(
         "signing should pass - public key validity is not checked during \
-         signing"
-    ));
+         signing",
+    );
 }
 
 #[test]
@@ -422,17 +408,14 @@ fn signature_new_invalid_parameters() {
         Bls12381Shake256CipherSuiteParameter,
     >(&sk, &pk, header, &generators, &messages)
     .expect("signing failed");
-    assert_eq!(
-        signature
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                &pk,
-                header,
-                &generators,
-                &messages
-            )
-            .expect("verification failed"),
-        true
-    );
+    assert!(signature
+        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            &pk,
+            header,
+            &generators,
+            &messages
+        )
+        .expect("verification failed"),);
 
     // [(SK, PK, header, generators, messages, result, failure-debug-message)]
     let test_data = [
@@ -558,7 +541,7 @@ fn signature_new_invalid_parameters() {
     {
         let result =
             Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                sk, &pk, header, generators, &messages,
+                sk, pk, header, generators, &messages,
             );
         assert_eq!(
             result,
@@ -587,22 +570,19 @@ fn verify_tampered_signature() {
             &messages,
         )
         .expect("signing failed");
-    assert_eq!(
-        signature
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                &key_pair.public_key,
-                header,
-                &generators,
-                &messages
-            )
-            .expect("verification failed"),
-        true
-    );
+    assert!(signature
+        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            &key_pair.public_key,
+            header,
+            &generators,
+            &messages
+        )
+        .expect("verification failed"),);
 
     let mut tampered_signature = signature;
     tampered_signature.A = G1Projective::random(&mut OsRng);
-    assert_eq!(
-        tampered_signature
+    assert!(
+        !tampered_signature
             .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
                 &key_pair.public_key,
                 header,
@@ -610,14 +590,13 @@ fn verify_tampered_signature() {
                 &messages
             )
             .expect("verification should not fail with error"),
-        false,
         "verification should fail with tampered `A` value"
     );
 
     tampered_signature = signature;
     tampered_signature.e = Scalar::random(&mut OsRng);
-    assert_eq!(
-        tampered_signature
+    assert!(
+        !tampered_signature
             .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
                 &key_pair.public_key,
                 header,
@@ -625,23 +604,7 @@ fn verify_tampered_signature() {
                 &messages
             )
             .expect("verification should not fail with error"),
-        false,
         "verification should fail with tampered `e` value"
-    );
-
-    tampered_signature = signature;
-    tampered_signature.s = Scalar::random(&mut OsRng);
-    assert_eq!(
-        tampered_signature
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                &key_pair.public_key,
-                header,
-                &generators,
-                &messages
-            )
-            .expect("verification should not fail with error"),
-        false,
-        "verification should fail with tampered `s` value"
     );
 }
 
@@ -681,24 +644,20 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
             &messages,
         )
         .expect("signing failed");
-    assert_eq!(
-        signature
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                &key_pair.public_key,
-                header,
-                &generators,
-                &messages
-            )
-            .expect("verification failed"),
-        true
-    );
+    assert!(signature
+        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            &key_pair.public_key,
+            header,
+            &generators,
+            &messages
+        )
+        .expect("verification failed"),);
 
     // Another set of variables to be used as tampered values
     let different_key_pair = KeyPair::random(&mut OsRng, TEST_KEY_INFO)
         .expect("key pair generation failed");
     let different_header = Some(b"another-set-of-header".as_ref());
-    let generators_different_q_1 = test_generators_random_q_1(messages.len());
-    let generators_different_q_2 = test_generators_random_q_2(messages.len());
+    let generators_different_q = test_generators_random_q(messages.len());
     let generators_different_message_generators =
         test_generators_random_message_generators(messages.len());
     let mut messages_one_extra_message_at_start = messages.clone();
@@ -742,16 +701,9 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
         (
             &key_pair.public_key,
             header,
-            &generators_different_q_1,
+            &generators_different_q,
             &messages,
-            "different Q_1 value of generators",
-        ),
-        (
-            &key_pair.public_key,
-            header,
-            &generators_different_q_2,
-            &messages,
-            "different Q_2 value of generators",
+            "different Q value of generators",
         ),
         (
             &key_pair.public_key,
@@ -821,11 +773,11 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
     for (pk, header, generators, messages, failure_debug_message) in test_data {
         let result = signature
             .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                &pk, header, generators, &messages,
+                pk, header, generators, &messages,
             )
             .expect("verify should return a true/false value, not error");
-        assert_eq!(
-            result, false,
+        assert!(
+            !result,
             "verification should fail - {}",
             failure_debug_message
         );
@@ -866,11 +818,11 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
         {
             let result = signature
                 .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                    &pk, header, generators, &messages,
+                    pk, header, generators, &messages,
                 )
                 .expect("verify should return a true/false value, not error");
-            assert_eq!(
-                result, false,
+            assert!(
+                !result,
                 "verification should fail - {}",
                 failure_debug_message
             );
@@ -915,24 +867,20 @@ fn verify_tampered_signature_parameters_no_header_signature() {
             &messages,
         )
         .expect("signing failed");
-    assert_eq!(
-        signature
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                &key_pair.public_key,
-                header,
-                &generators,
-                &messages
-            )
-            .expect("verification failed"),
-        true
-    );
+    assert!(signature
+        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            &key_pair.public_key,
+            header,
+            &generators,
+            &messages
+        )
+        .expect("verification failed"),);
 
     // Another set of variables to be used as tampered values
     let different_key_pair = KeyPair::random(&mut OsRng, TEST_KEY_INFO)
         .expect("key pair generation failed");
     let different_header = Some(b"another-set-of-header".as_ref());
-    let generators_different_q_1 = test_generators_random_q_1(messages.len());
-    let generators_different_q_2 = test_generators_random_q_2(messages.len());
+    let generators_different_q = test_generators_random_q(messages.len());
     let generators_different_message_generators =
         test_generators_random_message_generators(messages.len());
 
@@ -962,16 +910,9 @@ fn verify_tampered_signature_parameters_no_header_signature() {
         (
             &key_pair.public_key,
             header,
-            &generators_different_q_1,
+            &generators_different_q,
             &messages,
-            "different Q_1 value of generators",
-        ),
-        (
-            &key_pair.public_key,
-            header,
-            &generators_different_q_2,
-            &messages,
-            "different Q_2 value of generators",
+            "different Q value of generators",
         ),
         (
             &key_pair.public_key,
@@ -1009,11 +950,11 @@ fn verify_tampered_signature_parameters_no_header_signature() {
     for (pk, header, generators, messages, failure_debug_message) in test_data {
         let result = signature
             .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                &pk, header, generators, &messages,
+                pk, header, generators, &messages,
             )
             .expect("verify should return a true/false value, not error");
-        assert_eq!(
-            result, false,
+        assert!(
+            !result,
             "verification should fail - {}",
             failure_debug_message
         );
@@ -1039,24 +980,20 @@ fn verify_tampered_signature_parameters_no_messages_signature() {
             &messages,
         )
         .expect("signing failed");
-    assert_eq!(
-        signature
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                &key_pair.public_key,
-                header,
-                &generators,
-                &messages
-            )
-            .expect("verification failed"),
-        true
-    );
+    assert!(signature
+        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            &key_pair.public_key,
+            header,
+            &generators,
+            &messages
+        )
+        .expect("verification failed"));
 
     // Another set of variables to be used as tampered values
     let different_key_pair = KeyPair::random(&mut OsRng, TEST_KEY_INFO)
         .expect("key pair generation failed");
     let different_header = Some(b"another-set-of-header".as_ref());
-    let generators_different_q_1 = test_generators_random_q_1(messages.len());
-    let generators_different_q_2 = test_generators_random_q_2(messages.len());
+    let generators_different_q = test_generators_random_q(messages.len());
     // [(PK, header, generators, messages, failure-debug-message)]
     let test_data = [
         (
@@ -1076,27 +1013,20 @@ fn verify_tampered_signature_parameters_no_messages_signature() {
         (
             &key_pair.public_key,
             header,
-            &generators_different_q_1,
+            &generators_different_q,
             &messages,
-            "different Q_1 value of generators",
-        ),
-        (
-            &key_pair.public_key,
-            header,
-            &generators_different_q_2,
-            &messages,
-            "different Q_2 value of generators",
+            "different Q value of generators",
         ),
     ];
 
     for (pk, header, generators, messages, failure_debug_message) in test_data {
         let result = signature
             .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                &pk, header, generators, &messages,
+                pk, header, generators, &messages,
             )
             .expect("verify should return a true/false value, not error");
-        assert_eq!(
-            result, false,
+        assert!(
+            !result,
             "verification should fail - {}",
             failure_debug_message
         );
@@ -1119,17 +1049,14 @@ fn verify_invalid_parameters() {
         Bls12381Shake256CipherSuiteParameter,
     >(&sk, &pk, header, &generators, &messages)
     .expect("signing failed");
-    assert_eq!(
-        signature
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                &pk,
-                header,
-                &generators,
-                &messages
-            )
-            .expect("verification failed"),
-        true
-    );
+    assert!(signature
+        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            &pk,
+            header,
+            &generators,
+            &messages
+        )
+        .expect("verification failed"));
 
     // [(PK, header, generators, messages, result, failure-debug-message)]
     let test_data = [
@@ -1202,7 +1129,7 @@ fn verify_invalid_parameters() {
     {
         let result = signature
             .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                &pk, header, generators, &messages,
+                pk, header, generators, &messages,
             );
         assert_eq!(
             result,
@@ -1213,16 +1140,12 @@ fn verify_invalid_parameters() {
     }
 }
 
-// Concat `A`, `e` and `s` component of `Signature` as `Vec`.
-macro_rules! concat_a_e_s {
-    ($a:expr, $e:expr, $s:expr) => {
+// Concat `A` and `e` component of `Signature` as `Vec`.
+macro_rules! concat_a_e {
+    ($a:expr, $e:expr) => {
         [
-            [
-                $a.to_affine().to_compressed().as_ref(),
-                $e.to_bytes_be().as_ref(),
-            ]
-            .concat(),
-            $s.to_bytes_be().as_ref().to_vec(),
+            $a.to_affine().to_compressed().as_ref(),
+            $e.to_bytes_be().as_ref(),
         ]
         .concat()
     };
@@ -1256,23 +1179,21 @@ fn to_octets() {
 
     let a = G1Projective::random(&mut OsRng);
     let e = Scalar::random(&mut OsRng);
-    let s = Scalar::random(&mut OsRng);
 
-    signature = Signature { A: a, e, s };
+    signature = Signature { A: a, e };
     signature_octets = signature.to_octets();
     let expected_signature_octets = [
         a.to_affine().to_compressed().as_ref(),
         e.to_bytes_be().as_ref(),
-        s.to_bytes_be().as_ref(),
     ]
     .concat();
     assert_eq!(signature_octets, expected_signature_octets.as_slice());
 }
 
-// Concat 3 input buffers.
-macro_rules! concat_3 {
-    ($a:expr, $e:expr, $s:expr) => {
-        [[$a.as_ref(), $e.as_ref()].concat(), $s.to_vec()].concat()
+// Concat 2 input buffers.
+macro_rules! concat_2 {
+    ($a:expr, $e:expr) => {
+        [$a.as_ref(), $e.as_ref()].concat()
     };
 }
 
@@ -1285,46 +1206,41 @@ fn from_octets_invalid_parameters() {
             "input data is all zeroes",
         ),
         (
-            concat_3!(
+            concat_2!(
                 &vec![0x0; OCTET_POINT_G1_LENGTH],
-                Scalar::random(&mut OsRng).to_bytes_be(),
                 Scalar::random(&mut OsRng).to_bytes_be()
             ),
             Error::BadEncoding,
             "Raw buffer for `A` is all zeroes",
         ),
         (
-            concat_3!(
+            concat_2!(
                 &vec![0xA; OCTET_POINT_G1_LENGTH],
-                Scalar::random(&mut OsRng).to_bytes_be(),
                 Scalar::random(&mut OsRng).to_bytes_be()
             ),
             Error::BadEncoding,
             "Raw buffer for `A` is all 0xA",
         ),
         (
-            concat_3!(
+            concat_2!(
                 &vec![0xF; OCTET_POINT_G1_LENGTH],
-                Scalar::random(&mut OsRng).to_bytes_be(),
                 Scalar::random(&mut OsRng).to_bytes_be()
             ),
             Error::BadEncoding,
             "Raw buffer for `A` is all 0xF",
         ),
         (
-            concat_3!(
+            concat_2!(
                 G1Projective::random(&mut OsRng).to_affine().to_compressed(),
-                &vec![0x0; OCTET_SCALAR_LENGTH],
-                Scalar::random(&mut OsRng).to_bytes_be()
+                &vec![0x0; OCTET_SCALAR_LENGTH]
             ),
             Error::UnexpectedZeroValue,
             "Raw buffer for `e` is all zeroes",
         ),
         (
-            concat_3!(
+            concat_2!(
                 G1Projective::random(&mut OsRng).to_affine().to_compressed(),
-                &vec![0xFF; OCTET_SCALAR_LENGTH],
-                Scalar::random(&mut OsRng).to_bytes_be()
+                &vec![0xFF; OCTET_SCALAR_LENGTH]
             ),
             Error::MalformedSignature {
                 cause: "failed to deserialize `e` component of signature"
@@ -1333,61 +1249,14 @@ fn from_octets_invalid_parameters() {
             "Raw buffer value for `e` is larger than modulus",
         ),
         (
-            concat_3!(
-                G1Projective::random(&mut OsRng).to_affine().to_compressed(),
-                Scalar::random(&mut OsRng).to_bytes_be(),
-                &vec![0x0; OCTET_SCALAR_LENGTH]
-            ),
-            Error::UnexpectedZeroValue,
-            "Raw buffer for `s` is all zeroes",
-        ),
-        (
-            concat_3!(
-                G1Projective::random(&mut OsRng).to_affine().to_compressed(),
-                Scalar::random(&mut OsRng).to_bytes_be(),
-                &vec![0xFF; OCTET_SCALAR_LENGTH]
-            ),
-            Error::MalformedSignature {
-                cause: "failed to deserialize `s` component of signature"
-                    .to_owned(),
-            },
-            "Raw buffer value for `s` is larger than modulus",
-        ),
-        (
-            concat_a_e_s!(
-                G1Projective::identity(),
-                Scalar::random(&mut OsRng),
-                Scalar::random(&mut OsRng)
-            ),
+            concat_a_e!(G1Projective::identity(), Scalar::random(&mut OsRng)),
             Error::PointIsIdentity,
             "`A` is identity",
         ),
         (
-            concat_a_e_s!(
-                G1Projective::random(&mut OsRng),
-                Scalar::zero(),
-                Scalar::random(&mut OsRng)
-            ),
+            concat_a_e!(G1Projective::random(&mut OsRng), Scalar::zero()),
             Error::UnexpectedZeroValue,
             "`e` is zero",
-        ),
-        (
-            concat_a_e_s!(
-                G1Projective::random(&mut OsRng),
-                Scalar::zero(),
-                Scalar::random(&mut OsRng)
-            ),
-            Error::UnexpectedZeroValue,
-            "`e` is zero",
-        ),
-        (
-            concat_a_e_s!(
-                G1Projective::random(&mut OsRng),
-                Scalar::random(&mut OsRng),
-                Scalar::zero()
-            ),
-            Error::UnexpectedZeroValue,
-            "`s` is zero",
         ),
     ];
 
@@ -1406,10 +1275,10 @@ fn from_octets_invalid_parameters() {
 
 #[test]
 fn to_from_octets() {
-    let mut signature = Signature::default();
-    signature.A = G1Projective::random(&mut OsRng);
-    signature.e = Scalar::random(&mut OsRng);
-    signature.s = Scalar::random(&mut OsRng);
+    let signature = Signature {
+        A: G1Projective::random(&mut OsRng),
+        e: Scalar::random(&mut OsRng),
+    };
 
     let signature_from_octets = Signature::from_octets(&signature.to_octets())
         .expect("roundtrip `Signature::from_octets(...)` should not fail");

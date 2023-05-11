@@ -18,8 +18,7 @@ use group::Group;
 pub(crate) struct MemoryCachedGenerators<
     C: BbsCiphersuiteParameters + Debug + Clone,
 > {
-    pub(crate) Q_1: G1Projective,
-    pub(crate) Q_2: G1Projective,
+    pub(crate) Q: G1Projective,
     pub(crate) H_list: Vec<G1Projective>,
     _phantom_data: PhantomData<C>,
 }
@@ -39,12 +38,12 @@ impl<C: BbsCiphersuiteParameters + Debug + Clone> MemoryCachedGenerators<C> {
         let mut v = [0u8; XOF_NO_OF_BYTES];
         let generators = C::create_generators(
             &C::generator_seed(),
-            count + 2,
+            count + 1,
             &mut n,
             &mut v,
             true,
         )?;
-        let mut H_list = generators[2..2 + count].to_vec();
+        let mut H_list = generators[1..1 + count].to_vec();
         if let Some(bound_bbs) = private_holder_binding {
             if bound_bbs {
                 H_list.push(G1Projective::generator());
@@ -52,8 +51,7 @@ impl<C: BbsCiphersuiteParameters + Debug + Clone> MemoryCachedGenerators<C> {
         }
 
         Ok(Self {
-            Q_1: generators[0],
-            Q_2: generators[1],
+            Q: generators[0],
             H_list,
             _phantom_data: PhantomData,
         })
@@ -63,15 +61,9 @@ impl<C: BbsCiphersuiteParameters + Debug + Clone> MemoryCachedGenerators<C> {
 impl<C: BbsCiphersuiteParameters + Debug + Clone> Generators
     for MemoryCachedGenerators<C>
 {
-    /// Get `Q_1`, the generator point for the blinding value (s) of the
-    /// signature.
-    fn Q_1(&self) -> G1Projective {
-        self.Q_1
-    }
-
-    /// Get `Q_2`, the generator point for the domain of the signature.
-    fn Q_2(&self) -> G1Projective {
-        self.Q_2
+    /// Get `Q`, the generator point for the domain of the signature.
+    fn Q(&self) -> G1Projective {
+        self.Q
     }
 
     /// The number of message generators this `Generators` instance

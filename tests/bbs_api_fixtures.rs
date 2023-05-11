@@ -26,7 +26,7 @@ use pairing_crypto::bbs::{
 
 use std::{convert::TryFrom, path::Path};
 
-static FIXTURES_DIR: &'static str =
+static FIXTURES_DIR: &str =
     concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/bbs");
 
 const TEST_PRESENTATION_HEADER: &[u8; 24] = b"test-presentation-header";

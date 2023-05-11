@@ -127,6 +127,7 @@ impl Proof {
         G: Generators,
         C: BbsCiphersuiteParameters,
     {
+        let Q_r = C::q_r()?;
         // Input parameter checks
         // Error out if there is no `header` and not any `ProofMessage`
         if header.is_none() && messages.is_empty() {
@@ -148,8 +149,8 @@ impl Proof {
         // (i1, i2,..., iR) = RevealedIndexes
         // (j1, j2,..., jU) = [L] \ RevealedIndexes
         // if signature_result is INVALID, return INVALID
-        // (A, e, s) = signature_result
-        // generators =  (Q_1 || Q_2 || H_1 || ... || H_L)
+        // (A, e) = signature_result
+        // generators =  (Q || || H_1 || ... || H_L)
 
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
@@ -169,9 +170,8 @@ impl Proof {
         // computation
 
         let msg: Vec<_> = messages.iter().map(|m| m.get_message()).collect();
-        // B = P1 + Q_1 * s + Q_2 * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let B =
-            compute_B::<_, C>(&signature.s, &domain, msg.as_ref(), generators)?;
+        // B = P1 + Q * domain + H_1 * msg_1 + ... + H_L * msg_L
+        let B = compute_B::<_, C>(&domain, msg.as_ref(), generators)?;
 
         // r3 = r1 ^ -1 mod r
         let r3 = r1.invert();
@@ -188,19 +188,13 @@ impl Proof {
         // Abar = A' * (-e) + B * r1
         let A_bar = G1Projective::multi_exp(&[A_prime, B], &[-signature.e, r1]);
 
-        // D = B * r1 + Q_1 * r2
-        let D = G1Projective::multi_exp(&[B, generators.Q_1()], &[r1, r2]);
+        // D = B * r1 + Q_r * r2
+        let D = G1Projective::multi_exp(&[B, Q_r], &[r1, r2]);
 
-        // s' = s + r2 * r3
-        let s_prime = signature.s + r2 * r3;
+        // C1 = A' * e~ + Q_r * r2~
+        let C1 = G1Projective::multi_exp(&[A_prime, Q_r], &[e_tilde, r2_tilde]);
 
-        // C1 = A' * e~ + Q_1 * r2~
-        let C1 = G1Projective::multi_exp(
-            &[A_prime, generators.Q_1()],
-            &[e_tilde, r2_tilde],
-        );
-
-        //  C2 = D * (-r3~) + Q_1 * s~ + H_j1 * m~_j1 + ... + H_jU * m~_jU
+        //  C2 = D * (-r3~) + Q_r * s~ + H_j1 * m~_j1 + ... + H_jU * m~_jU
         let mut H_points = Vec::new();
         let mut m_tilde_scalars = Vec::new();
         let mut hidden_messages = Vec::new();
@@ -218,7 +212,7 @@ impl Proof {
             }
         }
         let C2 = G1Projective::multi_exp(
-            &[[D, generators.Q_1()].to_vec(), H_points].concat(),
+            &[[D, Q_r].to_vec(), H_points].concat(),
             &[[-r3_tilde, s_tilde].to_vec(), m_tilde_scalars.clone()].concat(),
         );
 
@@ -247,8 +241,8 @@ impl Proof {
         // r3^ = r3~ + c * r3
         let r3_hat = FiatShamirProof(r3_tilde + c.0 * r3);
 
-        // s^ = s~ + c * s'
-        let s_hat = FiatShamirProof(s_tilde + c.0 * s_prime);
+        // s^ = s~ + c * r2 * r3
+        let s_hat = FiatShamirProof(s_tilde + c.0 * r2 * r3);
 
         // for j in (j1, j2,..., jU): m^_j = m~_j + c * msg_j
         let m_hat_list = m_tilde_scalars
@@ -289,6 +283,8 @@ impl Proof {
         G: Generators,
         C: BbsCiphersuiteParameters,
     {
+        let Q_r = C::q_r()?;
+
         // If total number of messages is not provided, it defaults to
         // disclosed_messages number + m_hat number
         let total_no_of_messages = total_no_of_messages
@@ -339,7 +335,7 @@ impl Proof {
         // proof_value = octets_to_proof(proof)
         // if proof_value is INVALID, return INVALID
         // (A', Abar, D, c, e^, r2^, r3^, s^, (m^_j1,...,m^_jU)) = proof_value
-        // generators =  (Q_1 || Q_2 || H_1 || ... || H_L)
+        // generators =  (Q || H_1 || ... || H_L)
 
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
@@ -350,12 +346,12 @@ impl Proof {
             generators,
         )?;
 
-        // C1 = (Abar - D) * c + A' * e^ + Q_1 * r2^
-        let C1_points = [self.A_bar - self.D, self.A_prime, generators.Q_1()];
+        // C1 = (Abar - D) * c + A' * e^ + Q_r * r2^
+        let C1_points = [self.A_bar - self.D, self.A_prime, Q_r];
         let C1_scalars = [self.c.0, self.e_hat.0, self.r2_hat.0];
         let C1 = G1Projective::multi_exp(&C1_points, &C1_scalars);
 
-        // T = P1 + Q_2 * domain + H_i1 * msg_i1 + ... H_iR * msg_iR
+        // T = P1 + Q * domain + H_i1 * msg_i1 + ... H_iR * msg_iR
         let T_len = 1 + 1 + disclosed_messages.len();
         let mut T_points = Vec::with_capacity(T_len);
         let mut T_scalars = Vec::with_capacity(T_len);
@@ -363,8 +359,8 @@ impl Proof {
         // P1
         T_points.push(P1);
         T_scalars.push(Scalar::one());
-        // Q_2 * domain
-        T_points.push(generators.Q_2());
+        // Q * domain
+        T_points.push(generators.Q());
         T_scalars.push(domain);
 
         let mut C2_points_temp = Vec::with_capacity(self.m_hat_list.len());
@@ -386,7 +382,7 @@ impl Proof {
         // Calculate T = H_i1 * msg_i1 + ... H_iR * msg_iR
         let T = G1Projective::multi_exp(&T_points, &T_scalars);
 
-        // Compute C2 = T * c + D * (-r3^) + Q_1 * s^ +
+        // Compute C2 = T * c + D * (-r3^) + Q_r * s^ +
         //           H_j1 * m^_j1 + ... + H_jU * m^_jU
         let C2_len = 1 + 1 + 1 + self.m_hat_list.len();
         let mut C2_points = Vec::with_capacity(C2_len);
@@ -397,8 +393,8 @@ impl Proof {
         // D * (-r3^)
         C2_points.push(self.D);
         C2_scalars.push(-self.r3_hat.0);
-        // Q_1 * s^
-        C2_points.push(generators.Q_1());
+        // Q_r * s^
+        C2_points.push(Q_r);
         C2_scalars.push(self.s_hat.0);
         // H_j1 * m^_j1 + ... + H_jU * m^_jU
         C2_points.append(&mut C2_points_temp);

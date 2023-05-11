@@ -50,15 +50,14 @@ where
     // domain = hash_to_scalar((PK || L || generators || Ciphersuite_ID ||
     // header), 1)
 
-    // dom_array = (Q_1, Q_2, L, H_1, ..., H_L, ciphersuite_id)
-    // dom_octs = serialize(dom_array)
+    // dom_array = (L, Q, H_1, ..., H_L)
+    // dom_octs = serialize(dom_array) || ciphersuite_id
     // dom_input = PK || dom_octs || I2OSP(length(header), 8) || header
     // hash_to_scalar(dom_input, 1)
     let mut data_to_hash = vec![];
     data_to_hash.extend(PK.to_octets().as_ref());
     data_to_hash.extend(i2osp(L as u64, NON_NEGATIVE_INTEGER_ENCODING_LENGTH)?);
-    data_to_hash.extend(point_to_octets_g1(&generators.Q_1()).as_ref());
-    data_to_hash.extend(point_to_octets_g1(&generators.Q_2()).as_ref());
+    data_to_hash.extend(point_to_octets_g1(&generators.Q()).as_ref());
 
     for generator in generators.message_generators_iter() {
         data_to_hash.extend(point_to_octets_g1(&generator).as_ref());
@@ -76,9 +75,8 @@ where
 }
 
 /// Computes `B` value.
-/// B = P1 + Q_1 * s + Q_2 * domain + H_1 * msg_1 + ... + H_L * msg_L
+/// B = P1 + Q * domain + H_1 * msg_1 + ... + H_L * msg_L
 pub(crate) fn compute_B<G, C>(
-    s: &Scalar,
     domain: &Scalar,
     messages: &[Message],
     generators: &G,
@@ -96,9 +94,9 @@ where
         });
     }
 
-    let mut points: Vec<_> = vec![C::p1()?, generators.Q_1(), generators.Q_2()];
+    let mut points: Vec<_> = vec![C::p1()?, generators.Q()];
     points.extend(generators.message_generators_iter());
-    let scalars: Vec<_> = [Scalar::one(), *s, *domain]
+    let scalars: Vec<_> = [Scalar::one(), *domain]
         .iter()
         .copied()
         .chain(messages.iter().map(|c| c.0))

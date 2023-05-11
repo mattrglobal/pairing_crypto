@@ -43,14 +43,13 @@ use crate::bls::core::key_pair::PublicKey as BlsPublicKey;
 pub(crate) struct Signature {
     pub(crate) A: G1Projective,
     pub(crate) e: Scalar,
-    pub(crate) s: Scalar,
 }
 
 impl core::fmt::Display for Signature {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "Signature(A: ")?;
         print_byte_array!(f, point_to_octets_g1(&self.A));
-        write!(f, ", e: {}, s: {})", self.e, self.s)
+        write!(f, ", e: {})", self.e)
     }
 }
 
@@ -111,7 +110,6 @@ impl Default for Signature {
         Self {
             A: G1Projective::identity(),
             e: Scalar::zero(),
-            s: Scalar::zero(),
         }
     }
 }
@@ -121,15 +119,13 @@ impl ConditionallySelectable for Signature {
         Self {
             A: G1Projective::conditional_select(&a.A, &b.A, choice),
             e: Scalar::conditional_select(&a.e, &b.e, choice),
-            s: Scalar::conditional_select(&a.s, &b.s, choice),
         }
     }
 }
 
 impl Signature {
     /// The number of bytes in a `Signature`.
-    pub const SIZE_BYTES: usize =
-        OCTET_POINT_G1_LENGTH + 2 * OCTET_SCALAR_LENGTH;
+    pub const SIZE_BYTES: usize = OCTET_POINT_G1_LENGTH + OCTET_SCALAR_LENGTH;
 
     const G1_COMPRESSED_SIZE: usize = OCTET_POINT_G1_LENGTH;
     const SCALAR_SIZE: usize = OCTET_SCALAR_LENGTH;
@@ -191,10 +187,10 @@ impl Signature {
         // if e_s_expand is INVALID, return INVALID
         // e = hash_to_scalar(e_s_expand[0..(expand_len - 1)])
         // s = hash_to_scalar(e_s_expand[expand_len..(expand_len * 2 - 1)])
-        let (e, s) = C::hash_to_e_s(&data_to_hash)?;
+        let e = C::hash_to_e(&data_to_hash)?;
 
-        // B = P1 + Q_1 * s + Q_2 * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let B = compute_B::<_, C>(&s, &domain, messages, generators)?;
+        // B = P1 + Q * domain + H_1 * msg_1 + ... + H_L * msg_L
+        let B = compute_B::<_, C>(&domain, messages, generators)?;
         let exp = (e + SK.as_scalar()).invert();
         let exp = if exp.is_some().unwrap_u8() == 1u8 {
             exp.unwrap()
@@ -207,7 +203,7 @@ impl Signature {
         };
 
         // A = B * (1 / (SK + e))
-        Ok(Self { A: B * exp, e, s })
+        Ok(Self { A: B * exp, e })
     }
 
     /// Generate a bound bbs signature.
@@ -263,14 +259,13 @@ impl Signature {
             data_to_hash.extend(m.to_bytes().as_ref());
         }
 
-        let (e, s) = C::hash_to_e_s(&data_to_hash)?;
+        let e = C::hash_to_e(&data_to_hash)?;
 
-        // B = P1 + Q_1*s + Q_2*domain + H_1*msg_1 + ... + H_L*msg_L + BlsPk
-        let mut points: Vec<_> =
-            vec![C::p1()?, generators.Q_1(), generators.Q_2()];
+        // B = P1 + Q*domain + H_1*msg_1 + ... + H_L*msg_L + BlsPk
+        let mut points: Vec<_> = vec![C::p1()?, generators.Q()];
         points.extend(generators.message_generators_iter());
-        points.remove(2 + generators.message_generators_length());
-        let mut scalars: Vec<_> = [Scalar::one(), s, domain]
+        points.remove(1 + generators.message_generators_length());
+        let mut scalars: Vec<_> = [Scalar::one(), domain]
             .iter()
             .copied()
             .chain(messages.iter().map(|c| c.0))
@@ -292,7 +287,7 @@ impl Signature {
         };
 
         // A = B * (1 / (SK + e))
-        Ok(Self { A: B * exp, e, s })
+        Ok(Self { A: B * exp, e })
     }
 
     /// Verify a signature.
@@ -340,8 +335,8 @@ impl Signature {
         let domain =
             compute_domain::<_, _, C>(PK, header, messages.len(), generators)?;
 
-        // B = P1 + Q_1 * s + Q_2 * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let B = compute_B::<_, C>(&self.s, &domain, messages, generators)?;
+        // B = P1 + Q * domain + H_1 * msg_1 + ... + H_L * msg_L
+        let B = compute_B::<_, C>(&domain, messages, generators)?;
 
         let P2 = C::p2();
         // C1 = (A, W + P2 * e)
@@ -376,12 +371,8 @@ impl Signature {
         // e_octets = I2OSP(e, octet_scalar_length)
         end += Self::SCALAR_SIZE;
         bytes[offset..end].copy_from_slice(&self.e.to_bytes_be());
-        offset = end;
 
-        // s_octets = I2OSP(s, octet_scalar_length)
-        bytes[offset..].copy_from_slice(&self.s.to_bytes_be());
-
-        // return (a_octets || e_octets || s_octets)
+        // return (a_octets || e_octets)
         bytes
     }
 
@@ -427,26 +418,7 @@ impl Signature {
         if e.is_zero().unwrap_u8() == 1 {
             return Err(Error::UnexpectedZeroValue);
         }
-        offset = end;
 
-        // s = OS2IP(signature_octets[index..(index + octet_scalar_length -
-        // 1)])
-        // if s = 0 OR s >= r, return INVALID
-        end += Self::SCALAR_SIZE;
-        let s = Scalar::from_bytes_be(&<[u8; Self::SCALAR_SIZE]>::try_from(
-            &data[offset..end],
-        )?);
-        if s.is_none().unwrap_u8() == 1u8 {
-            return Err(Error::MalformedSignature {
-                cause: "failed to deserialize `s` component of signature"
-                    .to_owned(),
-            });
-        };
-        let s = s.unwrap();
-        if s.is_zero().unwrap_u8() == 1 {
-            return Err(Error::UnexpectedZeroValue);
-        }
-
-        Ok(Signature { A, e, s })
+        Ok(Signature { A, e })
     }
 }
