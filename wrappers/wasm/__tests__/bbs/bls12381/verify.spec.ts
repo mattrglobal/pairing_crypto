@@ -47,7 +47,7 @@ describe("bbs", () => {
           publicKey: keyPair.publicKey,
           messages,
           signature: base64Decode(
-            "kTV8dar9xLWQZ5EzaWYqTRmgA6dw6wcrUw5c///crRD2QQPXX9Di+lgCPCXAA5D8Pytuh6bNSx6k4NZTR9KfSNdaejKl2zTU9poRfzZ2SIskdgSHTZ2y7jLm/UEGKsAs3tticBVj1Pm2GNhQI/OlXQ=="
+            "iWIbLh10y1BkB6h+6ILXg6pJTKanCcE5C+IaRlxeNqk4GpygZywGxopHgnGD7KNUW8kT4rslyHoud5gML2luEiSqT0MsX63OTysfj2Y2nXM="
           ),
         };
         expect((await bbs.bls12381_shake256.verify(verifyRequest)).verified).toBeFalsy();
@@ -63,7 +63,7 @@ describe("bbs", () => {
           publicKey: keyPair.publicKey,
           messages,
           signature: base64Decode(
-            "jYidhsdqxvAyNXMV4/vNfGM/4AULfSyfvQiwh+dDd4JtnT5xHnwpzMYdLdHzBYwXaGE1k6ln/pwtI4RwQZpl03SCv/mT/3AdK8PB2y43MGdMSeGTyZGfZf+rUrEDEs3lTfmPK54E+JBzd96gnrF2iQ=="
+            "iWIbLh10y1BkB6h+6ILXg6pJTKanCcE5C+IaRlxeNqk4GpygZywGxopHgnGD7KNUW8kT4rslyHoud5gML2luEiSqT0MsX63OTysfj2Y2nXM="
           ),
         };
         expect((await bbs.bls12381_shake256.verify(verifyRequest)).verified).toBeFalsy();
@@ -74,7 +74,7 @@ describe("bbs", () => {
           publicKey: keyPair.publicKey,
           messages: [],
           signature: base64Decode(
-            "jYidhsdqxvAyNXMV4/vNfGM/4AULfSyfvQiwh+dDd4JtnT5xHnwpzMYdLdHzBYwXaGE1k6ln/pwtI4RwQZpl03SCv/mT/3AdK8PB2y43MGdMSeGTyZGfZf+rUrEDEs3lTfmPK54E+JBzd96gnrF2iQ=="
+            "iWIbLh10y1BkB6h+6ILXg6pJTKanCcE5C+IaRlxeNqk4GpygZywGxopHgnGD7KNUW8kT4rslyHoud5gML2luEiSqT0MsX63OTysfj2Y2nXM="
           ),
         };
         expect((await bbs.bls12381_shake256.verify(request)).verified).toBeFalsy();
@@ -85,7 +85,7 @@ describe("bbs", () => {
           publicKey: new Uint8Array(20),
           messages: [],
           signature: base64Decode(
-            "jYidhsdqxvAyNXMV4/vNfGM/4AULfSyfvQiwh+dDd4JtnT5xHnwpzMYdLdHzBYwXaGE1k6ln/pwtI4RwQZpl03SCv/mT/3AdK8PB2y43MGdMSeGTyZGfZf+rUrEDEs3lTfmPK54E+JBzd96gnrF2iQ=="
+            "iWIbLh10y1BkB6h+6ILXg6pJTKanCcE5C+IaRlxeNqk4GpygZywGxopHgnGD7KNUW8kT4rslyHoud5gML2luEiSqT0MsX63OTysfj2Y2nXM="
           ),
         };
         await expect(bbs.bls12381_shake256.verify(request)).rejects.toThrowError(
