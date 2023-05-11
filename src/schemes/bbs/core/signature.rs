@@ -7,6 +7,7 @@ use super::{
 };
 use crate::{
     bbs::ciphersuites::BbsCiphersuiteParameters,
+    common::util::print_byte_array,
     curves::{
         bls12_381::{
             Bls12,
@@ -19,7 +20,6 @@ use crate::{
         point_serde::{octets_to_point_g1, point_to_octets_g1},
     },
     error::Error,
-    print_byte_array,
 };
 use core::{convert::TryFrom, fmt};
 use ff::Field;

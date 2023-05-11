@@ -1,5 +1,4 @@
-#[macro_export]
-/// Key-pair implementation.
+// Key-pair implementation.
 macro_rules! bbs_bls_key_pair_impl {
     (
         $min_key_gen_ikm_length:ident,
@@ -10,9 +9,10 @@ macro_rules! bbs_bls_key_pair_impl {
         $generate_sk:ident,
         $sk_to_pk_fn:ident
     ) => {
-        /// The secret key is field element 0 < `x` < `r`
-        /// where `r` is the curve order. See Section 4.3 in
-        /// <https://eprint.iacr.org/2016/663.pdf>.
+        /// Secret key type.
+        // The secret key is field element 0 < `x` < `r`
+        // where `r` is the curve order. See Section 4.3 in
+        // <https://eprint.iacr.org/2016/663.pdf>.
         #[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
         pub struct SecretKey(pub Box<Scalar>);
 
@@ -54,14 +54,14 @@ macro_rules! bbs_bls_key_pair_impl {
             pub const SIZE_BYTES: usize = $octet_scalar_length;
 
             /// Computes a secret key from an IKM, as defined by
-            /// https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.3
+            /// <https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bls-signature-04#section-2.3>
             /// Note this procedure does not follow
-            /// https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-keygen
+            /// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-keygen>
             pub fn new(ikm_in: &[u8], key_info: &[u8]) -> Option<Self> {
                 let mut random_ikm = [0u8; $min_key_gen_ikm_length];
 
                 let ikm = if ikm_in.is_empty() {
-                    let mut rng = rand_core::OsRng::default();
+                    let mut rng = rand_core::OsRng;
                     if rng.try_fill_bytes(&mut random_ikm).is_err() {
                         return None;
                     }
@@ -136,7 +136,7 @@ macro_rules! bbs_bls_key_pair_impl {
             }
         }
 
-        /// A BBS public key.
+        /// Public key type.
         #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
         pub struct PublicKey(pub(crate) $point_projective_type);
 
@@ -270,3 +270,5 @@ macro_rules! bbs_bls_key_pair_impl {
         }
     };
 }
+
+pub(crate) use bbs_bls_key_pair_impl;

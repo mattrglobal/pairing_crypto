@@ -14,7 +14,7 @@ const TEST_KEY_INFOS: &[u8; 50] =
     b"12345678901234567890123456789012345678901234567890";
 
 fn secret_key_gen_from_seed_benchmark(c: &mut Criterion) {
-    c.bench_function(&format!("secret key_gen from seed"), |b| {
+    c.bench_function("secret key_gen from seed", |b| {
         b.iter(|| {
             SecretKey::new(black_box(KEY_GEN_IKM), black_box(TEST_KEY_INFOS))
                 .unwrap();
@@ -23,7 +23,7 @@ fn secret_key_gen_from_seed_benchmark(c: &mut Criterion) {
 }
 
 fn secret_key_gen_from_random_benchmark(c: &mut Criterion) {
-    c.bench_function(&format!("secret key_gen from random"), |b| {
+    c.bench_function("secret key_gen from random", |b| {
         b.iter(|| {
             SecretKey::random(black_box(&mut OsRng), black_box(TEST_KEY_INFOS))
                 .unwrap();
@@ -35,7 +35,7 @@ fn sk_to_pk_benchmark(c: &mut Criterion) {
     let sk = SecretKey::random(&mut OsRng, TEST_KEY_INFOS)
         .expect("secret key generation failed");
 
-    c.bench_function(&format!("sk_to_pk from random"), |b| {
+    c.bench_function("sk_to_pk from random", |b| {
         b.iter(|| {
             let _ = PublicKey::from(black_box(&sk));
         });

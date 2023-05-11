@@ -1,5 +1,4 @@
-#[macro_export]
-/// Wrapper for `Scalar` data types.
+// Wrapper for `Scalar` data types.
 macro_rules! scalar_wrapper {
     ($(#[$docs:meta])*
      $name:ident) => {
@@ -32,3 +31,5 @@ macro_rules! scalar_wrapper {
         }
     };
 }
+
+pub(crate) use scalar_wrapper;

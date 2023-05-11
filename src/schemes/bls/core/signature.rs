@@ -1,11 +1,11 @@
 use crate::{
     bls::ciphersuites::BlsCiphersuiteParameters,
+    common::util::print_byte_array,
     curves::{
         bls12_381::{Bls12, G2Prepared, G2Projective, OCTET_POINT_G2_LENGTH},
         point_serde::{octets_to_point_g2, point_to_octets_g2},
     },
     error::Error,
-    print_byte_array,
 };
 use core::fmt;
 use ff::Field;

@@ -1,6 +1,8 @@
 use crate::{
-    bbs_bls_key_pair_impl,
-    common::util::vec_to_byte_array,
+    common::{
+        key_pair::bbs_bls_key_pair_impl,
+        util::{print_byte_array, vec_to_byte_array},
+    },
     curves::bls12_381::{
         generate_sk,
         sk_to_pk_in_g2,
@@ -11,7 +13,6 @@ use crate::{
         OCTET_SCALAR_LENGTH,
     },
     error::Error,
-    print_byte_array,
 };
 use ff::Field;
 use group::{Curve, Group};

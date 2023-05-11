@@ -1,21 +1,19 @@
-use pairing_crypto::bls::{
-    ciphersuites::{
-        bls12_381_g2_sha_256_aug::{
-            sign as bls12_381_g2_shake_256_aug_sign,
-            verify as bls12_381_g2_shake_256_aug_verify,
-        },
-        bls12_381_g2_sha_256_nul::{
-            sign as bls12_381_g2_shake_256_nul_sign,
-            verify as bls12_381_g2_shake_256_nul_verify,
-        },
-        bls12_381_g2_sha_256_pop::{
-            pop_prove as bls12_381_g2_shake_256_pop_pop_prove,
-            pop_verify as bls12_381_g2_shake_256_pop_pop_verify,
-            sign as bls12_381_g2_shake_256_pop_sign,
-            verify as bls12_381_g2_shake_256_pop_verify,
-        },
+use pairing_crypto::bls::ciphersuites::{
+    bls12_381::KeyPair,
+    bls12_381_g2_sha_256_aug::{
+        sign as bls12_381_g2_shake_256_aug_sign,
+        verify as bls12_381_g2_shake_256_aug_verify,
     },
-    core::key_pair::KeyPair,
+    bls12_381_g2_sha_256_nul::{
+        sign as bls12_381_g2_shake_256_nul_sign,
+        verify as bls12_381_g2_shake_256_nul_verify,
+    },
+    bls12_381_g2_sha_256_pop::{
+        pop_prove as bls12_381_g2_shake_256_pop_pop_prove,
+        pop_verify as bls12_381_g2_shake_256_pop_pop_verify,
+        sign as bls12_381_g2_shake_256_pop_sign,
+        verify as bls12_381_g2_shake_256_pop_verify,
+    },
 };
 
 const TEST_KEY_GEN_SEED: &[u8] = b"not_A_random_seed_at_Allllllllll";

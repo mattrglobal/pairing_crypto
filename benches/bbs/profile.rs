@@ -46,7 +46,7 @@ fn get_random_key_pair() -> ([u8; 32], [u8; 96]) {
 }
 
 fn profile_key_gen(c: &mut Criterion) {
-    c.bench_function(&format!("profile - key_gen"), |b| {
+    c.bench_function("profile - key_gen", |b| {
         b.iter(|| {
             KeyPair::new(black_box(KEY_GEN_SEED), black_box(TEST_KEY_INFOS))
                 .map(|key_pair| {
@@ -139,27 +139,24 @@ fn profile_proof_gen(c: &mut Criterion) {
     })
     .expect("signature generation failed");
 
-    assert_eq!(
-        bls12_381_shake_256_verify(&BbsVerifyRequest {
-            public_key: &public_key,
-            header: Some(header),
-            messages: Some(messages.as_slice()),
-            signature: &signature,
-        })
-        .expect("error during signature verification"),
-        true
-    );
+    assert!(bls12_381_shake_256_verify(&BbsVerifyRequest {
+        public_key: &public_key,
+        header: Some(header),
+        messages: Some(messages.as_slice()),
+        signature: &signature,
+    })
+    .expect("error during signature verification"));
 
     let mut proof_messages: Vec<BbsProofGenRevealMessageRequest<_>> = messages
         .iter()
         .map(|value| BbsProofGenRevealMessageRequest {
             reveal: false,
-            value: value.clone(),
+            value: *value,
         })
         .collect();
 
-    for i in 0..NUM_REVEALED_MESSAGES {
-        proof_messages[i].reveal = true;
+    for m in proof_messages.iter_mut().take(NUM_REVEALED_MESSAGES) {
+        m.reveal = true;
     }
 
     c.bench_function(
@@ -202,32 +199,30 @@ fn profile_proof_verify(c: &mut Criterion) {
     })
     .expect("signature generation failed");
 
-    assert_eq!(
-        bls12_381_shake_256_verify(&BbsVerifyRequest {
-            public_key: &public_key,
-            header: Some(header),
-            messages: Some(messages.as_slice()),
-            signature: &signature,
-        })
-        .expect("error during signature verification"),
-        true
-    );
+    assert!(bls12_381_shake_256_verify(&BbsVerifyRequest {
+        public_key: &public_key,
+        header: Some(header),
+        messages: Some(messages.as_slice()),
+        signature: &signature,
+    })
+    .expect("error during signature verification"));
 
     let mut proof_messages: Vec<BbsProofGenRevealMessageRequest<_>> = messages
         .iter()
         .map(|value| BbsProofGenRevealMessageRequest {
             reveal: false,
-            value: value.clone(),
+            value: *value,
         })
         .collect();
 
-    for i in 0..NUM_REVEALED_MESSAGES {
-        proof_messages[i].reveal = true;
+    for m in proof_messages.iter_mut().take(NUM_REVEALED_MESSAGES) {
+        m.reveal = true;
     }
+
     let revealed_messages = messages[0..NUM_REVEALED_MESSAGES]
         .iter()
         .enumerate()
-        .map(|(k, m)| (k as usize, m.clone()))
+        .map(|(k, m)| (k, *m))
         .collect::<Vec<(usize, &[u8])>>();
 
     let proof = bls12_381_shake_256_proof_gen(&BbsProofGenRequest {

@@ -1,6 +1,7 @@
 /// Error enumerates all possible errors occuring in this library.
 /// An error returned by the crypto component.
 #[derive(Clone, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub enum Error {
     /// Invalid arguments are provided in an API call.
     BadParams {
@@ -81,6 +82,7 @@ pub enum Error {
 impl std::error::Error for Error {}
 
 impl core::fmt::Debug for Error {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
             Error::BadParams { ref cause } => {
@@ -145,6 +147,7 @@ impl core::fmt::Debug for Error {
 }
 
 impl From<core::array::TryFromSliceError> for Error {
+    #[inline]
     fn from(_: core::array::TryFromSliceError) -> Self {
         Error::Conversion {
             cause: "slice to sized-array conversion".to_owned(),
@@ -153,6 +156,7 @@ impl From<core::array::TryFromSliceError> for Error {
 }
 
 impl core::fmt::Display for Error {
+    #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{self:?}")
     }
