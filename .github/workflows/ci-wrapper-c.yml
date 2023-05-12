@@ -43,10 +43,6 @@ jobs:
         run: make test
         shell: bash
 
-      - name: Install Valgrind
-        uses: taiki-e/install-action@valgrind
-
-      # Run with valgrind
-      - name: Run valgrind
-        run: make check_leaks_valgrind
+      - name: Run leaks
+        run: make check_leaks_macos
         shell: bash
