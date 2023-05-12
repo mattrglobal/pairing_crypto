@@ -30,7 +30,7 @@ check_leaks: build_debug generate_headers
 	@leaks --atExit -- ./bbs_api_test
 # check memory leaks on Linux host
 # make sure valgrind is already installed
-check_leaks_valgrind:
+check_leaks_valgrind: build_debug generate_headers
 	@valgrind --error-exitcode=1 --leak-check=full --show-leak-kinds=all ./bbs_api_test
 clean:
 	@cargo clean
