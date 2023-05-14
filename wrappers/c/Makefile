@@ -23,14 +23,15 @@ test: build
 	@${CC} tests/bbs_api_test.c -o bbs_api_test -Iinclude -L../../target/release -lpairing_crypto_c
 	@chmod +x bbs_api_test
 	@./bbs_api_test
-# test memory leaks on MacOS host
-test_leaks: build_debug generate_headers
+# check memory leaks on MacOS host
+check_leaks_macos: build_debug generate_headers
 	@${CC} -g -O0 tests/bbs_api_test.c -o bbs_api_test -Iinclude -L../../target/debug -lpairing_crypto_c
 	@chmod +x bbs_api_test
 	@leaks --atExit -- ./bbs_api_test
-# test memory leaks on Linux host
-test_valgrind:
-	@valgrind --leak-check=yes ./bbs_api_test
+# check memory leaks on Linux host
+# make sure valgrind is already installed
+check_leaks_valgrind: build_debug generate_headers
+	@valgrind --error-exitcode=1 --leak-check=full --show-leak-kinds=all ./bbs_api_test
 clean:
 	@cargo clean
 	@rm -rf target

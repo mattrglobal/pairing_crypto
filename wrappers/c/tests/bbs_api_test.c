@@ -19,6 +19,7 @@
 
 int main(int argc, char **argv)
 {
+    int ret = 1;
     const int MESSAGE_COUNT = 5;
     const uint8_t *IKM = "12345678123456781234567812345678";
 
@@ -346,6 +347,7 @@ int main(int argc, char **argv)
     printf("pass\n");
 
     printf("Tests Passed\n");
+    ret = 0;
 
     goto Exit;
 Fail:
@@ -368,5 +370,6 @@ Exit:
     }
     free(messages);
     FREE_BYTE_ARRAY(signature);
-    FREE_BYTE_ARRAY(proof); 
+    FREE_BYTE_ARRAY(proof);
+    exit(ret);
 }

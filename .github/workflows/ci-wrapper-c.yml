@@ -42,3 +42,7 @@ jobs:
       - name: Test
         run: make test
         shell: bash
+
+      - name: Run leaks
+        run: make check_leaks_macos
+        shell: bash
