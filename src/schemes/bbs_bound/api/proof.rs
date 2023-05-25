@@ -22,6 +22,9 @@ use crate::{
 
 use crate::bls::core::key_pair::SecretKey as BlsSecretKey;
 
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
+use rand::{CryptoRng, RngCore};
+
 #[cfg(feature = "alloc")]
 use alloc::collections::BTreeMap;
 
@@ -33,10 +36,17 @@ pub fn get_proof_size(num_undisclosed_messages: usize) -> usize {
     Proof::get_size(num_undisclosed_messages)
 }
 
-// Generate a BBS bound signature proof of knowledge.
-pub(crate) fn proof_gen<T, C>(
-    request: &BbsBoundProofGenRequest<'_, T>,
-) -> Result<Vec<u8>, Error>
+
+fn _parse_request_helper<T, C>(
+    request: &BbsBoundProofGenRequest<'_, T>
+) -> Result<
+    (
+        PublicKey,
+        Signature,
+        MemoryCachedGenerators<C>,
+        Vec<ProofMessage>,
+    ), Error
+>
 where
     T: AsRef<[u8]>,
     C: BbsCiphersuiteParameters,
@@ -74,6 +84,20 @@ where
             return Err(Error::SignatureVerification);
         }
     }
+
+    Ok((pk, signature, generators, proof_messages))
+}
+
+
+// Generate a BBS bound signature proof of knowledge.
+pub(crate) fn proof_gen<T, C>(
+    request: &BbsBoundProofGenRequest<'_, T>,
+) -> Result<Vec<u8>, Error>
+where
+    T: AsRef<[u8]>,
+    C: BbsCiphersuiteParameters,
+{
+    let (pk, signature, generators, proof_messages) = _parse_request_helper::<T, C>(request).expect("Parsing proof generation request failed");
 
     // Generate the proof
     let proof = Proof::new::<_, _, C>(
@@ -127,4 +151,33 @@ where
         &messages,
         Some(total_message_count),
     )
+}
+
+
+// Generate a BBS signature proof of knowledge with a given rng.
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
+pub(crate) fn proof_gen_with_rng<T, R, C>(
+    request: &BbsBoundProofGenRequest<'_, T>,
+    rng: R
+) -> Result<Vec<u8>, Error>
+where
+    T: AsRef<[u8]>,
+    R: RngCore + CryptoRng,
+    C: BbsCiphersuiteParameters,
+{
+    let (pk, signature, generators, proof_messages) =
+        _parse_request_helper::<T, C>(request).expect("Parsing proof generation request failed");
+
+    // Generate the proof
+    let proof = Proof::new_with_rng::<_, _, _, C>(
+        &pk,
+        &signature,
+        request.header.as_ref(),
+        request.presentation_header.as_ref(),
+        &generators,
+        &proof_messages,
+        rng
+    )?;
+
+    Ok(proof.to_octets())
 }

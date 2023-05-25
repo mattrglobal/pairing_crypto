@@ -24,10 +24,13 @@ pub use crate::schemes::bbs::core::{
     constants::MIN_KEY_GEN_IKM_LENGTH,
     key_pair::{
         KeyPair as BbsKeyPair,
-        PublicKey as BbsPublicKEy,
+        PublicKey as BbsPublicKey,
         SecretKey as BbsSecretKey,
     },
 };
+
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
+use rand::{CryptoRng, RngCore};
 
 ///  Generate a commitment to their BLS secret key.
 pub fn bls_key_pop(
@@ -88,6 +91,25 @@ where
         _,
         Bls12381Sha256CipherSuiteParameter,
     >(request)
+}
+
+/// Generate a bound BBS signature proof of knowledge with
+/// a given rng.
+#[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
+pub fn proof_gen_with_rng<T, R>(
+    request: &BbsBoundProofGenRequest<'_, T>,
+    rng: R,
+) -> Result<Vec<u8>, Error>
+where
+    T: AsRef<[u8]>,
+    R: RngCore + CryptoRng,
+{
+    crate::bbs_bound::api::proof::proof_gen_with_rng::<
+        _,
+        _,
+        Bls12381Sha256CipherSuiteParameter,
+    >(request, rng)
 }
 
 /// Verify a BLS12-381-G1-Sha-256 BBS bound signature proof of knowledge.

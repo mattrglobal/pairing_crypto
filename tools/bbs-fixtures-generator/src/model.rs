@@ -14,6 +14,7 @@ use serde::{
     Serializer,
 };
 use serde_derive::Serialize;
+use crate::util::{serialize_key_pair_impl, deserialize_key_pair_impl};
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -178,94 +179,9 @@ pub struct FixtureMapMessageToScalar {
     pub cases: Vec<MessageToScalarFixtureCase>,
 }
 
-fn serialize_key_pair<S>(
-    key_pair: &KeyPair,
-    serializer: S,
-) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    let mut state = serializer.serialize_struct("KeyPair", 2)?;
-    state.serialize_field(
-        "secretKey",
-        &hex::encode(key_pair.secret_key.to_bytes()),
-    )?;
-    state.serialize_field(
-        "publicKey",
-        &hex::encode(key_pair.public_key.to_octets()),
-    )?;
-    state.end()
-}
 
-pub fn deserialize_key_pair<'de, D>(
-    deserializer: D,
-) -> Result<KeyPair, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize)]
-    #[serde(field_identifier, rename_all = "camelCase")]
-    enum KeyPairField {
-        SecretKey,
-        PublicKey,
-    }
-
-    struct KeyPairVisitor;
-    impl<'de> de::Visitor<'de> for KeyPairVisitor {
-        type Value = KeyPair;
-
-        fn expecting(
-            &self,
-            formatter: &mut std::fmt::Formatter,
-        ) -> std::fmt::Result {
-            formatter.write_str("struct KeyPair")
-        }
-
-        fn visit_map<V>(self, mut map: V) -> Result<KeyPair, V::Error>
-        where
-            V: MapAccess<'de>,
-        {
-            macro_rules! check_duplicate_and_set_field {
-                ($value:ident) => {{
-                    if $value.is_some() {
-                        return Err(de::Error::duplicate_field("$value"));
-                    }
-                    $value = Some(map.next_value()?);
-                }};
-            }
-            let mut secret_key = None;
-            let mut public_key = None;
-
-            while let Some(key) = map.next_key()? {
-                match key {
-                    KeyPairField::SecretKey => {
-                        check_duplicate_and_set_field!(secret_key)
-                    }
-                    KeyPairField::PublicKey => {
-                        check_duplicate_and_set_field!(public_key)
-                    }
-                }
-            }
-
-            let secret_key: &str = secret_key
-                .ok_or_else(|| de::Error::missing_field("secretKey"))?;
-            let public_key: &str = public_key
-                .ok_or_else(|| de::Error::missing_field("publicKey"))?;
-
-            let secret_key =
-                SecretKey::from_vec(&hex::decode(secret_key).unwrap()).unwrap();
-            let public_key =
-                PublicKey::from_vec(&hex::decode(public_key).unwrap()).unwrap();
-
-            Ok(KeyPair {
-                secret_key,
-                public_key,
-            })
-        }
-    }
-    const FIELDS: &[&str] = &["secretKey", "publicKey"];
-    deserializer.deserialize_struct("KeyPair", FIELDS, KeyPairVisitor)
-}
+serialize_key_pair_impl!(serialize_key_pair, KeyPair);
+deserialize_key_pair_impl!(deserialize_key_pair, KeyPair, SecretKey, PublicKey);
 
 fn serialize_public_key<S>(
     public_key: &PublicKey,
@@ -287,7 +203,7 @@ where
     Ok(PublicKey::from_vec(&hex::decode(public_key).unwrap()).unwrap())
 }
 
-fn serialize_messages<S>(
+pub fn serialize_messages<S>(
     messages: &Vec<Vec<u8>>,
     serializer: S,
 ) -> Result<S::Ok, S::Error>
@@ -332,7 +248,7 @@ where
     deserializer.deserialize_seq(MessagesVisitor)
 }
 
-fn serialize_disclosed_messages<S>(
+pub fn serialize_disclosed_messages<S>(
     disclosed_messages: &Vec<(usize, Vec<u8>)>,
     serializer: S,
 ) -> Result<S::Ok, S::Error>

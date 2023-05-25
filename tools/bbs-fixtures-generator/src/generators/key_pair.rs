@@ -14,7 +14,7 @@ macro_rules! bbs_kdf {
      $input_salt:expr,
      $hash:ty
     ) => {
-        pub(crate) fn $kdf_name(
+        pub fn $kdf_name(
             input_ikm: &[u8],
             key_info: &[u8],
         ) -> Result<KeyPair, Error> {
