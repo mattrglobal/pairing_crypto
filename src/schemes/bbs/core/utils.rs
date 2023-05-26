@@ -108,11 +108,9 @@ where
 /// Compute Fiat Shamir heuristic challenge.
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn compute_challenge<T, C>(
-    A_prime: &G1Projective,
     A_bar: &G1Projective,
-    D: &G1Projective,
-    C1: &G1Projective,
-    C2: &G1Projective,
+    B_bar: &G1Projective,
+    C: &G1Projective,
     disclosed_messages: &BTreeMap<usize, Message>,
     domain: &Scalar,
     ph: Option<T>,
@@ -121,16 +119,15 @@ where
     T: AsRef<[u8]>,
     C: BbsCiphersuiteParameters,
 {
-    // c_array = (A', Abar, D, C1, C2, R, i1, ..., iR, msg_i1, ..., msg_iR,
+    // c_array = (A_bar, B_bar, C, R, i1, ..., iR, msg_i1, ..., msg_iR,
     //              domain, ph)
-    // c_for_hash = encode_for_hash(c_array)
-    // if c_for_hash is INVALID, return INVALID
+    // c_octs = serialize(c_array)
+    // if c_octs is INVALID, return INVALID
     let mut data_to_hash = vec![];
-    data_to_hash.extend(point_to_octets_g1(A_prime).as_ref());
     data_to_hash.extend(point_to_octets_g1(A_bar).as_ref());
-    data_to_hash.extend(point_to_octets_g1(D).as_ref());
-    data_to_hash.extend(point_to_octets_g1(C1));
-    data_to_hash.extend(point_to_octets_g1(C2));
+    data_to_hash.extend(point_to_octets_g1(B_bar).as_ref());
+    data_to_hash.extend(point_to_octets_g1(C));
+
     data_to_hash.extend(i2osp(
         disclosed_messages.len() as u64,
         NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
