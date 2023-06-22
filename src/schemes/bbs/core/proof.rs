@@ -168,7 +168,7 @@ impl Proof {
         // Bbar = B * r1 - Abar * e
         let B_bar = G1Projective::multi_exp(&[B, A_bar], &[r1, -signature.e]);
 
-        // r2 = r1 ^ -1 mod r
+        // r2 = -r1 ^ -1 mod r
         let r2 = r1.invert();
 
         if r2.is_none().unwrap_u8() == 1u8 {
@@ -176,7 +176,7 @@ impl Proof {
                 cause: "Failed to invert `r1`".to_owned(),
             });
         };
-        let r2 = r2.unwrap();
+        let r2 = -r2.unwrap();
 
         // C = Bbar * r2~ + Abar * z~ + H_j1 * m~_j1 + ... + H_jU * m~_jU
         let mut H_points = Vec::new();
@@ -216,10 +216,10 @@ impl Proof {
         )?;
 
         // r2^ = r2~ + c * r2
-        let r2_hat = FiatShamirProof(r2_tilde - c.0 * r2);
+        let r2_hat = FiatShamirProof(r2_tilde + c.0 * r2);
 
         // z^ = z~ + c * e * r2
-        let z_hat = FiatShamirProof(z_tilde - c.0 * signature.e * r2);
+        let z_hat = FiatShamirProof(z_tilde + c.0 * signature.e * r2);
 
         // for j in (j1, j2,..., jU): m^_j = m~_j + c * msg_j
         let m_hat_list = m_tilde_scalars
@@ -349,7 +349,7 @@ impl Proof {
         // Calculate T = H_i1 * msg_i1 + ... H_iR * msg_iR
         let T = G1Projective::multi_exp(&T_points, &T_scalars);
 
-        // C = T * (-c) + Bbar * r2^ + Abar * z^ +
+        // C = T * c + Bbar * r2^ + Abar * z^ +
         //            + H_j1 * m^_j1 + ... + H_jU * m^_jU
         let C_len = 1 + 1 + 1 + self.m_hat_list.len();
         let mut C_points = Vec::with_capacity(C_len);
