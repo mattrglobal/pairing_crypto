@@ -16,10 +16,6 @@ pub(crate) const MAX_MESSAGE_SIZE: u64 = u64::MAX;
 /// value is used in `i2osp` call.
 pub(crate) const NON_NEGATIVE_INTEGER_ENCODING_LENGTH: usize = 8;
 
-/// Suffix value of the DST value for calculating the e and s components
-/// of a BBS signature.
-pub(crate) const DST_SUFFIX_HASH_TO_E_S: &str = "SIG_DET_DST_";
-
 /// Suffix of the default DST value for the `hash_to_scalar` operation.
 pub(crate) const DEFAULT_DST_SUFFIX_H2S: &str = "H2S_";
 
