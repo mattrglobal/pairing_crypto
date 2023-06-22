@@ -3,10 +3,7 @@ use ff::Field;
 
 use crate::{
     common::serialization::i2osp,
-    curves::bls12_381::{
-        hash_to_curve::InitExpandMessage,
-        Scalar,
-    },
+    curves::bls12_381::{hash_to_curve::InitExpandMessage, Scalar},
     Error,
 };
 
@@ -107,7 +104,7 @@ pub(crate) trait HashToScalarParameter: ExpandMessageParameter {
     /// Hash the input octets to scalar values representing the e component of a
     /// BBS signature.
     fn hash_to_e(input_octets: &[u8]) -> Result<Scalar, Error> {
-        let e = Self::hash_to_scalar(&input_octets, None)?;
+        let e = Self::hash_to_scalar(input_octets, None)?;
         Ok(e)
     }
 }
