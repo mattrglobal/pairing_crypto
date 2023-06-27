@@ -53,38 +53,24 @@ export const mapObjIndexed = <K extends number | string, V, R>(
   }, {} as Record<K, R>);
 };
 
-// eslint-disable-next-line
-export const convertToRevealMessageArray = (messages: any, revealedIndicies: any): any => {
-  // eslint-disable-next-line
-    let revealMessages: any = [];
-  // eslint-disable-next-line
-    let i = 0;
-  // eslint-disable-next-line
-    messages.forEach((element: any) => {
-    if (revealedIndicies.includes(i)) {
-      revealMessages.push({ value: element, reveal: true });
-    } else {
-      revealMessages.push({ value: element, reveal: false });
-    }
-    i++;
-  });
-  return revealMessages;
+interface RevealMessage<E> {
+  value: E;
+  reveal: boolean;
+}
+
+export const convertToRevealMessageArray = <E>(messages: E[], revealedIndicies: number[]): RevealMessage<E>[] => {
+  return messages.map((value: E, i: number) => ({
+    reveal: revealedIndicies.includes(i),
+    value,
+  }));
 };
 
-// eslint-disable-next-line
-export const convertRevealMessageArrayToRevealMap = (messages: any): any => {
+export const convertRevealMessageArrayToRevealMap = <E>(
+  messages: RevealMessage<E>[]
+): Record<number, RevealMessage<E>> => {
   return messages.reduce(
-    // eslint-disable-next-line
-      (map: any, item: any, index: any) => {
-      if (item.reveal) {
-        // eslint-disable-next-line
-                map = {
-          ...map,
-          [index]: item.value,
-        };
-      }
-      return map;
-    },
-    {}
+    (map: Record<number, RevealMessage<E>>, message: RevealMessage<E>, i: number) =>
+      message.reveal ? { ...map, [i]: message } : map,
+    messages
   );
 };
