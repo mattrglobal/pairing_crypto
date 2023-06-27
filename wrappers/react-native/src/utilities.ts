@@ -71,6 +71,6 @@ export const convertRevealMessageArrayToRevealMap = <E>(
   return messages.reduce(
     (map: Record<number, RevealMessage<E>>, message: RevealMessage<E>, i: number) =>
       message.reveal ? { ...map, [i]: message } : map,
-    messages
+    {}
   );
 };
