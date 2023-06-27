@@ -53,31 +53,38 @@ export const mapObjIndexed = <K extends number | string, V, R>(
   }, {} as Record<K, R>);
 };
 
+// eslint-disable-next-line
 export const convertToRevealMessageArray = (messages: any, revealedIndicies: any): any => {
+  // eslint-disable-next-line
     let revealMessages: any = [];
+  // eslint-disable-next-line
     let i = 0;
+  // eslint-disable-next-line
     messages.forEach((element: any) => {
-        if (revealedIndicies.includes(i)) {
-            revealMessages.push({ value: element, reveal: true });
-        } else {
-            revealMessages.push({ value: element, reveal: false });
-        }
-        i++;
-    })
-    return revealMessages;
-}
+    if (revealedIndicies.includes(i)) {
+      revealMessages.push({ value: element, reveal: true });
+    } else {
+      revealMessages.push({ value: element, reveal: false });
+    }
+    i++;
+  });
+  return revealMessages;
+};
 
+// eslint-disable-next-line
 export const convertRevealMessageArrayToRevealMap = (messages: any): any => {
-    return messages.reduce(
+  return messages.reduce(
+    // eslint-disable-next-line
       (map: any, item: any, index: any) => {
-            if (item.reveal) {
+      if (item.reveal) {
+        // eslint-disable-next-line
                 map = {
-                    ...map,
-                    [index]: item.value,
-                };
-            }
-            return map;
-        },
-        {}
-    );
-}
+          ...map,
+          [index]: item.value,
+        };
+      }
+      return map;
+    },
+    {}
+  );
+};
