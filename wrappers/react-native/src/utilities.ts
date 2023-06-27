@@ -52,3 +52,32 @@ export const mapObjIndexed = <K extends number | string, V, R>(
     return accu;
   }, {} as Record<K, R>);
 };
+
+export const convertToRevealMessageArray = (messages: any, revealedIndicies: any): any => {
+    let revealMessages: any = [];
+    let i = 0;
+    messages.forEach((element: any) => {
+        if (revealedIndicies.includes(i)) {
+            revealMessages.push({ value: element, reveal: true });
+        } else {
+            revealMessages.push({ value: element, reveal: false });
+        }
+        i++;
+    })
+    return revealMessages;
+}
+
+export const convertRevealMessageArrayToRevealMap = (messages: any): any => {
+    return messages.reduce(
+      (map: any, item: any, index: any) => {
+            if (item.reveal) {
+                map = {
+                    ...map,
+                    [index]: item.value,
+                };
+            }
+            return map;
+        },
+        {}
+    );
+}
