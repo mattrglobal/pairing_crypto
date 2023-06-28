@@ -19,4 +19,6 @@ pub fn generate_fixtures(
     proof::generate(fixture_gen_input, fixture_output_dir);
 
     h2s::generate(fixture_gen_input, fixture_output_dir);
+
+    key_pair::generate(fixture_gen_input, fixture_output_dir);
 }

@@ -8,6 +8,8 @@ use pairing_crypto::bbs::{
             proof_verify as bls12_381_sha_256_proof_verify,
             sign as bls12_381_sha_256_sign,
             verify as bls12_381_sha_256_verify,
+            POINT_G1_OCTETS_LENGTH as BLS12381_SHA256_POINT_G1_OCTETS_LENGTH,
+            SCALAR_OCTETS_LENGTH as BLS12381_SHA256_SCALAR_OCTETS_LENGTH,
         },
         bls12_381_g1_shake_256::{
             ciphersuite_id as bls12_381_shake_256_ciphersuite_id,
@@ -15,6 +17,8 @@ use pairing_crypto::bbs::{
             proof_verify as bls12_381_shake_256_proof_verify,
             sign as bls12_381_shake_256_sign,
             verify as bls12_381_shake_256_verify,
+            POINT_G1_OCTETS_LENGTH as BLS12381_SHAKE256_POINT_G1_OCTETS_LENGTH,
+            SCALAR_OCTETS_LENGTH as BLS12381_SHAKE256_SCALAR_OCTETS_LENGTH,
         },
     },
     BbsProofGenRequest,
@@ -29,36 +33,53 @@ use sha3::Shake256;
 use std::{collections::BTreeSet, path::Path};
 
 use crate::{
-    mock_rng::MockRng,
+    mock_rng::{MockRng, MOCKED_RNG_DST, MOCKED_RNG_SEED},
     model::{ExpectedResult, FixtureGenInput, FixtureProof},
     util::save_test_vector,
     PROOF_FIXTURES_SUBDIR,
 };
 
-const MOCKED_RNG_SEED: &str = "3.141592653589793238462643383279"; // 30 first digits of pi
-const MOCKED_RNG_DST: &str = "MOCK_RANDOM_SCALARS_DST_";
+use super::key_pair::{
+    sha256_bbs_key_gen_tool as bls12_381_sha_256_key_gen,
+    shake256_bbs_key_gen_tool as bls12_381_shake_256_key_gen,
+};
 
 macro_rules! generate_proof_fixture {
-    ($sign_fn:ident,
+    ($keygen_fn:ident,
+     $sign_fn:ident,
      $verify_fn:ident,
      $proof_gen_fn:ident,
      $proof_verify_fn:ident,
      $ciphersuite_id:ident,
      $fixture_gen_input:ident,
      $output_dir:expr,
-     $expander:ty) => {
-        let secret_key = &$fixture_gen_input.key_pair.secret_key.to_bytes();
-        let public_key = &$fixture_gen_input.key_pair.public_key.to_octets();
+     $expander:ty,
+     $point_g1_octets_length:ident,
+     $scalar_octets_length:ident) => {
+        // Key pair
+        let key_pair = $keygen_fn(
+            &$fixture_gen_input.key_ikm,
+            &$fixture_gen_input.key_info,
+        )
+        .unwrap();
+
+        let secret_key = &key_pair.secret_key.to_bytes();
+        let public_key = &key_pair.public_key.to_octets();
+
         let header = &$fixture_gen_input.header.clone();
         let presentation_header =
             &$fixture_gen_input.presentation_header.clone();
 
-        let fixture_scratch: FixtureProof = $fixture_gen_input.clone().into();
+        let fixture_scratch: FixtureProof = FixtureProof {
+            signer_public_key: key_pair.public_key.clone(),
+            ..FixtureProof::from($fixture_gen_input.clone())
+        };
 
         // Generate fixture for positive test cases
         let fixture_data = [
             (
-                "single message signature, message revealed proof".to_owned(),
+                "single message signature, single-message revealed proof"
+                    .to_owned(),
                 "proof001.json",
                 &$fixture_gen_input.messages[0..1].to_vec(),
                 BTreeSet::<usize>::from([0]),
@@ -111,9 +132,11 @@ macro_rules! generate_proof_fixture {
                 messages,
                 $ciphersuite_id,
                 &disclosed_indices,
-                $expander
+                $expander,
+                $point_g1_octets_length,
+                $scalar_octets_length
             );
-            let fixture = FixtureProof {
+            let mut fixture = FixtureProof {
                 case_name,
                 disclosed_messages,
                 proof,
@@ -122,7 +145,7 @@ macro_rules! generate_proof_fixture {
             };
             validate_proof_fixture!($proof_verify_fn, &fixture);
             save_test_vector(
-                &fixture,
+                &mut fixture,
                 &$output_dir.join(test_vector_file_name),
             );
         }
@@ -143,7 +166,9 @@ macro_rules! generate_proof_fixture {
             messages,
             $ciphersuite_id,
             &disclosed_indices,
-            $expander
+            $expander,
+            $point_g1_octets_length,
+            $scalar_octets_length
         );
         let fixture_negative = FixtureProof {
             case_name: "multi-message signature, all messages revealed proof"
@@ -160,7 +185,7 @@ macro_rules! generate_proof_fixture {
         let mut presentation_header =
             $fixture_gen_input.presentation_header.clone();
         presentation_header.reverse();
-        let fixture = FixtureProof {
+        let mut fixture = FixtureProof {
             presentation_header,
             result: ExpectedResult {
                 valid: false,
@@ -169,10 +194,17 @@ macro_rules! generate_proof_fixture {
             ..fixture_negative.clone()
         };
         validate_proof_fixture!($proof_verify_fn, &fixture);
-        save_test_vector(&fixture, &$output_dir.join("proof004.json"));
+        save_test_vector(&mut fixture, &$output_dir.join("proof004.json"));
 
-        let fixture = FixtureProof {
-            signer_public_key: $fixture_gen_input.spare_key_pair.public_key,
+        // Spare Key pair
+        let spare_key_pair = $keygen_fn(
+            &$fixture_gen_input.spare_key_ikm,
+            &$fixture_gen_input.key_info,
+        )
+        .unwrap();
+
+        let mut fixture = FixtureProof {
+            signer_public_key: spare_key_pair.public_key,
             result: ExpectedResult {
                 valid: false,
                 reason: Some("wrong public key".to_owned()),
@@ -180,13 +212,13 @@ macro_rules! generate_proof_fixture {
             ..fixture_negative.clone()
         };
         validate_proof_fixture!($proof_verify_fn, &fixture);
-        save_test_vector(&fixture, &$output_dir.join("proof005.json"));
+        save_test_vector(&mut fixture, &$output_dir.join("proof005.json"));
 
         let mut modified_disclosed_messages = disclosed_messages.clone();
         let mut buffer = [0u8; 100];
         rand::thread_rng().fill_bytes(&mut buffer);
         modified_disclosed_messages[0].1 = buffer.to_vec();
-        let fixture = FixtureProof {
+        let mut fixture = FixtureProof {
             disclosed_messages: modified_disclosed_messages,
             result: ExpectedResult {
                 valid: false,
@@ -195,11 +227,11 @@ macro_rules! generate_proof_fixture {
             ..fixture_negative.clone()
         };
         validate_proof_fixture!($proof_verify_fn, &fixture);
-        save_test_vector(&fixture, &$output_dir.join("proof006.json"));
+        save_test_vector(&mut fixture, &$output_dir.join("proof006.json"));
 
         let mut invalid_disclosed_messages = disclosed_messages.clone();
         invalid_disclosed_messages.push((9, messages[9].clone()));
-        let fixture = FixtureProof {
+        let mut fixture = FixtureProof {
             disclosed_messages: invalid_disclosed_messages,
             result: ExpectedResult {
                 valid: false,
@@ -208,11 +240,11 @@ macro_rules! generate_proof_fixture {
             ..fixture_negative.clone()
         };
         validate_proof_fixture!($proof_verify_fn, &fixture);
-        save_test_vector(&fixture, &$output_dir.join("proof007.json"));
+        save_test_vector(&mut fixture, &$output_dir.join("proof007.json"));
 
         let mut invalid_disclosed_messages = disclosed_messages.clone();
         invalid_disclosed_messages.push((9, messages[8].clone()));
-        let fixture = FixtureProof {
+        let mut fixture = FixtureProof {
             disclosed_messages: invalid_disclosed_messages,
             result: ExpectedResult {
                 valid: false,
@@ -224,11 +256,11 @@ macro_rules! generate_proof_fixture {
             ..fixture_negative.clone()
         };
         validate_proof_fixture!($proof_verify_fn, &fixture);
-        save_test_vector(&fixture, &$output_dir.join("proof008.json"));
+        save_test_vector(&mut fixture, &$output_dir.join("proof008.json"));
 
         let mut missing_disclosed_messages = disclosed_messages.clone();
         missing_disclosed_messages.remove(2);
-        let fixture = FixtureProof {
+        let mut fixture = FixtureProof {
             disclosed_messages: missing_disclosed_messages,
             result: ExpectedResult {
                 valid: false,
@@ -237,12 +269,12 @@ macro_rules! generate_proof_fixture {
             ..fixture_negative.clone()
         };
         validate_proof_fixture!($proof_verify_fn, &fixture);
-        save_test_vector(&fixture, &$output_dir.join("proof009.json"));
+        save_test_vector(&mut fixture, &$output_dir.join("proof009.json"));
 
         let mut swapped_disclosed_messages = disclosed_messages.clone();
         swapped_disclosed_messages[1].1 = disclosed_messages[3].1.clone();
         swapped_disclosed_messages[3].1 = disclosed_messages[1].1.clone();
-        let fixture = FixtureProof {
+        let mut fixture = FixtureProof {
             disclosed_messages: swapped_disclosed_messages,
             result: ExpectedResult {
                 valid: false,
@@ -251,11 +283,11 @@ macro_rules! generate_proof_fixture {
             ..fixture_negative.clone()
         };
         validate_proof_fixture!($proof_verify_fn, &fixture);
-        save_test_vector(&fixture, &$output_dir.join("proof010.json"));
+        save_test_vector(&mut fixture, &$output_dir.join("proof010.json"));
 
         let mut extra_disclosed_messages = disclosed_messages.clone();
         extra_disclosed_messages.push((9, messages[9].clone()));
-        let fixture = FixtureProof {
+        let mut fixture = FixtureProof {
             disclosed_messages: extra_disclosed_messages,
             result: ExpectedResult {
                 valid: false,
@@ -267,11 +299,11 @@ macro_rules! generate_proof_fixture {
             ..fixture_negative.clone()
         };
         validate_proof_fixture!($proof_verify_fn, &fixture);
-        save_test_vector(&fixture, &$output_dir.join("proof011.json"));
+        save_test_vector(&mut fixture, &$output_dir.join("proof011.json"));
 
         // truncated proof, one less undisclosed message
         let truncated_proof = &proof.clone()[..proof.len() - 32];
-        let fixture = FixtureProof {
+        let mut fixture = FixtureProof {
             proof: truncated_proof.to_vec(),
             result: ExpectedResult {
                 valid: false,
@@ -282,11 +314,11 @@ macro_rules! generate_proof_fixture {
             ..fixture_negative.clone()
         };
         validate_proof_fixture!($proof_verify_fn, &fixture);
-        save_test_vector(&fixture, &$output_dir.join("proof012.json"));
+        save_test_vector(&mut fixture, &$output_dir.join("proof012.json"));
 
         let mut header = $fixture_gen_input.header.clone();
         header.reverse();
-        let fixture = FixtureProof {
+        let mut fixture = FixtureProof {
             header,
             result: ExpectedResult {
                 valid: false,
@@ -295,7 +327,7 @@ macro_rules! generate_proof_fixture {
             ..fixture_negative.clone()
         };
         validate_proof_fixture!($proof_verify_fn, &fixture);
-        save_test_vector(&fixture, &$output_dir.join("proof013.json"));
+        save_test_vector(&mut fixture, &$output_dir.join("proof013.json"));
     };
 }
 
@@ -312,7 +344,9 @@ macro_rules! proof_gen_helper {
     $messages:ident,
     $ciphersuite_id:ident,
     $disclosed_indices:expr,
-    $expander:ty
+    $expander:ty,
+    $point_g1_octets_length:ident,
+    $scalar_octets_length:ident
 ) => {{
         if $disclosed_indices.len() > $messages.len() {
             panic!("more disclosed indices than messages");
@@ -365,10 +399,11 @@ macro_rules! proof_gen_helper {
 
         // Mocked rng based on expand_message
         let dst = &[&$ciphersuite_id(), MOCKED_RNG_DST.as_bytes()].concat();
+        let count = $messages.len() - $disclosed_indices.len() + 3;
         let mocked_rng = MockRng::<'_, $expander>::new(
             MOCKED_RNG_SEED.as_bytes(),
             dst,
-            $messages.len() - $disclosed_indices.len() + 6,
+            count,
             Some(BBS_BLS12381G1_EXPAND_LEN),
         );
 
@@ -385,6 +420,16 @@ macro_rules! proof_gen_helper {
             mocked_rng,
         )
         .unwrap();
+
+        // Sanity check for the count value in the input of mocked_rng
+        if (proof.len()
+            != 2 * $point_g1_octets_length + count * $scalar_octets_length)
+        {
+            panic!(
+                "Unexpected 'count' value in MockedRng during fixture proof \
+                 generation"
+            )
+        }
 
         // Verify the generated proof - just for validation
         assert_eq!(
@@ -441,6 +486,7 @@ macro_rules! validate_proof_fixture {
 
 pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &Path) {
     generate_proof_fixture!(
+        bls12_381_sha_256_key_gen,
         bls12_381_sha_256_sign,
         bls12_381_sha_256_verify,
         bls12_381_sha_256_proof_gen,
@@ -450,10 +496,13 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &Path) {
         output_dir
             .join("bls12_381_sha_256")
             .join(PROOF_FIXTURES_SUBDIR),
-        ExpandMsgXmd<Sha256>
+        ExpandMsgXmd<Sha256>,
+        BLS12381_SHA256_POINT_G1_OCTETS_LENGTH,
+        BLS12381_SHA256_SCALAR_OCTETS_LENGTH
     );
 
     generate_proof_fixture!(
+        bls12_381_shake_256_key_gen,
         bls12_381_shake_256_sign,
         bls12_381_shake_256_verify,
         bls12_381_shake_256_proof_gen,
@@ -463,6 +512,8 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &Path) {
         output_dir
             .join("bls12_381_shake_256")
             .join(PROOF_FIXTURES_SUBDIR),
-        ExpandMsgXof<Shake256>
+        ExpandMsgXof<Shake256>,
+        BLS12381_SHAKE256_POINT_G1_OCTETS_LENGTH,
+        BLS12381_SHAKE256_SCALAR_OCTETS_LENGTH
     );
 }

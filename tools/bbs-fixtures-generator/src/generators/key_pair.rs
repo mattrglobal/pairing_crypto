@@ -1,18 +1,32 @@
-use blstrs::Scalar;
-use hkdf::Hkdf;
 use pairing_crypto::{
-    bbs::ciphersuites::bls12_381::{KeyPair, PublicKey, SecretKey},
+    bbs::ciphersuites::{
+        bls12_381::{KeyPair, PublicKey, SecretKey},
+        bls12_381_g1_sha_256::{
+            ciphersuite_id as sha256_ciphersuite_id,
+            hash_to_scalar as sha256_hash_to_scalar,
+        },
+        bls12_381_g1_shake_256::{
+            ciphersuite_id as shake256_ciphersuite_id,
+            hash_to_scalar as shake256_hash_to_scalar,
+        },
+    },
     Error,
 };
-use sha2::{Digest, Sha256};
+
+use crate::{
+    model::{FixtureGenInput, FixtureKeyGen},
+    util::save_test_vector,
+};
+
+use std::path::Path;
 
 // a KDF based on the spec recommendation: [https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-01.html#name-keygen],
 // for the purpose of creating test vectors.
 // NOTE: this KDF is NOT a requirement for spec compatibility
 macro_rules! bbs_kdf {
     ($kdf_name:tt,
-     $input_salt:expr,
-     $hash:ty
+     $ciphersuite_id:ident,
+     $hash_to_scalar:ident
     ) => {
         pub(crate) fn $kdf_name(
             input_ikm: &[u8],
@@ -28,33 +42,18 @@ macro_rules! bbs_kdf {
                 });
             };
 
-            // L = ceil((3 * ceil(log2(r))) / 16)
-            const L: usize = 48;
+            let keygen_dst =
+                [$ciphersuite_id(), b"KEYGEN_DST_".to_vec()].concat();
 
-            // salt = H(salt)
-            let mut hasher = <$hash>::new();
-            hasher.update($input_salt);
-            let salt = hasher.finalize();
+            // derive_input = key_material || I2OSP(length(key_info), 2) ||
+            // key_info
+            let derive_input =
+                [input_ikm, &(key_info.len() as u16).to_be_bytes(), key_info]
+                    .concat();
 
-            // PRK = HKDF-Extract(salt, IKM || I2OSP(0, 1))
-            let ikm_prime = [ikm, &[0u8; 1][..]].concat();
-            let hk = Hkdf::<$hash>::new(Some(&salt), &ikm_prime);
-
-            // OKM = HKDF-Expand(PRK, key_info || I2OSP(L, 2), L)
-            const L_BYTES: [u8; 2] = (L as u16).to_be_bytes();
-            let mut okm = [0u8; 64];
-
-            let key_info_prime = [&key_info, &L_BYTES[..]].concat();
-            hk.expand(&key_info_prime, &mut okm[(64 - L)..])
-                .expect(&format!(
-                    "The output of HKDF expand cannot be more than {} bytes \
-                     long",
-                    255 * <$hash>::output_size()
-                ));
-
-            // SK = OS2IP(OKM) mod r
-            let sk_scalar = Scalar::from_wide_bytes_be_mod_r(&okm);
-            let sk: SecretKey = SecretKey(Box::new(sk_scalar));
+            let sk_bytes =
+                $hash_to_scalar(&derive_input, Some(&keygen_dst)).unwrap();
+            let sk = SecretKey::from_bytes(&sk_bytes).unwrap();
 
             // PK = SkToPk(SK)
             let pk: PublicKey = PublicKey::from(&sk);
@@ -70,9 +69,53 @@ macro_rules! bbs_kdf {
 // Sha256 based BBS KDF
 bbs_kdf!(
     sha256_bbs_key_gen_tool,
-    "BBS-SIG-KEYGEN-SALT-".as_bytes(),
-    Sha256
+    sha256_ciphersuite_id,
+    sha256_hash_to_scalar
 );
+
+// ShaKE256 based BBS KDF
+bbs_kdf!(
+    shake256_bbs_key_gen_tool,
+    shake256_ciphersuite_id,
+    shake256_hash_to_scalar
+);
+
+macro_rules! generate_keygen_fixture {
+    (
+     $keygen_fn:ident,
+     $fixture_gen_input:ident,
+     $output_dir:expr
+    ) => {
+        let key_pair = $keygen_fn(
+            &$fixture_gen_input.key_ikm,
+            &$fixture_gen_input.key_info,
+        )
+        .unwrap();
+
+        let fixture_scratch: FixtureKeyGen = $fixture_gen_input.clone().into();
+        let mut fixture = FixtureKeyGen {
+            case_name: "key pair fixture".to_owned(),
+            key_pair,
+            ..fixture_scratch
+        };
+
+        save_test_vector(&mut fixture, &$output_dir.join("keypair.json"));
+    };
+}
+
+pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &Path) {
+    generate_keygen_fixture!(
+        sha256_bbs_key_gen_tool,
+        fixture_gen_input,
+        output_dir.join("bls12_381_sha_256")
+    );
+
+    generate_keygen_fixture!(
+        shake256_bbs_key_gen_tool,
+        fixture_gen_input,
+        output_dir.join("bls12_381_shake_256")
+    );
+}
 
 #[cfg(test)]
 mod tests {
@@ -94,8 +137,13 @@ mod tests {
 
     // expected bbs key pair
     const SHA256_TEST_KEY_PAIR: TestKeyPair = TestKeyPair {
-        secret_key: "4a39afffd624d69e81808b2e84385cc80bf86adadf764e030caa46c231f2a8d7",
-        public_key: "aaff983278257afc45fa9d44d156c454d716fb1a250dfed132d65b2009331f618c623c14efa16245f50cc92e60334051087f1ae92669b89690f5feb92e91568f95a8e286d110b011e9ac9923fd871238f57d1295395771331ff6edee43e4ccc6"
+        secret_key: "57887f6e42cbf2a76fae89370474abe3d0f2e9db5d66c3f60b13e4fc724cde4e",
+        public_key: "a9df410a06798fafcc2a1cc004441c3cb831ffdc408500eb3c24f876714317798ec4ec7cfee653a4c3c44f6158ebebf70a0484cd7d8984a3325c154b7f39f8b1b97ab087e5218ab343011456953219b91cca6c5eb37613b2963e588691a42ec1"
+    };
+
+    const SHAKE256_TEST_KEY_PAIR: TestKeyPair = TestKeyPair {
+        secret_key: "63bf6d84ff9dc4822dafb362189b5ef63bd89b8f44f6cefe3dd2dadfa9732e39",
+        public_key: "acac86a688f260a1fda6291505e68c36df49684c65abb302b0527c77d1392a7b32954e553e910e93b6cc6c613dc25ed0070dba3a671f82dca905c9a8f2605d2b78a142896e849ce0cbe01f098c14d64809645c87d2b788c198e41db2b862199d"
     };
 
     // ikm and key info to bytes
@@ -106,40 +154,12 @@ mod tests {
         )
     }
 
-    fn kdf_test_helper() -> KeyPair {
-        let (key_ikm, key_info) = get_test_asset();
-
-        sha256_bbs_key_gen_tool(&key_ikm, &key_info)
-            .expect("Key pair generation failed")
-    }
-
-    // validate that the kdf with the BLS salt will return the same
-    // result with the native blstr implementation.
-    // [https://www.ietf.org/archive/id/draft-irtf-cfrg-bls-signature-05.html#name-keygen]
-    #[test]
-    fn expected_bls_key_pair() {
-        let (key_ikm, key_info) = get_test_asset();
-
-        // BLS KDF
-        bbs_kdf!(
-            sha256_bls_key_gen,
-            "BLS-SIG-KEYGEN-SALT-".as_bytes(),
-            Sha256
-        );
-
-        // BLS keyGen
-        let key_pair = sha256_bls_key_gen(&key_ikm, &key_info).unwrap();
-
-        // native BLS keyGen
-        let kay_pair_native = KeyPair::new(&key_ikm, &key_info).unwrap();
-
-        assert_eq!(key_pair, kay_pair_native)
-    }
-
     // validate that the sha256 based bbs kdf returns the expected results
     #[test]
-    fn expected_bbs_key_pair() {
-        let key_pair = kdf_test_helper();
+    fn expected_bbs_sha256_key_pair() {
+        let (key_ikm, key_info) = get_test_asset();
+        let key_pair = sha256_bbs_key_gen_tool(&key_ikm, &key_info)
+            .expect("Key pair generation failed");
 
         // println!("sk = {:?}", hex::encode(key_pair.secret_key.to_bytes()));
         // println!("pk = {:?}", hex::encode(key_pair.public_key.to_octets()));
@@ -154,10 +174,32 @@ mod tests {
         );
     }
 
+    // validate that the shake256 based bbs kdf returns the expected results
+    #[test]
+    fn expected_bbs_shake256_key_pair() {
+        let (key_ikm, key_info) = get_test_asset();
+        let key_pair = shake256_bbs_key_gen_tool(&key_ikm, &key_info)
+            .expect("Key pair generation failed");
+
+        // println!("sk = {:?}", hex::encode(key_pair.secret_key.to_bytes()));
+        // println!("pk = {:?}", hex::encode(key_pair.public_key.to_octets()));
+
+        assert_eq!(
+            hex::encode(key_pair.secret_key.to_bytes()),
+            SHAKE256_TEST_KEY_PAIR.secret_key
+        );
+        assert_eq!(
+            hex::encode(key_pair.public_key.to_octets()),
+            SHAKE256_TEST_KEY_PAIR.public_key
+        );
+    }
+
     // validate that the sha256 based bbs kdf returns valid results
     #[test]
     fn valid_public_key() {
-        let key_pair = kdf_test_helper();
+        let (key_ikm, key_info) = get_test_asset();
+        let key_pair = sha256_bbs_key_gen_tool(&key_ikm, &key_info)
+            .expect("Key pair generation failed");
 
         assert_eq!(
             key_pair.public_key.is_valid().unwrap_u8(),

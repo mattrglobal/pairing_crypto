@@ -3,12 +3,9 @@ use pairing_crypto::bbs::ciphersuites::{
     bls12_381_g1_sha_256::create_generators as bls12_381_sha_256_create_generators,
     bls12_381_g1_shake_256::create_generators as bls12_381_shake_256_create_generators,
 };
-use std::{
-    env,
-    fs::File,
-    io::{BufWriter, Write},
-    path::PathBuf,
-};
+use std::path::PathBuf;
+
+use serde_derive::Serialize;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 enum Ciphersuite {
@@ -20,6 +17,14 @@ enum Ciphersuite {
 enum OutputType {
     Print,
     File,
+}
+
+#[allow(non_snake_case)]
+#[derive(Serialize, Debug, Clone)]
+pub struct FixtureGenerators {
+    pub BP: String,
+    pub Q1: String,
+    pub MsgGenerators: Vec<String>
 }
 
 #[derive(Parser)]
@@ -56,27 +61,28 @@ fn main() {
     }
     .unwrap();
 
+    let fixture = FixtureGenerators {
+        BP: hex::encode(generators[0].clone()),
+        Q1: hex::encode(generators[1].clone()),
+        MsgGenerators: generators.iter().skip(2).map(|g| {
+            hex::encode(g)
+        }).collect()
+    };
+
     match output_type {
-        OutputType::Print => print_generators(&generators),
-        OutputType::File => write_generators_to_file(&generators, file_name),
+        OutputType::Print => print_generators(&fixture),
+        OutputType::File => write_generators_to_file(&fixture, file_name),
     }
 }
 
-fn print_generators(generators: &[Vec<u8>]) {
-    println!("G1 BP = {}", hex::encode(generators[0].clone()));
-    generators.iter().skip(1).enumerate().for_each(|(i, g)| {
-        println!("G_{} = {}", i + 1, hex::encode(g));
-    });
+fn print_generators(generators: &FixtureGenerators) {
+    println!("{:#?}", generators);
 }
 
-fn write_generators_to_file(generators: &[Vec<u8>], file_name: PathBuf) {
-    let path = env::current_dir().unwrap();
-    let file_path = path.join(file_name);
-    let file = File::create(file_path).unwrap();
-
-    let result: Vec<String> = generators.iter().map(hex::encode).collect();
-
-    let mut writer = BufWriter::new(file);
-    serde_json::to_writer_pretty(&mut writer, &result).unwrap();
-    writer.flush().unwrap();
+fn write_generators_to_file(generators: &FixtureGenerators, file_name: PathBuf) {
+    std::fs::write(
+        file_name,
+        serde_json::to_string_pretty(&generators).unwrap(),
+    )
+    .unwrap();
 }

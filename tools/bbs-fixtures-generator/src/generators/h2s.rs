@@ -1,5 +1,7 @@
 use pairing_crypto::bbs::ciphersuites::{
+    bls12_381::BBS_BLS12381G1_EXPAND_LEN,
     bls12_381_g1_sha_256::{
+        ciphersuite_id as bls12_381_g1_sha_256_ciphersuite_id,
         default_hash_to_scalar_dst as bls12_381_sha_256_default_hash_to_scalar_dst,
         default_map_message_to_scalar_as_hash_dst as bls12_381_sha_256_default_message_to_scalar_dst,
         hash_to_scalar as bls12_381_sha_256_h2s,
@@ -14,15 +16,23 @@ use pairing_crypto::bbs::ciphersuites::{
 };
 
 use crate::{
+    mock_rng::{MockRng, MOCKED_RNG_DST, MOCKED_RNG_SEED},
     model::{
         FixtureGenInput,
         FixtureH2s,
         FixtureMapMessageToScalar,
+        FixtureMockedRng,
         MessageToScalarFixtureCase,
     },
     util::save_test_vector,
 };
-
+use blstrs::{
+    hash_to_curve::{ExpandMsgXmd, ExpandMsgXof},
+    Scalar,
+};
+use rand::RngCore;
+use sha2::Sha256;
+use sha3::Shake256;
 use std::path::PathBuf;
 
 macro_rules! generate_hash_fixtures {
@@ -40,14 +50,14 @@ macro_rules! generate_hash_fixtures {
         let msg_scalar =
             $hash_to_scalar_fn(msg, Some(&dst_used)).unwrap().to_owned();
 
-        let h2s_fixture = FixtureH2s {
+        let mut h2s_fixture = FixtureH2s {
             case_name: "Hash to scalar output".to_owned(),
             message: msg.to_owned(),
             dst: dst_used,
             scalar: msg_scalar.to_vec(),
         };
 
-        save_test_vector(&h2s_fixture, &$output_dir.join("h2s.json"));
+        save_test_vector(&mut h2s_fixture, &$output_dir.join("h2s.json"));
     };
 }
 
@@ -78,9 +88,45 @@ macro_rules! generate_map_message_to_scalar_fixtures {
         }
 
         save_test_vector(
-            &map_msg_to_scalar_fixture,
+            &mut map_msg_to_scalar_fixture,
             &$output_dir.join("MapMessageToScalarAsHash.json"),
         )
+    }};
+}
+
+macro_rules! generate_mocked_rnd_scalars_fixtures {
+    (
+     $count:expr,
+     $ciphersuite_id:ident,
+     $expander:ty,
+     $output_dir:expr
+    ) => {{
+        let dst = &[&$ciphersuite_id(), MOCKED_RNG_DST.as_bytes()].concat();
+        let mut mocked_rng = MockRng::<'_, $expander>::new(
+            MOCKED_RNG_SEED.as_bytes(),
+            dst,
+            $count,
+            Some(BBS_BLS12381G1_EXPAND_LEN),
+        );
+
+        let mut fixture = FixtureMockedRng {
+            case_name: "mocked random scalars".to_owned(),
+            count: $count,
+            seed: MOCKED_RNG_SEED.as_bytes().to_vec(),
+            dst: dst.to_vec(),
+            mocked_scalars: Vec::<String>::new(),
+        };
+
+        for _ in 0..$count {
+            let mut buff = [0u8; 64];
+            mocked_rng.fill_bytes(&mut buff[16..]);
+            let scalar_i = Scalar::from_wide_bytes_be_mod_r(&buff);
+            fixture
+                .mocked_scalars
+                .push(hex::encode(scalar_i.to_bytes_be()));
+        }
+
+        save_test_vector(&mut fixture, &$output_dir.join("mockedRng.json"))
     }};
 }
 
@@ -113,5 +159,19 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
         bls12_381_sha_256_default_message_to_scalar_dst,
         fixture_gen_input,
         output_dir.join("bls12_381_sha_256")
-    )
+    );
+
+    generate_mocked_rnd_scalars_fixtures!(
+        10,
+        bls12_381_g1_sha_256_ciphersuite_id,
+        ExpandMsgXmd<Sha256>,
+        output_dir.join("bls12_381_sha_256")
+    );
+
+    generate_mocked_rnd_scalars_fixtures!(
+        10,
+        bls12_381_g1_sha_256_ciphersuite_id,
+        ExpandMsgXof<Shake256>,
+        output_dir.join("bls12_381_shake_256")
+    );
 }

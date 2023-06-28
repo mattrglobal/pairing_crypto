@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use crate::sha256_bbs_key_gen_tool;
 use pairing_crypto::bbs::ciphersuites::bls12_381::{
     KeyPair,
     PublicKey,
@@ -14,6 +13,54 @@ use serde::{
     Serializer,
 };
 use serde_derive::Serialize;
+
+pub trait CaseName {
+    fn derive_case_name(&mut self) {}
+}
+
+macro_rules! implement_case_name {
+    ($t:ident) => {
+        impl CaseName for $t {
+            fn derive_case_name(&mut self) {
+                match self.result.valid {
+                    true => {
+                        self.case_name = format!("valid {}", self.case_name)
+                    }
+                    false => {
+                        self.case_name = format!(
+                            "invalid {} ({})",
+                            self.case_name,
+                            self.result.reason.as_ref().unwrap()
+                        )
+                    }
+                }
+            }
+        }
+    };
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct FixtureKeyGen {
+    pub case_name: String,
+    pub key_material: String,
+    pub key_info: String,
+    #[serde(serialize_with = "serialize_key_pair")]
+    #[serde(deserialize_with = "deserialize_key_pair")]
+    pub key_pair: KeyPair,
+}
+impl CaseName for FixtureKeyGen {}
+
+impl From<FixtureGenInput> for FixtureKeyGen {
+    fn from(value: FixtureGenInput) -> Self {
+        Self {
+            case_name: Default::default(),
+            key_material: hex::encode(value.key_ikm),
+            key_info: hex::encode(value.key_info),
+            key_pair: Default::default(),
+        }
+    }
+}
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -33,8 +80,9 @@ pub struct TestAsset {
 
 #[derive(Debug, Default, Clone)]
 pub struct FixtureGenInput {
-    pub key_pair: KeyPair,
-    pub spare_key_pair: KeyPair,
+    pub key_ikm: Vec<u8>,
+    pub spare_key_ikm: Vec<u8>,
+    pub key_info: Vec<u8>,
     pub header: Vec<u8>,
     pub presentation_header: Vec<u8>,
     pub messages: Vec<Vec<u8>>,
@@ -42,12 +90,6 @@ pub struct FixtureGenInput {
 
 impl From<TestAsset> for FixtureGenInput {
     fn from(t: TestAsset) -> Self {
-        let key_pair =
-            sha256_bbs_key_gen_tool(&t.key_ikm, &t.key_info).unwrap();
-
-        let spare_key_pair =
-            sha256_bbs_key_gen_tool(&t.spare_key_ikm, &t.key_info).unwrap();
-
         let messages = t
             .messages
             .iter()
@@ -55,8 +97,9 @@ impl From<TestAsset> for FixtureGenInput {
             .collect::<Vec<Vec<u8>>>();
 
         Self {
-            key_pair,
-            spare_key_pair,
+            key_ikm: t.key_ikm,
+            spare_key_ikm: t.spare_key_ikm,
+            key_info: t.key_info,
             header: t.header,
             presentation_header: t.presentation_header,
             messages,
@@ -95,7 +138,7 @@ impl From<FixtureGenInput> for FixtureSignature {
     fn from(val: FixtureGenInput) -> Self {
         Self {
             case_name: Default::default(),
-            key_pair: val.key_pair,
+            key_pair: Default::default(),
             header: val.header,
             messages: val.messages,
             signature: Default::default(),
@@ -103,6 +146,17 @@ impl From<FixtureGenInput> for FixtureSignature {
         }
     }
 }
+
+// impl CaseName for FixtureSignature {
+//     fn derive_case_name(&mut self) {
+//         match self.result.valid{
+//             true => self.case_name = format!("valid {}", self.case_name),
+//             false => self.case_name = format!("invalid {} ({})",
+// self.case_name, self.result.reason.as_ref().unwrap())         }
+//     }
+// }
+
+implement_case_name!(FixtureSignature);
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -131,7 +185,7 @@ impl From<FixtureGenInput> for FixtureProof {
     fn from(val: FixtureGenInput) -> Self {
         Self {
             case_name: Default::default(),
-            signer_public_key: val.key_pair.public_key,
+            signer_public_key: Default::default(),
             header: val.header,
             presentation_header: val.presentation_header,
             disclosed_messages: Default::default(),
@@ -140,6 +194,17 @@ impl From<FixtureGenInput> for FixtureProof {
         }
     }
 }
+
+// impl CaseName for FixtureProof {
+//     fn derive_case_name(&mut self) {
+//         match self.result.valid{
+//             true => self.case_name = format!("valid {}", self.case_name),
+//             false => self.case_name = format!("invalid {} ({})",
+// self.case_name, self.result.reason.as_ref().unwrap())         }
+//     }
+// }
+
+implement_case_name!(FixtureProof);
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -167,6 +232,8 @@ pub struct FixtureH2s {
     pub scalar: Vec<u8>,
 }
 
+impl CaseName for FixtureH2s {}
+
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FixtureMapMessageToScalar {
@@ -177,6 +244,24 @@ pub struct FixtureMapMessageToScalar {
     #[serde(serialize_with = "serialize_message_to_scalar_cases")]
     pub cases: Vec<MessageToScalarFixtureCase>,
 }
+
+impl CaseName for FixtureMapMessageToScalar {}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct FixtureMockedRng {
+    pub case_name: String,
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub seed: Vec<u8>,
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub dst: Vec<u8>,
+    pub count: usize,
+    pub mocked_scalars: Vec<String>,
+}
+
+impl CaseName for FixtureMockedRng {}
 
 fn serialize_key_pair<S>(
     key_pair: &KeyPair,
