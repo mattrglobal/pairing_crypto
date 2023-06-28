@@ -147,15 +147,6 @@ impl From<FixtureGenInput> for FixtureSignature {
     }
 }
 
-// impl CaseName for FixtureSignature {
-//     fn derive_case_name(&mut self) {
-//         match self.result.valid{
-//             true => self.case_name = format!("valid {}", self.case_name),
-//             false => self.case_name = format!("invalid {} ({})",
-// self.case_name, self.result.reason.as_ref().unwrap())         }
-//     }
-// }
-
 implement_case_name!(FixtureSignature);
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -194,15 +185,6 @@ impl From<FixtureGenInput> for FixtureProof {
         }
     }
 }
-
-// impl CaseName for FixtureProof {
-//     fn derive_case_name(&mut self) {
-//         match self.result.valid{
-//             true => self.case_name = format!("valid {}", self.case_name),
-//             false => self.case_name = format!("invalid {} ({})",
-// self.case_name, self.result.reason.as_ref().unwrap())         }
-//     }
-// }
 
 implement_case_name!(FixtureProof);
 
