@@ -52,3 +52,25 @@ export const mapObjIndexed = <K extends number | string, V, R>(
     return accu;
   }, {} as Record<K, R>);
 };
+
+interface RevealMessage<E> {
+  value: E;
+  reveal: boolean;
+}
+
+export const convertToRevealMessageArray = <E>(messages: E[], revealedIndicies: number[]): RevealMessage<E>[] => {
+  return messages.map((value: E, i: number) => ({
+    reveal: revealedIndicies.includes(i),
+    value,
+  }));
+};
+
+export const convertRevealMessageArrayToRevealMap = <E>(
+  messages: RevealMessage<E>[]
+): Record<number, RevealMessage<E>> => {
+  return messages.reduce(
+    (map: Record<number, RevealMessage<E>>, message: RevealMessage<E>, i: number) =>
+      message.reveal ? { ...map, [i]: message } : map,
+    {}
+  );
+};
