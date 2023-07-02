@@ -1,8 +1,6 @@
 use blstrs::hash_to_curve::ExpandMessageState;
-use ff::Field;
 
 use crate::{
-    common::serialization::i2osp,
     curves::bls12_381::{hash_to_curve::InitExpandMessage, Scalar},
     Error,
 };
@@ -13,7 +11,6 @@ use super::{
         DEFAULT_DST_SUFFIX_MESSAGE_TO_SCALAR,
         MAX_DST_SIZE,
         MAX_MESSAGE_SIZE,
-        MAX_VALUE_GENERATION_RETRY_COUNT,
         XOF_NO_OF_BYTES,
     },
     ExpandMessageParameter,
@@ -48,30 +45,17 @@ pub(crate) trait HashToScalarParameter: ExpandMessageParameter {
                 cause: "non-ascii dst".to_owned(),
             });
         }
+        let mut expander = Self::Expander::init_expand(
+            msg_octets,
+            dst_octets,
+            XOF_NO_OF_BYTES,
+        );
 
-        let mut counter = 0;
-        loop {
-            if counter == MAX_VALUE_GENERATION_RETRY_COUNT {
-                return Err(Error::MaxRetryReached);
-            }
-            let msg_prime = [msg_octets, &i2osp(counter as u64, 1)?].concat();
+        let mut buf = [0u8; 64];
+        expander.read_into(&mut buf[16..]);
+        let out_scalar = Scalar::from_wide_bytes_be_mod_r(&buf);
 
-            let mut expander = Self::Expander::init_expand(
-                &msg_prime,
-                dst_octets,
-                XOF_NO_OF_BYTES,
-            );
-
-            let mut buf = [0u8; 64];
-            expander.read_into(&mut buf[16..]);
-            let out_scalar = Scalar::from_wide_bytes_be_mod_r(&buf);
-
-            if out_scalar.is_zero().unwrap_u8() == 1u8 {
-                counter += 1;
-                continue;
-            }
-            return Ok(out_scalar);
-        }
+        Ok(out_scalar)
     }
 
     /// Hash arbitrary data to a scalar as specified in [3.3.9.1 Hash to scalar](https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-mapmessagetoscalarashash).

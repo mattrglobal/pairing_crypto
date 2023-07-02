@@ -19,10 +19,10 @@ impl CipherSuiteId {
     pub(crate) fn as_octets(&self) -> &[u8] {
         match &self {
             CipherSuiteId::BbsBls12381G1XmdSha256 => {
-                b"BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_H2G_"
+                b"BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_H2G_HM2S_"
             }
             CipherSuiteId::BbsBls12381G1XofShake256 => {
-                b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_H2G_"
+                b"BBS_BLS12381G1_XOF:SHAKE-256_SSWU_RO_H2G_HM2S_"
             }
             CipherSuiteId::BlsSigBls12381G2XmdSha256Nul => {
                 b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_"
