@@ -8,6 +8,7 @@ use pairing_crypto::bbs::ciphersuites::{
         map_message_to_scalar_as_hash as bls12_381_sha_256_map_message_to_scalar,
     },
     bls12_381_g1_shake_256::{
+        ciphersuite_id as bls12_381_g1_shake_256_ciphersuite_id,
         default_hash_to_scalar_dst as bls12_381_shake_256_default_hash_to_scalar_dst,
         default_map_message_to_scalar_as_hash_dst as bls12_381_shake_256_default_message_to_scalar_dst,
         hash_to_scalar as bls12_381_shake_256_h2s,
@@ -170,7 +171,7 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
 
     generate_mocked_rnd_scalars_fixtures!(
         10,
-        bls12_381_g1_sha_256_ciphersuite_id,
+        bls12_381_g1_shake_256_ciphersuite_id,
         ExpandMsgXof<Shake256>,
         output_dir.join("bls12_381_shake_256")
     );
