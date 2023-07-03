@@ -1,10 +1,10 @@
 {
-  "caseName": "valid multi-message signature",
+  "caseName": "valid multi-message signature, no header",
   "signerKeyPair": {
     "secretKey": "2eee0f60a8a3a8bec0ee942bfd46cbdae9a0738ee68f5a64e7238311cf09a079",
     "publicKey": "92d37d1d6cd38fea3a873953333eab23a4c0377e3e049974eb62bd45949cdeb18fb0490edcd4429adff56e65cbce42cf188b31bddbd619e419b99c2c41b38179eb001963bc3decaae0d9f702c7a8c004f207f46c734a5eae2e8e82833f3e7ea5"
   },
-  "header": "11223344556677889900aabbccddeeff",
+  "header": "",
   "messages": [
     "9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02",
     "c344136d9ab02da4dd5908bbba913ae6f58c2cc844b802a6f811f5fb075f9b80",
@@ -17,7 +17,7 @@
     "96012096",
     ""
   ],
-  "signature": "88dfe695f5f8bc9a2e3d0d401ba260c21557d1ae082b135ce62eaef9a8ff1fbfe10d251687acd9abf03bc1312d34fa83107ad5832bf089add71e6738cdc39be5ce28e4d1a00ace9ceaefcfcc27e3c80d",
+  "signature": "893b45cbd233a8e392f52830aaf9fa9c7c3d334fde5f9e1a530c52c9d817f4814db6c00ecb5842d8bd8f8822270b4cc11480c5d5e1e32753c424d5050ab960d9738f2314506d100b9634eac598df5508",
   "result": {
     "valid": true
   }

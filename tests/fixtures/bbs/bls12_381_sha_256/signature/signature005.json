@@ -7,9 +7,9 @@
   "header": "11223344556677889900aabbccddeeff",
   "messages": [
     "9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02",
-    "87a8bd656d49ee07b8110e1d8fd4f1dcef6fb9bc368c492d9bc8c4f98a739ac6"
+    "c344136d9ab02da4dd5908bbba913ae6f58c2cc844b802a6f811f5fb075f9b80"
   ],
-  "signature": "b13e3ebf476845e88766c151e7c54ef70a1b9fcd60beb61d921441682f6facb46cbc234f109657305490b94159ac2af06e2d78f66f90f40cb7a1bfc15cba71d10c90a7c46e8148d3ce3bd1dd70913f65",
+  "signature": "965cda8e874de4e855f1137cd413bf66ef302c90d40fb5826b07dc85c68e9d93702744aba281fc72b44bb15d20d259dd306e684f4e84025941efe3af1d4e75e29ea83572a55567fccc7fedbf25bc2dc8",
   "result": {
     "valid": false,
     "reason": "missing messages"

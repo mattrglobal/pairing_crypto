@@ -81,6 +81,8 @@ macro_rules! generate_proof_fixture {
                 "single message signature, single-message revealed proof"
                     .to_owned(),
                 "proof001.json",
+                header,
+                presentation_header,
                 &$fixture_gen_input.messages[0..1].to_vec(),
                 BTreeSet::<usize>::from([0]),
                 ExpectedResult {
@@ -92,6 +94,8 @@ macro_rules! generate_proof_fixture {
                 "multi-message signature, all messages revealed proof"
                     .to_owned(),
                 "proof002.json",
+                header,
+                presentation_header,
                 &$fixture_gen_input.messages,
                 (0..$fixture_gen_input.messages.len()).map(|i| i).collect(),
                 ExpectedResult {
@@ -103,6 +107,34 @@ macro_rules! generate_proof_fixture {
                 "multi-message signature, multiple messages revealed proof"
                     .to_owned(),
                 "proof003.json",
+                header,
+                presentation_header,
+                &$fixture_gen_input.messages,
+                BTreeSet::<usize>::from([0, 2, 4, 6]),
+                ExpectedResult {
+                    valid: true,
+                    reason: None,
+                },
+            ),
+            (
+                "multi-message signature, multiple messages revealed proof, no header"
+                    .to_owned(),
+                "proof014.json",
+                &Vec::new(),
+                presentation_header,
+                &$fixture_gen_input.messages,
+                BTreeSet::<usize>::from([0, 2, 4, 6]),
+                ExpectedResult {
+                    valid: true,
+                    reason: None,
+                },
+            ),
+            (
+                "multi-message signature, multiple messages revealed proof, no presentation header"
+                    .to_owned(),
+                "proof015.json",
+                header,
+                &Vec::new(),
                 &$fixture_gen_input.messages,
                 BTreeSet::<usize>::from([0, 2, 4, 6]),
                 ExpectedResult {
@@ -115,6 +147,8 @@ macro_rules! generate_proof_fixture {
         for (
             case_name,
             test_vector_file_name,
+            header,
+            presentation_header,
             messages,
             disclosed_indices,
             result,
@@ -138,6 +172,8 @@ macro_rules! generate_proof_fixture {
             );
             let mut fixture = FixtureProof {
                 case_name,
+                header: header.clone(),
+                presentation_header: presentation_header.clone(),
                 disclosed_messages,
                 proof,
                 result,

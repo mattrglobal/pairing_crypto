@@ -52,6 +52,14 @@ macro_rules! generate_signature_fixture {
         })
         .unwrap();
 
+        let signature_multi_message_no_header = $sign_fn(&BbsSignRequest {
+            secret_key: &key_pair.secret_key.to_bytes(),
+            public_key: &key_pair.public_key.to_octets(),
+            header: None,
+            messages: Some(&$fixture_gen_input.messages),
+        })
+        .unwrap();
+
         let fixture_scratch = FixtureSignature {
             key_pair: key_pair.clone(),
             ..FixtureSignature::from($fixture_gen_input.clone())
@@ -205,6 +213,22 @@ macro_rules! generate_signature_fixture {
         };
         validate_signature_fixture!($verify_fn, &fixture);
         save_test_vector(&mut fixture, &$output_dir.join("signature009.json"));
+
+
+        // multi message - valid case - no header
+        let mut fixture = FixtureSignature {
+            case_name: "multi-message signature, no header".to_owned(),
+            messages: $fixture_gen_input.messages.to_vec(),
+            header: Vec::new(),
+            signature: signature_multi_message_no_header.to_vec(),
+            result: ExpectedResult {
+                valid: true,
+                reason: None,
+            },
+            ..fixture_scratch.clone()
+        };
+        validate_signature_fixture!($verify_fn, &fixture);
+        save_test_vector(&mut fixture, &$output_dir.join("signature010.json"));
     };
 }
 
