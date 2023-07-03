@@ -214,7 +214,6 @@ macro_rules! generate_signature_fixture {
         validate_signature_fixture!($verify_fn, &fixture);
         save_test_vector(&mut fixture, &$output_dir.join("signature009.json"));
 
-
         // multi message - valid case - no header
         let mut fixture = FixtureSignature {
             case_name: "multi-message signature, no header".to_owned(),

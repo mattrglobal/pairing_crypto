@@ -117,7 +117,8 @@ macro_rules! generate_proof_fixture {
                 },
             ),
             (
-                "multi-message signature, multiple messages revealed proof, no header"
+                "multi-message signature, multiple messages revealed proof, \
+                 no header"
                     .to_owned(),
                 "proof014.json",
                 &Vec::new(),
@@ -130,7 +131,8 @@ macro_rules! generate_proof_fixture {
                 },
             ),
             (
-                "multi-message signature, multiple messages revealed proof, no presentation header"
+                "multi-message signature, multiple messages revealed proof, \
+                 no presentation header"
                     .to_owned(),
                 "proof015.json",
                 header,
