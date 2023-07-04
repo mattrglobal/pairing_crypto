@@ -58,7 +58,7 @@ interface RevealMessage<E> {
   reveal: boolean;
 }
 
-export const convertToRevealMessagesArray = <E>(messages: E[], revealedIndicies: number[]): RevealMessage<E>[] => {
+export const convertToRevealMessageArray = <E>(messages: E[], revealedIndicies: number[]): RevealMessage<E>[] => {
   return messages.map((value: E, i: number) => ({
     reveal: revealedIndicies.includes(i),
     value,
