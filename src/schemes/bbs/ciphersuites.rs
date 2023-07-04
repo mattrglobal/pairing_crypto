@@ -95,7 +95,7 @@ pub(crate) trait BbsCiphersuiteParameters:
         while *n <= count.try_into().unwrap() {
             // v = expand_message(v || I2OSP(n, 4), seed_dst, seed_len)
             let mut expander = Self::Expander::init_expand(
-                &[v.as_ref(), &i2osp(*n, 4)?].concat(),
+                &[v.as_ref(), &i2osp(*n, 8)?].concat(),
                 &generator_seed_dst,
                 XOF_NO_OF_BYTES,
             );
