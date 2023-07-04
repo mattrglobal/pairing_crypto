@@ -10,12 +10,8 @@ pub(crate) mod memory_cached_generator;
 /// - `Sign`, `Verify`, `ProofGen`, and `ProofVerify`.
 #[allow(non_snake_case)]
 pub(crate) trait Generators: Debug + Clone {
-    /// Get `Q_1`, the generator point for the blinding value (s) of the
-    /// signature.
-    fn Q_1(&self) -> G1Projective;
-
-    /// Get `Q_2`, the generator point for the domain of the signature.
-    fn Q_2(&self) -> G1Projective;
+    /// Get `Q`, the generator point for the domain of the signature.
+    fn Q(&self) -> G1Projective;
 
     /// The number of message generators this `Generators` instance
     /// holds.

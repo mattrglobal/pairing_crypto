@@ -24,8 +24,7 @@ use crate::{
         get_random_test_messages,
         proof::test_helper,
         test_generators_random_message_generators,
-        test_generators_random_q_1,
-        test_generators_random_q_2,
+        test_generators_random_q,
         ANOTHER_TEST_HEADER,
         TEST_HEADER,
         TEST_PRESENTATION_HEADER_1,
@@ -911,7 +910,7 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
         BTreeMap<usize, Message>,
     ),
     &'static str,
-); 11] {
+); 8] {
     const NUM_MESSAGES: usize = 5;
     let key_pair = get_random_test_key_pair();
     let header = Some(TEST_HEADER.as_ref());
@@ -962,21 +961,6 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
         (
             (
                 Proof {
-                    A_prime: G1Projective::random(&mut OsRng),
-                    m_hat_list: proof.m_hat_list.clone(),
-                    ..proof
-                },
-                key_pair.public_key,
-                header,
-                ph,
-                generators.clone(),
-                revealed_messages.clone(),
-            ),
-            "A' is tampered",
-        ),
-        (
-            (
-                Proof {
                     A_bar: G1Projective::random(&mut OsRng),
                     m_hat_list: proof.m_hat_list.clone(),
                     ..proof
@@ -992,7 +976,7 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
         (
             (
                 Proof {
-                    D: G1Projective::random(&mut OsRng),
+                    B_bar: G1Projective::random(&mut OsRng),
                     m_hat_list: proof.m_hat_list.clone(),
                     ..proof
                 },
@@ -1002,7 +986,7 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
                 generators.clone(),
                 revealed_messages.clone(),
             ),
-            "D is tampered",
+            "B_bar is tampered",
         ),
         (
             (
@@ -1022,21 +1006,6 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
         (
             (
                 Proof {
-                    e_hat: FiatShamirProof(Scalar::random(&mut OsRng)),
-                    m_hat_list: proof.m_hat_list.clone(),
-                    ..proof
-                },
-                key_pair.public_key,
-                header,
-                ph,
-                generators.clone(),
-                revealed_messages.clone(),
-            ),
-            "e^ is tampered",
-        ),
-        (
-            (
-                Proof {
                     r2_hat: FiatShamirProof(Scalar::random(&mut OsRng)),
                     m_hat_list: proof.m_hat_list.clone(),
                     ..proof
@@ -1052,7 +1021,7 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
         (
             (
                 Proof {
-                    r3_hat: FiatShamirProof(Scalar::random(&mut OsRng)),
+                    z_hat: FiatShamirProof(Scalar::random(&mut OsRng)),
                     m_hat_list: proof.m_hat_list.clone(),
                     ..proof
                 },
@@ -1062,22 +1031,7 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
                 generators.clone(),
                 revealed_messages.clone(),
             ),
-            "r3^ is tampered",
-        ),
-        (
-            (
-                Proof {
-                    s_hat: FiatShamirProof(Scalar::random(&mut OsRng)),
-                    m_hat_list: proof.m_hat_list.clone(),
-                    ..proof
-                },
-                key_pair.public_key,
-                header,
-                ph,
-                generators.clone(),
-                revealed_messages.clone(),
-            ),
-            "s^ is tampered",
+            "z^ is tampered",
         ),
         (
             (
@@ -1149,15 +1103,14 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
         BTreeMap<usize, Message>,
     ),
     &'static str,
-); 15] {
+); 14] {
     const NUM_MESSAGES: usize = 5;
     let key_pair = get_random_test_key_pair();
     let header = Some(TEST_HEADER.as_ref());
     let ph = Some(TEST_PRESENTATION_HEADER_1.as_ref());
     let messages = get_random_test_messages(NUM_MESSAGES);
     let mut generators = create_generators_helper(messages.len());
-    let generators_different_q_1 = test_generators_random_q_1(messages.len());
-    let generators_different_q_2 = test_generators_random_q_2(messages.len());
+    let generators_different_q = test_generators_random_q(messages.len());
     let generators_different_message_generators =
         test_generators_random_message_generators(messages.len());
 
@@ -1413,21 +1366,10 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 key_pair.public_key,
                 header,
                 ph,
-                generators_different_q_1,
+                generators_different_q,
                 revealed_messages.clone(),
             ),
-            "Q_1 value of generators is different",
-        ),
-        (
-            (
-                proof_all_hidden_messages.clone(),
-                key_pair.public_key,
-                header,
-                ph,
-                generators_different_q_2,
-                revealed_messages.clone(),
-            ),
-            "Q_2 value of generators is different",
+            "Q value of generators is different",
         ),
         (
             (
@@ -1525,15 +1467,12 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     ]
 }
 pub(crate) fn test_data_from_octets_invalid_parameters(
-) -> [(Vec<u8>, Error, &'static str); 26] {
-    let a_prime = G1Projective::random(&mut OsRng).to_affine().to_compressed();
+) -> [(Vec<u8>, Error, &'static str); 20] {
     let a_bar = G1Projective::random(&mut OsRng).to_affine().to_compressed();
-    let d = G1Projective::random(&mut OsRng).to_affine().to_compressed();
+    let b_bar = G1Projective::random(&mut OsRng).to_affine().to_compressed();
     let c = Scalar::random(&mut OsRng).to_bytes_be();
-    let e_hat = Scalar::random(&mut OsRng).to_bytes_be();
     let r2_hat = Scalar::random(&mut OsRng).to_bytes_be();
-    let r3_hat = Scalar::random(&mut OsRng).to_bytes_be();
-    let s_hat = Scalar::random(&mut OsRng).to_bytes_be();
+    let z_hat = Scalar::random(&mut OsRng).to_bytes_be();
     let m_hat_list = vec![Scalar::random(&mut OsRng).to_bytes_be(); 2];
 
     let g1_identity = G1Projective::identity().to_affine().to_compressed();
@@ -1541,7 +1480,7 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
     let scalar_greater_than_modulus = [0xFF; OCTET_SCALAR_LENGTH];
 
     const PROOF_LEN_FLOOR: usize =
-        OCTET_POINT_G1_LENGTH * 3 + OCTET_SCALAR_LENGTH * 5;
+        OCTET_POINT_G1_LENGTH * 2 + OCTET_SCALAR_LENGTH * 3;
 
     [
         (
@@ -1609,115 +1548,66 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
         (
             [
                 [0x0; OCTET_POINT_G1_LENGTH].as_ref(),
-                a_bar.as_ref(),
-                d.as_ref(),
+                b_bar.as_ref(),
                 c.as_ref(),
-                e_hat.as_ref(),
                 r2_hat.as_ref(),
-                r3_hat.as_ref(),
-                s_hat.as_ref(),
+                z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
             ]
             .concat(),
             Error::BadEncoding,
-            "raw buffer for `A'` is all zeroes",
+            "raw buffer for `Abar` is all zeroes",
         ),
         (
             [
                 g1_identity.as_ref(),
-                a_bar.as_ref(),
-                d.as_ref(),
+                b_bar.as_ref(),
                 c.as_ref(),
-                e_hat.as_ref(),
                 r2_hat.as_ref(),
-                r3_hat.as_ref(),
-                s_hat.as_ref(),
+                z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
             ]
             .concat(),
             Error::PointIsIdentity,
-            "raw buffer for `A'` is identity",
+            "raw buffer for `Abar` is identity",
         ),
         (
             [
-                a_prime.as_ref(),
-                [0x0; OCTET_POINT_G1_LENGTH].as_ref(),
-                d.as_ref(),
-                c.as_ref(),
-                e_hat.as_ref(),
-                r2_hat.as_ref(),
-                r3_hat.as_ref(),
-                s_hat.as_ref(),
-                m_hat_list[0].as_ref(),
-                m_hat_list[1].as_ref(),
-            ]
-            .concat(),
-            Error::BadEncoding,
-            "raw buffer for `A_bar` is all zeroes",
-        ),
-        (
-            [
-                a_prime.as_ref(),
-                g1_identity.as_ref(),
-                d.as_ref(),
-                c.as_ref(),
-                e_hat.as_ref(),
-                r2_hat.as_ref(),
-                r3_hat.as_ref(),
-                s_hat.as_ref(),
-                m_hat_list[0].as_ref(),
-                m_hat_list[1].as_ref(),
-            ]
-            .concat(),
-            Error::PointIsIdentity,
-            "raw buffer for `A_bar` is identity",
-        ),
-        (
-            [
-                a_prime.as_ref(),
                 a_bar.as_ref(),
                 [0x0; OCTET_POINT_G1_LENGTH].as_ref(),
                 c.as_ref(),
-                e_hat.as_ref(),
                 r2_hat.as_ref(),
-                r3_hat.as_ref(),
-                s_hat.as_ref(),
+                z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
             ]
             .concat(),
             Error::BadEncoding,
-            "raw buffer for `D` is all zeroes",
+            "raw buffer for `Bbar` is all zeroes",
         ),
         (
             [
-                a_prime.as_ref(),
                 a_bar.as_ref(),
                 g1_identity.as_ref(),
                 c.as_ref(),
-                e_hat.as_ref(),
                 r2_hat.as_ref(),
-                r3_hat.as_ref(),
-                s_hat.as_ref(),
+                z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
             ]
             .concat(),
             Error::PointIsIdentity,
-            "raw buffer for `D` is identity",
+            "raw buffer for `Bbar` is identity",
         ),
         (
             [
-                a_prime.as_ref(),
                 a_bar.as_ref(),
-                d.as_ref(),
+                b_bar.as_ref(),
                 &vec![0x0; OCTET_SCALAR_LENGTH],
-                e_hat.as_ref(),
                 r2_hat.as_ref(),
-                r3_hat.as_ref(),
-                s_hat.as_ref(),
+                z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
             ]
@@ -1727,14 +1617,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
         ),
         (
             [
-                a_prime.as_ref(),
                 a_bar.as_ref(),
-                d.as_ref(),
+                b_bar.as_ref(),
                 scalar_greater_than_modulus.as_ref(),
-                e_hat.as_ref(),
                 r2_hat.as_ref(),
-                r3_hat.as_ref(),
-                s_hat.as_ref(),
+                z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
             ]
@@ -1746,51 +1633,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
         ),
         (
             [
-                a_prime.as_ref(),
                 a_bar.as_ref(),
-                d.as_ref(),
+                b_bar.as_ref(),
                 c.as_ref(),
                 &vec![0x0; OCTET_SCALAR_LENGTH],
-                r2_hat.as_ref(),
-                r3_hat.as_ref(),
-                s_hat.as_ref(),
-                m_hat_list[0].as_ref(),
-                m_hat_list[1].as_ref(),
-            ]
-            .concat(),
-            Error::UnexpectedZeroValue,
-            "raw buffer for `e^` is all zeroes",
-        ),
-        (
-            [
-                a_prime.as_ref(),
-                a_bar.as_ref(),
-                d.as_ref(),
-                c.as_ref(),
-                scalar_greater_than_modulus.as_ref(),
-                r2_hat.as_ref(),
-                r3_hat.as_ref(),
-                s_hat.as_ref(),
-                m_hat_list[0].as_ref(),
-                m_hat_list[1].as_ref(),
-            ]
-            .concat(),
-            Error::MalformedProof {
-                cause: "failure while deserializing a `Scalar` value"
-                    .to_owned(),
-            },
-            "raw buffer value for `e^` is larger than modulus",
-        ),
-        (
-            [
-                a_prime.as_ref(),
-                a_bar.as_ref(),
-                d.as_ref(),
-                c.as_ref(),
-                e_hat.as_ref(),
-                &vec![0x0; OCTET_SCALAR_LENGTH],
-                r3_hat.as_ref(),
-                s_hat.as_ref(),
+                z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
             ]
@@ -1800,14 +1647,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
         ),
         (
             [
-                a_prime.as_ref(),
                 a_bar.as_ref(),
-                d.as_ref(),
+                b_bar.as_ref(),
                 c.as_ref(),
-                e_hat.as_ref(),
                 scalar_greater_than_modulus.as_ref(),
-                r3_hat.as_ref(),
-                s_hat.as_ref(),
+                z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
             ]
@@ -1820,66 +1664,24 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
         ),
         (
             [
-                a_prime.as_ref(),
                 a_bar.as_ref(),
-                d.as_ref(),
+                b_bar.as_ref(),
                 c.as_ref(),
-                e_hat.as_ref(),
                 r2_hat.as_ref(),
-                &vec![0x0; OCTET_SCALAR_LENGTH],
-                s_hat.as_ref(),
-                m_hat_list[0].as_ref(),
-                m_hat_list[1].as_ref(),
-            ]
-            .concat(),
-            Error::UnexpectedZeroValue,
-            "raw buffer for `r3^` is all zeroes",
-        ),
-        (
-            [
-                a_prime.as_ref(),
-                a_bar.as_ref(),
-                d.as_ref(),
-                c.as_ref(),
-                e_hat.as_ref(),
-                r2_hat.as_ref(),
-                scalar_greater_than_modulus.as_ref(),
-                s_hat.as_ref(),
-                m_hat_list[0].as_ref(),
-                m_hat_list[1].as_ref(),
-            ]
-            .concat(),
-            Error::MalformedProof {
-                cause: "failure while deserializing a `Scalar` value"
-                    .to_owned(),
-            },
-            "raw buffer value for `r3^` is larger than modulus",
-        ),
-        (
-            [
-                a_prime.as_ref(),
-                a_bar.as_ref(),
-                d.as_ref(),
-                c.as_ref(),
-                e_hat.as_ref(),
-                r2_hat.as_ref(),
-                r3_hat.as_ref(),
                 &vec![0x0; OCTET_SCALAR_LENGTH],
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
             ]
             .concat(),
             Error::UnexpectedZeroValue,
-            "raw buffer for `s^` is all zeroes",
+            "raw buffer for `z^` is all zeroes",
         ),
         (
             [
-                a_prime.as_ref(),
                 a_bar.as_ref(),
-                d.as_ref(),
-                e_hat.as_ref(),
+                b_bar.as_ref(),
+                c.as_ref(),
                 r2_hat.as_ref(),
-                r3_hat.as_ref(),
                 scalar_greater_than_modulus.as_ref(),
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
@@ -1889,18 +1691,15 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
                 cause: "failure while deserializing a `Scalar` value"
                     .to_owned(),
             },
-            "raw buffer value for `s^` is larger than modulus",
+            "raw buffer value for `z^` is larger than modulus",
         ),
         (
             [
-                a_prime.as_ref(),
                 a_bar.as_ref(),
-                d.as_ref(),
+                b_bar.as_ref(),
                 c.as_ref(),
-                e_hat.as_ref(),
                 r2_hat.as_ref(),
-                r3_hat.as_ref(),
-                s_hat.as_ref(),
+                z_hat.as_ref(),
                 &vec![0x0; OCTET_SCALAR_LENGTH],
                 m_hat_list[1].as_ref(),
             ]
@@ -1910,14 +1709,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
         ),
         (
             [
-                a_prime.as_ref(),
                 a_bar.as_ref(),
-                d.as_ref(),
+                b_bar.as_ref(),
                 c.as_ref(),
-                e_hat.as_ref(),
                 r2_hat.as_ref(),
-                r3_hat.as_ref(),
-                s_hat.as_ref(),
+                z_hat.as_ref(),
                 scalar_greater_than_modulus.as_ref(),
                 m_hat_list[1].as_ref(),
             ]
@@ -1930,14 +1726,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
         ),
         (
             [
-                a_prime.as_ref(),
                 a_bar.as_ref(),
-                d.as_ref(),
+                b_bar.as_ref(),
                 c.as_ref(),
-                e_hat.as_ref(),
                 r2_hat.as_ref(),
-                r3_hat.as_ref(),
-                s_hat.as_ref(),
+                z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 &vec![0x0; OCTET_SCALAR_LENGTH],
             ]
@@ -1947,14 +1740,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
         ),
         (
             [
-                a_prime.as_ref(),
                 a_bar.as_ref(),
-                d.as_ref(),
+                b_bar.as_ref(),
                 c.as_ref(),
-                e_hat.as_ref(),
                 r2_hat.as_ref(),
-                r3_hat.as_ref(),
-                s_hat.as_ref(),
+                z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 scalar_greater_than_modulus.as_ref(),
             ]

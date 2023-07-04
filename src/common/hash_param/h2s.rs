@@ -3,11 +3,7 @@ use ff::Field;
 
 use crate::{
     common::serialization::i2osp,
-    curves::bls12_381::{
-        hash_to_curve::InitExpandMessage,
-        Scalar,
-        OCTET_SCALAR_LENGTH,
-    },
+    curves::bls12_381::{hash_to_curve::InitExpandMessage, Scalar},
     Error,
 };
 
@@ -15,7 +11,6 @@ use super::{
     constant::{
         DEFAULT_DST_SUFFIX_H2S,
         DEFAULT_DST_SUFFIX_MESSAGE_TO_SCALAR,
-        DST_SUFFIX_HASH_TO_E_S,
         MAX_DST_SIZE,
         MAX_MESSAGE_SIZE,
         MAX_VALUE_GENERATION_RETRY_COUNT,
@@ -106,28 +101,10 @@ pub(crate) trait HashToScalarParameter: ExpandMessageParameter {
         Self::hash_to_scalar(message, Some(dst))
     }
 
-    /// Hash the input octets to 2 scalar values representing the e and s
-    /// components of a BBS signature.
-    fn hash_to_e_s(input_octets: &[u8]) -> Result<(Scalar, Scalar), Error> {
-        let e_s_dst =
-            [Self::ID.as_octets(), DST_SUFFIX_HASH_TO_E_S.as_bytes()].concat();
-        let mut expander = Self::Expander::init_expand(
-            input_octets,
-            &e_s_dst,
-            2 * OCTET_SCALAR_LENGTH,
-        );
-
-        // 32 pseudo-random bytes will be used for each scalar.
-        let mut buf = [0u8; OCTET_SCALAR_LENGTH];
-
-        // calculate e
-        expander.read_into(&mut buf);
-        let e = Self::hash_to_scalar(&buf, None)?;
-
-        // calculate s
-        expander.read_into(&mut buf);
-        let s = Self::hash_to_scalar(&buf, None)?;
-
-        Ok((e, s))
+    /// Hash the input octets to scalar values representing the e component of a
+    /// BBS signature.
+    fn hash_to_e(input_octets: &[u8]) -> Result<Scalar, Error> {
+        let e = Self::hash_to_scalar(input_octets, None)?;
+        Ok(e)
     }
 }

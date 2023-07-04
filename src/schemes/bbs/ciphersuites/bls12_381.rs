@@ -19,7 +19,7 @@ pub const BBS_BLS12381G1_PUBLIC_KEY_LENGTH: usize = OCTET_POINT_G2_LENGTH;
 
 /// "Signature" length in bytes for "BBS_BLS12381G1" ciphersuite.
 pub const BBS_BLS12381G1_SIGNATURE_LENGTH: usize =
-    OCTET_POINT_G1_LENGTH + 2 * OCTET_SCALAR_LENGTH;
+    OCTET_POINT_G1_LENGTH + OCTET_SCALAR_LENGTH;
 
 /// Number of random bytes required when creating random scalars.
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]

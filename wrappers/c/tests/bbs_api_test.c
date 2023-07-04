@@ -136,10 +136,10 @@ int main(int argc, char **argv)
     printf("pass\n");
 
     printf("Signature is correct size...");
-    if (signature->length != 112)
+    if (signature->length != 80)
     { // TODO dont hardcode
         printf("fail\n");
-        printf("Expected %d, found %lu\n", 112, signature->length);
+        printf("Expected %d, found %lu\n", 80, signature->length);
         goto Exit;
     }
     printf("pass\n");

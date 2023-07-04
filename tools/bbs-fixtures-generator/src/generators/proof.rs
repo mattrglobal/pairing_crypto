@@ -26,7 +26,7 @@ use pairing_crypto::bbs::{
 use rand::RngCore;
 use sha2::Sha256;
 use sha3::Shake256;
-use std::{collections::BTreeSet, path::PathBuf};
+use std::{collections::BTreeSet, path::Path};
 
 use crate::{
     mock_rng::MockRng,
@@ -439,7 +439,7 @@ macro_rules! validate_proof_fixture {
     };
 }
 
-pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
+pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &Path) {
     generate_proof_fixture!(
         bls12_381_sha_256_sign,
         bls12_381_sha_256_verify,

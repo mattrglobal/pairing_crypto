@@ -116,7 +116,7 @@
     NSData *header = [@"Test-Header" dataUsingEncoding:NSUTF8StringEncoding];
     NSArray *messages = [NSArray arrayWithObjects:[[NSData alloc] initWithBase64EncodedString:@"H297BpoOgkfpXc==" options:0], nil];
 
-    NSData *signatureBuffer = [[NSData alloc] initWithBase64EncodedString:@"kTV8dar9xLWQZ5EzaWYqTRmgA6dw6wcrUw5c///crRD2QQPXX9Di+lgCPCXAA5D8Pytuh6bNSx6k4NZTR9KfSNdaejKl2zTU9poRfzZ2SIskdgSHTZ2y7jLm/UEGKsAs3tticBVj1Pm2GNhQI/OlXQ==" options:0];
+    NSData *signatureBuffer = [[NSData alloc] initWithBase64EncodedString:@"iWIbLh10y1BkB6h+6ILXg6pJTKanCcE5C+IaRlxeNqk4GpygZywGxopHgnGD7KNUW8kT4rslyHoud5gML2luEiSqT0MsX63OTysfj2Y2nXM=" options:0];
     PCLBbsBls12381Sha256Signature *signature = [[PCLBbsBls12381Sha256Signature alloc] initWithBytes:signatureBuffer
                                                         withError:&error];
 
@@ -142,7 +142,7 @@
                                                   [[NSData alloc] initWithBase64EncodedString:@"xaPXXhFBIbxeIU==" options:0],
                                                   [[NSData alloc] initWithBase64EncodedString:@"BapXXhfBIbxeIU==" options:0], nil];
 
-    NSData *signatureBuffer = [[NSData alloc] initWithBase64EncodedString:@"jYidhsdqxvAyNXMV4/vNfGM/4AULfSyfvQiwh+dDd4JtnT5xHnwpzMYdLdHzBYwXaGE1k6ln/pwtI4RwQZpl03SCv/mT/3AdK8PB2y43MGdMSeGTyZGfZf+rUrEDEs3lTfmPK54E+JBzd96gnrF2iQ==" options:0];
+    NSData *signatureBuffer = [[NSData alloc] initWithBase64EncodedString:@"iWIbLh10y1BkB6h+6ILXg6pJTKanCcE5C+IaRlxeNqk4GpygZywGxopHgnGD7KNUW8kT4rslyHoud5gML2luEiSqT0MsX63OTysfj2Y2nXM=" options:0];
     PCLBbsBls12381Sha256Signature *signature = [[PCLBbsBls12381Sha256Signature alloc] initWithBytes:signatureBuffer
                                                         withError:&error];
 

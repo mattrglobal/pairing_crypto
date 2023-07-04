@@ -13,7 +13,7 @@ extern "C"
 #undef pairing_crypto_Bls12381Shake256_PUBLIC_KEY_SIZE
 #define pairing_crypto_Bls12381Shake256_PUBLIC_KEY_SIZE 96L
 #undef pairing_crypto_Bls12381Shake256_SIGNATURE_SIZE
-#define pairing_crypto_Bls12381Shake256_SIGNATURE_SIZE 112L
+#define pairing_crypto_Bls12381Shake256_SIGNATURE_SIZE 90L
   /*
    * Class:     pairing_crypto_Bls12381Shake256
    * Method:    generate_key_pair

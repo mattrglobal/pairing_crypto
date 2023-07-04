@@ -7,7 +7,7 @@ import java.util.HashMap;
 public class Bls12381Sha256 extends Bbs {
     public static final int SECRET_KEY_SIZE = 32;
     public static final int PUBLIC_KEY_SIZE = 96;
-    public static final int SIGNATURE_SIZE = 112;
+    public static final int SIGNATURE_SIZE = 80;
 
     static {
         System.loadLibrary("pairing_crypto_jni");

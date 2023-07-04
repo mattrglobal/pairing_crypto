@@ -14,9 +14,9 @@ pub fn generate_fixtures(
     fixture_gen_input: &FixtureGenInput,
     fixture_output_dir: &PathBuf,
 ) {
-    signature::generate(&fixture_gen_input, &fixture_output_dir);
+    signature::generate(fixture_gen_input, fixture_output_dir);
 
-    proof::generate(&fixture_gen_input, &fixture_output_dir);
+    proof::generate(fixture_gen_input, fixture_output_dir);
 
-    h2s::generate(&fixture_gen_input, &fixture_output_dir);
+    h2s::generate(fixture_gen_input, fixture_output_dir);
 }

@@ -33,9 +33,8 @@ where
     where
         T: AsRef<[u8]>,
     {
-        let dst = dst.as_ref();
         let seed = seed.as_ref();
-        let expand_len = expand_len.unwrap_or(1 as usize);
+        let expand_len = expand_len.unwrap_or(1_usize);
         let expand_len = count * expand_len;
         let init_v = E::init_expand(seed, dst, expand_len);
         MockRng { v: init_v }
@@ -112,7 +111,7 @@ mod tests {
         "a512_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     ];
 
-    // output len = 32
+    // sha256 based hash, output len = 32
     const EXPECTED_SHA256_UNIFORM_BYTES: [&str; 5] = [
         "68a985b87eb6b46952128911f2a4412bbc302a9d759667f87f7a21d803f07235",
         "d8ccab23b5985ccea865c6c97b6e5b8350e794e603b4b97902f53a8a0d605615",
@@ -121,7 +120,7 @@ mod tests {
         "4623227bcc01293b8c130bf771da8c298dede7383243dc0993d2d94823958c4c",
     ];
 
-    // output len = 128
+    // sha256 based hash, output len = 128
     const EXPECTED_SHA256_UNIFORM_BYTES_LONG: [&str; 5] = [
         "af84c27ccfd45d41914fdff5df25293e221afc53d8ad2ac06d5e3e29485dadbee0d121587713a3e0dd4d5e69e93eb7cd4f5df4cd103e188cf60cb02edc3edf18eda8576c412b18ffb658e3dd6ec849469b979d444cf7b26911a08e63cf31f9dcc541708d3491184472c2c29bb749d4286b004ceb5ee6b9a7fa5b646c993f0ced",
         "abba86a6129e366fc877aab32fc4ffc70120d8996c88aee2fe4b32d6c7b6437a647e6c3163d40b76a73cf6a5674ef1d890f95b664ee0afa5359a5c4e07985635bbecbac65d747d3d2da7ec2b8221b17b0ca9dc8a1ac1c07ea6a1e60583e2cb00058e77b7b72a298425cd1b941ad4ec65e8afc50303a22c0f99b0509b4c895f40",
@@ -130,7 +129,7 @@ mod tests {
         "546aff5444b5b79aa6148bd81728704c32decb73a3ba76e9e75885cad9def1d06d6792f8a7d12794e90efed817d96920d728896a4510864370c207f99bd4a608ea121700ef01ed879745ee3e4ceef777eda6d9e5e38b90c86ea6fb0b36504ba4a45d22e86f6db5dd43d98a294bebb9125d5b794e9d2a81181066eb954966a487"
     ];
 
-    // output len = 32
+    // shake256 based hash, output len = 32
     const EXPECTED_SHAKE256_UNIFORM_BYTES: [&str; 5] = [
         "2ffc05c48ed32b95d72e807f6eab9f7530dd1c2f013914c8fed38c5ccc15ad76",
         "b39e493867e2767216792abce1f2676c197c0692aed061560ead251821808e07",
@@ -139,7 +138,7 @@ mod tests {
         "9181ead5220b1963f1b5951f35547a5ea86a820562287d6ca4723633d17ccbbc",
     ];
 
-    // output len = 128
+    // shake256 based hash, output len = 128
     const EXPECTED_SHAKE256_UNIFORM_BYTES_LONG: [&str; 5] = [
         "7a1361d2d7d82d79e035b8880c5a3c86c5afa719478c007d96e6c88737a3f631dd74a2c88df79a4cb5e5d9f7504957c70d669ec6bfedc31e01e2bacc4ff3fdf9b6a00b17cc18d9d72ace7d6b81c2e481b4f73f34f9a7505dccbe8f5485f3d20c5409b0310093d5d6492dea4e18aa6979c23c8ea5de01582e9689612afbb353df",
         "a54303e6b172909783353ab05ef08dd435a558c3197db0c132134649708e0b9b4e34fb99b92a9e9e28fc1f1d8860d85897a8e021e6382f3eea10577f968ff6df6c45fe624ce65ca25932f679a42a404bc3681efe03fcd45ef73bb3a8f79ba784f80f55ea8a3c367408f30381299617f50c8cf8fbb21d0f1e1d70b0131a7b6fbe",
@@ -272,11 +271,16 @@ mod tests {
             $dst:ident,
             $expected_scalars:ident,
             $expander:ty) => {{
-            let mut mocked_rng =
-                MockRng::<'_, $expander>::new($seed, &$dst, 10, Some(48));
+            const MOCKED_SCALARS_NO: usize = 10;
+            let mut mocked_rng = MockRng::<'_, $expander>::new(
+                $seed,
+                &$dst,
+                MOCKED_SCALARS_NO,
+                Some(48),
+            );
 
             let mut mocked_scalars: Vec<String> = Vec::new();
-            for i in 0..10 {
+            for i in 0..MOCKED_SCALARS_NO {
                 let mut buff = [0u8; 64];
                 mocked_rng.fill_bytes(&mut buff[16..]);
                 let scalar_i = Scalar::from_wide_bytes_be_mod_r(&buff);

@@ -53,21 +53,20 @@ fn bls_key_pop_gen_verify_e2e_nominal() {
             })
             .expect("key generation failed");
 
-    let bls_key_pop = bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop(
-        &&BlsKeyPopGenRequest {
+    let bls_key_pop =
+        bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop(&BlsKeyPopGenRequest {
             bls_secret_key: &bls_secret_key,
-            aud: &TEST_AUD,
+            aud: TEST_AUD,
             dst: None,
             extra_info: Some(TEST_EXTRA_INFO),
-        },
-    )
-    .expect("PoP commitment generation failed");
+        })
+        .expect("PoP commitment generation failed");
 
     assert!(bls12_381_bbs_g1_bls_sig_g2_sha_256_bls_key_pop_verify(
-        &&BlsKeyPopVerifyRequest {
+        &BlsKeyPopVerifyRequest {
             bls_key_pop: &bls_key_pop,
             bls_public_key: &bls_public_key,
-            aud: &TEST_AUD,
+            aud: TEST_AUD,
             dst: None,
             extra_info: Some(TEST_EXTRA_INFO),
         },
