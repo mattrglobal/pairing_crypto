@@ -54,14 +54,14 @@ pub(crate) struct Proof {
     pub(crate) A_bar: G1Projective,
     /// \overline{B}
     pub(crate) B_bar: G1Projective,
-    /// c
-    pub(crate) c: Challenge,
     /// r2^
     pub(crate) r2_hat: FiatShamirProof,
     /// z^
     pub(crate) z_hat: FiatShamirProof,
     /// (m^_1, ..., m^_U)
     pub(crate) m_hat_list: Vec<FiatShamirProof>,
+    /// c
+    pub(crate) c: Challenge,
 }
 
 impl core::fmt::Display for Proof {
@@ -70,15 +70,11 @@ impl core::fmt::Display for Proof {
         print_byte_array!(f, point_to_octets_g1(&self.A_bar));
         write!(f, ", B_bar: ")?;
         print_byte_array!(f, point_to_octets_g1(&self.B_bar));
-        write!(
-            f,
-            ", c: {}, r2^: {}, z^: {}, m^_i: [",
-            self.c.0, self.r2_hat.0, self.z_hat.0,
-        )?;
+        write!(f, ", r2^: {}, z^: {}, m^_i: [", self.r2_hat.0, self.z_hat.0,)?;
         for (i, m_hat) in self.m_hat_list.iter().enumerate() {
             write!(f, "m^_{}: {}, ", i + 1, m_hat.0)?;
         }
-        write!(f, "])")
+        write!(f, "], c: {})", self.c.0)
     }
 }
 
@@ -234,10 +230,10 @@ impl Proof {
         Ok(Proof {
             A_bar,
             B_bar,
-            c,
             r2_hat,
             z_hat,
             m_hat_list,
+            c,
         })
     }
 
@@ -436,12 +432,12 @@ impl Proof {
         // proof = (Abar, Bbar, c, r2^, z^, (m^_1, ..., m^_U))
         buffer.extend_from_slice(&point_to_octets_g1(&self.A_bar));
         buffer.extend_from_slice(&point_to_octets_g1(&self.B_bar));
-        buffer.extend_from_slice(&self.c.to_bytes());
         buffer.extend_from_slice(&self.r2_hat.to_bytes());
         buffer.extend_from_slice(&self.z_hat.to_bytes());
         for i in 0..self.m_hat_list.len() {
             buffer.extend_from_slice(&self.m_hat_list[i].to_bytes());
         }
+        buffer.extend_from_slice(&self.c.to_bytes());
         buffer
     }
 
@@ -491,8 +487,23 @@ impl Proof {
         // Get B_bar
         let B_bar = extract_point_value(&mut offset, &mut end, buffer)?;
 
-        // Get c
         end = offset + OCTET_SCALAR_LENGTH;
+
+        // Get r2^, z^
+        let r2_hat = extract_scalar_value(&mut offset, &mut end, buffer)?;
+        let z_hat = extract_scalar_value(&mut offset, &mut end, buffer)?;
+        // Get  (m^_j1, ..., m^_jU)
+        let mut m_hat_list =
+            Vec::<FiatShamirProof>::with_capacity(unrevealed_message_count);
+        for _ in 0..unrevealed_message_count {
+            let m_hat = extract_scalar_value(&mut offset, &mut end, buffer)?;
+            m_hat_list.push(m_hat);
+        }
+
+        // offset = end;
+        // end = offset + OCTET_SCALAR_LENGTH;
+
+        // Get c
         let c = Challenge::from_bytes(slicer!(
             buffer,
             offset,
@@ -509,27 +520,13 @@ impl Proof {
             return Err(Error::UnexpectedZeroValue);
         }
 
-        offset = end;
-        end = offset + OCTET_SCALAR_LENGTH;
-
-        // Get r2^, z^
-        let r2_hat = extract_scalar_value(&mut offset, &mut end, buffer)?;
-        let z_hat = extract_scalar_value(&mut offset, &mut end, buffer)?;
-        // Get  (m^_j1, ..., m^_jU)
-        let mut m_hat_list =
-            Vec::<FiatShamirProof>::with_capacity(unrevealed_message_count);
-        for _ in 0..unrevealed_message_count {
-            let m_hat = extract_scalar_value(&mut offset, &mut end, buffer)?;
-            m_hat_list.push(m_hat);
-        }
-
         Ok(Self {
             A_bar,
             B_bar,
-            c,
             r2_hat,
             z_hat,
             m_hat_list,
+            c,
         })
     }
 }

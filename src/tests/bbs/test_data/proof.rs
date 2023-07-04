@@ -1549,11 +1549,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
             [
                 [0x0; OCTET_POINT_G1_LENGTH].as_ref(),
                 b_bar.as_ref(),
-                c.as_ref(),
                 r2_hat.as_ref(),
                 z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
+                c.as_ref(),
             ]
             .concat(),
             Error::BadEncoding,
@@ -1563,11 +1563,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
             [
                 g1_identity.as_ref(),
                 b_bar.as_ref(),
-                c.as_ref(),
                 r2_hat.as_ref(),
                 z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
+                c.as_ref(),
             ]
             .concat(),
             Error::PointIsIdentity,
@@ -1577,11 +1577,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
             [
                 a_bar.as_ref(),
                 [0x0; OCTET_POINT_G1_LENGTH].as_ref(),
-                c.as_ref(),
                 r2_hat.as_ref(),
                 z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
+                c.as_ref(),
             ]
             .concat(),
             Error::BadEncoding,
@@ -1591,11 +1591,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
             [
                 a_bar.as_ref(),
                 g1_identity.as_ref(),
-                c.as_ref(),
                 r2_hat.as_ref(),
                 z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
+                c.as_ref(),
             ]
             .concat(),
             Error::PointIsIdentity,
@@ -1605,11 +1605,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
             [
                 a_bar.as_ref(),
                 b_bar.as_ref(),
-                &vec![0x0; OCTET_SCALAR_LENGTH],
                 r2_hat.as_ref(),
                 z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
+                &vec![0x0; OCTET_SCALAR_LENGTH],
             ]
             .concat(),
             Error::UnexpectedZeroValue,
@@ -1619,11 +1619,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
             [
                 a_bar.as_ref(),
                 b_bar.as_ref(),
-                scalar_greater_than_modulus.as_ref(),
                 r2_hat.as_ref(),
                 z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
+                scalar_greater_than_modulus.as_ref(),
             ]
             .concat(),
             Error::MalformedProof {
@@ -1635,11 +1635,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
             [
                 a_bar.as_ref(),
                 b_bar.as_ref(),
-                c.as_ref(),
                 &vec![0x0; OCTET_SCALAR_LENGTH],
                 z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
+                c.as_ref(),
             ]
             .concat(),
             Error::UnexpectedZeroValue,
@@ -1649,11 +1649,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
             [
                 a_bar.as_ref(),
                 b_bar.as_ref(),
-                c.as_ref(),
                 scalar_greater_than_modulus.as_ref(),
                 z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
+                c.as_ref(),
             ]
             .concat(),
             Error::MalformedProof {
@@ -1666,11 +1666,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
             [
                 a_bar.as_ref(),
                 b_bar.as_ref(),
-                c.as_ref(),
                 r2_hat.as_ref(),
                 &vec![0x0; OCTET_SCALAR_LENGTH],
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
+                c.as_ref(),
             ]
             .concat(),
             Error::UnexpectedZeroValue,
@@ -1680,11 +1680,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
             [
                 a_bar.as_ref(),
                 b_bar.as_ref(),
-                c.as_ref(),
                 r2_hat.as_ref(),
                 scalar_greater_than_modulus.as_ref(),
                 m_hat_list[0].as_ref(),
                 m_hat_list[1].as_ref(),
+                c.as_ref(),
             ]
             .concat(),
             Error::MalformedProof {
@@ -1697,11 +1697,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
             [
                 a_bar.as_ref(),
                 b_bar.as_ref(),
-                c.as_ref(),
                 r2_hat.as_ref(),
                 z_hat.as_ref(),
                 &vec![0x0; OCTET_SCALAR_LENGTH],
                 m_hat_list[1].as_ref(),
+                c.as_ref(),
             ]
             .concat(),
             Error::UnexpectedZeroValue,
@@ -1711,11 +1711,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
             [
                 a_bar.as_ref(),
                 b_bar.as_ref(),
-                c.as_ref(),
                 r2_hat.as_ref(),
                 z_hat.as_ref(),
                 scalar_greater_than_modulus.as_ref(),
                 m_hat_list[1].as_ref(),
+                c.as_ref(),
             ]
             .concat(),
             Error::MalformedProof {
@@ -1728,11 +1728,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
             [
                 a_bar.as_ref(),
                 b_bar.as_ref(),
-                c.as_ref(),
                 r2_hat.as_ref(),
                 z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 &vec![0x0; OCTET_SCALAR_LENGTH],
+                c.as_ref(),
             ]
             .concat(),
             Error::UnexpectedZeroValue,
@@ -1742,11 +1742,11 @@ pub(crate) fn test_data_from_octets_invalid_parameters(
             [
                 a_bar.as_ref(),
                 b_bar.as_ref(),
-                c.as_ref(),
                 r2_hat.as_ref(),
                 z_hat.as_ref(),
                 m_hat_list[0].as_ref(),
                 scalar_greater_than_modulus.as_ref(),
+                c.as_ref(),
             ]
             .concat(),
             Error::MalformedProof {
