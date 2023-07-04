@@ -24,7 +24,7 @@ enum OutputType {
 pub struct FixtureGenerators {
     pub BP: String,
     pub Q1: String,
-    pub MsgGenerators: Vec<String>
+    pub MsgGenerators: Vec<String>,
 }
 
 #[derive(Parser)]
@@ -64,9 +64,11 @@ fn main() {
     let fixture = FixtureGenerators {
         BP: hex::encode(generators[0].clone()),
         Q1: hex::encode(generators[1].clone()),
-        MsgGenerators: generators.iter().skip(2).map(|g| {
-            hex::encode(g)
-        }).collect()
+        MsgGenerators: generators
+            .iter()
+            .skip(2)
+            .map(|g| hex::encode(g))
+            .collect(),
     };
 
     match output_type {
@@ -79,7 +81,10 @@ fn print_generators(generators: &FixtureGenerators) {
     println!("{:#?}", generators);
 }
 
-fn write_generators_to_file(generators: &FixtureGenerators, file_name: PathBuf) {
+fn write_generators_to_file(
+    generators: &FixtureGenerators,
+    file_name: PathBuf,
+) {
     std::fs::write(
         file_name,
         serde_json::to_string_pretty(&generators).unwrap(),

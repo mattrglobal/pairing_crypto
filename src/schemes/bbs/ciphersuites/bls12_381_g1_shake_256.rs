@@ -136,7 +136,6 @@ pub const POINT_G1_OCTETS_LENGTH: usize = OCTET_POINT_G1_LENGTH;
 #[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
 pub const SCALAR_OCTETS_LENGTH: usize = OCTET_SCALAR_LENGTH;
 
-
 /// Hash to scalar.
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
 #[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
