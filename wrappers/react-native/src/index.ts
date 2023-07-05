@@ -15,6 +15,10 @@ import { bls12381Sha256, bls12381Shake256 } from './bbs';
 
 export * from './types';
 
+import { convertToRevealMessageArray, convertRevealMessageArrayToRevealMap } from './utilities';
+
+export const utilities = { convertToRevealMessageArray, convertRevealMessageArrayToRevealMap };
+
 export const bbs = {
   bls12381_sha256: {
     PRIVATE_KEY_LENGTH: 32,
