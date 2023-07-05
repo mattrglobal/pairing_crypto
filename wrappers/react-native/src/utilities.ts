@@ -53,7 +53,7 @@ export const mapObjIndexed = <K extends number | string, V, R>(
   }, {} as Record<K, R>);
 };
 
-interface RevealMessage<E> {
+export interface RevealMessage<E> {
   value: E;
   reveal: boolean;
 }
