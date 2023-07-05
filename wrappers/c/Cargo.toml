@@ -15,6 +15,13 @@ lazy_static = "1.4"
 pairing_crypto = { path = '../../' }
 sha3 = "0.9"
 
+# NOTE: We do not depend on the proc_macro2 crate. However, it is used
+# by some of our dependencies. Version 1.0 of the crate, has problem
+# that is fixed in 1.0.60 by the following PR,
+# https://github.com/dtolnay/proc-macro2/pull/391
+# By defining the crate here we can dictate its desired version.
+proc-macro2 = { version = "1.0.63", default-features = false }
+
 [profile.release]
 lto = true
 opt-level = 3
