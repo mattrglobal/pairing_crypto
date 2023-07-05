@@ -1,6 +1,3 @@
-/// Maximum retry count to generate a single Scalar or G1 point value.
-pub(crate) const MAX_VALUE_GENERATION_RETRY_COUNT: u8 = u8::MAX;
-
 /// Number of bytes to draw from the XOF when generating Scalars or Generators.
 pub(crate) const XOF_NO_OF_BYTES: usize = 48usize;
 

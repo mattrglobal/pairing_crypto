@@ -92,8 +92,7 @@ pub(crate) trait BbsCiphersuiteParameters:
 
         let mut points = Vec::with_capacity(count);
 
-        let mut i = 0;
-        while i < count {
+        while *n <= count.try_into().unwrap() {
             // v = expand_message(v || I2OSP(n, 4), seed_dst, seed_len)
             let mut expander = Self::Expander::init_expand(
                 &[v.as_ref(), &i2osp(*n, 4)?].concat(),
@@ -104,17 +103,9 @@ pub(crate) trait BbsCiphersuiteParameters:
 
             *n += 1;
 
-            // candidate = hash_to_curve_g1(v, generator_dst)
-            let candidate = Self::hash_to_g1(v, &Self::generator_dst())?;
-
-            if (candidate.is_identity().unwrap_u8() == 1)
-                || points.iter().any(|e| e == &candidate)
-            {
-                continue;
-            }
-
-            points.push(candidate);
-            i += 1;
+            // generator_i = hash_to_curve_g1(v, generator_dst)
+            let generator_i = Self::hash_to_g1(v, &Self::generator_dst())?;
+            points.push(generator_i);
         }
         Ok(points)
     }
