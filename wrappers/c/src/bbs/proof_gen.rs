@@ -85,11 +85,6 @@ macro_rules! bbs_proof_gen_api_generator {
             err: &mut ExternError,
         ) -> i32 {
             let message = message.to_vec();
-            if message.is_empty() {
-                *err =
-                    ExternError::new_error(ErrorCode::new(1), "empty message");
-                return 1;
-            }
             BBS_DERIVE_PROOF_CONTEXT.call_with_output_mut(err, handle, |ctx| {
                 ctx.messages.push(BbsDeriveProofRevealMessageRequestDto {
                     value: message,

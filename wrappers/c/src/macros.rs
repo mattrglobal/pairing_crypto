@@ -7,13 +7,6 @@ macro_rules! set_byte_array_impl {
             err: &mut ExternError,
         ) -> i32 {
             let value = value.to_vec();
-            if value.is_empty() {
-                *err = ExternError::new_error(
-                    ErrorCode::new(1),
-                    "value cannot be empty",
-                );
-                return 1;
-            }
             $static.call_with_result_mut(
                 err,
                 handle,
@@ -41,13 +34,6 @@ macro_rules! add_byte_array_impl {
             err: &mut ExternError,
         ) -> i32 {
             let value = value.to_vec();
-            if value.is_empty() {
-                *err = ExternError::new_error(
-                    ErrorCode::new(1),
-                    "value cannot be empty",
-                );
-                return 1;
-            }
             $static.call_with_output_mut(err, handle, |ctx| {
                 ctx.$property.push(value);
             });

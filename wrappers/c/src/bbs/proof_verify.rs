@@ -75,13 +75,6 @@ macro_rules! bbs_proof_verify_api_generator {
             err: &mut ExternError,
         ) -> i32 {
             let message = message.to_vec();
-            if message.is_empty() {
-                *err = ExternError::new_error(
-                    ErrorCode::new(1),
-                    "Message cannot be empty",
-                );
-                return 1;
-            }
             BBS_VERIFY_PROOF_CONTEXT.call_with_output_mut(err, handle, |ctx| {
                 ctx.messages.push((index, message));
             });
