@@ -174,7 +174,7 @@ impl Proof {
         };
         let r2 = -r2.unwrap();
 
-        // C = Bbar * r2~ + Abar * z~ + H_j1 * m~_j1 + ... + H_jU * m~_jU
+        // C = Abar * r2~ + Bbar * z~ + H_j1 * m~_j1 + ... + H_jU * m~_jU
         let mut H_points = Vec::new();
         let mut m_tilde_scalars = Vec::new();
         let mut hidden_messages = Vec::new();
@@ -193,7 +193,7 @@ impl Proof {
         }
 
         let C = G1Projective::multi_exp(
-            &[[B_bar, A_bar].to_vec(), H_points].concat(),
+            &[[A_bar, B_bar].to_vec(), H_points].concat(),
             &[[r2_tilde, z_tilde].to_vec(), m_tilde_scalars.clone()].concat(),
         );
 
@@ -212,10 +212,10 @@ impl Proof {
         )?;
 
         // r2^ = r2~ + c * r2
-        let r2_hat = FiatShamirProof(r2_tilde + c.0 * r2);
+        let r2_hat = FiatShamirProof(r2_tilde + c.0 * signature.e * r2);
 
         // z^ = z~ + c * e * r2
-        let z_hat = FiatShamirProof(z_tilde + c.0 * signature.e * r2);
+        let z_hat = FiatShamirProof(z_tilde + c.0  * r2);
 
         // for j in (j1, j2,..., jU): m^_j = m~_j + c * msg_j
         let m_hat_list = m_tilde_scalars
@@ -345,7 +345,7 @@ impl Proof {
         // Calculate T = H_i1 * msg_i1 + ... H_iR * msg_iR
         let T = G1Projective::multi_exp(&T_points, &T_scalars);
 
-        // C = T * c + Bbar * r2^ + Abar * z^ +
+        // C = T * c + Abar * r2^ + Bbar * z^ +
         //            + H_j1 * m^_j1 + ... + H_jU * m^_jU
         let C_len = 1 + 1 + 1 + self.m_hat_list.len();
         let mut C_points = Vec::with_capacity(C_len);
@@ -353,11 +353,11 @@ impl Proof {
         // T * (-c)
         C_points.push(T);
         C_scalars.push(self.c.0);
-        // Bbar * r2^
-        C_points.push(self.B_bar);
-        C_scalars.push(self.r2_hat.0);
-        // Abar * z^
+        // Abar * r2^
         C_points.push(self.A_bar);
+        C_scalars.push(self.r2_hat.0);
+        // Bbar * z^
+        C_points.push(self.B_bar);
         C_scalars.push(self.z_hat.0);
         // H_j1 * m^_j1 + ... + H_jU * m^_jU
         C_points.append(&mut C_points_temp);
@@ -499,9 +499,6 @@ impl Proof {
             let m_hat = extract_scalar_value(&mut offset, &mut end, buffer)?;
             m_hat_list.push(m_hat);
         }
-
-        // offset = end;
-        // end = offset + OCTET_SCALAR_LENGTH;
 
         // Get c
         let c = Challenge::from_bytes(slicer!(
