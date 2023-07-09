@@ -215,7 +215,7 @@ impl Proof {
         let r2_hat = FiatShamirProof(r2_tilde + c.0 * signature.e * r2);
 
         // z^ = z~ + c * e * r2
-        let z_hat = FiatShamirProof(z_tilde + c.0  * r2);
+        let z_hat = FiatShamirProof(z_tilde + c.0 * r2);
 
         // for j in (j1, j2,..., jU): m^_j = m~_j + c * msg_j
         let m_hat_list = m_tilde_scalars
