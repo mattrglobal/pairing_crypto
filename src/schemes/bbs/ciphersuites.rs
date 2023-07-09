@@ -93,7 +93,7 @@ pub(crate) trait BbsCiphersuiteParameters:
         let mut points = Vec::with_capacity(count);
 
         while *n <= count.try_into().unwrap() {
-            // v = expand_message(v || I2OSP(n, 4), seed_dst, seed_len)
+            // v = expand_message(v || I2OSP(n, 8), seed_dst, seed_len)
             let mut expander = Self::Expander::init_expand(
                 &[v.as_ref(), &i2osp(*n, 8)?].concat(),
                 &generator_seed_dst,
