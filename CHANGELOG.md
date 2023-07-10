@@ -1,4 +1,8 @@
-# [0.3.0](https://github.com/mattrglobal/pairing_crypto/compare/0.3.0...0.1.0) (2023-05-23)
+# [0.4.0](https://github.com/mattrglobal/pairing_crypto/compare/0.4.0...0.3.0) (2023-07-11)
+
+Aligned to [draft-03](https://datatracker.ietf.org/doc/draft-irtf-cfrg-bbs-signatures/03/) of the BBS Signature Scheme
+
+# [0.3.0](https://github.com/mattrglobal/pairing_crypto/compare/0.3.0...0.2.0) (2023-05-23)
 
 Fix Common JS output for @mattrglobal/pairing-crypto TS wrapper library
 
