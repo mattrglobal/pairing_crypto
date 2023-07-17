@@ -23,7 +23,7 @@ export const bbs = {
   bls12381_sha256: {
     PRIVATE_KEY_LENGTH: 32,
     PUBLIC_KEY_LENGTH: 96,
-    SIGNATURE_LENGTH: 112,
+    SIGNATURE_LENGTH: 80,
 
     generateKeyPair: bls12381Sha256.generateKeyPair,
     sign: bls12381Sha256.sign,
@@ -34,7 +34,7 @@ export const bbs = {
   bls12381_shake256: {
     PRIVATE_KEY_LENGTH: 32,
     PUBLIC_KEY_LENGTH: 96,
-    SIGNATURE_LENGTH: 112,
+    SIGNATURE_LENGTH: 80,
 
     generateKeyPair: bls12381Shake256.generateKeyPair,
     sign: bls12381Shake256.sign,
