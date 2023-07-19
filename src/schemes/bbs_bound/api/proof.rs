@@ -113,7 +113,7 @@ where
         digest_revealed_proof_messages::<_, C>(messages, total_message_count)?;
 
     // Derive generators
-    let mut generators = MemoryCachedGenerators::<C>::new(
+    let generators = MemoryCachedGenerators::<C>::new(
         total_message_count - 1, /* total_message_count also includes the
                                   * prover's commitment */
         Some(true),
@@ -123,7 +123,7 @@ where
         &public_key,
         request.header.as_ref(),
         request.presentation_header.as_ref(),
-        &mut generators,
+        &generators,
         &messages,
         Some(total_message_count),
     )
