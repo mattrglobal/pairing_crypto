@@ -244,7 +244,7 @@ impl Proof {
         PK: &PublicKey,
         header: Option<T>,
         ph: Option<T>,
-        generators: &mut G,
+        generators: &G,
         disclosed_messages: &BTreeMap<usize, Message>,
         total_no_of_messages: Option<usize>,
     ) -> Result<bool, Error>
