@@ -74,7 +74,7 @@ export const BbsBls12381Sha256ProofGen = async (fixture: FixtureItem<ProofFixtur
   });
   console.info('Generated signature', { signature: convert.byteArrayToHex(signature) });
 
-  const proof = await bbs.bls12381_sha256.proofGen({
+  const proof = await bbs.bls12381_sha256.deriveProof({
     verifySignature: true,
     publicKey: keyPair.publicKey,
     messages,
@@ -84,7 +84,7 @@ export const BbsBls12381Sha256ProofGen = async (fixture: FixtureItem<ProofFixtur
   });
   console.info('Generated proof', { proof: convert.byteArrayToHex(proof) });
 
-  return await bbs.bls12381_sha256.proofVerify({
+  return await bbs.bls12381_sha256.verifyProof({
     publicKey: keyPair.publicKey,
     proof,
     header,
@@ -119,7 +119,7 @@ export const BbsBls12381Shake256ProofGen = async (fixture: FixtureItem<ProofFixt
   });
   console.info('Generated signature', { signature: convert.byteArrayToHex(signature) });
 
-  const proof = await bbs.bls12381_shake256.proofGen({
+  const proof = await bbs.bls12381_shake256.deriveProof({
     verifySignature: true,
     publicKey: keyPair.publicKey,
     messages,
@@ -129,7 +129,7 @@ export const BbsBls12381Shake256ProofGen = async (fixture: FixtureItem<ProofFixt
   });
   console.info('Generated proof', { proof: convert.byteArrayToHex(proof) });
 
-  return await bbs.bls12381_shake256.proofVerify({
+  return await bbs.bls12381_shake256.verifyProof({
     publicKey: keyPair.publicKey,
     proof,
     header,
@@ -159,7 +159,7 @@ export const BbsBls12381Shake256Verify = async (fixture: FixtureItem<SignatureFi
 };
 
 export const BbsBls12381Sha256ProofVerify = async (fixture: FixtureItem<ProofFixture>): Promise<BbsVerifyResult> => {
-  return await bbs.bls12381_sha256.proofVerify({
+  return await bbs.bls12381_sha256.verifyProof({
     publicKey: convert.byteArrayFromHex(fixture.value.signerPublicKey),
     header: convert.byteArrayFromHex(fixture.value.header),
     presentationHeader: convert.byteArrayFromHex(fixture.value.presentationHeader),
@@ -171,7 +171,7 @@ export const BbsBls12381Sha256ProofVerify = async (fixture: FixtureItem<ProofFix
 };
 
 export const BbsBls12381Shake256ProofVerify = async (fixture: FixtureItem<ProofFixture>): Promise<BbsVerifyResult> => {
-  return await bbs.bls12381_shake256.proofVerify({
+  return await bbs.bls12381_shake256.verifyProof({
     publicKey: convert.byteArrayFromHex(fixture.value.signerPublicKey),
     header: convert.byteArrayFromHex(fixture.value.header),
     presentationHeader: convert.byteArrayFromHex(fixture.value.presentationHeader),
