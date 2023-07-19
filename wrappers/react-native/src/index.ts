@@ -28,8 +28,8 @@ export const bbs = {
     generateKeyPair: bls12381Sha256.generateKeyPair,
     sign: bls12381Sha256.sign,
     verify: bls12381Sha256.verify,
-    proofGen: bls12381Sha256.proofGen,
-    proofVerify: bls12381Sha256.proofVerify,
+    deriveProof: bls12381Sha256.proofGen,
+    verifyProof: bls12381Sha256.proofVerify,
   },
   bls12381_shake256: {
     PRIVATE_KEY_LENGTH: 32,
@@ -39,7 +39,7 @@ export const bbs = {
     generateKeyPair: bls12381Shake256.generateKeyPair,
     sign: bls12381Shake256.sign,
     verify: bls12381Shake256.verify,
-    proofGen: bls12381Shake256.proofGen,
-    proofVerify: bls12381Shake256.proofVerify,
+    deriveProof: bls12381Shake256.proofGen,
+    verifyProof: bls12381Shake256.proofVerify,
   },
 };
