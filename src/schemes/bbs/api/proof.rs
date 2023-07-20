@@ -127,14 +127,14 @@ where
         digest_revealed_proof_messages::<_, C>(messages, total_message_count)?;
 
     // Derive generators
-    let mut generators =
+    let generators =
         MemoryCachedGenerators::<C>::new(total_message_count, None)?;
 
     proof.verify::<_, _, C>(
         &public_key,
         request.header.as_ref(),
         request.presentation_header.as_ref(),
-        &mut generators,
+        &generators,
         &messages,
         Some(total_message_count),
     )
