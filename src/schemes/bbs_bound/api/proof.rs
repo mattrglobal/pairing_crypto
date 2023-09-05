@@ -125,6 +125,6 @@ where
         request.presentation_header.as_ref(),
         &generators,
         &messages,
-        Some(total_message_count),
+        // Some(total_message_count),
     )
 }

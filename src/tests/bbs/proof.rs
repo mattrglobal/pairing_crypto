@@ -198,8 +198,7 @@ fn gen_verify_serde_nominal() {
             header,
             ph,
             &mut generators,
-            &revealed_messages,
-            None
+            &revealed_messages
         )
         .expect("proof verification failed"));
 
@@ -217,8 +216,7 @@ fn gen_verify_serde_nominal() {
             header,
             ph,
             &mut generators,
-            &revealed_messages,
-            None
+            &revealed_messages
         )
         .expect("roundtrip deserialized proof verification failed"));
 }
@@ -307,8 +305,7 @@ fn gen_verify_different_key_pairs() {
                     header,
                     ph,
                     &mut generators,
-                    &revealed_msgs,
-                    None
+                    &revealed_msgs
                 )
                 .expect("proof verification failed"));
             proof_msgs[j] = ProofMessage::Revealed(messages[j]);
@@ -393,8 +390,7 @@ fn no_presentation_header_proof() {
                 Some(TEST_HEADER),
                 None,
                 &mut generators,
-                &revealed_messages,
-                None
+                &revealed_messages
             )
             .unwrap());
 
@@ -426,8 +422,7 @@ fn no_presentation_header_proof() {
                 None::<&[u8]>,
                 None,
                 &mut generators,
-                &revealed_messages,
-                None
+                &revealed_messages
             )
             .unwrap());
 
@@ -520,8 +515,7 @@ fn proof_gen_verify_valid_cases() {
                 header,
                 ph,
                 &mut generators,
-                &revealed_messages,
-                None
+                &revealed_messages
             )
             .unwrap_or_else(|_| panic!(
                 "proof verification failed - {failure_debug_message}"
@@ -550,8 +544,7 @@ fn proof_gen_verify_valid_cases() {
                     header,
                     ph,
                     &mut generators,
-                    &revealed_messages,
-                    None
+                    &revealed_messages
                 )
                 .unwrap_or_else(|_| panic!(
                     "proof verification failed - {failure_debug_message}, \
@@ -620,8 +613,7 @@ fn proof_gen_verify_all_revealed_shuffled_indices() {
             header,
             ph,
             &mut generators,
-            &revealed_messages_same_but_shuffled_indices,
-            None
+            &revealed_messages_same_but_shuffled_indices
         )
         .expect("proof-verification should not fail"));
 }
@@ -668,8 +660,7 @@ fn proof_gen_with_invalid_public_key() {
             header,
             ph,
             &mut generators,
-            &revealed_messages,
-            None
+            &revealed_messages
         )
         .unwrap_or_else(|_| panic!("proof verification failed ")));
 
@@ -681,8 +672,7 @@ fn proof_gen_with_invalid_public_key() {
             header,
             ph,
             &mut generators,
-            &revealed_messages,
-            None
+            &revealed_messages
         ),
         Err(Error::InvalidPublicKey)
     );
@@ -736,8 +726,7 @@ fn proof_verify_invalid_parameters() {
                 header,
                 ph,
                 &mut generators,
-                &revealed_messages,
-                None
+                &revealed_messages
             ),
             Err(error),
             "proof-verification should return error - {}",
@@ -771,8 +760,7 @@ fn verify_proof_helper<const N: usize>(
                     header,
                     ph,
                     &mut generators,
-                    &revealed_messages,
-                    None
+                    &revealed_messages
                 )
                 .unwrap_or_else(|_| panic!(
                     "proof-verification should not return error - {}",
