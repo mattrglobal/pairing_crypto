@@ -18,13 +18,13 @@ fn creation_nominal() {
 #[test]
 fn equality() {
     const GENERATORS_COUNT: usize = 1000;
-    let mut generators_1 = MemoryCachedGenerators::<
+    let generators_1 = MemoryCachedGenerators::<
         Bls12381Shake256CipherSuiteParameter,
     >::new(GENERATORS_COUNT, None)
     .expect("generators creation failed");
     assert_eq!(generators_1.message_generators_length(), GENERATORS_COUNT);
 
-    let mut generators_2 = MemoryCachedGenerators::<
+    let generators_2 = MemoryCachedGenerators::<
         Bls12381Shake256CipherSuiteParameter,
     >::new(GENERATORS_COUNT, None)
     .expect("generators creation failed");
@@ -41,7 +41,7 @@ fn equality() {
 #[test]
 fn get_point_out_of_bound_index() {
     // Create 32 message generators
-    let mut generators = MemoryCachedGenerators::<
+    let generators = MemoryCachedGenerators::<
         Bls12381Shake256CipherSuiteParameter,
     >::new(32, None)
     .expect("generators creation failed");
