@@ -33,7 +33,7 @@ sha2 = "0.9"
 sha3 = "0.9"
 
 [dev-dependencies]
-criterion = { version = "0.4.0", features = ["html_reports"] }
+criterion = { version = "0.5.1", features = ["html_reports"] }
 hex = "0.4"
 rand_xorshift = "0.3"
 bbs-fixtures-generator = {version = "0.1.0", path = "tools/bbs-fixtures-generator"}

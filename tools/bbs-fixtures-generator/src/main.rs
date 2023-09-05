@@ -4,10 +4,10 @@ use clap::Parser;
 #[derive(Parser)]
 struct Cli {
     // The path to the file to read the test assets
-    #[clap(short = 'i', parse(from_os_str), value_hint = clap::ValueHint::DirPath)]
+    #[clap(short = 'i', value_parser = clap::value_parser!(std::ffi::OsString), value_hint = clap::ValueHint::DirPath)]
     test_asset_file: std::path::PathBuf,
     // The path to the directory to write the fixture files
-    #[clap(short = 'o', parse(from_os_str), value_hint = clap::ValueHint::DirPath)]
+    #[clap(short = 'o', value_parser = clap::value_parser!(std::ffi::OsString), value_hint = clap::ValueHint::DirPath)]
     fixture_output_dir: std::path::PathBuf,
 }
 
