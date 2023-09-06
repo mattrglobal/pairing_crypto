@@ -1,6 +1,9 @@
 use crate::{
     bbs::{
-        ciphersuites::bls12_381_g1_shake_256::Bls12381Shake256CipherSuiteParameter,
+        ciphersuites::bls12_381_g1_shake_256::{
+            Bls12381Shake256CipherSuiteParameter,
+            Bls12381Shake256InterfaceParameter,
+        },
         core::{
             generator::{
                 memory_cached_generator::MemoryCachedGenerators,
@@ -37,12 +40,14 @@ use group::{Curve, Group};
 use rand_core::OsRng;
 use std::collections::{BTreeMap, BTreeSet};
 
+pub const TEST_API_ID: &[u8; 28] = b"TEST_APPLICATION_IDENTIFIER_";
+
 pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
     (
         KeyPair,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
+        MemoryCachedGenerators<Bls12381Shake256InterfaceParameter>,
         Vec<Message>,
     ),
     &'static str,
@@ -108,7 +113,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
         Signature,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
+        MemoryCachedGenerators<Bls12381Shake256InterfaceParameter>,
         Vec<Message>,
         BTreeSet<usize>,
     ),
@@ -129,6 +134,7 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
             header,
             &generators,
             messages.clone(),
+            Some(TEST_API_ID.to_vec()),
         )
         .expect("signing failed");
 
@@ -428,7 +434,7 @@ pub(crate) fn test_data_proof_uniqueness() -> [(
         Signature,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
+        MemoryCachedGenerators<Bls12381Shake256InterfaceParameter>,
         Vec<Message>,
         BTreeSet<usize>,
     ),
@@ -437,7 +443,7 @@ pub(crate) fn test_data_proof_uniqueness() -> [(
         Signature,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
+        MemoryCachedGenerators<Bls12381Shake256InterfaceParameter>,
         Vec<Message>,
         BTreeSet<usize>,
     ),
@@ -471,6 +477,7 @@ pub(crate) fn test_data_proof_uniqueness() -> [(
             header,
             &generators,
             messages.clone(),
+            Some(TEST_API_ID.to_vec()),
         )
         .expect("signing failed");
     let signature_with_different_key_pair =
@@ -480,6 +487,7 @@ pub(crate) fn test_data_proof_uniqueness() -> [(
             header,
             &generators,
             messages.clone(),
+            Some(TEST_API_ID.to_vec()),
         )
         .expect("signing failed");
 
@@ -684,7 +692,7 @@ pub(crate) fn test_data_proof_verify_invalid_parameters() -> [(
         PublicKey,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
+        MemoryCachedGenerators<Bls12381Shake256InterfaceParameter>,
         BTreeMap<usize, Message>,
     ),
     Error,
@@ -704,6 +712,7 @@ pub(crate) fn test_data_proof_verify_invalid_parameters() -> [(
             header,
             &generators,
             messages.clone(),
+            Some(TEST_API_ID.to_vec()),
         )
         .expect("signing failed");
 
@@ -906,7 +915,7 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
         PublicKey,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
+        MemoryCachedGenerators<Bls12381Shake256InterfaceParameter>,
         BTreeMap<usize, Message>,
     ),
     &'static str,
@@ -925,6 +934,7 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
             header,
             &generators,
             messages.clone(),
+            Some(TEST_API_ID.to_vec()),
         )
         .expect("signing failed");
 
@@ -950,7 +960,8 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
                 header,
                 ph,
                 &mut generators,
-                &revealed_messages
+                &revealed_messages,
+                Some(TEST_API_ID.to_vec()),
             )
             .expect("proof verification failed"),
         true
@@ -1098,7 +1109,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
         PublicKey,
         Option<&'static [u8]>,
         Option<&'static [u8]>,
-        MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter>,
+        MemoryCachedGenerators<Bls12381Shake256InterfaceParameter>,
         BTreeMap<usize, Message>,
     ),
     &'static str,
@@ -1122,6 +1133,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
             header,
             &generators,
             messages.clone(),
+            Some(TEST_API_ID.to_vec()),
         )
         .expect("signing failed");
 
@@ -1148,7 +1160,8 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 header,
                 ph,
                 &mut generators,
-                &no_revealed_messages
+                &no_revealed_messages,
+                Some(TEST_API_ID.to_vec()),
             )
             .expect("proof verification failed"),
         true
@@ -1161,6 +1174,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
             None,
             &generators,
             messages.clone(),
+            Some(TEST_API_ID.to_vec()),
         )
         .expect("signing failed");
 
@@ -1186,7 +1200,8 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 None,
                 ph,
                 &mut generators,
-                &revealed_messages
+                &revealed_messages,
+                Some(TEST_API_ID.to_vec()),
             )
             .expect("proof verification failed"),
         true
@@ -1214,7 +1229,8 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 header,
                 None,
                 &mut generators,
-                &revealed_messages
+                &revealed_messages,
+                Some(TEST_API_ID.to_vec()),
             )
             .expect("proof verification failed"),
         true
@@ -1243,7 +1259,8 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 None,
                 None,
                 &mut generators,
-                &revealed_messages
+                &revealed_messages,
+                Some(TEST_API_ID.to_vec()),
             )
             .expect("proof verification failed"),
         true
@@ -1292,7 +1309,8 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 header,
                 ph,
                 &mut generators,
-                &all_revealed_messages
+                &all_revealed_messages,
+                Some(TEST_API_ID.to_vec()),
             )
             .expect("proof verification failed"),
         true

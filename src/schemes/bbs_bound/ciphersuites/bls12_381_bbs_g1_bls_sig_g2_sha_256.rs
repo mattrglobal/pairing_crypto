@@ -1,7 +1,10 @@
 use crate::{
     bbs::ciphersuites::{
         bls12_381::BBS_BLS12381G1_SIGNATURE_LENGTH,
-        bls12_381_g1_sha_256::Bls12381Sha256CipherSuiteParameter,
+        bls12_381_g1_sha_256::{
+            Bls12381Sha256CipherSuiteParameter,
+            Bls12381Sha256InterfaceParameter,
+        },
     },
     bbs_bound::{
         api::dtos::{
@@ -58,10 +61,9 @@ pub fn sign<T>(
 where
     T: AsRef<[u8]>,
 {
-    crate::bbs_bound::api::signature::sign::<
-        _,
-        Bls12381Sha256CipherSuiteParameter,
-    >(request)
+    crate::bbs_bound::api::signature::sign::<_, Bls12381Sha256InterfaceParameter>(
+        request,
+    )
 }
 
 /// Verify a BLS12-381-G1-Sha-256 BBS bound signature.
@@ -71,7 +73,7 @@ where
 {
     crate::bbs_bound::api::signature::verify::<
         _,
-        Bls12381Sha256CipherSuiteParameter,
+        Bls12381Sha256InterfaceParameter,
     >(request)
 }
 
@@ -84,10 +86,9 @@ pub fn proof_gen<T>(
 where
     T: AsRef<[u8]>,
 {
-    crate::bbs_bound::api::proof::proof_gen::<
-        _,
-        Bls12381Sha256CipherSuiteParameter,
-    >(request)
+    crate::bbs_bound::api::proof::proof_gen::<_, Bls12381Sha256InterfaceParameter>(
+        request,
+    )
 }
 
 /// Verify a BLS12-381-G1-Sha-256 BBS bound signature proof of knowledge.
@@ -99,6 +100,6 @@ where
 {
     crate::bbs_bound::api::proof::proof_verify::<
         _,
-        Bls12381Sha256CipherSuiteParameter,
+        Bls12381Sha256InterfaceParameter,
     >(request)
 }

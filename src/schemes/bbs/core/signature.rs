@@ -141,6 +141,7 @@ impl Signature {
         header: Option<T>,
         generators: &G,
         messages: M,
+        api_id: Option<Vec<u8>>,
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
@@ -150,6 +151,7 @@ impl Signature {
     {
         let header = header.as_ref();
         let messages = messages.as_ref();
+        let api_id = api_id.unwrap_or([].to_vec());
 
         // Input parameter checks
         // Error out if there is no `header` and also not any `Messages`
@@ -171,8 +173,13 @@ impl Signature {
 
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
-        let domain =
-            compute_domain::<_, _, C>(PK, header, messages.len(), generators)?;
+        let domain = compute_domain::<_, _, C>(
+            PK,
+            header,
+            messages.len(),
+            generators,
+            &api_id,
+        )?;
 
         // e_s_octs = serialize((SK, domain, msg_1, ..., msg_L))
         let mut data_to_hash = vec![];
@@ -187,7 +194,7 @@ impl Signature {
         // if e_s_expand is INVALID, return INVALID
         // e = hash_to_scalar(e_s_expand[0..(expand_len - 1)])
         // s = hash_to_scalar(e_s_expand[expand_len..(expand_len * 2 - 1)])
-        let e = C::hash_to_e(&data_to_hash)?;
+        let e = C::hash_to_e(&data_to_hash, &api_id)?;
 
         // B = P1 + Q * domain + H_1 * msg_1 + ... + H_L * msg_L
         let message_scalars: Vec<Scalar> =
@@ -216,6 +223,7 @@ impl Signature {
         header: Option<T>,
         generators: &G,
         messages: M,
+        api_id: Option<Vec<u8>>,
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
@@ -225,6 +233,7 @@ impl Signature {
     {
         let header = header.as_ref();
         let messages = messages.as_ref();
+        let api_id = api_id.unwrap_or([].to_vec());
 
         // Input parameter checks
         // Error out if there is no `header` and also not any `Messages`
@@ -250,6 +259,7 @@ impl Signature {
             header,
             messages.len() + 1,
             generators,
+            &api_id,
         )?;
 
         // (e, s) = hash_to_scalar((SK||BlsPk||domain||msg_1||...||msg_L), 2)
@@ -261,7 +271,7 @@ impl Signature {
             data_to_hash.extend(m.to_bytes().as_ref());
         }
 
-        let e = C::hash_to_e(&data_to_hash)?;
+        let e = C::hash_to_e(&data_to_hash, &api_id)?;
 
         // B = P1 + Q*domain + H_1*msg_1 + ... + H_L*msg_L + BlsPk
         let mut points: Vec<_> = vec![C::p1()?, generators.Q()];
@@ -301,6 +311,7 @@ impl Signature {
         header: Option<T>,
         generators: &G,
         messages: M,
+        api_id: Option<Vec<u8>>,
     ) -> Result<bool, Error>
     where
         T: AsRef<[u8]>,
@@ -309,6 +320,7 @@ impl Signature {
         C: BbsCiphersuiteParameters,
     {
         let messages = messages.as_ref();
+        let api_id = api_id.unwrap_or([].to_vec());
 
         // Input parameter checks
         // Error out if there is no `header` and also not any `Message`
@@ -334,8 +346,13 @@ impl Signature {
 
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
-        let domain =
-            compute_domain::<_, _, C>(PK, header, messages.len(), generators)?;
+        let domain = compute_domain::<_, _, C>(
+            PK,
+            header,
+            messages.len(),
+            generators,
+            &api_id,
+        )?;
 
         // B = P1 + Q * domain + H_1 * msg_1 + ... + H_L * msg_L
         let message_scalars: Vec<Scalar> =

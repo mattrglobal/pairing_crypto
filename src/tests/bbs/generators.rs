@@ -1,5 +1,5 @@
 use crate::bbs::{
-    ciphersuites::bls12_381_g1_shake_256::Bls12381Shake256CipherSuiteParameter,
+    ciphersuites::bls12_381_g1_shake_256::Bls12381Shake256InterfaceParameter,
     core::generator::{
         memory_cached_generator::MemoryCachedGenerators,
         Generators,
@@ -8,10 +8,11 @@ use crate::bbs::{
 
 #[test]
 fn creation_nominal() {
-    let generators = MemoryCachedGenerators::<
-        Bls12381Shake256CipherSuiteParameter,
-    >::new(32, None)
-    .expect("generators creation failed");
+    let generators =
+        MemoryCachedGenerators::<Bls12381Shake256InterfaceParameter>::new(
+            32, None,
+        )
+        .expect("generators creation failed");
     assert_eq!(generators.message_generators_length(), 32);
 }
 
@@ -19,13 +20,13 @@ fn creation_nominal() {
 fn equality() {
     const GENERATORS_COUNT: usize = 1000;
     let generators_1 = MemoryCachedGenerators::<
-        Bls12381Shake256CipherSuiteParameter,
+        Bls12381Shake256InterfaceParameter,
     >::new(GENERATORS_COUNT, None)
     .expect("generators creation failed");
     assert_eq!(generators_1.message_generators_length(), GENERATORS_COUNT);
 
     let generators_2 = MemoryCachedGenerators::<
-        Bls12381Shake256CipherSuiteParameter,
+        Bls12381Shake256InterfaceParameter,
     >::new(GENERATORS_COUNT, None)
     .expect("generators creation failed");
     assert_eq!(generators_2.message_generators_length(), GENERATORS_COUNT);
@@ -41,10 +42,11 @@ fn equality() {
 #[test]
 fn get_point_out_of_bound_index() {
     // Create 32 message generators
-    let generators = MemoryCachedGenerators::<
-        Bls12381Shake256CipherSuiteParameter,
-    >::new(32, None)
-    .expect("generators creation failed");
+    let generators =
+        MemoryCachedGenerators::<Bls12381Shake256InterfaceParameter>::new(
+            32, None,
+        )
+        .expect("generators creation failed");
     assert_eq!(generators.message_generators_length(), 32);
     // Getting any generator at index >= 32 should return None
     assert!(generators.get_message_generator(32).is_none());

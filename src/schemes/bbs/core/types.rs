@@ -1,5 +1,5 @@
 use crate::{
-    bbs::ciphersuites::BbsCiphersuiteParameters,
+    bbs::interface::BbsInterfaceParameter,
     curves::{
         bls12_381::{Scalar, OCTET_SCALAR_LENGTH},
         scalar_type::scalar_wrapper,
@@ -34,14 +34,14 @@ impl Message {
     }
 
     /// Map arbitrary data to `Message`.
-    pub fn from_arbitrary_data<C>(
+    pub fn from_arbitrary_data<I>(
         message: &[u8],
         dst: Option<&[u8]>,
     ) -> Result<Self, Error>
     where
-        C: BbsCiphersuiteParameters,
+        I: BbsInterfaceParameter,
     {
-        Ok(Self(C::map_message_to_scalar_as_hash(message, dst)?))
+        Ok(Self(I::map_message_to_scalar_as_hash(message, dst)?))
     }
 }
 

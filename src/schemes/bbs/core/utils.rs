@@ -8,7 +8,10 @@ use super::{
 use crate::{
     bbs::ciphersuites::BbsCiphersuiteParameters,
     common::{
-        hash_param::constant::NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
+        hash_param::constant::{
+            DEFAULT_DST_SUFFIX_H2S,
+            NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
+        },
         serialization::{i2osp, i2osp_with_data},
     },
     curves::{
@@ -33,6 +36,7 @@ pub(crate) fn compute_domain<T, G, C>(
     header: Option<T>,
     L: usize,
     generators: &G,
+    api_id: &Vec<u8>,
 ) -> Result<Scalar, Error>
 where
     T: AsRef<[u8]>,
@@ -51,7 +55,7 @@ where
     // header), 1)
 
     // dom_array = (L, Q, H_1, ..., H_L)
-    // dom_octs = serialize(dom_array) || ciphersuite_id
+    // dom_octs = serialize(dom_array) || api_id
     // dom_input = PK || dom_octs || I2OSP(length(header), 8) || header
     // hash_to_scalar(dom_input, 1)
     let mut data_to_hash = vec![];
@@ -63,7 +67,7 @@ where
         data_to_hash.extend(point_to_octets_g1(&generator).as_ref());
     }
 
-    data_to_hash.extend(C::ID.as_octets());
+    data_to_hash.extend(api_id);
 
     let _header_bytes = header.as_ref().map_or(&[] as &[u8], |v| v.as_ref());
     data_to_hash.extend(i2osp_with_data(
@@ -71,7 +75,10 @@ where
         NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
     )?);
 
-    C::hash_to_scalar(&data_to_hash, None)
+    let hash_to_scalar_dst =
+        [api_id.clone(), DEFAULT_DST_SUFFIX_H2S.as_bytes().to_vec()].concat();
+
+    C::hash_to_scalar(&data_to_hash, Some(&hash_to_scalar_dst))
 }
 
 /// Computes `B` value.
@@ -107,6 +114,7 @@ pub(crate) fn compute_challenge<T, C>(
     proof_init_res: &ProofInitResult,
     disclosed_messages: &BTreeMap<usize, Message>,
     ph: Option<T>,
+    api_id: Vec<u8>,
 ) -> Result<Challenge, Error>
 where
     T: AsRef<[u8]>,
@@ -140,6 +148,12 @@ where
         NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
     )?);
 
+    let challenge_dst =
+        [api_id, DEFAULT_DST_SUFFIX_H2S.as_bytes().to_vec()].concat();
+
     // c = hash_to_scalar(c_for_hash, 1)
-    Ok(Challenge(C::hash_to_scalar(&data_to_hash, None)?))
+    Ok(Challenge(C::hash_to_scalar(
+        &data_to_hash,
+        Some(&challenge_dst),
+    )?))
 }

@@ -112,6 +112,7 @@ impl Proof {
         ph: Option<T>,
         generators: &G,
         messages: &[ProofMessage],
+        api_id: Option<Vec<u8>>,
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
@@ -119,11 +120,13 @@ impl Proof {
         C: BbsCiphersuiteParameters,
     {
         Self::new_with_rng::<_, _, _, C>(
-            PK, signature, header, ph, generators, messages, OsRng,
+            PK, signature, header, ph, generators, messages, api_id, OsRng,
         )
     }
     /// Generates the zero-knowledge proof-of-knowledge of a signature, while
     /// optionally selectively disclosing from the original set of signed messages as defined in `ProofGen` API in BBS Signature specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofgen> using an externally supplied random number generator.
+    /// TODO: Remove the following clippy warning de-activation.
+    #[allow(clippy::too_many_arguments)]
     pub fn new_with_rng<T, R, G, C>(
         PK: &PublicKey,
         signature: &Signature,
@@ -131,6 +134,7 @@ impl Proof {
         ph: Option<T>,
         generators: &G,
         messages: &[ProofMessage],
+        api_id: Option<Vec<u8>>,
         mut rng: R,
     ) -> Result<Self, Error>
     where
@@ -153,6 +157,7 @@ impl Proof {
                 messages: messages.len(),
             });
         }
+        let api_id = api_id.unwrap_or([].to_vec());
 
         // (r1, r2, r3, m~_j1, ..., m~_jU) = calculate_random_scalars(3+U)
         let mut random_scalars = RandomScalars {
@@ -198,11 +203,16 @@ impl Proof {
             header,
             message_scalars,
             undisclosed_indexes,
+            &api_id,
         )?;
 
         // calculate the challenge
-        let c =
-            compute_challenge::<_, C>(&init_result, &disclosed_messages, ph)?;
+        let c = compute_challenge::<_, C>(
+            &init_result,
+            &disclosed_messages,
+            ph,
+            api_id,
+        )?;
 
         // finalize the proof
         Self::proof_finalize(
@@ -223,6 +233,7 @@ impl Proof {
         ph: Option<T>,
         generators: &G,
         disclosed_messages: &BTreeMap<usize, Message>,
+        api_id: Option<Vec<u8>>,
     ) -> Result<bool, Error>
     where
         T: AsRef<[u8]>,
@@ -234,6 +245,7 @@ impl Proof {
         if PK.is_valid().unwrap_u8() == 0u8 {
             return Err(Error::InvalidPublicKey);
         }
+        let api_id = api_id.unwrap_or([].to_vec());
 
         // initialize the proof verification procedure
         let init_res = self.proof_verify_init::<T, G, C>(
@@ -241,6 +253,7 @@ impl Proof {
             header,
             generators,
             disclosed_messages,
+            &api_id,
         )?;
 
         // cv_array = (A', Abar, D, C1, C2, R, i1, ..., iR,  msg_i1, ...,
@@ -248,7 +261,12 @@ impl Proof {
         // cv_for_hash = encode_for_hash(cv_array)
         //  if cv_for_hash is INVALID, return INVALID
         //  cv = hash_to_scalar(cv_for_hash, 1)
-        let cv = compute_challenge::<_, C>(&init_res, disclosed_messages, ph)?;
+        let cv = compute_challenge::<_, C>(
+            &init_res,
+            disclosed_messages,
+            ph,
+            api_id,
+        )?;
 
         // Check the selective disclosure proof
         // if c != cv, return INVALID
@@ -277,6 +295,8 @@ impl Proof {
     }
 
     /// Initialize the Proof Generation operation.
+    /// TODO: Remove the following clippy warning de-activation.
+    #[allow(clippy::too_many_arguments)]
     pub fn proof_init<T, G, C>(
         PK: &PublicKey,
         signature: &Signature,
@@ -285,6 +305,7 @@ impl Proof {
         header: Option<T>,
         message_scalars: Vec<Scalar>,
         undisclosed_indexes: Vec<usize>,
+        api_id: &Vec<u8>,
     ) -> Result<ProofInitResult, Error>
     where
         T: AsRef<[u8]>,
@@ -325,6 +346,7 @@ impl Proof {
             header,
             message_scalars.len(),
             generators,
+            api_id,
         )?;
 
         // Abar = A * r1
@@ -437,6 +459,7 @@ impl Proof {
         header: Option<T>,
         generators: &G,
         disclosed_messages: &BTreeMap<usize, Message>,
+        api_id: &Vec<u8>,
     ) -> Result<ProofInitResult, Error>
     where
         T: AsRef<[u8]>,
@@ -491,6 +514,7 @@ impl Proof {
             header,
             generators.message_generators_length(),
             generators,
+            api_id,
         )?;
 
         // D = P1 + Q * domain + H_i1 * msg_i1 + ... H_iR * msg_iR

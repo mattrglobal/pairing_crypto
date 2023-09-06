@@ -7,22 +7,23 @@ use crate::{
             memory_cached_generator::MemoryCachedGenerators,
             Generators,
         },
+        interface::BbsInterfaceParameter,
     },
     Error,
 };
 
-pub(crate) fn create_generators<C>(
+pub(crate) fn create_generators<I>(
     count: usize,
     private_holder_binding: Option<bool>,
 ) -> Result<Vec<Vec<u8>>, Error>
 where
-    C: BbsCiphersuiteParameters,
+    I: BbsInterfaceParameter,
 {
     let mut result = Vec::new();
     let generators =
-        MemoryCachedGenerators::<C>::new(count - 2, private_holder_binding)?;
+        MemoryCachedGenerators::<I>::new(count - 2, private_holder_binding)?;
 
-    result.push(C::p1()?.to_affine().to_compressed().to_vec());
+    result.push(I::Ciphersuite::p1()?.to_affine().to_compressed().to_vec());
     result.push(generators.Q.to_affine().to_compressed().to_vec());
     result.extend(
         generators

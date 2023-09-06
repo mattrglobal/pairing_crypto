@@ -5,6 +5,7 @@ use super::{
 };
 use crate::{
     bbs::{
+        interface::{BbsInterfaceParameter, InterfaceId, InterfaceParameter},
         BbsProofGenRequest,
         BbsProofVerifyRequest,
         BbsSignRequest,
@@ -43,6 +44,18 @@ impl HashToCurveParameter for Bls12381Sha256CipherSuiteParameter {}
 
 impl BbsCiphersuiteParameters for Bls12381Sha256CipherSuiteParameter {}
 
+// BBS Interface
+#[derive(Debug, Clone)]
+pub(crate) struct Bls12381Sha256InterfaceParameter;
+
+impl InterfaceParameter for Bls12381Sha256InterfaceParameter {
+    const ID: InterfaceId = InterfaceId::BbsH2gHm2s;
+}
+
+impl BbsInterfaceParameter for Bls12381Sha256InterfaceParameter {
+    type Ciphersuite = Bls12381Sha256CipherSuiteParameter;
+}
+
 /// Create a BLS12-381-G1-Sha-256 BBS signature.
 /// Security Warning: `secret_key` and `public_key` in `request` must be related
 /// key-pair generated using `KeyPair` APIs.
@@ -52,7 +65,7 @@ pub fn sign<T>(
 where
     T: AsRef<[u8]>,
 {
-    crate::bbs::api::signature::sign::<_, Bls12381Sha256CipherSuiteParameter>(
+    crate::bbs::api::signature::sign::<_, Bls12381Sha256InterfaceParameter>(
         request,
     )
 }
@@ -62,7 +75,7 @@ pub fn verify<T>(request: &BbsVerifyRequest<'_, T>) -> Result<bool, Error>
 where
     T: AsRef<[u8]>,
 {
-    crate::bbs::api::signature::verify::<_, Bls12381Sha256CipherSuiteParameter>(
+    crate::bbs::api::signature::verify::<_, Bls12381Sha256InterfaceParameter>(
         request,
     )
 }
@@ -74,7 +87,7 @@ pub fn proof_gen<T>(
 where
     T: AsRef<[u8]>,
 {
-    crate::bbs::api::proof::proof_gen::<_, Bls12381Sha256CipherSuiteParameter>(
+    crate::bbs::api::proof::proof_gen::<_, Bls12381Sha256InterfaceParameter>(
         request,
     )
 }
@@ -94,7 +107,7 @@ where
     crate::bbs::api::proof::proof_gen_with_rng::<
         _,
         _,
-        Bls12381Sha256CipherSuiteParameter,
+        Bls12381Sha256InterfaceParameter,
     >(request, rng)
 }
 
@@ -105,7 +118,7 @@ pub fn proof_verify<T>(
 where
     T: AsRef<[u8]>,
 {
-    crate::bbs::api::proof::proof_verify::<_, Bls12381Sha256CipherSuiteParameter>(
+    crate::bbs::api::proof::proof_verify::<_, Bls12381Sha256InterfaceParameter>(
         request,
     )
 }
@@ -118,7 +131,7 @@ pub fn create_generators(
     private_holder_binding: Option<bool>,
 ) -> Result<Vec<Vec<u8>>, Error> {
     crate::bbs::api::generators::create_generators::<
-        Bls12381Sha256CipherSuiteParameter,
+        Bls12381Sha256InterfaceParameter,
     >(count, private_holder_binding)
 }
 
@@ -159,7 +172,7 @@ pub fn map_message_to_scalar_as_hash(
     dst: Option<&[u8]>,
 ) -> Result<[u8; OCTET_SCALAR_LENGTH], Error> {
     let scalar =
-        Bls12381Sha256CipherSuiteParameter::map_message_to_scalar_as_hash(
+        Bls12381Sha256InterfaceParameter::map_message_to_scalar_as_hash(
             message, dst,
         );
 
@@ -180,12 +193,13 @@ pub fn default_hash_to_scalar_dst() -> Vec<u8> {
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
 #[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
 pub fn default_map_message_to_scalar_as_hash_dst() -> Vec<u8> {
-    Bls12381Sha256CipherSuiteParameter::default_map_message_to_scalar_as_hash_dst()
+    Bls12381Sha256InterfaceParameter::default_map_message_to_scalar_as_hash_dst(
+    )
 }
 
 /// Get's ciphersuite id.
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
 #[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
 pub fn ciphersuite_id() -> Vec<u8> {
-    Bls12381Sha256CipherSuiteParameter::ID.as_octets().to_vec()
+    Bls12381Sha256InterfaceParameter::api_id()
 }
