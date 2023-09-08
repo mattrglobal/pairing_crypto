@@ -16,15 +16,6 @@ pub(crate) trait HashToScalarParameter: ExpandMessageParameter {
         [Self::ID.as_octets(), DEFAULT_DST_SUFFIX_H2S.as_bytes()].concat()
     }
 
-    // /// Default domain separation tag to be used in [MapMessageToScalarAsHash](https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-mapmessagetoscalarashash).
-    // fn default_map_message_to_scalar_as_hash_dst() -> Vec<u8> {
-    //     [
-    //         Self::ID.as_octets(),
-    //         DEFAULT_DST_SUFFIX_MESSAGE_TO_SCALAR.as_bytes(),
-    //     ]
-    //     .concat()
-    // }
-
     /// Hash arbitrary data to `n` number of scalars as specified in BBS
     /// specification.
     fn hash_to_scalar(

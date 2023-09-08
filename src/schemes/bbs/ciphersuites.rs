@@ -7,6 +7,7 @@ use crate::{
             h2c::HashToCurveParameter,
             h2s::HashToScalarParameter,
         },
+        interface::InterfaceId,
     },
     curves::bls12_381::{
         hash_to_curve::{ExpandMessageState, InitExpandMessage},
@@ -64,6 +65,7 @@ pub(crate) trait BbsCiphersuiteParameters:
         Ok(base_generator.create_generators(1, &mut n, &mut v, true)?[0])
     }
 
+    /// Hash a message and a dst to an output that is XOF_NO_OF_BYTES long.
     fn expand_message(
         message: &[u8],
         dst: &[u8],
@@ -74,6 +76,7 @@ pub(crate) trait BbsCiphersuiteParameters:
         expander.read_into(dest);
     }
 
+    /// Hash a message and a dst to a point of g1.
     fn hash_to_curve(
         message: &[u8],
         dst: &[u8],

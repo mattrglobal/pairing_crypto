@@ -2,10 +2,11 @@ use super::{
     bls12_381::BBS_BLS12381G1_SIGNATURE_LENGTH,
     BbsCiphersuiteParameters,
     CipherSuiteId,
+    InterfaceId,
 };
 use crate::{
     bbs::{
-        interface::{BbsInterfaceParameter, InterfaceId, InterfaceParameter},
+        interface::BbsInterfaceParameter,
         BbsProofGenRequest,
         BbsProofVerifyRequest,
         BbsSignRequest,
@@ -18,6 +19,7 @@ use crate::{
             h2s::HashToScalarParameter,
             ExpandMessageParameter,
         },
+        interface::InterfaceParameter,
     },
     curves::bls12_381::hash_to_curve::ExpandMsgXmd,
     Error,

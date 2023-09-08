@@ -12,11 +12,11 @@ pub struct GeneratorsParameters {
     pub generator_dst: Vec<u8>,
     /// A dst to domain separate the seeds that create all the generators.
     pub seed_dst: Vec<u8>,
-    /// The hash to curve operation that on hashes a message and a dst on a
+    /// The hash to curve operation that hashes a message and a dst on a
     /// point of G1.
     pub hash_to_curve:
         fn(message: &[u8], dst: &[u8]) -> Result<G1Projective, Error>,
-    /// A operation that hashes a message and a dst, abd outs the result of
+    /// A operation that hashes a message and a dst and pouts the result of
     /// length XOF_NO_OF_BYTES, to the destination (dest).
     pub expand_message:
         fn(message: &[u8], dst: &[u8], dest: &mut [u8; XOF_NO_OF_BYTES]),
@@ -34,18 +34,16 @@ impl GeneratorsParameters {
         let generator_dst = self.generator_dst;
         let generator_seed = self.generator_seed;
         let seed_dst = self.seed_dst;
-        let expand_message_fn = self.expand_message;
-        let hash_to_curve_fn = self.hash_to_curve;
 
         if with_fresh_state {
             *n = 1;
-            expand_message_fn(&generator_seed, &seed_dst, v)
+            (self.expand_message)(&generator_seed, &seed_dst, v)
         }
 
         let mut points = Vec::with_capacity(count);
 
         while *n <= count.try_into().unwrap() {
-            expand_message_fn(
+            (self.expand_message)(
                 &[v.as_ref(), &i2osp(*n, 8)?].concat(),
                 &seed_dst,
                 v,
@@ -54,7 +52,7 @@ impl GeneratorsParameters {
             *n += 1;
 
             // generator_i = hash_to_curve_g1(v, generator_dst)
-            let generator_i = hash_to_curve_fn(v, &generator_dst)?;
+            let generator_i = (self.hash_to_curve)(v, &generator_dst)?;
             points.push(generator_i);
         }
         Ok(points)
