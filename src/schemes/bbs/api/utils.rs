@@ -47,7 +47,7 @@ where
 }
 
 /// Digests a set of supplied proof messages
-pub(super) fn digest_proof_messages<T, I>(
+pub(crate) fn digest_proof_messages<T, I>(
     messages: Option<&[BbsProofGenRevealMessageRequest<T>]>,
 ) -> Result<(Vec<Message>, Vec<ProofMessage>), Error>
 where

@@ -73,3 +73,11 @@ pub(crate) struct ProofInitResult {
     pub T: G1Projective,
     pub domain: Scalar,
 }
+
+/// Result of commit correctness proof
+/// generation initialization.
+pub(crate) struct CommitProofInitResult {
+    pub commit: G1Projective,
+    pub commit_base: G1Projective,
+    pub blind_commit: G1Projective,
+}

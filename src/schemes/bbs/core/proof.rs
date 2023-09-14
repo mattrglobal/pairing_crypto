@@ -61,7 +61,7 @@ pub(crate) struct RandomScalars {
 }
 
 impl RandomScalars {
-    fn insert_m_tilde(&mut self, m_tilde: Scalar) {
+    pub fn insert_m_tilde(&mut self, m_tilde: Scalar) {
         self.m_tilde_scalars.push(m_tilde);
     }
 
@@ -206,8 +206,12 @@ impl Proof {
         )?;
 
         // calculate the challenge
-        let c =
-            compute_challenge::<_, I>(&init_result, &disclosed_messages, ph)?;
+        let c = compute_challenge::<_, I>(
+            &init_result,
+            &disclosed_messages,
+            ph,
+            None,
+        )?;
 
         // finalize the proof
         Self::proof_finalize(
@@ -253,7 +257,29 @@ impl Proof {
         // cv_for_hash = encode_for_hash(cv_array)
         //  if cv_for_hash is INVALID, return INVALID
         //  cv = hash_to_scalar(cv_for_hash, 1)
+<<<<<<< HEAD
         let cv = compute_challenge::<_, I>(&init_res, disclosed_messages, ph)?;
+=======
+<<<<<<< HEAD
+        let cv = compute_challenge::<_, I>(
+            &init_res,
+            disclosed_messages,
+            ph,
+        )?;
+=======
+<<<<<<< HEAD
+        let cv = compute_challenge::<_, I>(&init_res, disclosed_messages, ph)?;
+=======
+        let cv = compute_challenge::<_, C>(
+            &init_res,
+            disclosed_messages,
+            ph,
+            api_id,
+            None,
+        )?;
+>>>>>>> 8a6d8d2 (feat: add pseudonyms)
+>>>>>>> bd611bc (feat: add pseudonyms)
+>>>>>>> d8735e3 (feat: add pseudonyms)
 
         // Check the selective disclosure proof
         // if c != cv, return INVALID
