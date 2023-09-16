@@ -1,6 +1,5 @@
-#![allow(dead_code)]
-#![allow(unused)]
 #![allow(non_snake_case)]
+
 use std::collections::BTreeMap;
 
 use blstrs::{G1Projective, Scalar};
@@ -41,9 +40,9 @@ impl ProofWithNym {
     pub fn new<T, G, C>(
         PK: &PublicKey,
         signature: &Signature,
-        nym: &Pseudonym,
+        pseudonym: &Pseudonym,
         verifier_id: T,
-        pid: Message,
+        prover_id: Message,
         header: Option<T>,
         ph: Option<T>,
         generators: &G,
@@ -58,9 +57,9 @@ impl ProofWithNym {
         Self::new_with_rng::<_, _, _, C>(
             PK,
             signature,
-            nym,
+            pseudonym,
             verifier_id,
-            pid,
+            prover_id,
             header,
             ph,
             generators,
@@ -75,9 +74,9 @@ impl ProofWithNym {
     pub fn new_with_rng<T, R, G, C>(
         PK: &PublicKey,
         signature: &Signature,
-        nym: &Pseudonym,
+        pseudonym: &Pseudonym,
         verifier_id: T,
-        pid: Message,
+        prover_id: Message,
         header: Option<T>,
         ph: Option<T>,
         generators: &G,
@@ -91,24 +90,6 @@ impl ProofWithNym {
         G: Generators,
         C: BbsCiphersuiteParameters,
     {
-        if header.is_none() && messages.is_empty() {
-            return Err(Error::BadParams {
-                cause: "nothing to prove".to_owned(),
-            });
-        }
-        // Error out if length of messages and generators are not equal
-        if messages.len() + 1 != generators.message_generators_length() {
-            println!("messages.len() + 1 = {:?}", messages.len() + 1);
-            println!(
-                "generators.message_generators_length() = {:?}",
-                generators.message_generators_length()
-            );
-
-            return Err(Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_generators_length(),
-                messages: messages.len(),
-            });
-        }
         let api_id = api_id.unwrap_or([].to_vec());
 
         // (r1, r2, r3, m~_j1, ..., m~_jU) = calculate_random_scalars(3+U)
@@ -124,12 +105,12 @@ impl ProofWithNym {
         //
         // Deserialization:
         // ...(implicit steps)...
-        // 4. messages.push(pid)
+        // 4. messages.push(prover_id)
         // ...(implicit steps)...
         // 10. undisclosed_indexes = range(1, L) \ disclosed_indexes
         // 11. disclosed_messages = (messages[i1], ..., messages[iR])
         let mut messages_vec = messages.to_vec();
-        messages_vec.push(ProofMessage::Hidden(pid));
+        messages_vec.push(ProofMessage::Hidden(prover_id));
 
         let message_scalars: Vec<Scalar> =
             messages_vec.iter().map(|m| m.get_message().0).collect();
@@ -169,7 +150,7 @@ impl ProofWithNym {
 
         let pid_tilde = random_scalars.m_tilde_scalars.last().unwrap();
         let pseudonym_proof_init = CommitProofInitResult {
-            commit: nym.as_point(),
+            commit: pseudonym.as_point(),
             commit_base: OP,
             blind_commit: OP * pid_tilde,
         };
@@ -221,11 +202,35 @@ impl ProofWithNym {
         if PK.is_valid().unwrap_u8() == 0u8 {
             return Err(Error::InvalidPublicKey);
         }
+
+        // the pseudonym should be a point of G1 but not any of the constant
+        // "reserved" points (i.e., the identity of G1 or the base
+        // generator and the base point of G1).
+        if pseudonym.is_valid::<C>().unwrap_u8() == 0u8 {
+            return Err(Error::InvalidPseudonym);
+        }
+
+        // Check that the m_hat_list is not empty (the prover_id
+        // should always be undisclosed).
+        if self.0.m_hat_list.is_empty() {
+            return Err(Error::BadParams {
+                cause: "At least on message must be undisclosed".to_owned(),
+            });
+        }
+
+        // Check that the last message (the prover_id) is not revealed
+        if let Some(val) = disclosed_messages.last_key_value() {
+            if *val.0 == self.0.m_hat_list.len() + disclosed_messages.len() {
+                return Err(Error::BadParams {
+                    cause: "The last signed message should not be revealed"
+                        .to_owned(),
+                });
+            }
+        }
+
         let api_id = api_id.unwrap_or([].to_vec());
 
         // initialize the proof verification procedure
-        // TODO: Check that the last message is not revealed
-        // TODO: Check that the m_hat_list is not empty.
         let init_res = self.0.proof_verify_init::<T, G, C>(
             PK,
             header,
@@ -236,14 +241,13 @@ impl ProofWithNym {
 
         // initialize the pseudonym correctness proof verification procedure
         let OP = C::hash_to_curve(verifier_id.as_ref(), &api_id)?;
-
-        // unwrap() is safe here is we check that m_hat_list is non empty (TODO)
-        let pid_hat = self.0.m_hat_list.last().unwrap();
         let pseudonym_point = pseudonym.as_point();
         let proof_challenge = self.0.c;
+
+        // unwrap() is safe here since we check that m_hat_list is non empty
         let Uv = G1Projective::multi_exp(
             &[OP, pseudonym_point],
-            &[pid_hat.0, -proof_challenge.0],
+            &[self.0.m_hat_list.last().unwrap().0, -proof_challenge.0],
         );
 
         let pseudonym_proof_verify_init = CommitProofInitResult {

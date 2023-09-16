@@ -47,6 +47,9 @@ pub enum Error {
     /// Public key is not valid.
     InvalidPublicKey,
 
+    /// Pseudonym is not valid
+    InvalidPseudonym,
+
     /// Signature is malformed.
     MalformedSignature {
         /// Detailed cause.
@@ -125,6 +128,9 @@ impl core::fmt::Debug for Error {
             }
             Error::InvalidPublicKey => {
                 write!(f, "public key is invalid.")
+            }
+            Error::InvalidPseudonym => {
+                write!(f, "pseudonym is invalid")
             }
             Error::MalformedSignature { ref cause } => {
                 write!(f, "signature is malformed: cause: {cause}")

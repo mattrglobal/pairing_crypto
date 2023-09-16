@@ -17,8 +17,8 @@ use crate::tests::bbs::{
     TEST_KEY_INFOS,
 };
 
-const TEST_PID: &[u8; 14] = b"TEST_PROVER_ID";
-const TEST_VID: &[u8; 16] = b"TEST_VERIFIER_ID";
+const TEST_PID: &[u8; 14] = b"TEST_PROVER_ID"; // Test prover id
+const TEST_VID: &[u8; 16] = b"TEST_VERIFIER_ID"; // Test verifier id
 
 const TEST_API_ID: &[u8; 28] = b"TEST_APPLICATION_IDENTIFIER_";
 const TEST_HEADER: &[u8; 16] = b"some_app_context";

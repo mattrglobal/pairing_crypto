@@ -1,12 +1,3 @@
-#![allow(dead_code)]
-#![allow(unused)]
-#![allow(non_snake_case)]
-
-// use crate::common::ciphersuite::{
-//     CipherSuiteParameter,
-//     CipherSuiteId,
-// };
-
 use crate::{
     bbs::{
         ciphersuites::{

@@ -17,7 +17,7 @@ pub struct BbsSignRequest<'a, T: AsRef<[u8]> + Default> {
     /// Public key
     pub public_key: &'a [u8; BBS_BLS12381G1_PUBLIC_KEY_LENGTH],
     /// Prover unique identifier
-    pub pid: T,
+    pub prover_id: T,
     /// Header containing context and application specific information
     pub header: Option<T>,
     /// Vector of messages to sign
@@ -29,7 +29,7 @@ impl<'a, T: AsRef<[u8]> + Default> Default for BbsSignRequest<'a, T> {
         Self {
             secret_key: &[0u8; BBS_BLS12381G1_SECRET_KEY_LENGTH],
             public_key: &[0u8; BBS_BLS12381G1_PUBLIC_KEY_LENGTH],
-            pid: Default::default(),
+            prover_id: Default::default(),
             header: Default::default(),
             messages: Default::default(),
         }
@@ -42,7 +42,7 @@ pub struct BbsVerifyRequest<'a, T: AsRef<[u8]> + Default> {
     /// Public key
     pub public_key: &'a [u8; BBS_BLS12381G1_PUBLIC_KEY_LENGTH],
     /// Prover unique identifier
-    pub pid: T,
+    pub prover_id: T,
     /// Header containing context and application specific information
     pub header: Option<T>,
     /// Vector of messages to verify against a signature
@@ -55,7 +55,7 @@ impl<'a, T: AsRef<[u8]> + Default> Default for BbsVerifyRequest<'a, T> {
     fn default() -> Self {
         Self {
             public_key: &[0u8; BBS_BLS12381G1_PUBLIC_KEY_LENGTH],
-            pid: Default::default(),
+            prover_id: Default::default(),
             header: Default::default(),
             messages: Default::default(),
             signature: &[0u8; BBS_BLS12381G1_SIGNATURE_LENGTH],
@@ -70,7 +70,7 @@ pub struct BbsProofGenRequest<'a, T: AsRef<[u8]> + Default> {
     /// Public key associated to the BBS signature
     pub public_key: &'a [u8; BBS_BLS12381G1_PUBLIC_KEY_LENGTH],
     /// The Prover's unique identifier
-    pub pid: T,
+    pub prover_id: T,
     /// The Verifier's unique Identifier
     pub verifier_id: T,
     /// Point of G1 used by a Verifier to link multiple proof presentations
@@ -94,7 +94,7 @@ impl<'a, T: AsRef<[u8]> + Default> Default for BbsProofGenRequest<'a, T> {
     fn default() -> Self {
         Self {
             public_key: &[0u8; BBS_BLS12381G1_PUBLIC_KEY_LENGTH],
-            pid: Default::default(),
+            prover_id: Default::default(),
             verifier_id: Default::default(),
             pseudonym: &[0u8; OCTET_POINT_G1_LENGTH],
             header: Default::default(),

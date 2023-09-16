@@ -1,7 +1,3 @@
-#![allow(dead_code)]
-#![allow(unused)]
-#![allow(non_snake_case)]
-
 use pairing_crypto::{
     bbs::{ciphersuites::bls12_381::KeyPair, BbsProofGenRevealMessageRequest},
     pseudonym::{
@@ -79,7 +75,7 @@ macro_rules! nym_sign_verify_e2e_nominal {
             let signature = $sign_fn(&BbsSignRequest {
                 secret_key: &secret_key,
                 public_key: &public_key,
-                pid: TEST_PROVER_ID.to_vec(),
+                prover_id: TEST_PROVER_ID.to_vec(),
                 header: Some(header.clone()),
                 messages: Some(&messages),
             })
@@ -92,7 +88,7 @@ macro_rules! nym_sign_verify_e2e_nominal {
 
             assert!($verify_fn(&BbsVerifyRequest {
                 public_key: &public_key,
-                pid: TEST_PROVER_ID.to_vec(),
+                prover_id: TEST_PROVER_ID.to_vec(),
                 header: Some(header.clone()),
                 messages: Some(&messages),
                 signature: &signature
@@ -137,7 +133,7 @@ macro_rules! proof_gen_verify_e2e_nominal {
             let signature = $sign_fn(&BbsSignRequest {
                 secret_key: &secret_key,
                 public_key: &public_key,
-                pid: TEST_PROVER_ID.to_vec(),
+                prover_id: TEST_PROVER_ID.to_vec(),
                 header: Some(header.clone()),
                 messages: Some(&messages),
             })
@@ -145,7 +141,7 @@ macro_rules! proof_gen_verify_e2e_nominal {
 
             assert!($verify_fn(&BbsVerifyRequest {
                 public_key: &public_key,
-                pid: TEST_PROVER_ID.to_vec(),
+                prover_id: TEST_PROVER_ID.to_vec(),
                 header: Some(header.clone()),
                 messages: Some(&messages),
                 signature: &signature
@@ -170,7 +166,7 @@ macro_rules! proof_gen_verify_e2e_nominal {
             for j in 0..proof_messages.len() {
                 let proof = &$proof_gen_fn(&BbsProofGenRequest {
                     public_key: &public_key,
-                    pid: TEST_PROVER_ID.to_vec(),
+                    prover_id: TEST_PROVER_ID.to_vec(),
                     verifier_id: TEST_VERIFIER_ID.to_vec(),
                     pseudonym: &pseudonym,
                     header: Some(header.clone()),

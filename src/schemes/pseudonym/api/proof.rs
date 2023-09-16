@@ -42,9 +42,8 @@ where
     let pseudonym = Pseudonym::from_octets(request.pseudonym)?;
 
     // digest the pid message
-    let pid = pid_to_message::<_, I>(&request.pid)?;
+    let pid = pid_to_message::<_, I>(&request.prover_id)?;
     digested_messages.push(pid);
-    // proof_messages.push(ProofMessage::Hidden(pid));
 
     let verify_signature = request.verify_signature.unwrap_or(true);
     if verify_signature

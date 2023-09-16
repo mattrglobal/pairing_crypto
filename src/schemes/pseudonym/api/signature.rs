@@ -25,7 +25,7 @@ where
     let pk = PublicKey::from_octets(request.public_key)?;
 
     let mut messages = digest_messages::<_, I>(request.messages)?;
-    let pid_msg = digest_messages::<_, I>(Some(&[&request.pid]))?;
+    let pid_msg = digest_messages::<_, I>(Some(&[&request.prover_id]))?;
     messages.push(pid_msg[0]);
 
     let generators = MemoryCachedGenerators::<I>::new(messages.len(), None)?;
@@ -51,7 +51,7 @@ where
     let pk = PublicKey::from_octets(request.public_key)?;
 
     let mut messages = digest_messages::<_, I>(request.messages)?;
-    let pid_msg = digest_messages::<_, I>(Some(&[&request.pid]))?;
+    let pid_msg = digest_messages::<_, I>(Some(&[&request.prover_id]))?;
     messages.push(pid_msg[0]);
 
     let generators = MemoryCachedGenerators::<I>::new(messages.len(), None)?;

@@ -1,17 +1,20 @@
-#![allow(dead_code)]
-#![allow(unused)]
 #![allow(non_snake_case)]
+
 use crate::{
-    bbs::interface::BbsInterfaceParameter,
+    bbs::{
+        ciphersuites::BbsCiphersuiteParameters,
+        interface::BbsInterfaceParameter,
+    },
     curves::{
         bls12_381::{G1Projective, Scalar, OCTET_POINT_G1_LENGTH},
         point_serde::{octets_to_point_g1, point_to_octets_g1},
     },
     error::Error,
-    schemes::bbs::ciphersuites::BbsCiphersuiteParameters,
 };
 use ff::Field;
-use group::Group;
+use group::{Curve, Group};
+use subtle::{Choice, ConstantTimeEq};
+
 pub(crate) struct Pseudonym(G1Projective);
 
 // TODO: Use ct to check equalities bellow
@@ -42,8 +45,8 @@ impl Pseudonym {
 
         // Check that OP is not the identity, the base point of G1 or P1.
         if OP.is_identity().unwrap_u8() == 1u8
-            || OP == G1Projective::generator()
-            || OP == I::Ciphersuite::p1().unwrap()
+            || OP.ct_eq(&G1Projective::generator()).unwrap_u8() == 1u8
+            || OP.ct_eq(&I::Ciphersuite::p1().unwrap()).unwrap_u8() == 1u8
         {
             return Err(Error::CryptoOps {
                 cause: "Origin defined point of G1 must not be the Identity, \
@@ -57,11 +60,10 @@ impl Pseudonym {
         )?;
 
         if pid_scalar.is_zero().unwrap_u8() == 1u8
-            || pid_scalar == Scalar::one()
+            || pid_scalar.ct_eq(&Scalar::one()).unwrap_u8() == 1u8
         {
             return Err(Error::CryptoOps {
-                cause: "Invalid Prover ID after is mapped to a scalar"
-                    .to_owned(),
+                cause: "Invalid Prover ID".to_owned(),
             });
         };
 
@@ -81,5 +83,16 @@ impl Pseudonym {
     ) -> Result<Self, Error> {
         let point = octets_to_point_g1(bytes)?;
         Ok(Self(point))
+    }
+
+    pub fn is_valid<C>(&self) -> Choice
+    where
+        C: BbsCiphersuiteParameters,
+    {
+        (!self.0.is_identity())
+            & self.0.is_on_curve()
+            & self.0.to_affine().is_torsion_free()
+            & !(Choice::from((self.0 == G1Projective::generator()) as u8))
+            & !(Choice::from((self.0 == C::p1().unwrap()) as u8))
     }
 }
