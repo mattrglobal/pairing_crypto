@@ -179,7 +179,8 @@ deny = [
 # Certain crates/versions that will be skipped when doing duplicate detection.
 skip = [
     { name = "hermit-abi" }, # TODO(DEBT): Remove exception for atty as an 'unmaintained' dependency
-    { name = "syn" } # TODO(DEBT): Bump related crates to remove the multi-version resolution
+    { name = "syn" }, # TODO(DEBT): Bump related crates to remove the multi-version resolution
+    { name = "bitflags" } # TODO(DEBT): Bump related crates to remove the multi-version resolution
 ]
 # Similarly to `skip` allows you to skip certain crates during duplicate
 # detection. Unlike skip, it also includes the entire tree of transitive
