@@ -69,7 +69,7 @@ jobs:
     runs-on: ${{ matrix.runners }}
     strategy:
       matrix:
-        runners: [[self-hosted, macos, X64, general, runner03]]
+        runners: [[self-hosted, macos, general, ARM64]]
     concurrency:
       group: ci-detox-android-${{ matrix.runners }}-${{ github.head_ref }}
       cancel-in-progress: true
