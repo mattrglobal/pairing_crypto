@@ -9,12 +9,9 @@ jobs:
   java-wrapper:
     name: Build Java Wrapper
     runs-on: ubuntu-latest
-    env:
-      NODE_OPTIONS: "--max-old-space-size=5120"
     defaults:
       run:
         working-directory: ./wrappers/react-native
-        shell: zsh -il {0} # load ~/.zshrc
     steps:
       - name: Checkout
         uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
@@ -78,9 +75,13 @@ jobs:
       cancel-in-progress: true
     timeout-minutes: 30
 
+    env:
+      NODE_OPTIONS: "--max-old-space-size=5120"
+
     defaults:
       run:
         working-directory: wrappers/react-native
+        shell: zsh -il {0} # load ~/.zshrc
 
     steps:
       - name: Checkout
