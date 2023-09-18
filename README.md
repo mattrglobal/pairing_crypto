@@ -16,10 +16,6 @@ For a more exhaustive list of those published by the [CFRG](https://irtf.org/cfr
 
 - [BBS Signatures draft-03](https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-03.html)
 
-## API Design
-
-See [here](./docs/API.md) for details on the APIs design
-
 ## Contribution Guide
 
 To get started contributing to this project be sure to check out our [contribution guide](./docs/CONTRIBUTING.md)
