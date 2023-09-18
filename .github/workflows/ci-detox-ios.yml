@@ -10,9 +10,13 @@ jobs:
   libraries:
     name: Build Wrapper Libraries
     runs-on: macos-latest
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_14.2.app
+      NODE_OPTIONS: "--max-old-space-size=5120"
     defaults:
       run:
         working-directory: ./wrappers/react-native
+        shell: zsh -il {0} # load ~/.zshrc
     steps:
       - name: Checkout
         uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
