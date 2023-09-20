@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'com.github.mattrglobal'
-version '0.4.1-SNAPSHOT'
+version '0.4.2-SNAPSHOT'
 
 apply plugin: "java-library"
 
