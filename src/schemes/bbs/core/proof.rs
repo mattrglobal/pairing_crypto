@@ -36,6 +36,8 @@ use pairing::{MillerLoopResult as _, MultiMillerLoop};
 use rand::{CryptoRng, RngCore};
 use rand_core::OsRng;
 
+use super::types::ProofTrace;
+
 #[cfg(feature = "alloc")]
 use alloc::collections::BTreeMap;
 
@@ -122,8 +124,7 @@ impl Proof {
             PK, signature, header, ph, generators, messages, OsRng,
         )
     }
-    /// Generates the zero-knowledge proof-of-knowledge of a signature, while
-    /// optionally selectively disclosing from the original set of signed messages as defined in `ProofGen` API in BBS Signature specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofgen> using an externally supplied random number generator.
+
     pub fn new_with_rng<T, R, G, C>(
         PK: &PublicKey,
         signature: &Signature,
@@ -131,7 +132,53 @@ impl Proof {
         ph: Option<T>,
         generators: &G,
         messages: &[ProofMessage],
+        rng: R,
+    ) -> Result<Self, Error>
+    where
+        T: AsRef<[u8]>,
+        R: RngCore + CryptoRng,
+        G: Generators,
+        C: BbsCiphersuiteParameters,
+    {
+        Self::new_with_rng_and_trace::<_, _, _, C>(
+            PK, signature, header, ph, generators, messages, rng, None,
+        )
+    }
+
+    #[cfg(feature = "__private_bbs_fixtures_generator_api")]
+    pub fn new_with_trace<T, R, G, C>(
+        PK: &PublicKey,
+        signature: &Signature,
+        header: Option<T>,
+        ph: Option<T>,
+        generators: &G,
+        messages: &[ProofMessage],
+        rng: R,
+        trace: Option<&mut ProofTrace>,
+    ) -> Result<Self, Error>
+    where
+        T: AsRef<[u8]>,
+        R: RngCore + CryptoRng,
+        G: Generators,
+        C: BbsCiphersuiteParameters,
+    {
+        Self::new_with_rng_and_trace::<_, _, _, C>(
+            PK, signature, header, ph, generators, messages, rng, trace,
+        )
+    }
+
+    /// Generates the zero-knowledge proof-of-knowledge of a signature, while
+    /// optionally selectively disclosing from the original set of signed messages as defined in `ProofGen` API in BBS Signature specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofgen> using an externally supplied random number generator.
+    #[allow(clippy::too_many_arguments)]
+    fn new_with_rng_and_trace<T, R, G, C>(
+        PK: &PublicKey,
+        signature: &Signature,
+        header: Option<T>,
+        ph: Option<T>,
+        generators: &G,
+        messages: &[ProofMessage],
         mut rng: R,
+        mut trace: Option<&mut ProofTrace>,
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
@@ -203,6 +250,14 @@ impl Proof {
         // calculate the challenge
         let c =
             compute_challenge::<_, C>(&init_result, &disclosed_messages, ph)?;
+
+        // Add to the trace when creating the fixtures
+        if cfg!(feature = "__private_bbs_fixtures_generator_api") {
+            if let Some(t) = trace.as_mut() {
+                (*t).new_from_init_res(&init_result);
+                t.challenge = c.0.to_bytes_be();
+            }
+        }
 
         // finalize the proof
         Self::proof_finalize(

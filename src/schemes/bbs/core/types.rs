@@ -1,7 +1,9 @@
+#![allow(non_snake_case)]
 use crate::{
     bbs::ciphersuites::BbsCiphersuiteParameters,
     curves::{
-        bls12_381::{Scalar, OCTET_SCALAR_LENGTH},
+        bls12_381::{Scalar, OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
+        point_serde::point_to_octets_g1,
         scalar_type::scalar_wrapper,
     },
     error::Error,
@@ -67,9 +69,107 @@ impl ProofMessage {
 /// Result of proof generation and
 /// verification initialization.
 #[allow(non_snake_case)]
+#[derive(Debug, Default)]
 pub(crate) struct ProofInitResult {
     pub A_bar: G1Projective,
     pub B_bar: G1Projective,
     pub T: G1Projective,
     pub domain: Scalar,
+}
+
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
+use crate::common::util::vec_to_byte_array;
+
+/// A struct to hold a trace of the signature generation operation
+#[derive(Debug, Clone)]
+pub struct SignatureTrace {
+    /// The point B calculated during proof generation
+    pub B: [u8; OCTET_POINT_G1_LENGTH],
+    /// The domain scalar value calculated during proof generation
+    pub domain: [u8; OCTET_SCALAR_LENGTH],
+}
+
+impl Default for SignatureTrace {
+    fn default() -> Self {
+        Self {
+            B: [0u8; OCTET_POINT_G1_LENGTH],
+            domain: [0u8; OCTET_SCALAR_LENGTH],
+        }
+    }
+}
+
+impl SignatureTrace {
+    /// Helper function to get a new signature trace from Vec inputs
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(feature = "__private_bbs_fixtures_generator_api"))
+    )]
+    #[cfg(feature = "__private_bbs_fixtures_generator_api")]
+    pub fn new_from_vec(B: Vec<u8>, domain: Vec<u8>) -> Self {
+        Self {
+            B: vec_to_byte_array::<OCTET_POINT_G1_LENGTH>(&B)
+                .expect("Invalid B"),
+            domain: vec_to_byte_array::<OCTET_SCALAR_LENGTH>(&domain)
+                .expect("Invalid domain"),
+        }
+    }
+}
+
+/// A struct to hold a trace of the proof generation operation
+#[derive(Debug, Clone)]
+pub struct ProofTrace {
+    /// The point A_bar calculated during proof generation
+    pub A_bar: [u8; OCTET_POINT_G1_LENGTH],
+    /// The point B_bar calculated during proof generation
+    pub B_bar: [u8; OCTET_POINT_G1_LENGTH],
+    /// The point T calculated during proof generation
+    pub T: [u8; OCTET_POINT_G1_LENGTH],
+    /// The domain scalar value calculated during proof generation
+    pub domain: [u8; OCTET_SCALAR_LENGTH],
+    /// The challenge scalar value calculated during proof generation
+    pub challenge: [u8; OCTET_SCALAR_LENGTH],
+}
+
+impl Default for ProofTrace {
+    fn default() -> Self {
+        Self {
+            A_bar: [0u8; OCTET_POINT_G1_LENGTH],
+            B_bar: [0u8; OCTET_POINT_G1_LENGTH],
+            T: [0u8; OCTET_POINT_G1_LENGTH],
+            domain: [0u8; OCTET_SCALAR_LENGTH],
+            challenge: [0u8; OCTET_SCALAR_LENGTH],
+        }
+    }
+}
+
+impl ProofTrace {
+    /// Helper function to deserialize the ProofTrace struct
+    #[cfg(feature = "__private_bbs_fixtures_generator_api")]
+    pub fn new_from_vec(
+        A_bar: Vec<u8>,
+        B_bar: Vec<u8>,
+        T: Vec<u8>,
+        domain: Vec<u8>,
+        challenge: Vec<u8>,
+    ) -> Self {
+        Self {
+            A_bar: vec_to_byte_array::<OCTET_POINT_G1_LENGTH>(&A_bar)
+                .expect("Invalid A_bar"),
+            B_bar: vec_to_byte_array::<OCTET_POINT_G1_LENGTH>(&B_bar)
+                .expect("Invalid B_bar"),
+            T: vec_to_byte_array::<OCTET_POINT_G1_LENGTH>(&T)
+                .expect("Invalid T"),
+            domain: vec_to_byte_array::<OCTET_SCALAR_LENGTH>(&domain)
+                .expect("Invalid domain"),
+            challenge: vec_to_byte_array::<OCTET_SCALAR_LENGTH>(&challenge)
+                .expect("Invalid challenge"),
+        }
+    }
+
+    pub(crate) fn new_from_init_res(&mut self, init_res: &ProofInitResult) {
+        self.A_bar = point_to_octets_g1(&init_res.A_bar);
+        self.B_bar = point_to_octets_g1(&init_res.B_bar);
+        self.T = point_to_octets_g1(&init_res.T);
+        self.domain = init_res.domain.to_bytes_be();
+    }
 }

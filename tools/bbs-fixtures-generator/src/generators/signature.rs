@@ -2,16 +2,17 @@ use pairing_crypto::bbs::{
     ciphersuites::{
         bls12_381::{KeyPair, BBS_BLS12381G1_SIGNATURE_LENGTH},
         bls12_381_g1_sha_256::{
-            sign as bls12_381_sha_256_sign,
+            sign_with_trace as bls12_381_sha_256_sign,
             verify as bls12_381_sha_256_verify,
         },
         bls12_381_g1_shake_256::{
-            sign as bls12_381_shake_256_sign,
+            sign_with_trace as bls12_381_shake_256_sign,
             verify as bls12_381_shake_256_verify,
         },
     },
     BbsSignRequest,
     BbsVerifyRequest,
+    SignatureTrace,
 };
 use rand::{prelude::SliceRandom, thread_rng};
 use std::path::Path;
@@ -36,34 +37,23 @@ macro_rules! generate_signature_fixture {
         )
         .unwrap();
 
-        let signature_single_message = $sign_fn(&BbsSignRequest {
-            secret_key: &key_pair.secret_key.to_bytes(),
-            public_key: &key_pair.public_key.to_octets(),
-            header: Some($fixture_gen_input.header.clone()),
-            messages: Some(&$fixture_gen_input.messages[..1]),
-        })
-        .unwrap();
-
-        let signature_multi_message = $sign_fn(&BbsSignRequest {
-            secret_key: &key_pair.secret_key.to_bytes(),
-            public_key: &key_pair.public_key.to_octets(),
-            header: Some($fixture_gen_input.header.clone()),
-            messages: Some(&$fixture_gen_input.messages),
-        })
-        .unwrap();
-
-        let signature_multi_message_no_header = $sign_fn(&BbsSignRequest {
-            secret_key: &key_pair.secret_key.to_bytes(),
-            public_key: &key_pair.public_key.to_octets(),
-            header: None,
-            messages: Some(&$fixture_gen_input.messages),
-        })
-        .unwrap();
+        let mut trace = SignatureTrace::default();
 
         let fixture_scratch = FixtureSignature {
             key_pair: key_pair.clone(),
             ..FixtureSignature::from($fixture_gen_input.clone())
         };
+
+        let signature_single_message = $sign_fn(
+            &BbsSignRequest {
+                secret_key: &key_pair.secret_key.to_bytes(),
+                public_key: &key_pair.public_key.to_octets(),
+                header: Some($fixture_gen_input.header.clone()),
+                messages: Some(&$fixture_gen_input.messages[..1]),
+            },
+            Some(&mut trace),
+        )
+        .unwrap();
 
         // single message - valid case
         let mut fixture = FixtureSignature {
@@ -74,6 +64,7 @@ macro_rules! generate_signature_fixture {
                 valid: true,
                 reason: None,
             },
+            trace: trace.clone(),
             ..fixture_scratch.clone()
         };
         validate_signature_fixture!($verify_fn, &fixture);
@@ -90,6 +81,7 @@ macro_rules! generate_signature_fixture {
                 valid: false,
                 reason: Some("modified message".to_owned()),
             },
+            trace: trace.clone(),
             ..fixture_scratch.clone()
         };
         validate_signature_fixture!($verify_fn, &fixture);
@@ -104,10 +96,22 @@ macro_rules! generate_signature_fixture {
                 valid: false,
                 reason: Some("extra unsigned message".to_owned()),
             },
+            trace: trace.clone(),
             ..fixture_scratch.clone()
         };
         validate_signature_fixture!($verify_fn, &fixture);
         save_test_vector(&mut fixture, &$output_dir.join("signature003.json"));
+
+        let signature_multi_message = $sign_fn(
+            &BbsSignRequest {
+                secret_key: &key_pair.secret_key.to_bytes(),
+                public_key: &key_pair.public_key.to_octets(),
+                header: Some($fixture_gen_input.header.clone()),
+                messages: Some(&$fixture_gen_input.messages),
+            },
+            Some(&mut trace),
+        )
+        .unwrap();
 
         // multi message - valid case
         let mut fixture = FixtureSignature {
@@ -118,6 +122,7 @@ macro_rules! generate_signature_fixture {
                 valid: true,
                 reason: None,
             },
+            trace: trace.clone(),
             ..fixture_scratch.clone()
         };
         validate_signature_fixture!($verify_fn, &fixture);
@@ -132,6 +137,7 @@ macro_rules! generate_signature_fixture {
                 valid: false,
                 reason: Some("missing messages".to_owned()),
             },
+            trace: trace.clone(),
             ..fixture_scratch.clone()
         };
         validate_signature_fixture!($verify_fn, &fixture);
@@ -149,6 +155,7 @@ macro_rules! generate_signature_fixture {
                 valid: false,
                 reason: Some("re-ordered messages".to_owned()),
             },
+            trace: trace.clone(),
             ..fixture_scratch.clone()
         };
         validate_signature_fixture!($verify_fn, &fixture);
@@ -160,19 +167,20 @@ macro_rules! generate_signature_fixture {
             &$fixture_gen_input.key_info,
         )
         .unwrap();
-        let key_pair = KeyPair {
+        let spare_key_pair = KeyPair {
             secret_key: key_pair.secret_key.clone(),
             public_key: spare_key_pair.public_key,
         };
         let mut fixture = FixtureSignature {
             case_name: "multi-message signature".to_owned(),
-            key_pair,
+            key_pair: spare_key_pair,
             messages: $fixture_gen_input.messages.to_vec(),
             signature: signature_multi_message.to_vec(),
             result: ExpectedResult {
                 valid: false,
                 reason: Some("wrong public key".to_owned()),
             },
+            trace: trace.clone(),
             ..fixture_scratch.clone()
         };
         validate_signature_fixture!($verify_fn, &fixture);
@@ -190,6 +198,7 @@ macro_rules! generate_signature_fixture {
                 valid: false,
                 reason: Some("different header".to_owned()),
             },
+            trace: trace.clone(),
             ..fixture_scratch.clone()
         };
         validate_signature_fixture!($verify_fn, &fixture);
@@ -209,10 +218,22 @@ macro_rules! generate_signature_fixture {
                     "re-ordered(randomly shuffled) messages".to_owned(),
                 ),
             },
+            trace: trace.clone(),
             ..fixture_scratch.clone()
         };
         validate_signature_fixture!($verify_fn, &fixture);
         save_test_vector(&mut fixture, &$output_dir.join("signature009.json"));
+
+        let signature_multi_message_no_header = $sign_fn(
+            &BbsSignRequest {
+                secret_key: &key_pair.secret_key.to_bytes(),
+                public_key: &key_pair.public_key.to_octets(),
+                header: None,
+                messages: Some(&$fixture_gen_input.messages),
+            },
+            Some(&mut trace),
+        )
+        .unwrap();
 
         // multi message - valid case - no header
         let mut fixture = FixtureSignature {
@@ -224,6 +245,7 @@ macro_rules! generate_signature_fixture {
                 valid: true,
                 reason: None,
             },
+            trace,
             ..fixture_scratch.clone()
         };
         validate_signature_fixture!($verify_fn, &fixture);

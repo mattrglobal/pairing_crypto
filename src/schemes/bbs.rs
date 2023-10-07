@@ -7,6 +7,8 @@ pub use crate::schemes::bbs::api::dtos::{
     BbsVerifyRequest,
 };
 
+pub use crate::schemes::bbs::core::types::{ProofTrace, SignatureTrace};
+
 // Core implementation of BBS scheme.
 pub(crate) mod core;
 
