@@ -79,25 +79,6 @@ where
     )
 }
 
-/// Generate a BLS12-381-G1-Sha-256 BBS signature proof of knowledge with
-/// a given rng.
-#[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
-#[cfg(feature = "__private_bbs_fixtures_generator_api")]
-pub fn proof_gen_with_rng<T, R>(
-    request: &BbsProofGenRequest<'_, T>,
-    rng: R,
-) -> Result<Vec<u8>, Error>
-where
-    T: AsRef<[u8]>,
-    R: RngCore + CryptoRng,
-{
-    crate::bbs::api::proof::proof_gen_with_rng::<
-        _,
-        _,
-        Bls12381Sha256CipherSuiteParameter,
-    >(request, rng)
-}
-
 /// Verify a BLS12-381-G1-Sha-256 BBS signature proof of knowledge.
 pub fn proof_verify<T>(
     request: &BbsProofVerifyRequest<'_, T>,
@@ -188,4 +169,44 @@ pub fn default_map_message_to_scalar_as_hash_dst() -> Vec<u8> {
 #[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
 pub fn ciphersuite_id() -> Vec<u8> {
     Bls12381Sha256CipherSuiteParameter::ID.as_octets().to_vec()
+}
+
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
+use crate::schemes::bbs::core::types::{ProofTrace, SignatureTrace};
+
+/// Generate a BLS12-381-G1-Sha-256 BBS signature using a trace
+/// to populate the signature fixtures.
+#[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
+pub fn sign_with_trace<T>(
+    request: &BbsSignRequest<'_, T>,
+    trace: Option<&mut SignatureTrace>,
+) -> Result<[u8; BBS_BLS12381G1_SIGNATURE_LENGTH], Error>
+where
+    T: AsRef<[u8]>,
+{
+    crate::bbs::api::signature::sign_with_trace::<
+        _,
+        Bls12381Sha256CipherSuiteParameter,
+    >(request, trace)
+}
+
+/// Generate a BLS12-381-G1-Sha-256 BBS signature proof of knowledge with
+/// a given rng.
+#[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
+pub fn proof_with_rng_and_trace<T, R>(
+    request: &BbsProofGenRequest<'_, T>,
+    rng: R,
+    trace: Option<&mut ProofTrace>,
+) -> Result<Vec<u8>, Error>
+where
+    T: AsRef<[u8]>,
+    R: RngCore + CryptoRng,
+{
+    crate::bbs::api::proof::proof_gen_with_rng_and_trace::<
+        _,
+        _,
+        Bls12381Sha256CipherSuiteParameter,
+    >(request, rng, trace)
 }
