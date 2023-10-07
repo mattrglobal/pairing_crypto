@@ -7,16 +7,16 @@ use pairing_crypto::{
             bls12_381_g1_sha_256::{
                 ciphersuite_id as bls12_381_g1_sha_256_ciphersuite_id,
                 proof_gen as bls12_381_g1_sha_256_proof_gen,
-                proof_gen_with_rng as bls12_381_g1_sha_256_proof_gen_with_rng,
                 proof_verify as bls12_381_g1_sha_256_proof_verify,
+                proof_with_rng_and_trace as bls12_381_g1_sha_256_proof_gen_with_rng,
                 sign as bls12_381_g1_sha_256_sign,
                 verify as bls12_381_g1_sha_256_verify,
             },
             bls12_381_g1_shake_256::{
                 ciphersuite_id as bls12_381_g1_shake_256_ciphersuite_id,
                 proof_gen as bls12_381_g1_shake_256_proof_gen,
-                proof_gen_with_rng as bls12_381_g1_shake_256_proof_gen_with_rng,
                 proof_verify as bls12_381_g1_shake_256_proof_verify,
+                proof_with_rng_and_trace as bls12_381_g1_shake_256_proof_gen_with_rng,
                 sign as bls12_381_g1_shake_256_sign,
                 verify as bls12_381_g1_shake_256_verify,
             },
@@ -243,6 +243,7 @@ macro_rules! proof_gen_verify_e2e_nominal {
                         verify_signature: None,
                     },
                     mocked_rng,
+                    None,
                 )
                 .expect("proof generation failed");
                 proof_values.push(hex::encode(proof));

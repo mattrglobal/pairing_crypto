@@ -6,7 +6,7 @@ use pairing_crypto::bbs::ciphersuites::bls12_381::{
     SecretKey,
 };
 use serde::{
-    de::{self, MapAccess},
+    de::{self, MapAccess, Visitor},
     ser::{SerializeMap, SerializeSeq, SerializeStruct},
     Deserialize,
     Deserializer,
@@ -132,6 +132,9 @@ pub struct FixtureSignature {
     #[serde(deserialize_with = "hex::serde::deserialize")]
     pub signature: Vec<u8>,
     pub result: ExpectedResult,
+    #[serde(serialize_with = "serialize_signature_trace")]
+    #[serde(deserialize_with = "deserialize_signature_trace")]
+    pub trace: SignatureTrace,
 }
 
 impl From<FixtureGenInput> for FixtureSignature {
@@ -143,6 +146,7 @@ impl From<FixtureGenInput> for FixtureSignature {
             messages: val.messages,
             signature: Default::default(),
             result: Default::default(),
+            trace: SignatureTrace::default(),
         }
     }
 }
@@ -158,6 +162,9 @@ pub struct FixtureProof {
     pub signer_public_key: PublicKey,
     #[serde(serialize_with = "hex::serde::serialize")]
     #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub signature: Vec<u8>,
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
     pub header: Vec<u8>,
     #[serde(serialize_with = "hex::serde::serialize")]
     #[serde(deserialize_with = "hex::serde::deserialize")]
@@ -170,6 +177,9 @@ pub struct FixtureProof {
     #[serde(deserialize_with = "hex::serde::deserialize")]
     pub proof: Vec<u8>,
     pub result: ExpectedResult,
+    #[serde(serialize_with = "serialize_proof_trace")]
+    #[serde(deserialize_with = "deserialize_proof_trace")]
+    pub trace: ProofTrace,
 }
 
 impl From<FixtureGenInput> for FixtureProof {
@@ -177,11 +187,13 @@ impl From<FixtureGenInput> for FixtureProof {
         Self {
             case_name: Default::default(),
             signer_public_key: Default::default(),
+            signature: Default::default(),
             header: val.header,
             presentation_header: val.presentation_header,
             disclosed_messages: Default::default(),
             proof: Default::default(),
             result: Default::default(),
+            trace: ProofTrace::default(),
         }
     }
 }
@@ -464,4 +476,175 @@ where
         seq.serialize_element(&case)?;
     }
     seq.end()
+}
+
+use pairing_crypto::bbs::{ProofTrace, SignatureTrace};
+
+fn serialize_signature_trace<S>(
+    trace: &SignatureTrace,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    let mut state = serializer.serialize_struct("SignatureTrace", 2)?;
+    state.serialize_field("B", &hex::encode(trace.B))?;
+    state.serialize_field("domain", &hex::encode(trace.domain))?;
+    state.end()
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+fn deserialize_signature_trace<'de, D>(
+    deserializer: D,
+) -> Result<SignatureTrace, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize, Debug)]
+    #[serde(field_identifier)]
+    enum Field {
+        B,
+        domain,
+    }
+
+    struct SignatureTraceVisitor;
+    impl<'de> Visitor<'de> for SignatureTraceVisitor {
+        type Value = SignatureTrace;
+
+        fn expecting(
+            &self,
+            formatter: &mut std::fmt::Formatter,
+        ) -> std::fmt::Result {
+            formatter.write_str("a SignatureTrace struct")
+        }
+
+        fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+        where
+            A: MapAccess<'de>,
+        {
+            let mut B = None;
+            let mut domain = None;
+
+            while let Some(key) = map.next_key()? {
+                match key {
+                    Field::B => {
+                        let v: &str = map.next_value()?;
+                        B = Some(hex::decode(v).unwrap());
+                    }
+                    Field::domain => {
+                        let v: &str = map.next_value()?;
+                        domain = Some(hex::decode(v).unwrap());
+                    }
+                }
+            }
+
+            let B = B.ok_or_else(|| de::Error::missing_field("B"))?;
+            let domain =
+                domain.ok_or_else(|| de::Error::missing_field("domain"))?;
+            Ok(SignatureTrace::new_from_vec(B, domain))
+        }
+    }
+
+    const FIELDS: &'static [&'static str] = &["B", "domain"];
+    deserializer.deserialize_struct("ProofTrace", FIELDS, SignatureTraceVisitor)
+}
+
+fn serialize_proof_trace<S>(
+    trace: &ProofTrace,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    let mut state = serializer.serialize_struct("ProofTrace", 5)?;
+    state.serialize_field("A_bar", &hex::encode(trace.A_bar))?;
+    state.serialize_field("B_bar", &hex::encode(trace.B_bar))?;
+    state.serialize_field("T", &hex::encode(trace.T))?;
+    state.serialize_field("domain", &hex::encode(trace.domain))?;
+    state.serialize_field("challenge", &hex::encode(trace.challenge))?;
+    state.end()
+}
+
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+fn deserialize_proof_trace<'de, D>(
+    deserializer: D,
+) -> Result<ProofTrace, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize, Debug)]
+    #[serde(field_identifier)]
+    enum Field {
+        A_bar,
+        B_bar,
+        T,
+        domain,
+        challenge,
+    }
+
+    struct ProofTraceVisitor;
+    impl<'de> Visitor<'de> for ProofTraceVisitor {
+        type Value = ProofTrace;
+
+        fn expecting(
+            &self,
+            formatter: &mut std::fmt::Formatter,
+        ) -> std::fmt::Result {
+            formatter.write_str("a ProofTrace struct")
+        }
+
+        fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+        where
+            A: MapAccess<'de>,
+        {
+            let mut A_bar = None;
+            let mut B_bar = None;
+            let mut T = None;
+            let mut domain = None;
+            let mut challenge = None;
+
+            while let Some(key) = map.next_key()? {
+                match key {
+                    Field::A_bar => {
+                        let v: &str = map.next_value()?;
+                        A_bar = Some(hex::decode(v).unwrap());
+                    }
+                    Field::B_bar => {
+                        let v: &str = map.next_value()?;
+                        B_bar = Some(hex::decode(v).unwrap());
+                    }
+                    Field::T => {
+                        let v: &str = map.next_value()?;
+                        T = Some(hex::decode(v).unwrap());
+                    }
+                    Field::domain => {
+                        let v: &str = map.next_value()?;
+                        domain = Some(hex::decode(v).unwrap());
+                    }
+                    Field::challenge => {
+                        let v: &str = map.next_value()?;
+                        challenge = Some(hex::decode(v).unwrap());
+                    }
+                }
+            }
+
+            let A_bar =
+                A_bar.ok_or_else(|| de::Error::missing_field("A_bar"))?;
+            let B_bar =
+                B_bar.ok_or_else(|| de::Error::missing_field("B_bar"))?;
+            let T = T.ok_or_else(|| de::Error::missing_field("T"))?;
+            let domain =
+                domain.ok_or_else(|| de::Error::missing_field("domain"))?;
+            let challenge = challenge
+                .ok_or_else(|| de::Error::missing_field("challenge"))?;
+
+            Ok(ProofTrace::new_from_vec(A_bar, B_bar, T, domain, challenge))
+        }
+    }
+
+    const FIELDS: &'static [&'static str] =
+        &["A_bar", "B_bar", "T", "domain", "challenge"];
+    deserializer.deserialize_struct("ProofTrace", FIELDS, ProofTraceVisitor)
 }

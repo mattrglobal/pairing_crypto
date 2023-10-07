@@ -2,7 +2,7 @@
 use super::{
     generator::Generators,
     key_pair::{PublicKey, SecretKey},
-    types::Message,
+    types::{Message, SignatureTrace},
     utils::{compute_B, compute_domain},
 };
 use crate::{
@@ -135,12 +135,52 @@ impl Signature {
     /// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.4>
     /// Security Warning: `SK` and `PK` paramters must be related key-pair
     /// generated using `KeyPair` APIs.
+
     pub fn new<T, M, G, C>(
         SK: &SecretKey,
         PK: &PublicKey,
         header: Option<T>,
         generators: &G,
         messages: M,
+    ) -> Result<Self, Error>
+    where
+        T: AsRef<[u8]>,
+        M: AsRef<[Message]>,
+        G: Generators,
+        C: BbsCiphersuiteParameters,
+    {
+        Self::new_private_with_trace::<T, M, G, C>(
+            SK, PK, header, generators, messages, None,
+        )
+    }
+
+    #[cfg(feature = "__private_bbs_fixtures_generator_api")]
+    pub fn new_with_trace<T, M, G, C>(
+        SK: &SecretKey,
+        PK: &PublicKey,
+        header: Option<T>,
+        generators: &G,
+        messages: M,
+        trace: Option<&mut SignatureTrace>,
+    ) -> Result<Self, Error>
+    where
+        T: AsRef<[u8]>,
+        M: AsRef<[Message]>,
+        G: Generators,
+        C: BbsCiphersuiteParameters,
+    {
+        Self::new_private_with_trace::<T, M, G, C>(
+            SK, PK, header, generators, messages, trace,
+        )
+    }
+
+    fn new_private_with_trace<T, M, G, C>(
+        SK: &SecretKey,
+        PK: &PublicKey,
+        header: Option<T>,
+        generators: &G,
+        messages: M,
+        mut trace: Option<&mut SignatureTrace>,
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
@@ -203,6 +243,14 @@ impl Signature {
                     .to_owned(),
             });
         };
+
+        // Add to the trace when creating the signature fixtures
+        if cfg!(feature = "__private_bbs_fixtures_generator_api") {
+            if let Some(t) = trace.as_mut() {
+                t.B = point_to_octets_g1(&B);
+                t.domain = domain.to_bytes_be();
+            }
+        }
 
         // A = B * (1 / (SK + e))
         Ok(Self { A: B * exp, e })
