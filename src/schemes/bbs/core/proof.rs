@@ -63,10 +63,16 @@ pub(crate) struct Proof {
     pub(crate) A_bar: G1Projective,
     /// \overline{B}
     pub(crate) B_bar: G1Projective,
+    /// D
+    pub(crate) D: G1Projective,
+    /// e^
+    pub(crate) e_hat: FiatShamirProof,
+    /// s^
+    pub(crate) s_hat: FiatShamirProof,
     /// r2^
     pub(crate) r2_hat: FiatShamirProof,
-    /// z^
-    pub(crate) z_hat: FiatShamirProof,
+    /// r3^
+    pub(crate) r3_hat: FiatShamirProof,
     /// (m^_1, ..., m^_U)
     pub(crate) m_hat_list: Vec<FiatShamirProof>,
     /// c
@@ -79,7 +85,11 @@ impl core::fmt::Display for Proof {
         print_byte_array!(f, point_to_octets_g1(&self.A_bar));
         write!(f, ", B_bar: ")?;
         print_byte_array!(f, point_to_octets_g1(&self.B_bar));
-        write!(f, ", r2^: {}, z^: {}, m^_i: [", self.r2_hat.0, self.z_hat.0,)?;
+        write!(
+            f,
+            ", e^: {}, s^: {}, r2^: {}, r3^: {}, m^_i: [",
+            self.e_hat.0, self.s_hat.0, self.r2_hat.0, self.r3_hat.0,
+        )?;
         for (i, m_hat) in self.m_hat_list.iter().enumerate() {
             write!(f, "m^_{}: {}, ", i + 1, m_hat.0)?;
         }
@@ -184,11 +194,15 @@ impl Proof {
             });
         }
 
-        // (r1, r2, r3, m~_j1, ..., m~_jU) = calculate_random_scalars(3+U)
+        // (r1, r2, e~, s~, r2~, r3~, m~_1, ..., m~_U) =
+        // calculate_random_scalars(6+U)
         let mut random_scalars = RandomScalars {
             r1: create_random_scalar(&mut rng)?,
+            r2: create_random_scalar(&mut rng)?,
+            e_tilde: create_random_scalar(&mut rng)?,
+            s_tilde: create_random_scalar(&mut rng)?,
             r2_tilde: create_random_scalar(&mut rng)?,
-            z_tilde: create_random_scalar(&mut rng)?,
+            r3_tilde: create_random_scalar(&mut rng)?,
             ..Default::default()
         };
 
@@ -302,7 +316,7 @@ impl Proof {
         // Check the signature proof
         // if e(Abar, W) * e(Abar, -P2) != 1, return INVALID
         // else return VALID
-        let P2 = C::p2().to_affine();
+        let P2 = C::bp2().to_affine();
         Ok(Bls12::multi_miller_loop(&[
             (&self.A_bar.to_affine(), &G2Prepared::from(PK.0.to_affine())),
             (&self.B_bar.to_affine(), &G2Prepared::from(-P2)),
@@ -376,7 +390,19 @@ impl Proof {
             &[random_scalars.r1, -signature.e],
         );
 
-        // T = Abar * r2~ + Bbar * z~ + H_j1 * m~_j1 + ... + H_jU * m~_jU
+        // T1 = A_bar * e~ + P2 * r2~
+        let T1 = G1Projective::multi_exp(
+            &[A_bar, C::p2()?],
+            &[random_scalars.e_tilde, random_scalars.r2_tilde],
+        );
+
+        // D = B * r1 + P2 * r2
+        let D = G1Projective::multi_exp(
+            &[B, C::p2()?],
+            &[random_scalars.r1, random_scalars.r2],
+        );
+
+        // T2 = D * r3~ + P2 * s~ + H_j1 * m~_j1 + ... + H_jU * m~_jU
         let mut H_Points = Vec::new();
         for idx in undisclosed_indexes {
             if idx >= total_no_of_messages {
@@ -393,10 +419,10 @@ impl Proof {
             H_Points.push(generator);
         }
 
-        let T = G1Projective::multi_exp(
-            &[[A_bar, B_bar].to_vec(), H_Points].concat(),
+        let T2 = G1Projective::multi_exp(
+            &[[D, C::p2()?].to_vec(), H_Points].concat(),
             &[
-                [random_scalars.r2_tilde, random_scalars.z_tilde].to_vec(),
+                [random_scalars.r3_tilde, random_scalars.s_tilde].to_vec(),
                 random_scalars.m_tilde_scalars.to_vec(),
             ]
             .concat(),
@@ -405,7 +431,9 @@ impl Proof {
         Ok(ProofInitResult {
             A_bar,
             B_bar,
-            T,
+            D,
+            T1,
+            T2,
             domain,
         })
     }
@@ -429,22 +457,32 @@ impl Proof {
         }
 
         // r2 = -r1 ^ -1 mod r
-        let r2 = random_scalars.r1.invert();
+        let r3 = random_scalars.r1.invert();
 
-        if r2.is_none().unwrap_u8() == 1u8 {
+        if r3.is_none().unwrap_u8() == 1u8 {
             return Err(Error::CryptoOps {
                 cause: "Failed to invert `r1`".to_owned(),
             });
         };
-        let r2 = -r2.unwrap();
+        let r3 = r3.unwrap();
+
+        // e^ = e~ + c * e_value
+        let e_hat =
+            FiatShamirProof(random_scalars.e_tilde + challenge.0 * e_value);
+
+        // s^ = s~ + c * r2 * r3
+        let s_hat = FiatShamirProof(
+            random_scalars.s_tilde + challenge.0 * random_scalars.r2 * r3,
+        );
 
         // r2^ = r2~ + c * r2
         let r2_hat = FiatShamirProof(
-            random_scalars.r2_tilde + challenge.0 * e_value * r2,
+            random_scalars.r2_tilde + challenge.0 * random_scalars.r2,
         );
 
-        // z^ = z~ + c * e * r2
-        let z_hat = FiatShamirProof(random_scalars.z_tilde + challenge.0 * r2);
+        // r3^ = r3~ - c * r3
+        let r3_hat =
+            FiatShamirProof(random_scalars.r3_tilde - challenge.0 * r3);
 
         // for j in (j1, j2,..., jU): m^_j = m~_j + c * msg_j
         let m_hat_list = random_scalars
@@ -460,8 +498,11 @@ impl Proof {
         Ok(Proof {
             A_bar: init_res.A_bar,
             B_bar: init_res.B_bar,
+            D: init_res.D,
+            e_hat,
+            s_hat,
             r2_hat,
-            z_hat,
+            r3_hat,
             m_hat_list,
             c: challenge,
         })
@@ -530,27 +571,28 @@ impl Proof {
             generators,
         )?;
 
-        // D = P1 + Q * domain + H_i1 * msg_i1 + ... H_iR * msg_iR
-        let D_len = 1 + 1 + disclosed_messages.len();
-        let mut D_points = Vec::with_capacity(D_len);
-        let mut D_scalars = Vec::with_capacity(D_len);
+        // Bv = P1 + Q * domain + H_i1 * msg_i1 + ... H_iR * msg_iR
+        let Bv_len = 1 + 1 + disclosed_messages.len();
+        let mut Bv_points = Vec::with_capacity(Bv_len);
+        let mut Bv_scalars = Vec::with_capacity(Bv_len);
         let P1 = C::p1()?;
+        let P2 = C::p2()?;
         // P1
-        D_points.push(P1);
-        D_scalars.push(Scalar::one());
+        Bv_points.push(P1);
+        Bv_scalars.push(Scalar::one());
         // Q * domain
-        D_points.push(generators.Q());
-        D_scalars.push(domain);
+        Bv_points.push(generators.Q());
+        Bv_scalars.push(domain);
 
         let mut C_points_temp = Vec::with_capacity(self.m_hat_list.len());
         let mut C_scalars_temp = Vec::with_capacity(self.m_hat_list.len());
         let mut j = 0;
         for (i, generator) in generators.message_generators_iter().enumerate() {
             if disclosed_messages.contains_key(&i) {
-                D_points.push(generator);
+                Bv_points.push(generator);
                 // unwrap() is safe here since we already have checked for
                 // existence of key
-                D_scalars.push(disclosed_messages.get(&i).unwrap().0);
+                Bv_scalars.push(disclosed_messages.get(&i).unwrap().0);
             } else {
                 C_points_temp.push(generator);
                 C_scalars_temp.push(self.m_hat_list[j].0);
@@ -558,33 +600,41 @@ impl Proof {
             }
         }
 
-        // Calculate D = H_i1 * msg_i1 + ... H_iR * msg_iR
-        let D = G1Projective::multi_exp(&D_points, &D_scalars);
+        // Calculate Bv = P1 + Q * domain + H_i1 * msg_i1 + ... H_iR * msg_iR
+        let Bv = G1Projective::multi_exp(&Bv_points, &Bv_scalars);
 
-        // T = D * c + Abar * r2^ + Bbar * z^ +
-        //            + H_j1 * m^_j1 + ... + H_jU * m^_jU
-        let T_len = 1 + 1 + 1 + self.m_hat_list.len();
-        let mut T_points = Vec::with_capacity(T_len);
-        let mut T_scalars = Vec::with_capacity(T_len);
+        // T1 = Abar * e^ + P2 * r2^ + (Bbar - D) * c
+        let T1 = G1Projective::multi_exp(
+            &[self.A_bar, P2, self.B_bar, self.D],
+            &[self.e_hat.0, self.r2_hat.0, self.c.0, -self.c.0],
+        );
+
+        // T2 = Bv * c + D * r3^ + P2 * s^ +
+        //           + H_j1 * m^_j1 + ... +  H_jU * m^_jU
+        let T2_len = 1 + 1 + 1 + self.m_hat_list.len();
+        let mut T2_points = Vec::with_capacity(T2_len);
+        let mut T2_scalars = Vec::with_capacity(T2_len);
         // T * (-c)
-        T_points.push(D);
-        T_scalars.push(self.c.0);
+        T2_points.push(Bv);
+        T2_scalars.push(self.c.0);
         // Abar * r2^
-        T_points.push(self.A_bar);
-        T_scalars.push(self.r2_hat.0);
+        T2_points.push(self.D);
+        T2_scalars.push(self.r3_hat.0);
         // Bbar * z^
-        T_points.push(self.B_bar);
-        T_scalars.push(self.z_hat.0);
+        T2_points.push(C::p2()?);
+        T2_scalars.push(self.s_hat.0);
         // H_j1 * m^_j1 + ... + H_jU * m^_jU
-        T_points.append(&mut C_points_temp);
-        T_scalars.append(&mut C_scalars_temp);
+        T2_points.append(&mut C_points_temp);
+        T2_scalars.append(&mut C_scalars_temp);
 
-        let T = G1Projective::multi_exp(&T_points, &T_scalars);
+        let T2 = G1Projective::multi_exp(&T2_points, &T2_scalars);
 
         Ok(ProofInitResult {
             A_bar: self.A_bar,
             B_bar: self.B_bar,
-            T,
+            D: self.D,
+            T1,
+            T2,
             domain,
         })
     }
@@ -613,11 +663,15 @@ impl Proof {
 
         let mut buffer = Vec::with_capacity(size);
 
-        // proof = (Abar, Bbar, c, r2^, z^, (m^_1, ..., m^_U))
+        // proof = Abar, Bbar, D, e^, s^, r2^, r3^, (m^_j1, ..., m^_jU),
+        // challenge)
         buffer.extend_from_slice(&point_to_octets_g1(&self.A_bar));
         buffer.extend_from_slice(&point_to_octets_g1(&self.B_bar));
+        buffer.extend_from_slice(&point_to_octets_g1(&self.D));
+        buffer.extend_from_slice(&self.e_hat.to_bytes());
+        buffer.extend_from_slice(&self.s_hat.to_bytes());
         buffer.extend_from_slice(&self.r2_hat.to_bytes());
-        buffer.extend_from_slice(&self.z_hat.to_bytes());
+        buffer.extend_from_slice(&self.r3_hat.to_bytes());
         for i in 0..self.m_hat_list.len() {
             buffer.extend_from_slice(&self.m_hat_list[i].to_bytes());
         }
@@ -634,11 +688,11 @@ impl Proof {
     ///   the number of hidden messages.
     /// For BLS12-381 based implementation, OCTET_POINT_G1_LENGTH is 48 byes,
     /// and OCTET_SCALAR_LENGTH is 32 bytes, then bytes sequence will be
-    /// treated as [48, 48, 32, 32, 32, 32*U ] to represent   
-    /// proof = (Abar, Bbar, c, r2^, z^, (m^_1, ..., m^_U)).
+    /// treated as [48, 48, 48, 32, 32, 32, 32, 32, 32*U ] to represent   
+    /// proof = (Abar, Bbar, D, c, e^, s^, r2^, r3^, (m^_1, ..., m^_U)).
     pub fn from_octets<B: AsRef<[u8]>>(bytes: B) -> Result<Self, Error> {
         const PROOF_LEN_FLOOR: usize =
-            OCTET_POINT_G1_LENGTH * 2 + OCTET_SCALAR_LENGTH * 3;
+            OCTET_POINT_G1_LENGTH * 3 + OCTET_SCALAR_LENGTH * 5;
         let buffer = bytes.as_ref();
         if buffer.len() < PROOF_LEN_FLOOR {
             return Err(Error::MalformedProof {
@@ -671,11 +725,16 @@ impl Proof {
         // Get B_bar
         let B_bar = extract_point_value(&mut offset, &mut end, buffer)?;
 
+        // Get D
+        let D = extract_point_value(&mut offset, &mut end, buffer)?;
+
         end = offset + OCTET_SCALAR_LENGTH;
 
-        // Get r2^, z^
+        // Get e^, s^, r2^, r3^
+        let e_hat = extract_scalar_value(&mut offset, &mut end, buffer)?;
+        let s_hat = extract_scalar_value(&mut offset, &mut end, buffer)?;
         let r2_hat = extract_scalar_value(&mut offset, &mut end, buffer)?;
-        let z_hat = extract_scalar_value(&mut offset, &mut end, buffer)?;
+        let r3_hat = extract_scalar_value(&mut offset, &mut end, buffer)?;
         // Get  (m^_j1, ..., m^_jU)
         let mut m_hat_list =
             Vec::<FiatShamirProof>::with_capacity(unrevealed_message_count);
@@ -704,8 +763,11 @@ impl Proof {
         Ok(Self {
             A_bar,
             B_bar,
+            D,
+            e_hat,
+            s_hat,
             r2_hat,
-            z_hat,
+            r3_hat,
             m_hat_list,
             c,
         })

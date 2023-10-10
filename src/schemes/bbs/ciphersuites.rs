@@ -39,6 +39,10 @@ pub(crate) trait BbsCiphersuiteParameters:
         [Self::ID.as_octets(), b"BP_MESSAGE_GENERATOR_SEED"].concat()
     }
 
+    fn blind_point_generator_seed() -> Vec<u8> {
+        [Self::ID.as_octets(), b"BLIND_POINT_MESSAGE_GENERATOR_SEED"].concat()
+    }
+
     /// Seed DST which is used by the `create_generators ` operation.
     fn generator_seed_dst() -> Vec<u8> {
         [Self::ID.as_octets(), b"SIG_GENERATOR_SEED_"].concat()
@@ -63,8 +67,20 @@ pub(crate) trait BbsCiphersuiteParameters:
         )?[0])
     }
 
+    fn p2() -> Result<G1Projective, Error> {
+        let mut n = 1;
+        let mut v = [0u8; XOF_NO_OF_BYTES];
+        Ok(Self::create_generators(
+            &Self::blind_point_generator_seed(),
+            1,
+            &mut n,
+            &mut v,
+            true,
+        )?[0])
+    }
+
     /// Point on G2 to be used during signature and proof verification.
-    fn p2() -> G2Projective {
+    fn bp2() -> G2Projective {
         G2Projective::generator()
     }
 

@@ -435,11 +435,11 @@ macro_rules! proof_gen_helper {
 
         // Mocked rng based on expand_message
         let dst = &[&$ciphersuite_id(), MOCKED_RNG_DST.as_bytes()].concat();
-        let count = $messages.len() - $disclosed_indices.len() + 3;
+        let count = $messages.len() - $disclosed_indices.len() + 5;
         let mocked_rng = MockRng::<'_, $expander>::new(
             MOCKED_RNG_SEED.as_bytes(),
             dst,
-            count,
+            count + 1,
             Some(BBS_BLS12381G1_EXPAND_LEN),
         );
 
@@ -462,7 +462,7 @@ macro_rules! proof_gen_helper {
 
         // Sanity check for the count value in the input of mocked_rng
         if (proof.len()
-            != 2 * OCTET_POINT_G1_LENGTH + count * OCTET_SCALAR_LENGTH)
+            != 3 * OCTET_POINT_G1_LENGTH + (count - 1) * OCTET_SCALAR_LENGTH)
         {
             panic!(
                 "Unexpected 'count' value in MockedRng during fixture proof \
