@@ -560,7 +560,9 @@ where
     let mut state = serializer.serialize_struct("ProofTrace", 5)?;
     state.serialize_field("A_bar", &hex::encode(trace.A_bar))?;
     state.serialize_field("B_bar", &hex::encode(trace.B_bar))?;
-    state.serialize_field("T", &hex::encode(trace.T))?;
+    state.serialize_field("D", &hex::encode(trace.D))?;
+    state.serialize_field("T1", &hex::encode(trace.T1))?;
+    state.serialize_field("T2", &hex::encode(trace.T2))?;
     state.serialize_field("domain", &hex::encode(trace.domain))?;
     state.serialize_field("challenge", &hex::encode(trace.challenge))?;
     state.end()
@@ -579,7 +581,9 @@ where
     enum Field {
         A_bar,
         B_bar,
-        T,
+        D,
+        T1,
+        T2,
         domain,
         challenge,
     }
@@ -601,7 +605,9 @@ where
         {
             let mut A_bar = None;
             let mut B_bar = None;
-            let mut T = None;
+            let mut D = None;
+            let mut T1 = None;
+            let mut T2 = None;
             let mut domain = None;
             let mut challenge = None;
 
@@ -615,9 +621,17 @@ where
                         let v: &str = map.next_value()?;
                         B_bar = Some(hex::decode(v).unwrap());
                     }
-                    Field::T => {
+                    Field::D => {
                         let v: &str = map.next_value()?;
-                        T = Some(hex::decode(v).unwrap());
+                        D = Some(hex::decode(v).unwrap());
+                    }
+                    Field::T1 => {
+                        let v: &str = map.next_value()?;
+                        T1 = Some(hex::decode(v).unwrap());
+                    }
+                    Field::T2 => {
+                        let v: &str = map.next_value()?;
+                        T2 = Some(hex::decode(v).unwrap());
                     }
                     Field::domain => {
                         let v: &str = map.next_value()?;
@@ -634,17 +648,21 @@ where
                 A_bar.ok_or_else(|| de::Error::missing_field("A_bar"))?;
             let B_bar =
                 B_bar.ok_or_else(|| de::Error::missing_field("B_bar"))?;
-            let T = T.ok_or_else(|| de::Error::missing_field("T"))?;
+            let D = D.ok_or_else(|| de::Error::missing_field("D"))?;
+            let T1 = T1.ok_or_else(|| de::Error::missing_field("D"))?;
+            let T2 = T2.ok_or_else(|| de::Error::missing_field("D"))?;
             let domain =
                 domain.ok_or_else(|| de::Error::missing_field("domain"))?;
             let challenge = challenge
                 .ok_or_else(|| de::Error::missing_field("challenge"))?;
 
-            Ok(ProofTrace::new_from_vec(A_bar, B_bar, T, domain, challenge))
+            Ok(ProofTrace::new_from_vec(
+                A_bar, B_bar, D, T1, T2, domain, challenge,
+            ))
         }
     }
 
     const FIELDS: &'static [&'static str] =
-        &["A_bar", "B_bar", "T", "domain", "challenge"];
+        &["A_bar", "B_bar", "D", "T1", "T2", "domain", "challenge"];
     deserializer.deserialize_struct("ProofTrace", FIELDS, ProofTraceVisitor)
 }

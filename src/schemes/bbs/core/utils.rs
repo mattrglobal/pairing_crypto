@@ -119,7 +119,9 @@ where
     let mut data_to_hash = vec![];
     data_to_hash.extend(point_to_octets_g1(&proof_init_res.A_bar).as_ref());
     data_to_hash.extend(point_to_octets_g1(&proof_init_res.B_bar).as_ref());
-    data_to_hash.extend(point_to_octets_g1(&proof_init_res.T));
+    data_to_hash.extend(point_to_octets_g1(&proof_init_res.D));
+    data_to_hash.extend(point_to_octets_g1(&proof_init_res.T1));
+    data_to_hash.extend(point_to_octets_g1(&proof_init_res.T2));
 
     data_to_hash.extend(i2osp(
         disclosed_messages.len() as u64,
