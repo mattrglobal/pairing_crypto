@@ -156,7 +156,7 @@ macro_rules! generate_proof_fixture {
             result,
         ) in fixture_data
         {
-            let (proof, disclosed_messages, signature, trace) = proof_gen_helper!(
+            let (proof, disclosed_indexes, signature, trace) = proof_gen_helper!(
                 $sign_fn,
                 $verify_fn,
                 $proof_gen_fn,
@@ -175,7 +175,8 @@ macro_rules! generate_proof_fixture {
                 header: header.clone(),
                 signature: signature.to_vec(),
                 presentation_header: presentation_header.clone(),
-                disclosed_messages,
+                messages: messages.clone(),
+                disclosed_indexes,
                 proof,
                 result,
                 trace,
@@ -192,7 +193,7 @@ macro_rules! generate_proof_fixture {
         // multi-message signature, multiple messages revealed proof
         let messages = &$fixture_gen_input.messages;
         let disclosed_indices = BTreeSet::<usize>::from([0, 2, 4, 6]);
-        let (proof, disclosed_messages, signature, trace) = proof_gen_helper!(
+        let (proof, disclosed_indexes, signature, trace) = proof_gen_helper!(
             $sign_fn,
             $verify_fn,
             $proof_gen_fn,
@@ -210,7 +211,8 @@ macro_rules! generate_proof_fixture {
             case_name: "multi-message signature, all messages revealed proof"
                 .to_owned(),
             signature: signature.to_vec(),
-            disclosed_messages: disclosed_messages.clone(),
+            messages: messages.clone(),
+            disclosed_indexes: disclosed_indexes.clone(),
             proof: proof.clone(),
             result: ExpectedResult {
                 valid: true,
@@ -252,12 +254,13 @@ macro_rules! generate_proof_fixture {
         validate_proof_fixture!($proof_verify_fn, &fixture);
         save_test_vector(&mut fixture, &$output_dir.join("proof005.json"));
 
-        let mut modified_disclosed_messages = disclosed_messages.clone();
+        let mut modified_disclosed_messages = messages.clone();
         let mut buffer = [0u8; 100];
         rand::thread_rng().fill_bytes(&mut buffer);
-        modified_disclosed_messages[0].1 = buffer.to_vec();
+        let first_disclosed_msg = disclosed_indexes.clone()[0];
+        modified_disclosed_messages[first_disclosed_msg] = buffer.to_vec();
         let mut fixture = FixtureProof {
-            disclosed_messages: modified_disclosed_messages,
+            messages: modified_disclosed_messages,
             result: ExpectedResult {
                 valid: false,
                 reason: Some("modified messages".to_owned()),
@@ -267,10 +270,14 @@ macro_rules! generate_proof_fixture {
         validate_proof_fixture!($proof_verify_fn, &fixture);
         save_test_vector(&mut fixture, &$output_dir.join("proof006.json"));
 
-        let mut invalid_disclosed_messages = disclosed_messages.clone();
-        invalid_disclosed_messages.push((9, messages[9].clone()));
+        let mut invalid_disclosed_messages = messages.clone();
+        let mut invalid_disclosed_indexes = disclosed_indexes.clone();
+
+        invalid_disclosed_messages.push(messages[9].clone());
+        invalid_disclosed_indexes.push(9);
         let mut fixture = FixtureProof {
-            disclosed_messages: invalid_disclosed_messages,
+            messages: invalid_disclosed_messages,
+            disclosed_indexes: invalid_disclosed_indexes,
             result: ExpectedResult {
                 valid: false,
                 reason: Some("extra message un-revealed in proof".to_owned()),
@@ -280,10 +287,14 @@ macro_rules! generate_proof_fixture {
         validate_proof_fixture!($proof_verify_fn, &fixture);
         save_test_vector(&mut fixture, &$output_dir.join("proof007.json"));
 
-        let mut invalid_disclosed_messages = disclosed_messages.clone();
-        invalid_disclosed_messages.push((9, messages[8].clone()));
+        let mut invalid_disclosed_messages = messages.clone();
+        let mut invalid_disclosed_indexes = disclosed_indexes.clone();
+
+        invalid_disclosed_messages.push(messages[8].clone());
+        invalid_disclosed_indexes.push(9);
         let mut fixture = FixtureProof {
-            disclosed_messages: invalid_disclosed_messages,
+            messages: invalid_disclosed_messages,
+            disclosed_indexes: invalid_disclosed_indexes,
             result: ExpectedResult {
                 valid: false,
                 reason: Some(
@@ -296,10 +307,14 @@ macro_rules! generate_proof_fixture {
         validate_proof_fixture!($proof_verify_fn, &fixture);
         save_test_vector(&mut fixture, &$output_dir.join("proof008.json"));
 
-        let mut missing_disclosed_messages = disclosed_messages.clone();
+        let mut missing_disclosed_messages = messages.clone();
+        let mut missing_disclosed_indexes = disclosed_indexes.clone();
+
         missing_disclosed_messages.remove(2);
+        missing_disclosed_indexes.remove(2);
         let mut fixture = FixtureProof {
-            disclosed_messages: missing_disclosed_messages,
+            messages: missing_disclosed_messages,
+            disclosed_indexes: missing_disclosed_indexes,
             result: ExpectedResult {
                 valid: false,
                 reason: Some("missing message revealed in proof".to_owned()),
@@ -309,11 +324,18 @@ macro_rules! generate_proof_fixture {
         validate_proof_fixture!($proof_verify_fn, &fixture);
         save_test_vector(&mut fixture, &$output_dir.join("proof009.json"));
 
-        let mut swapped_disclosed_messages = disclosed_messages.clone();
-        swapped_disclosed_messages[1].1 = disclosed_messages[3].1.clone();
-        swapped_disclosed_messages[3].1 = disclosed_messages[1].1.clone();
+        let mut swapped_disclosed_messages = messages.clone();
+        let mut swapped_disclosed_indexes = disclosed_indexes.clone();
+
+        swapped_disclosed_messages[0] = messages[2].clone();
+        swapped_disclosed_messages[0] = messages[2].clone();
+
+        swapped_disclosed_indexes[0] = disclosed_indexes[2].clone();
+        swapped_disclosed_indexes[0] = disclosed_indexes[2].clone();
+
         let mut fixture = FixtureProof {
-            disclosed_messages: swapped_disclosed_messages,
+            messages: swapped_disclosed_messages,
+            disclosed_indexes: swapped_disclosed_indexes,
             result: ExpectedResult {
                 valid: false,
                 reason: Some("re-ordered messages".to_owned()),
@@ -323,10 +345,14 @@ macro_rules! generate_proof_fixture {
         validate_proof_fixture!($proof_verify_fn, &fixture);
         save_test_vector(&mut fixture, &$output_dir.join("proof010.json"));
 
-        let mut extra_disclosed_messages = disclosed_messages.clone();
-        extra_disclosed_messages.push((9, messages[9].clone()));
+        let mut extra_disclosed_messages = messages.clone();
+        let mut extra_disclosed_indexes = disclosed_indexes.clone();
+
+        extra_disclosed_messages.push(messages[9].clone());
+        extra_disclosed_indexes.push(9);
         let mut fixture = FixtureProof {
-            disclosed_messages: extra_disclosed_messages,
+            messages: extra_disclosed_messages,
+            disclosed_indexes: extra_disclosed_indexes,
             result: ExpectedResult {
                 valid: false,
                 reason: Some(
@@ -417,6 +443,7 @@ macro_rules! proof_gen_helper {
         let mut proof_messages: Vec<BbsProofGenRevealMessageRequest<_>> =
             Vec::new();
         let mut disclosed_messages: Vec<(usize, Vec<u8>)> = Vec::new();
+        let mut disclosed_indexes: Vec<usize> = Vec::new();
 
         for (i, m) in $messages.iter().enumerate() {
             if $disclosed_indices.contains(&i) {
@@ -425,6 +452,7 @@ macro_rules! proof_gen_helper {
                     value: m.clone(),
                 });
                 disclosed_messages.push((i, m.clone()));
+                disclosed_indexes.push(i);
             } else {
                 proof_messages.push(BbsProofGenRevealMessageRequest {
                     reveal: false,
@@ -435,11 +463,11 @@ macro_rules! proof_gen_helper {
 
         // Mocked rng based on expand_message
         let dst = &[&$ciphersuite_id(), MOCKED_RNG_DST.as_bytes()].concat();
-        let count = $messages.len() - $disclosed_indices.len() + 5;
+        let count = $messages.len() - $disclosed_indices.len() + 5; // max number of random scalar
         let mocked_rng = MockRng::<'_, $expander>::new(
             MOCKED_RNG_SEED.as_bytes(),
             dst,
-            count + 1,
+            count,
             Some(BBS_BLS12381G1_EXPAND_LEN),
         );
 
@@ -482,7 +510,7 @@ macro_rules! proof_gen_helper {
             .unwrap(),
             true
         );
-        (proof, disclosed_messages, signature, trace)
+        (proof, disclosed_indexes, signature, trace)
     }};
 }
 
@@ -490,11 +518,17 @@ macro_rules! proof_gen_helper {
 #[macro_export]
 macro_rules! validate_proof_fixture {
     ($proof_verify_fn:ident, $fixture:expr) => {
+        let mut disclosed_messages: Vec<(usize, Vec<u8>)> = Vec::new();
+        for i in &$fixture.disclosed_indexes {
+            let msg = $fixture.messages[*i as usize].clone();
+            disclosed_messages.push((*i as usize, msg))
+        }
+
         let result = $proof_verify_fn(&BbsProofVerifyRequest {
             public_key: &$fixture.signer_public_key.to_octets(),
             header: Some($fixture.header.clone()),
             presentation_header: Some($fixture.presentation_header.clone()),
-            messages: Some(&$fixture.disclosed_messages),
+            messages: Some(&disclosed_messages),
             proof: &$fixture.proof,
         });
 
