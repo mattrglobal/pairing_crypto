@@ -1,10 +1,15 @@
 use std::collections::HashMap;
 
-use pairing_crypto::bbs::ciphersuites::bls12_381::{
-    KeyPair,
-    PublicKey,
-    SecretKey,
+use blstrs::Scalar;
+use pairing_crypto::{
+    bbs::{
+        bls12_381::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
+        ciphersuites::bls12_381::{KeyPair, PublicKey, SecretKey},
+        RandomScalars,
+    },
+    common::vec_to_byte_array,
 };
+
 use serde::{
     de::{self, MapAccess, Visitor},
     ser::{SerializeMap, SerializeSeq, SerializeStruct},
@@ -45,6 +50,9 @@ pub struct FixtureKeyGen {
     pub case_name: String,
     pub key_material: String,
     pub key_info: String,
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub key_dst: Vec<u8>,
     #[serde(serialize_with = "serialize_key_pair")]
     #[serde(deserialize_with = "deserialize_key_pair")]
     pub key_pair: KeyPair,
@@ -57,6 +65,7 @@ impl From<FixtureGenInput> for FixtureKeyGen {
             case_name: Default::default(),
             key_material: hex::encode(value.key_ikm),
             key_info: hex::encode(value.key_info),
+            key_dst: Default::default(),
             key_pair: Default::default(),
         }
     }
@@ -169,16 +178,16 @@ pub struct FixtureProof {
     #[serde(serialize_with = "hex::serde::serialize")]
     #[serde(deserialize_with = "hex::serde::deserialize")]
     pub presentation_header: Vec<u8>,
-    #[serde(serialize_with = "serialize_disclosed_messages")]
-    #[serde(deserialize_with = "deserialize_disclosed_messages")]
-    #[serde(rename = "revealedMessages")]
-    pub disclosed_messages: Vec<(usize, Vec<u8>)>,
+    #[serde(serialize_with = "serialize_messages")]
+    #[serde(deserialize_with = "deserialize_messages")]
+    pub messages: Vec<Vec<u8>>,
+    #[serde(rename = "disclosedIndexes")]
+    pub disclosed_indexes: Vec<usize>,
     #[serde(serialize_with = "hex::serde::serialize")]
     #[serde(deserialize_with = "hex::serde::deserialize")]
     pub proof: Vec<u8>,
     pub result: ExpectedResult,
-    #[serde(serialize_with = "serialize_proof_trace")]
-    #[serde(deserialize_with = "deserialize_proof_trace")]
+    #[serde(with = "ProofTraceDef")]
     pub trace: ProofTrace,
 }
 
@@ -190,7 +199,8 @@ impl From<FixtureGenInput> for FixtureProof {
             signature: Default::default(),
             header: val.header,
             presentation_header: val.presentation_header,
-            disclosed_messages: Default::default(),
+            messages: Default::default(),
+            disclosed_indexes: Default::default(),
             proof: Default::default(),
             result: Default::default(),
             trace: ProofTrace::default(),
@@ -199,6 +209,42 @@ impl From<FixtureGenInput> for FixtureProof {
 }
 
 implement_case_name!(FixtureProof);
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct NegativeProofFixture {
+    pub case_name: String,
+    #[serde(serialize_with = "serialize_public_key")]
+    #[serde(deserialize_with = "deserialize_public_key")]
+    pub signer_public_key: PublicKey,
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub header: Vec<u8>,
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub presentation_header: Vec<u8>,
+    #[serde(serialize_with = "serialize_disclosed_messages")]
+    #[serde(deserialize_with = "deserialize_disclosed_messages")]
+    pub disclosed_messages: Vec<(usize, Vec<u8>)>,
+    pub proof: Vec<u8>,
+    pub result: ExpectedResult,
+}
+
+impl From<FixtureGenInput> for NegativeProofFixture {
+    fn from(val: FixtureGenInput) -> Self {
+        Self {
+            case_name: Default::default(),
+            signer_public_key: Default::default(),
+            header: val.header,
+            presentation_header: val.presentation_header,
+            disclosed_messages: Default::default(),
+            proof: Default::default(),
+            result: Default::default(),
+        }
+    }
+}
+
+implement_case_name!(NegativeProofFixture);
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -550,119 +596,212 @@ where
     deserializer.deserialize_struct("ProofTrace", FIELDS, SignatureTraceVisitor)
 }
 
-fn serialize_proof_trace<S>(
-    trace: &ProofTrace,
+#[derive(Serialize, Deserialize)]
+#[serde(remote = "ProofTrace")]
+#[allow(non_snake_case)]
+struct ProofTraceDef {
+    /// The random scalars used during proof generation
+    #[serde(serialize_with = "serialize_random_scalars")]
+    #[serde(deserialize_with = "deserialize_random_scalars")]
+    random_scalars: RandomScalars,
+    /// The point A_bar calculated during proof generation
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    A_bar: [u8; OCTET_POINT_G1_LENGTH],
+    /// The point B_bar calculated during proof generation
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    B_bar: [u8; OCTET_POINT_G1_LENGTH],
+    /// The point D calculated during proof generation
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    D: [u8; OCTET_POINT_G1_LENGTH],
+    /// The point T1 calculated during proof generation
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    T1: [u8; OCTET_POINT_G1_LENGTH],
+    /// The point T2 calculated during proof generation
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    T2: [u8; OCTET_POINT_G1_LENGTH],
+    /// The domain scalar value calculated during proof generation
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    domain: [u8; OCTET_SCALAR_LENGTH],
+    /// The challenge scalar value calculated during proof generation
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    challenge: [u8; OCTET_SCALAR_LENGTH],
+}
+
+fn serialize_random_scalars<S>(
+    random_scalars: &RandomScalars,
     serializer: S,
 ) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
-    let mut state = serializer.serialize_struct("ProofTrace", 5)?;
-    state.serialize_field("A_bar", &hex::encode(trace.A_bar))?;
-    state.serialize_field("B_bar", &hex::encode(trace.B_bar))?;
-    state.serialize_field("D", &hex::encode(trace.D))?;
-    state.serialize_field("T1", &hex::encode(trace.T1))?;
-    state.serialize_field("T2", &hex::encode(trace.T2))?;
-    state.serialize_field("domain", &hex::encode(trace.domain))?;
-    state.serialize_field("challenge", &hex::encode(trace.challenge))?;
+    let mut state = serializer.serialize_struct("RandomScalars", 6)?;
+
+    state
+        .serialize_field("r1", &hex::encode(random_scalars.r1.to_bytes_be()))?;
+    state
+        .serialize_field("r2", &hex::encode(random_scalars.r2.to_bytes_be()))?;
+    state.serialize_field(
+        "e_tilde",
+        &hex::encode(random_scalars.e_tilde.to_bytes_be()),
+    )?;
+    state.serialize_field(
+        "r1_tilde",
+        &hex::encode(random_scalars.r1_tilde.to_bytes_be()),
+    )?;
+    state.serialize_field(
+        "r3_tilde",
+        &hex::encode(random_scalars.r3_tilde.to_bytes_be()),
+    )?;
+
+    let m_tilde_octs: Vec<String> = random_scalars
+        .m_tilde_scalars
+        .iter()
+        .map(|m_tilde| hex::encode(m_tilde.to_bytes_be()))
+        .collect();
+    state.serialize_field("m_tilde_scalars", &m_tilde_octs)?;
     state.end()
 }
 
 #[allow(non_camel_case_types)]
 #[allow(non_snake_case)]
-fn deserialize_proof_trace<'de, D>(
+fn deserialize_random_scalars<'de, D>(
     deserializer: D,
-) -> Result<ProofTrace, D::Error>
+) -> Result<RandomScalars, D::Error>
 where
     D: Deserializer<'de>,
 {
     #[derive(Deserialize, Debug)]
     #[serde(field_identifier)]
     enum Field {
-        A_bar,
-        B_bar,
-        D,
-        T1,
-        T2,
-        domain,
-        challenge,
+        r1,
+        r2,
+        e_tilde,
+        r1_tilde,
+        r3_tilde,
+        m_tilde_scalars,
     }
 
-    struct ProofTraceVisitor;
-    impl<'de> Visitor<'de> for ProofTraceVisitor {
-        type Value = ProofTrace;
+    struct RandomScalarsVisitor;
+    impl<'de> Visitor<'de> for RandomScalarsVisitor {
+        type Value = RandomScalars;
 
         fn expecting(
             &self,
             formatter: &mut std::fmt::Formatter,
         ) -> std::fmt::Result {
-            formatter.write_str("a ProofTrace struct")
+            formatter.write_str("a RandomScalar struct")
         }
 
         fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
         where
             A: MapAccess<'de>,
         {
-            let mut A_bar = None;
-            let mut B_bar = None;
-            let mut D = None;
-            let mut T1 = None;
-            let mut T2 = None;
-            let mut domain = None;
-            let mut challenge = None;
+            let mut r1 = None;
+            let mut r2 = None;
+            let mut e_tilde = None;
+            let mut r1_tilde = None;
+            let mut r3_tilde = None;
+            let mut m_tilde_scalars = None;
 
             while let Some(key) = map.next_key()? {
                 match key {
-                    Field::A_bar => {
+                    Field::r1 => {
                         let v: &str = map.next_value()?;
-                        A_bar = Some(hex::decode(v).unwrap());
+                        r1 = Some(hex::decode(v).unwrap());
                     }
-                    Field::B_bar => {
+                    Field::r2 => {
                         let v: &str = map.next_value()?;
-                        B_bar = Some(hex::decode(v).unwrap());
+                        r2 = Some(hex::decode(v).unwrap());
                     }
-                    Field::D => {
+                    Field::e_tilde => {
                         let v: &str = map.next_value()?;
-                        D = Some(hex::decode(v).unwrap());
+                        e_tilde = Some(hex::decode(v).unwrap());
                     }
-                    Field::T1 => {
+                    Field::r1_tilde => {
                         let v: &str = map.next_value()?;
-                        T1 = Some(hex::decode(v).unwrap());
+                        r1_tilde = Some(hex::decode(v).unwrap());
                     }
-                    Field::T2 => {
+                    Field::r3_tilde => {
                         let v: &str = map.next_value()?;
-                        T2 = Some(hex::decode(v).unwrap());
+                        r3_tilde = Some(hex::decode(v).unwrap());
                     }
-                    Field::domain => {
-                        let v: &str = map.next_value()?;
-                        domain = Some(hex::decode(v).unwrap());
-                    }
-                    Field::challenge => {
-                        let v: &str = map.next_value()?;
-                        challenge = Some(hex::decode(v).unwrap());
+                    Field::m_tilde_scalars => {
+                        let v: Vec<&str> = map.next_value()?;
+                        let m_tildes: Vec<Vec<u8>> =
+                            v.iter().map(|m| hex::decode(m).unwrap()).collect();
+                        m_tilde_scalars = Some(m_tildes);
                     }
                 }
             }
 
-            let A_bar =
-                A_bar.ok_or_else(|| de::Error::missing_field("A_bar"))?;
-            let B_bar =
-                B_bar.ok_or_else(|| de::Error::missing_field("B_bar"))?;
-            let D = D.ok_or_else(|| de::Error::missing_field("D"))?;
-            let T1 = T1.ok_or_else(|| de::Error::missing_field("D"))?;
-            let T2 = T2.ok_or_else(|| de::Error::missing_field("D"))?;
-            let domain =
-                domain.ok_or_else(|| de::Error::missing_field("domain"))?;
-            let challenge = challenge
-                .ok_or_else(|| de::Error::missing_field("challenge"))?;
+            let r1 = r1.ok_or_else(|| de::Error::missing_field("r1"))?;
+            let r2 = r2.ok_or_else(|| de::Error::missing_field("r2"))?;
+            let e_tilde =
+                e_tilde.ok_or_else(|| de::Error::missing_field("e_tilde"))?;
+            let r1_tilde =
+                r1_tilde.ok_or_else(|| de::Error::missing_field("r1_tilde"))?;
+            let r3_tilde =
+                r3_tilde.ok_or_else(|| de::Error::missing_field("r3_tilde"))?;
+            let m_tilde_scalars = m_tilde_scalars
+                .ok_or_else(|| de::Error::missing_field("m_tilde_scalars"))?;
 
-            Ok(ProofTrace::new_from_vec(
-                A_bar, B_bar, D, T1, T2, domain, challenge,
-            ))
+            let m_tilde_scalars = m_tilde_scalars
+                .iter()
+                .map(|m| {
+                    Scalar::from_bytes_be(
+                        &vec_to_byte_array::<OCTET_SCALAR_LENGTH>(&m).unwrap(),
+                    )
+                    .unwrap()
+                })
+                .collect();
+
+            Ok(RandomScalars {
+                r1: Scalar::from_bytes_be(
+                    &vec_to_byte_array::<OCTET_SCALAR_LENGTH>(&r1).unwrap(),
+                )
+                .unwrap(),
+                r2: Scalar::from_bytes_be(
+                    &vec_to_byte_array::<OCTET_SCALAR_LENGTH>(&r2).unwrap(),
+                )
+                .unwrap(),
+                e_tilde: Scalar::from_bytes_be(
+                    &vec_to_byte_array::<OCTET_SCALAR_LENGTH>(&e_tilde)
+                        .unwrap(),
+                )
+                .unwrap(),
+                r1_tilde: Scalar::from_bytes_be(
+                    &vec_to_byte_array::<OCTET_SCALAR_LENGTH>(&r1_tilde)
+                        .unwrap(),
+                )
+                .unwrap(),
+                r3_tilde: Scalar::from_bytes_be(
+                    &vec_to_byte_array::<OCTET_SCALAR_LENGTH>(&r3_tilde)
+                        .unwrap(),
+                )
+                .unwrap(),
+                m_tilde_scalars,
+            })
         }
     }
 
-    const FIELDS: &'static [&'static str] =
-        &["A_bar", "B_bar", "D", "T1", "T2", "domain", "challenge"];
-    deserializer.deserialize_struct("ProofTrace", FIELDS, ProofTraceVisitor)
+    const FIELDS: &'static [&'static str] = &[
+        "r1",
+        "r2",
+        "e_tilde",
+        "r1_tilde",
+        "r3_tilde",
+        "m_tilde_scalars",
+    ];
+    deserializer.deserialize_struct(
+        "RandomScalars",
+        FIELDS,
+        RandomScalarsVisitor,
+    )
 }

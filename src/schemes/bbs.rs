@@ -7,7 +7,12 @@ pub use crate::schemes::bbs::api::dtos::{
     BbsVerifyRequest,
 };
 
-pub use crate::schemes::bbs::core::types::{ProofTrace, SignatureTrace};
+pub use crate::schemes::bbs::core::{
+    proof::RandomScalars,
+    types::{ProofTrace, SignatureTrace},
+};
+
+pub use crate::curves::bls12_381;
 
 // Core implementation of BBS scheme.
 pub(crate) mod core;

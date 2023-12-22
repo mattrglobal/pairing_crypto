@@ -14,6 +14,7 @@ macro_rules! print_byte_array {
 
 pub(crate) use print_byte_array;
 
+/// Utility operation to turn a `Vec<u8>` to a byte array (slice [u8; N]).
 pub fn vec_to_byte_array<const N: usize>(
     vec: &Vec<u8>,
 ) -> Result<[u8; N], Error> {

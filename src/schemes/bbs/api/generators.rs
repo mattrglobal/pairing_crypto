@@ -20,10 +20,9 @@ where
 {
     let mut result = Vec::new();
     let generators =
-        MemoryCachedGenerators::<C>::new(count - 3, private_holder_binding)?;
+        MemoryCachedGenerators::<C>::new(count - 2, private_holder_binding)?;
 
     result.push(C::p1()?.to_affine().to_compressed().to_vec());
-    result.push(C::p2()?.to_affine().to_compressed().to_vec());
     result.push(generators.Q.to_affine().to_compressed().to_vec());
     result.extend(
         generators

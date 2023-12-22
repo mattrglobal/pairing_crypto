@@ -84,6 +84,7 @@ macro_rules! generate_keygen_fixture {
     (
      $keygen_fn:ident,
      $fixture_gen_input:ident,
+     $ciphersuite_id:ident,
      $output_dir:expr
     ) => {
         let key_pair = $keygen_fn(
@@ -93,8 +94,12 @@ macro_rules! generate_keygen_fixture {
         .unwrap();
 
         let fixture_scratch: FixtureKeyGen = $fixture_gen_input.clone().into();
+
+        let keygen_dst = [$ciphersuite_id(), b"KEYGEN_DST_".to_vec()].concat();
+
         let mut fixture = FixtureKeyGen {
             case_name: "key pair fixture".to_owned(),
+            key_dst: keygen_dst,
             key_pair,
             ..fixture_scratch
         };
@@ -107,12 +112,14 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &Path) {
     generate_keygen_fixture!(
         sha256_bbs_key_gen_tool,
         fixture_gen_input,
+        sha256_ciphersuite_id,
         output_dir.join("bls12_381_sha_256")
     );
 
     generate_keygen_fixture!(
         shake256_bbs_key_gen_tool,
         fixture_gen_input,
+        shake256_ciphersuite_id,
         output_dir.join("bls12_381_shake_256")
     );
 }
