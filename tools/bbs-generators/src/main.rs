@@ -23,7 +23,6 @@ enum OutputType {
 #[derive(Serialize, Debug, Clone)]
 pub struct FixtureGenerators {
     pub P1: String,
-    pub P2: String,
     pub Q1: String,
     pub MsgGenerators: Vec<String>,
 }
@@ -64,11 +63,10 @@ fn main() {
 
     let fixture = FixtureGenerators {
         P1: hex::encode(generators[0].clone()),
-        P2: hex::encode(generators[1].clone()),
-        Q1: hex::encode(generators[2].clone()),
+        Q1: hex::encode(generators[1].clone()),
         MsgGenerators: generators
             .iter()
-            .skip(3)
+            .skip(2)
             .map(|g| hex::encode(g))
             .collect(),
     };

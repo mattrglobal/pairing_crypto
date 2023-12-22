@@ -9,6 +9,7 @@ use pairing_crypto::bbs::ciphersuites::bls12_381::{
 
 use blstrs::Scalar;
 use core::fmt;
+
 use serde::{
     de::{self, MapAccess},
     ser::{SerializeMap, SerializeSeq, SerializeStruct},
@@ -49,6 +50,9 @@ pub struct FixtureKeyGen {
     pub case_name: String,
     pub key_material: String,
     pub key_info: String,
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub key_dst: Vec<u8>,
     #[serde(serialize_with = "serialize_key_pair")]
     #[serde(deserialize_with = "deserialize_key_pair")]
     pub key_pair: KeyPair,
@@ -61,6 +65,7 @@ impl From<FixtureGenInput> for FixtureKeyGen {
             case_name: Default::default(),
             key_material: hex::encode(value.key_ikm),
             key_info: hex::encode(value.key_info),
+            key_dst: Default::default(),
             key_pair: Default::default(),
         }
     }
@@ -172,10 +177,11 @@ pub struct FixtureProof {
     #[serde(serialize_with = "hex::serde::serialize")]
     #[serde(deserialize_with = "hex::serde::deserialize")]
     pub presentation_header: Vec<u8>,
-    #[serde(serialize_with = "serialize_disclosed_messages")]
-    #[serde(deserialize_with = "deserialize_disclosed_messages")]
-    #[serde(rename = "revealedMessages")]
-    pub disclosed_messages: Vec<(usize, Vec<u8>)>,
+    #[serde(serialize_with = "serialize_messages")]
+    #[serde(deserialize_with = "deserialize_messages")]
+    pub messages: Vec<Vec<u8>>,
+    #[serde(rename = "disclosedIndexes")]
+    pub disclosed_indexes: Vec<usize>,
     #[serde(serialize_with = "hex::serde::serialize")]
     #[serde(deserialize_with = "hex::serde::deserialize")]
     pub proof: Vec<u8>,
@@ -192,7 +198,8 @@ impl From<FixtureGenInput> for FixtureProof {
             signature: Default::default(),
             header: val.header,
             presentation_header: val.presentation_header,
-            disclosed_messages: Default::default(),
+            messages: Default::default(),
+            disclosed_indexes: Default::default(),
             proof: Default::default(),
             result: Default::default(),
             trace: ProofTrace::default(),
@@ -201,6 +208,42 @@ impl From<FixtureGenInput> for FixtureProof {
 }
 
 implement_case_name!(FixtureProof);
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct NegativeProofFixture {
+    pub case_name: String,
+    #[serde(serialize_with = "serialize_public_key")]
+    #[serde(deserialize_with = "deserialize_public_key")]
+    pub signer_public_key: PublicKey,
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub header: Vec<u8>,
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub presentation_header: Vec<u8>,
+    #[serde(serialize_with = "serialize_disclosed_messages")]
+    #[serde(deserialize_with = "deserialize_disclosed_messages")]
+    pub disclosed_messages: Vec<(usize, Vec<u8>)>,
+    pub proof: Vec<u8>,
+    pub result: ExpectedResult,
+}
+
+impl From<FixtureGenInput> for NegativeProofFixture {
+    fn from(val: FixtureGenInput) -> Self {
+        Self {
+            case_name: Default::default(),
+            signer_public_key: Default::default(),
+            header: val.header,
+            presentation_header: val.presentation_header,
+            disclosed_messages: Default::default(),
+            proof: Default::default(),
+            result: Default::default(),
+        }
+    }
+}
+
+implement_case_name!(NegativeProofFixture);
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
