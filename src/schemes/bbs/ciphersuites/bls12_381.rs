@@ -21,7 +21,16 @@ pub const BBS_BLS12381G1_PUBLIC_KEY_LENGTH: usize = OCTET_POINT_G2_LENGTH;
 pub const BBS_BLS12381G1_SIGNATURE_LENGTH: usize =
     OCTET_POINT_G1_LENGTH + OCTET_SCALAR_LENGTH;
 
-/// Number of random bytes required when creating random scalars.
+/// "Export" the suite specific constants for the fixtures generation tool.
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
 #[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
-pub const BBS_BLS12381G1_EXPAND_LEN: usize = 48usize;
+pub mod suite_constants {
+    pub use crate::curves::bls12_381::{
+        OCTET_POINT_G1_LENGTH,
+        OCTET_POINT_G2_LENGTH,
+        OCTET_SCALAR_LENGTH,
+    };
+
+    /// Number of random bytes required when creating random scalars.
+    pub const BBS_BLS12381G1_EXPAND_LEN: usize = 48usize;
+}

@@ -3,7 +3,7 @@ use blstrs::hash_to_curve::{ExpandMsgXmd, ExpandMsgXof};
 use pairing_crypto::{
     bbs::{
         ciphersuites::{
-            bls12_381::{KeyPair, BBS_BLS12381G1_EXPAND_LEN},
+            bls12_381::{suite_constants::BBS_BLS12381G1_EXPAND_LEN, KeyPair},
             bls12_381_g1_sha_256::{
                 ciphersuite_id as bls12_381_g1_sha_256_ciphersuite_id,
                 proof_gen as bls12_381_g1_sha_256_proof_gen,

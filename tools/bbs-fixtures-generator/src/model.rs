@@ -1,12 +1,16 @@
 use std::collections::HashMap;
 
 use pairing_crypto::bbs::ciphersuites::bls12_381::{
+    suite_constants::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
     KeyPair,
     PublicKey,
     SecretKey,
 };
+
+use blstrs::Scalar;
+use core::fmt;
 use serde::{
-    de::{self, MapAccess, Visitor},
+    de::{self, MapAccess},
     ser::{SerializeMap, SerializeSeq, SerializeStruct},
     Deserialize,
     Deserializer,
@@ -132,8 +136,7 @@ pub struct FixtureSignature {
     #[serde(deserialize_with = "hex::serde::deserialize")]
     pub signature: Vec<u8>,
     pub result: ExpectedResult,
-    #[serde(serialize_with = "serialize_signature_trace")]
-    #[serde(deserialize_with = "deserialize_signature_trace")]
+    #[serde(with = "SignatureTraceDef")]
     pub trace: SignatureTrace,
 }
 
@@ -177,8 +180,7 @@ pub struct FixtureProof {
     #[serde(deserialize_with = "hex::serde::deserialize")]
     pub proof: Vec<u8>,
     pub result: ExpectedResult,
-    #[serde(serialize_with = "serialize_proof_trace")]
-    #[serde(deserialize_with = "deserialize_proof_trace")]
+    #[serde(with = "ProofTraceDef")]
     pub trace: ProofTrace,
 }
 
@@ -478,173 +480,173 @@ where
     seq.end()
 }
 
-use pairing_crypto::bbs::{ProofTrace, SignatureTrace};
+use pairing_crypto::bbs::types::{ProofTrace, RandomScalars, SignatureTrace};
 
-fn serialize_signature_trace<S>(
-    trace: &SignatureTrace,
+#[derive(Serialize, Deserialize)]
+#[serde(remote = "SignatureTrace")]
+#[allow(non_snake_case)]
+pub struct SignatureTraceDef {
+    /// The point B calculated during proof generation
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub B: [u8; OCTET_POINT_G1_LENGTH],
+    /// The domain scalar value calculated during proof generation
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub domain: [u8; OCTET_SCALAR_LENGTH],
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(remote = "RandomScalars")]
+pub struct RandomScalarsDef {
+    /// The r1 random scalar
+    #[serde(serialize_with = "serialize_scalar")]
+    #[serde(deserialize_with = "deserialize_scalar")]
+    pub r1: Scalar,
+    /// The r1~ random scalar (blinding the r1 value)
+    #[serde(serialize_with = "serialize_scalar")]
+    #[serde(deserialize_with = "deserialize_scalar")]
+    pub r2_tilde: Scalar,
+    /// The r3~ random scalar (blinding the r3 value)
+    #[serde(serialize_with = "serialize_scalar")]
+    #[serde(deserialize_with = "deserialize_scalar")]
+    pub z_tilde: Scalar,
+    /// The list of m~_i random scalars (blinding the undisclosed messages)
+    #[serde(serialize_with = "serialize_scalars_vec")]
+    #[serde(deserialize_with = "deserialize_scalars_vec")]
+    pub m_tilde_scalars: Vec<Scalar>,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(remote = "ProofTrace")]
+#[allow(non_snake_case)]
+pub struct ProofTraceDef {
+    /// The random scalars used during proof generation
+    #[serde(with = "RandomScalarsDef")]
+    pub random_scalars: RandomScalars,
+    /// The point A_bar calculated during proof generation
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub A_bar: [u8; OCTET_POINT_G1_LENGTH],
+    /// The point B_bar calculated during proof generation
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub B_bar: [u8; OCTET_POINT_G1_LENGTH],
+    /// The point T calculated during proof generation
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub T: [u8; OCTET_POINT_G1_LENGTH],
+    /// The domain scalar value calculated during proof generation
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub domain: [u8; OCTET_SCALAR_LENGTH],
+    /// The challenge scalar value calculated during proof generation
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub challenge: [u8; OCTET_SCALAR_LENGTH],
+}
+
+pub(crate) fn serialize_scalar<S>(
+    scalar: &Scalar,
     serializer: S,
 ) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
-    let mut state = serializer.serialize_struct("SignatureTrace", 2)?;
-    state.serialize_field("B", &hex::encode(trace.B))?;
-    state.serialize_field("domain", &hex::encode(trace.domain))?;
-    state.end()
+    let res = hex::encode(scalar.to_bytes_be());
+    serializer.serialize_str(&res)
 }
 
-#[allow(non_camel_case_types)]
-#[allow(non_snake_case)]
-fn deserialize_signature_trace<'de, D>(
-    deserializer: D,
-) -> Result<SignatureTrace, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize, Debug)]
-    #[serde(field_identifier)]
-    enum Field {
-        B,
-        domain,
-    }
-
-    struct SignatureTraceVisitor;
-    impl<'de> Visitor<'de> for SignatureTraceVisitor {
-        type Value = SignatureTrace;
-
-        fn expecting(
-            &self,
-            formatter: &mut std::fmt::Formatter,
-        ) -> std::fmt::Result {
-            formatter.write_str("a SignatureTrace struct")
-        }
-
-        fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-        where
-            A: MapAccess<'de>,
-        {
-            let mut B = None;
-            let mut domain = None;
-
-            while let Some(key) = map.next_key()? {
-                match key {
-                    Field::B => {
-                        let v: &str = map.next_value()?;
-                        B = Some(hex::decode(v).unwrap());
-                    }
-                    Field::domain => {
-                        let v: &str = map.next_value()?;
-                        domain = Some(hex::decode(v).unwrap());
-                    }
-                }
-            }
-
-            let B = B.ok_or_else(|| de::Error::missing_field("B"))?;
-            let domain =
-                domain.ok_or_else(|| de::Error::missing_field("domain"))?;
-            Ok(SignatureTrace::new_from_vec(B, domain))
-        }
-    }
-
-    const FIELDS: &'static [&'static str] = &["B", "domain"];
-    deserializer.deserialize_struct("ProofTrace", FIELDS, SignatureTraceVisitor)
-}
-
-fn serialize_proof_trace<S>(
-    trace: &ProofTrace,
+pub(crate) fn serialize_scalars_vec<S>(
+    scalars: &Vec<Scalar>,
     serializer: S,
 ) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
-    let mut state = serializer.serialize_struct("ProofTrace", 5)?;
-    state.serialize_field("A_bar", &hex::encode(trace.A_bar))?;
-    state.serialize_field("B_bar", &hex::encode(trace.B_bar))?;
-    state.serialize_field("T", &hex::encode(trace.T))?;
-    state.serialize_field("domain", &hex::encode(trace.domain))?;
-    state.serialize_field("challenge", &hex::encode(trace.challenge))?;
-    state.end()
+    let mut seq = serializer.serialize_seq(Some(scalars.len()))?;
+    for scalar in scalars {
+        seq.serialize_element(&hex::encode(scalar.to_bytes_be()))?;
+    }
+    seq.end()
 }
 
-#[allow(non_camel_case_types)]
-#[allow(non_snake_case)]
-fn deserialize_proof_trace<'de, D>(
+pub(crate) fn deserialize_scalar<'de, D>(
     deserializer: D,
-) -> Result<ProofTrace, D::Error>
+) -> Result<Scalar, D::Error>
 where
     D: Deserializer<'de>,
 {
-    #[derive(Deserialize, Debug)]
-    #[serde(field_identifier)]
-    enum Field {
-        A_bar,
-        B_bar,
-        T,
-        domain,
-        challenge,
-    }
+    struct ScalarVisitor;
 
-    struct ProofTraceVisitor;
-    impl<'de> Visitor<'de> for ProofTraceVisitor {
-        type Value = ProofTrace;
+    impl<'de> de::Visitor<'de> for ScalarVisitor {
+        type Value = Scalar;
 
-        fn expecting(
-            &self,
-            formatter: &mut std::fmt::Formatter,
-        ) -> std::fmt::Result {
-            formatter.write_str("a ProofTrace struct")
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("a Scalar value")
         }
 
-        fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+        fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
         where
-            A: MapAccess<'de>,
+            E: de::Error,
         {
-            let mut A_bar = None;
-            let mut B_bar = None;
-            let mut T = None;
-            let mut domain = None;
-            let mut challenge = None;
+            let bytes = hex::decode(v).expect("Hex decoding failed");
+            let b = <[u8; 32]>::try_from(bytes).unwrap();
 
-            while let Some(key) = map.next_key()? {
-                match key {
-                    Field::A_bar => {
-                        let v: &str = map.next_value()?;
-                        A_bar = Some(hex::decode(v).unwrap());
-                    }
-                    Field::B_bar => {
-                        let v: &str = map.next_value()?;
-                        B_bar = Some(hex::decode(v).unwrap());
-                    }
-                    Field::T => {
-                        let v: &str = map.next_value()?;
-                        T = Some(hex::decode(v).unwrap());
-                    }
-                    Field::domain => {
-                        let v: &str = map.next_value()?;
-                        domain = Some(hex::decode(v).unwrap());
-                    }
-                    Field::challenge => {
-                        let v: &str = map.next_value()?;
-                        challenge = Some(hex::decode(v).unwrap());
-                    }
+            let scalar = Scalar::from_bytes_be(&b);
+
+            if scalar.is_none().unwrap_u8() == 1u8 {
+                return Err(E::custom("Invalid Scalar value"));
+            };
+
+            Ok(scalar.unwrap())
+        }
+    }
+
+    deserializer.deserialize_str(ScalarVisitor)
+}
+
+fn deserialize_scalars_vec<'de, D>(
+    deserializer: D,
+) -> Result<Vec<Scalar>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    struct ScalarsVecVisitor;
+
+    impl<'de> de::Visitor<'de> for ScalarsVecVisitor {
+        type Value = Vec<Scalar>;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("a sequence of Scalar values")
+        }
+
+        fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+        where
+            A: de::SeqAccess<'de>,
+        {
+            let mut scalars_vec =
+                Vec::with_capacity(seq.size_hint().unwrap_or(0));
+
+            while let Some(scalar_hex) = seq.next_element::<String>()? {
+                let scalar_bytes = <[u8; 32]>::try_from(
+                    hex::decode(scalar_hex)
+                        .expect("Scalar hex decoding failed"),
+                )
+                .unwrap();
+
+                let scalar = Scalar::from_bytes_be(&scalar_bytes);
+
+                if scalar.is_none().unwrap_u8() == 1u8 {
+                    return Err(de::Error::custom("Invalid Scalar value"));
                 }
+
+                scalars_vec.push(scalar.unwrap())
             }
 
-            let A_bar =
-                A_bar.ok_or_else(|| de::Error::missing_field("A_bar"))?;
-            let B_bar =
-                B_bar.ok_or_else(|| de::Error::missing_field("B_bar"))?;
-            let T = T.ok_or_else(|| de::Error::missing_field("T"))?;
-            let domain =
-                domain.ok_or_else(|| de::Error::missing_field("domain"))?;
-            let challenge = challenge
-                .ok_or_else(|| de::Error::missing_field("challenge"))?;
-
-            Ok(ProofTrace::new_from_vec(A_bar, B_bar, T, domain, challenge))
+            Ok(scalars_vec)
         }
     }
 
-    const FIELDS: &'static [&'static str] =
-        &["A_bar", "B_bar", "T", "domain", "challenge"];
-    deserializer.deserialize_struct("ProofTrace", FIELDS, ProofTraceVisitor)
+    deserializer.deserialize_seq(ScalarsVecVisitor)
 }

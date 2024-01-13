@@ -12,6 +12,12 @@
     "valid": true
   },
   "trace": {
+    "random_scalars": {
+      "r1": "52dc91d160201df73653d773f6f0ad92323bd32bcee06f55628bcb1f7be16d0f",
+      "r2_tilde": "285838d638f32e000dae151b586f962f9cc1a58c20233712fc9e6124c377906b",
+      "z_tilde": "1354847962758ff25c97e1f62a3cdc6984a1e1cd13c728b8ed48a032d671b46e",
+      "m_tilde_scalars": []
+    },
     "A_bar": "85c250f9a52faeb883ad9598aed05d31fe5861478d9f33b8de2deed1d92de5c0b0ef34458e6cf8bad8caa0724fd3d3ca",
     "B_bar": "854abee98db3384e81a406d976643e239df0a924576eaf8f4eec2885e9c688af7a52e4a752bef2c6f07d0a45611db379",
     "T": "99651520e1a13b651d4bdedc492b3015cfb23a4781203e7b843605af724bb2cce0207e2ba281379b4b8bcc806256b2ba",
