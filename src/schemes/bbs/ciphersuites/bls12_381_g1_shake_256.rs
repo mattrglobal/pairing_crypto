@@ -79,25 +79,6 @@ where
     )
 }
 
-/// Generate a BLS12-381-G1-Sha-256 BBS signature proof of knowledge with
-/// a given rng.
-// #[cfg(feature = "__private_bbs_fixtures_generator_api")]
-// #[cfg_attr(docsrs, doc(cfg(feature =
-// "__private_bbs_fixtures_generator_api")))] pub fn proof_gen_with_rng<T, R>(
-//     request: &BbsProofGenRequest<'_, T>,
-//     rng: R,
-// ) -> Result<Vec<u8>, Error>
-// where
-//     T: AsRef<[u8]>,
-//     R: RngCore + CryptoRng,
-// {
-//     crate::bbs::api::proof::proof_gen_with_rng::<
-//         _,
-//         _,
-//         Bls12381Shake256CipherSuiteParameter,
-//     >(request, rng)
-// }
-
 /// Verify a BLS12-381-G1-Shake-256 BBS signature proof of knowledge.
 pub fn proof_verify<T>(
     request: &BbsProofVerifyRequest<'_, T>,
