@@ -10,9 +10,9 @@ use pairing_crypto::bbs::{
             verify as bls12_381_shake_256_verify,
         },
     },
+    types::SignatureTrace,
     BbsSignRequest,
     BbsVerifyRequest,
-    SignatureTrace,
 };
 use rand::{prelude::SliceRandom, thread_rng};
 use std::path::Path;

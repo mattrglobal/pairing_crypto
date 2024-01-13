@@ -124,17 +124,7 @@ pub fn create_generators(
 }
 
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
-use crate::curves::bls12_381::{OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH};
-
-/// Point of G1 octets representation length
-#[cfg(feature = "__private_bbs_fixtures_generator_api")]
-#[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
-pub const POINT_G1_OCTETS_LENGTH: usize = OCTET_POINT_G1_LENGTH;
-
-/// Scalar value octets representation length
-#[cfg(feature = "__private_bbs_fixtures_generator_api")]
-#[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
-pub const SCALAR_OCTETS_LENGTH: usize = OCTET_SCALAR_LENGTH;
+use crate::curves::bls12_381::OCTET_SCALAR_LENGTH;
 
 /// Hash to scalar.
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]

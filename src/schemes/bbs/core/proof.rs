@@ -10,6 +10,7 @@ use super::{
         Message,
         ProofInitResult,
         ProofMessage,
+        RandomScalars,
     },
     utils::{compute_B, compute_challenge, compute_domain},
 };
@@ -49,24 +50,6 @@ macro_rules! slicer {
     ($d:expr, $b:expr, $e:expr, $s:expr) => {
         &<[u8; $s]>::try_from(&$d[$b..$e])?
     };
-}
-
-#[derive(Default)]
-pub(crate) struct RandomScalars {
-    pub r1: Scalar,
-    pub r2_tilde: Scalar,
-    pub z_tilde: Scalar,
-    pub m_tilde_scalars: Vec<Scalar>,
-}
-
-impl RandomScalars {
-    fn insert_m_tilde(&mut self, m_tilde: Scalar) {
-        self.m_tilde_scalars.push(m_tilde);
-    }
-
-    fn m_tilde_scalars_len(&self) -> usize {
-        self.m_tilde_scalars.len()
-    }
 }
 
 /// The zero-knowledge proof-of-knowledge of a signature that is sent from
@@ -256,6 +239,7 @@ impl Proof {
             if let Some(t) = trace.as_mut() {
                 (*t).new_from_init_res(&init_result);
                 t.challenge = c.0.to_bytes_be();
+                t.random_scalars = random_scalars.clone();
             }
         }
 

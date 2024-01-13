@@ -77,6 +77,30 @@ pub(crate) struct ProofInitResult {
     pub domain: Scalar,
 }
 
+/// Random Scalars used to blind the undisclosed messages and the hidden
+/// signature value.
+#[derive(Default, Debug, Clone)]
+pub struct RandomScalars {
+    /// The r1 random scalar
+    pub r1: Scalar,
+    /// The r2_tilde random scalar
+    pub r2_tilde: Scalar,
+    /// The z_tilde random scalar
+    pub z_tilde: Scalar,
+    /// The list of m~_i, where each m~ a random scalar
+    pub m_tilde_scalars: Vec<Scalar>,
+}
+
+impl RandomScalars {
+    pub(crate) fn insert_m_tilde(&mut self, m_tilde: Scalar) {
+        self.m_tilde_scalars.push(m_tilde);
+    }
+
+    pub(crate) fn m_tilde_scalars_len(&self) -> usize {
+        self.m_tilde_scalars.len()
+    }
+}
+
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
 use crate::common::util::vec_to_byte_array;
 
@@ -118,6 +142,8 @@ impl SignatureTrace {
 /// A struct to hold a trace of the proof generation operation
 #[derive(Debug, Clone)]
 pub struct ProofTrace {
+    /// The random scalars used during proof generation
+    pub random_scalars: RandomScalars,
     /// The point A_bar calculated during proof generation
     pub A_bar: [u8; OCTET_POINT_G1_LENGTH],
     /// The point B_bar calculated during proof generation
@@ -138,6 +164,7 @@ impl Default for ProofTrace {
             T: [0u8; OCTET_POINT_G1_LENGTH],
             domain: [0u8; OCTET_SCALAR_LENGTH],
             challenge: [0u8; OCTET_SCALAR_LENGTH],
+            random_scalars: RandomScalars::default(),
         }
     }
 }
@@ -146,6 +173,7 @@ impl ProofTrace {
     /// Helper function to deserialize the ProofTrace struct
     #[cfg(feature = "__private_bbs_fixtures_generator_api")]
     pub fn new_from_vec(
+        // TODO: Change to be &mut self and remove the random_scalars: default.
         A_bar: Vec<u8>,
         B_bar: Vec<u8>,
         T: Vec<u8>,
@@ -153,6 +181,7 @@ impl ProofTrace {
         challenge: Vec<u8>,
     ) -> Self {
         Self {
+            random_scalars: RandomScalars::default(),
             A_bar: vec_to_byte_array::<OCTET_POINT_G1_LENGTH>(&A_bar)
                 .expect("Invalid A_bar"),
             B_bar: vec_to_byte_array::<OCTET_POINT_G1_LENGTH>(&B_bar)
