@@ -237,9 +237,7 @@ impl Proof {
         // Add to the trace when creating the fixtures
         if cfg!(feature = "__private_bbs_fixtures_generator_api") {
             if let Some(t) = trace.as_mut() {
-                (*t).new_from_init_res(&init_result);
-                t.challenge = c.0.to_bytes_be();
-                t.random_scalars = random_scalars.clone();
+                (*t).new_with_init_res(&init_result, c, random_scalars.clone());
             }
         }
 
