@@ -100,7 +100,7 @@ macro_rules! bbs_bls_key_pair_impl {
 
             /// Convert a vector of bytes of big-endian representation of the
             /// secret key.
-            pub fn from_vec(bytes: &Vec<u8>) -> Result<Self, Error> {
+            pub fn from_vec(bytes: &[u8]) -> Result<Self, Error> {
                 match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
                     Ok(result) => Self::from_bytes(&result),
                     Err(e) => Err(e),
@@ -195,7 +195,7 @@ macro_rules! bbs_bls_key_pair_impl {
 
             /// Convert a vector of bytes of big-endian representation of the
             /// public key.
-            pub fn from_vec(bytes: &Vec<u8>) -> Result<Self, Error> {
+            pub fn from_vec(bytes: &[u8]) -> Result<Self, Error> {
                 match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
                     Ok(result) => Self::from_octets(&result),
                     Err(e) => Err(e),
