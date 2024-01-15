@@ -9,7 +9,6 @@ use super::{
         test_data_proof_verify_invalid_parameters,
         test_data_verify_tampered_parameters,
         test_data_verify_tampered_proof,
-        TEST_API_ID,
     },
     EXPECTED_SIGNATURE,
     EXPECTED_SIGNATURES,
@@ -23,10 +22,7 @@ use crate::{
     bbs::{
         ciphersuites::{
             bls12_381::{get_proof_size, PublicKey, SecretKey},
-            bls12_381_g1_shake_256::{
-                Bls12381Shake256CipherSuiteParameter,
-                Bls12381Shake256InterfaceParameter,
-            },
+            bls12_381_g1_shake_256::Bls12381Shake256InterfaceParameter,
         },
         core::{
             generator::memory_cached_generator::MemoryCachedGenerators,
@@ -36,7 +32,6 @@ use crate::{
         },
     },
     curves::bls12_381::{G1Projective, Scalar},
-    schemes::bbs::interface::BbsInterfaceParameter,
     tests::{
         bbs::{
             get_random_test_key_pair,
@@ -55,12 +50,9 @@ use rand_core::OsRng;
 use std::collections::{BTreeMap, BTreeSet};
 
 pub(crate) mod test_helper {
-    use crate::bbs::{
-        ciphersuites::bls12_381_g1_shake_256::Bls12381Shake256CipherSuiteParameter,
-        core::{
-            generator::Generators,
-            types::{Message, ProofMessage},
-        },
+    use crate::bbs::core::{
+        generator::Generators,
+        types::{Message, ProofMessage},
     };
 
     use super::*;
@@ -113,24 +105,19 @@ pub(crate) mod test_helper {
         let (proof_messages, revealed_messages) =
             to_proof_revealed_messages(messages, revealed_indices);
 
-        let proof = Proof::new_with_rng::<
-            T,
-            R,
-            G,
-            Bls12381Shake256CipherSuiteParameter,
-        >(
-            pk,
-            signature,
-            header,
-            ph,
-            generators,
-            proof_messages.as_slice(),
-            Some(TEST_API_ID.to_vec()),
-            rng,
-        )
-        .unwrap_or_else(|_| {
-            panic!("proof generation failed - {failure_debug_message}")
-        });
+        let proof =
+            Proof::new_with_rng::<T, R, G, Bls12381Shake256InterfaceParameter>(
+                pk,
+                signature,
+                header,
+                ph,
+                generators,
+                proof_messages.as_slice(),
+                rng,
+            )
+            .unwrap_or_else(|_| {
+                panic!("proof generation failed - {failure_debug_message}")
+            });
 
         (proof, revealed_messages)
     }
@@ -170,22 +157,20 @@ fn gen_verify_serde_nominal() {
         &[0, NUM_MESSAGES - 1].iter().cloned().collect();
 
     let signature =
-        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
             &generators,
             &messages,
-            Some(TEST_API_ID.to_vec()),
         )
         .expect("signing failed");
     assert!(signature
-        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.public_key,
             header,
             &generators,
             &messages,
-            Some(TEST_API_ID.to_vec()),
         )
         .expect("verification failed"));
 
@@ -201,13 +186,12 @@ fn gen_verify_serde_nominal() {
         "proof gen failed",
     );
     assert!(proof
-        .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+        .verify::<_, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.public_key,
             header,
             ph,
             &mut generators,
             &revealed_messages,
-            Some(TEST_API_ID.to_vec()),
         )
         .expect("proof verification failed"));
 
@@ -220,13 +204,12 @@ fn gen_verify_serde_nominal() {
     );
 
     assert!(proof_deserialized
-        .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+        .verify::<_, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.public_key,
             header,
             ph,
             &mut generators,
             &revealed_messages,
-            Some(TEST_API_ID.to_vec()),
         )
         .expect("roundtrip deserialized proof verification failed"));
 }
@@ -270,12 +253,11 @@ fn gen_verify_different_key_pairs() {
 
         let signature = get_expected_signature(EXPECTED_SIGNATURES[i]);
         assert!(signature
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
                 &pk,
                 header,
                 &generators,
                 &messages,
-                Some(Bls12381Shake256InterfaceParameter::api_id()),
             )
             .unwrap());
 
@@ -287,7 +269,7 @@ fn gen_verify_different_key_pairs() {
                 _,
                 _,
                 _,
-                Bls12381Shake256CipherSuiteParameter,
+                Bls12381Shake256InterfaceParameter,
             >(
                 &pk,
                 &signature,
@@ -295,7 +277,6 @@ fn gen_verify_different_key_pairs() {
                 ph,
                 &generators,
                 proof_msgs.as_slice(),
-                Some(Bls12381Shake256InterfaceParameter::api_id()),
                 &mut rng,
             )
             .expect("proof generation failed");
@@ -312,13 +293,12 @@ fn gen_verify_different_key_pairs() {
             }
 
             assert!(proof
-                .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+                .verify::<_, _, Bls12381Shake256InterfaceParameter>(
                     &pk,
                     header,
                     ph,
                     &mut generators,
                     &revealed_msgs,
-                    Some(Bls12381Shake256InterfaceParameter::api_id()),
                 )
                 .expect("proof verification failed"));
             proof_msgs[j] = ProofMessage::Revealed(messages[j]);
@@ -348,12 +328,11 @@ fn no_presentation_header_proof() {
 
     let signature_with_header = get_expected_signature(EXPECTED_SIGNATURE);
     assert!(signature_with_header
-        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &pk,
             Some(TEST_HEADER),
             &generators,
             &messages,
-            Some(Bls12381Shake256InterfaceParameter::api_id()),
         )
         .unwrap());
 
@@ -363,12 +342,11 @@ fn no_presentation_header_proof() {
         let signature_no_header =
             get_expected_signature(EXPECTED_SIGNATURE_NO_HEADER);
         assert!(signature_no_header
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
                 &pk,
                 None::<&[u8]>,
                 &generators,
                 &messages,
-                Some(Bls12381Shake256InterfaceParameter::api_id()),
             )
             .unwrap());
 
@@ -378,22 +356,17 @@ fn no_presentation_header_proof() {
         }
 
         // Proof with header but no presentation header
-        let proof_with_header = Proof::new_with_rng::<
-            _,
-            _,
-            _,
-            Bls12381Shake256CipherSuiteParameter,
-        >(
-            &pk,
-            &signature_with_header,
-            Some(TEST_HEADER),
-            None,
-            &generators,
-            &proof_messages,
-            Some(Bls12381Shake256InterfaceParameter::api_id()),
-            &mut rng,
-        )
-        .expect("proof generation failed");
+        let proof_with_header =
+            Proof::new_with_rng::<_, _, _, Bls12381Shake256InterfaceParameter>(
+                &pk,
+                &signature_with_header,
+                Some(TEST_HEADER),
+                None,
+                &generators,
+                &proof_messages,
+                &mut rng,
+            )
+            .expect("proof generation failed");
 
         assert_eq!(
             proof_with_header.to_octets(),
@@ -401,33 +374,27 @@ fn no_presentation_header_proof() {
                 .expect("expected proof decoding failed")
         );
         assert!(proof_with_header
-            .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, Bls12381Shake256InterfaceParameter>(
                 &pk,
                 Some(TEST_HEADER),
                 None,
                 &mut generators,
                 &revealed_messages,
-                Some(Bls12381Shake256InterfaceParameter::api_id()),
             )
             .unwrap());
 
         // Proof with no header and no presentation header
-        let proof_no_header = Proof::new_with_rng::<
-            _,
-            _,
-            _,
-            Bls12381Shake256CipherSuiteParameter,
-        >(
-            &pk,
-            &signature_no_header,
-            None::<&[u8]>,
-            None,
-            &generators,
-            &proof_messages,
-            Some(Bls12381Shake256InterfaceParameter::api_id()),
-            &mut rng,
-        )
-        .expect("proof generation failed");
+        let proof_no_header =
+            Proof::new_with_rng::<_, _, _, Bls12381Shake256InterfaceParameter>(
+                &pk,
+                &signature_no_header,
+                None::<&[u8]>,
+                None,
+                &generators,
+                &proof_messages,
+                &mut rng,
+            )
+            .expect("proof generation failed");
 
         assert_eq!(
             proof_no_header.to_octets(),
@@ -435,13 +402,12 @@ fn no_presentation_header_proof() {
                 .expect("expected proof decoding failed")
         );
         assert!(proof_no_header
-            .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, Bls12381Shake256InterfaceParameter>(
                 &pk,
                 None::<&[u8]>,
                 None,
                 &mut generators,
                 &revealed_messages,
-                Some(Bls12381Shake256InterfaceParameter::api_id()),
             )
             .unwrap());
 
@@ -506,13 +472,12 @@ fn proof_gen_verify_valid_cases() {
     {
         // Signature to be used in proof_gen
         let signature =
-            Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
                 &key_pair.secret_key,
                 &key_pair.public_key,
                 header,
                 &generators,
                 messages.clone(),
-                Some(TEST_API_ID.to_vec()),
             )
             .expect("signing failed");
 
@@ -530,13 +495,12 @@ fn proof_gen_verify_valid_cases() {
             failure_debug_message,
         );
         assert!(proof
-            .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, Bls12381Shake256InterfaceParameter>(
                 &key_pair.public_key,
                 header,
                 ph,
                 &mut generators,
                 &revealed_messages,
-                Some(TEST_API_ID.to_vec()),
             )
             .unwrap_or_else(|_| panic!(
                 "proof verification failed - {failure_debug_message}"
@@ -560,13 +524,12 @@ fn proof_gen_verify_valid_cases() {
                 failure_debug_message,
             );
             assert!(proof
-                .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+                .verify::<_, _, Bls12381Shake256InterfaceParameter>(
                     &key_pair.public_key,
                     header,
                     ph,
                     &mut generators,
                     &revealed_messages,
-                    Some(TEST_API_ID.to_vec()),
                 )
                 .unwrap_or_else(|_| panic!(
                     "proof verification failed - {failure_debug_message}, \
@@ -591,13 +554,12 @@ fn proof_gen_verify_all_revealed_shuffled_indices() {
 
     // Signature to be used in proof_gen
     let signature =
-        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
             &generators,
             messages.clone(),
-            Some(TEST_API_ID.to_vec()),
         )
         .expect("signing failed");
 
@@ -631,13 +593,12 @@ fn proof_gen_verify_all_revealed_shuffled_indices() {
         .collect::<BTreeMap<usize, Message>>();
 
     assert!(proof_all_revealed_messages
-        .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+        .verify::<_, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.public_key,
             header,
             ph,
             &mut generators,
             &revealed_messages_same_but_shuffled_indices,
-            Some(TEST_API_ID.to_vec()),
         )
         .expect("proof-verification should not fail"));
 }
@@ -654,13 +615,12 @@ fn proof_gen_with_invalid_public_key() {
     let mut generators = create_generators_helper(messages.len());
     let indices_all_hidden = BTreeSet::<usize>::new();
     let signature =
-        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
             &generators,
             messages.clone(),
-            Some(TEST_API_ID.to_vec()),
         )
         .expect("signing failed");
 
@@ -680,26 +640,24 @@ fn proof_gen_with_invalid_public_key() {
     // Proof verification fails with original PublicKey which was used during
     // signing
     assert!(!proof
-        .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+        .verify::<_, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.public_key,
             header,
             ph,
             &mut generators,
             &revealed_messages,
-            Some(TEST_API_ID.to_vec()),
         )
         .unwrap_or_else(|_| panic!("proof verification failed ")));
 
     // Proof verification also fails if same(or any) invalid PublicKey is
     // provided
     assert_eq!(
-        proof.verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+        proof.verify::<_, _, Bls12381Shake256InterfaceParameter>(
             &PublicKey::default(),
             header,
             ph,
             &mut generators,
             &revealed_messages,
-            Some(TEST_API_ID.to_vec()),
         ),
         Err(Error::InvalidPublicKey)
     );
@@ -720,14 +678,13 @@ fn proof_gen_invalid_parameters() {
             &revealed_indices,
         );
 
-        let result = Proof::new::<_, _, Bls12381Shake256CipherSuiteParameter>(
+        let result = Proof::new::<_, _, Bls12381Shake256InterfaceParameter>(
             &pk,
             &signature,
             header,
             ph,
             &generators,
             proof_messages.as_slice(),
-            Some(TEST_API_ID.to_vec()),
         );
         assert_eq!(
             result,
@@ -749,13 +706,12 @@ fn proof_verify_invalid_parameters() {
     ) in test_data_proof_verify_invalid_parameters()
     {
         assert_eq!(
-            proof.verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+            proof.verify::<_, _, Bls12381Shake256InterfaceParameter>(
                 &pk,
                 header,
                 ph,
                 &mut generators,
                 &revealed_messages,
-                Some(TEST_API_ID.to_vec()),
             ),
             Err(error),
             "proof-verification should return error - {}",
@@ -784,13 +740,12 @@ fn verify_proof_helper<const N: usize>(
     {
         assert!(
             !proof
-                .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+                .verify::<_, _, Bls12381Shake256InterfaceParameter>(
                     &pk,
                     header,
                     ph,
                     &mut generators,
                     &revealed_messages,
-                    Some(TEST_API_ID.to_vec()),
                 )
                 .unwrap_or_else(|_| panic!(
                     "proof-verification should not return error - {}",

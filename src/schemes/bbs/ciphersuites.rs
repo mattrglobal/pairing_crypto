@@ -3,7 +3,7 @@ use crate::{
     common::{
         ciphersuite::CipherSuiteId,
         hash_param::{
-            constant::{DEFAULT_DST_SUFFIX_H2S, XOF_NO_OF_BYTES},
+            constant::XOF_NO_OF_BYTES,
             h2c::HashToCurveParameter,
             h2s::HashToScalarParameter,
         },
@@ -16,7 +16,7 @@ use crate::{
     },
     Error,
 };
-use blstrs::Scalar;
+
 use group::Group;
 
 /// BBS BLS12-381 ciphersuites.
@@ -87,10 +87,5 @@ pub(crate) trait BbsCiphersuiteParameters:
     /// Point on G2 to be used during signature and proof verification.
     fn p2() -> G2Projective {
         G2Projective::generator()
-    }
-
-    fn hash_to_e(data_to_hash: &[u8], api_id: &[u8]) -> Result<Scalar, Error> {
-        let e_dst = [api_id, DEFAULT_DST_SUFFIX_H2S.as_bytes()].concat();
-        Self::hash_to_scalar(data_to_hash, Some(&e_dst))
     }
 }

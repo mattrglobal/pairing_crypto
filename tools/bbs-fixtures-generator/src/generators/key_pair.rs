@@ -51,8 +51,7 @@ macro_rules! bbs_kdf {
                 [input_ikm, &(key_info.len() as u16).to_be_bytes(), key_info]
                     .concat();
 
-            let sk_bytes =
-                $hash_to_scalar(&derive_input, Some(&keygen_dst)).unwrap();
+            let sk_bytes = $hash_to_scalar(&derive_input, &keygen_dst).unwrap();
             let sk = SecretKey::from_bytes(&sk_bytes).unwrap();
 
             // PK = SkToPk(SK)

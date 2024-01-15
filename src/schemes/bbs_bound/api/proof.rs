@@ -65,26 +65,24 @@ where
     let verify_signature = request.verify_signature.unwrap_or(true);
     if verify_signature {
         // Verify the signature to check the messages supplied are valid
-        if !(signature.verify::<_, _, _, I::Ciphersuite>(
+        if !(signature.verify::<_, _, _, I>(
             &pk,
             request.header.as_ref(),
             &generators,
             &digested_messages,
-            Some(I::api_id()),
         )?) {
             return Err(Error::SignatureVerification);
         }
     }
 
     // Generate the proof
-    let proof = Proof::new::<_, _, I::Ciphersuite>(
+    let proof = Proof::new::<_, _, I>(
         &pk,
         &signature,
         request.header.as_ref(),
         request.presentation_header.as_ref(),
         &generators,
         &proof_messages,
-        Some(I::api_id()),
     )?;
 
     Ok(proof.to_octets())
@@ -121,7 +119,7 @@ where
         Some(true),
     )?;
 
-    proof.verify::<_, _, I::Ciphersuite>(
+    proof.verify::<_, _, I>(
         &public_key,
         request.header.as_ref(),
         request.presentation_header.as_ref(),

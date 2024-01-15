@@ -14,7 +14,10 @@ use super::{
     utils::{compute_B, compute_challenge, compute_domain},
 };
 use crate::{
-    bbs::ciphersuites::BbsCiphersuiteParameters,
+    bbs::{
+        ciphersuites::BbsCiphersuiteParameters,
+        interface::BbsInterfaceParameter,
+    },
     common::util::{create_random_scalar, print_byte_array},
     curves::{
         bls12_381::{
@@ -105,43 +108,41 @@ impl core::fmt::Display for Proof {
 impl Proof {
     /// Generates the zero-knowledge proof-of-knowledge of a signature, while
     /// optionally selectively disclosing from the original set of signed messages as defined in `ProofGen` API in BBS Signature specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofgen>.
-    pub fn new<T, G, C>(
+    pub fn new<T, G, I>(
         PK: &PublicKey,
         signature: &Signature,
         header: Option<T>,
         ph: Option<T>,
         generators: &G,
         messages: &[ProofMessage],
-        api_id: Option<Vec<u8>>,
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
         G: Generators,
-        C: BbsCiphersuiteParameters,
+        I: BbsInterfaceParameter,
     {
-        Self::new_with_rng::<_, _, _, C>(
-            PK, signature, header, ph, generators, messages, api_id, OsRng,
+        Self::new_with_rng::<_, _, _, I>(
+            PK, signature, header, ph, generators, messages, OsRng,
         )
     }
     /// Generates the zero-knowledge proof-of-knowledge of a signature, while
     /// optionally selectively disclosing from the original set of signed messages as defined in `ProofGen` API in BBS Signature specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofgen> using an externally supplied random number generator.
     /// TODO: Remove the following clippy warning de-activation.
     #[allow(clippy::too_many_arguments)]
-    pub fn new_with_rng<T, R, G, C>(
+    pub fn new_with_rng<T, R, G, I>(
         PK: &PublicKey,
         signature: &Signature,
         header: Option<T>,
         ph: Option<T>,
         generators: &G,
         messages: &[ProofMessage],
-        api_id: Option<Vec<u8>>,
         mut rng: R,
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
         R: RngCore + CryptoRng,
         G: Generators,
-        C: BbsCiphersuiteParameters,
+        I: BbsInterfaceParameter,
     {
         // Input parameter checks
         // Error out if there is no `header` and not any `ProofMessage`
@@ -157,7 +158,6 @@ impl Proof {
                 messages: messages.len(),
             });
         }
-        let api_id = api_id.unwrap_or([].to_vec());
 
         // (r1, r2, r3, m~_j1, ..., m~_jU) = calculate_random_scalars(3+U)
         let mut random_scalars = RandomScalars {
@@ -195,7 +195,7 @@ impl Proof {
         }
 
         // initialize proof generation
-        let init_result: ProofInitResult = Self::proof_init::<T, G, C>(
+        let init_result: ProofInitResult = Self::proof_init::<T, G, I>(
             PK,
             signature,
             generators,
@@ -203,16 +203,11 @@ impl Proof {
             header,
             message_scalars,
             undisclosed_indexes,
-            &api_id,
         )?;
 
         // calculate the challenge
-        let c = compute_challenge::<_, C>(
-            &init_result,
-            &disclosed_messages,
-            ph,
-            api_id,
-        )?;
+        let c =
+            compute_challenge::<_, I>(&init_result, &disclosed_messages, ph)?;
 
         // finalize the proof
         Self::proof_finalize(
@@ -226,34 +221,31 @@ impl Proof {
 
     /// Verify the zero-knowledge proof-of-knowledge of a signature with
     /// optionally selectively disclosed messages from the original set of signed messages as defined in `ProofGen` API in BBS Signature specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofverify>.
-    pub fn verify<T, G, C>(
+    pub fn verify<T, G, I>(
         &self,
         PK: &PublicKey,
         header: Option<T>,
         ph: Option<T>,
         generators: &G,
         disclosed_messages: &BTreeMap<usize, Message>,
-        api_id: Option<Vec<u8>>,
     ) -> Result<bool, Error>
     where
         T: AsRef<[u8]>,
         G: Generators,
-        C: BbsCiphersuiteParameters,
+        I: BbsInterfaceParameter,
     {
         // if KeyValidate(PK) is INVALID, return INVALID
         // `PK` should not be an identity and should belong to subgroup G2
         if PK.is_valid().unwrap_u8() == 0u8 {
             return Err(Error::InvalidPublicKey);
         }
-        let api_id = api_id.unwrap_or([].to_vec());
 
         // initialize the proof verification procedure
-        let init_res = self.proof_verify_init::<T, G, C>(
+        let init_res = self.proof_verify_init::<T, G, I>(
             PK,
             header,
             generators,
             disclosed_messages,
-            &api_id,
         )?;
 
         // cv_array = (A', Abar, D, C1, C2, R, i1, ..., iR,  msg_i1, ...,
@@ -261,12 +253,7 @@ impl Proof {
         // cv_for_hash = encode_for_hash(cv_array)
         //  if cv_for_hash is INVALID, return INVALID
         //  cv = hash_to_scalar(cv_for_hash, 1)
-        let cv = compute_challenge::<_, C>(
-            &init_res,
-            disclosed_messages,
-            ph,
-            api_id,
-        )?;
+        let cv = compute_challenge::<_, I>(&init_res, disclosed_messages, ph)?;
 
         // Check the selective disclosure proof
         // if c != cv, return INVALID
@@ -283,7 +270,7 @@ impl Proof {
         // Check the signature proof
         // if e(Abar, W) * e(Abar, -P2) != 1, return INVALID
         // else return VALID
-        let P2 = C::p2().to_affine();
+        let P2 = I::Ciphersuite::p2().to_affine();
         Ok(Bls12::multi_miller_loop(&[
             (&self.A_bar.to_affine(), &G2Prepared::from(PK.0.to_affine())),
             (&self.B_bar.to_affine(), &G2Prepared::from(-P2)),
@@ -297,7 +284,7 @@ impl Proof {
     /// Initialize the Proof Generation operation.
     /// TODO: Remove the following clippy warning de-activation.
     #[allow(clippy::too_many_arguments)]
-    pub fn proof_init<T, G, C>(
+    pub fn proof_init<T, G, I>(
         PK: &PublicKey,
         signature: &Signature,
         generators: &G,
@@ -305,12 +292,11 @@ impl Proof {
         header: Option<T>,
         message_scalars: Vec<Scalar>,
         undisclosed_indexes: Vec<usize>,
-        api_id: &Vec<u8>,
     ) -> Result<ProofInitResult, Error>
     where
         T: AsRef<[u8]>,
         G: Generators,
-        C: BbsCiphersuiteParameters,
+        I: BbsInterfaceParameter,
     {
         let total_no_of_messages = message_scalars.len();
 
@@ -341,19 +327,18 @@ impl Proof {
 
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
-        let domain = compute_domain::<_, _, C>(
+        let domain = compute_domain::<_, _, I>(
             PK,
             header,
             message_scalars.len(),
             generators,
-            api_id,
         )?;
 
         // Abar = A * r1
         let A_bar = signature.A * random_scalars.r1;
 
         // B = P1 + Q * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let B = compute_B::<_, C>(&domain, &message_scalars, generators)?;
+        let B = compute_B::<_, I>(&domain, &message_scalars, generators)?;
 
         // Bbar = B * r1 - Abar * e
         let B_bar = G1Projective::multi_exp(
@@ -453,18 +438,17 @@ impl Proof {
     }
 
     /// Initialize the Proof Verification operation.
-    pub fn proof_verify_init<T, G, C>(
+    pub fn proof_verify_init<T, G, I>(
         &self,
         PK: &PublicKey,
         header: Option<T>,
         generators: &G,
         disclosed_messages: &BTreeMap<usize, Message>,
-        api_id: &Vec<u8>,
     ) -> Result<ProofInitResult, Error>
     where
         T: AsRef<[u8]>,
         G: Generators,
-        C: BbsCiphersuiteParameters,
+        I: BbsInterfaceParameter,
     {
         // The total number of messages equals disclosed_messages number + m_hat
         // number Note that this operation is necessarily repeated at
@@ -509,19 +493,18 @@ impl Proof {
 
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
-        let domain = compute_domain::<_, _, C>(
+        let domain = compute_domain::<_, _, I>(
             PK,
             header,
             generators.message_generators_length(),
             generators,
-            api_id,
         )?;
 
         // D = P1 + Q * domain + H_i1 * msg_i1 + ... H_iR * msg_iR
         let D_len = 1 + 1 + disclosed_messages.len();
         let mut D_points = Vec::with_capacity(D_len);
         let mut D_scalars = Vec::with_capacity(D_len);
-        let P1 = C::p1()?;
+        let P1 = I::Ciphersuite::p1()?;
         // P1
         D_points.push(P1);
         D_scalars.push(Scalar::one());

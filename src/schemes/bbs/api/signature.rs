@@ -37,13 +37,12 @@ where
     let generators = MemoryCachedGenerators::<I>::new(messages.len(), None)?;
 
     // Produce the signature and return
-    Signature::new::<_, _, _, I::Ciphersuite>(
+    Signature::new::<_, _, _, I>(
         &sk,
         &pk,
         request.header.as_ref(),
         &generators,
         &messages,
-        Some(I::api_id()),
     )
     .map(|sig| sig.to_octets())
 }
@@ -68,11 +67,10 @@ where
     // Parse signature from request
     let signature = Signature::from_octets(request.signature)?;
 
-    signature.verify::<_, _, _, I::Ciphersuite>(
+    signature.verify::<_, _, _, I>(
         &pk,
         request.header.as_ref(),
         &generators,
         &messages,
-        Some(I::api_id()),
     )
 }

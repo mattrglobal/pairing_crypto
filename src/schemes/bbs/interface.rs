@@ -5,6 +5,7 @@ use crate::{
         ciphersuite::CipherSuiteParameter,
         hash_param::{
             constant::{
+                DEFAULT_DST_SUFFIX_H2S,
                 DEFAULT_DST_SUFFIX_MESSAGE_TO_SCALAR,
                 MAX_DST_SIZE,
                 MAX_MESSAGE_SIZE,
@@ -65,6 +66,11 @@ pub(crate) trait BbsInterfaceParameter: InterfaceParameter {
         .concat()
     }
 
+    /// Default domain separation tag for `hash_to_scalar` operation.
+    fn default_hash_to_scalar_dst() -> Vec<u8> {
+        [&Self::api_id(), DEFAULT_DST_SUFFIX_H2S.as_bytes()].concat()
+    }
+
     // map messages to scalars
     fn map_message_to_scalar_as_hash(
         message: &[u8],
@@ -89,6 +95,12 @@ pub(crate) trait BbsInterfaceParameter: InterfaceParameter {
         }
 
         // hash_to_scalar(message || dst_prime, 1)
-        Self::Ciphersuite::hash_to_scalar(message, Some(dst))
+        Self::Ciphersuite::hash_to_scalar(message, dst)
+    }
+
+    fn hash_to_e(data_to_hash: &[u8]) -> Result<Scalar, Error> {
+        let e_dst =
+            [&Self::api_id(), DEFAULT_DST_SUFFIX_H2S.as_bytes()].concat();
+        Self::Ciphersuite::hash_to_scalar(data_to_hash, &e_dst)
     }
 }

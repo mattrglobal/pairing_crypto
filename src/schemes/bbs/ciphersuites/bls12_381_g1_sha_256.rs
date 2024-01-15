@@ -155,7 +155,7 @@ pub const SCALAR_OCTETS_LENGTH: usize = OCTET_SCALAR_LENGTH;
 #[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
 pub fn hash_to_scalar(
     msg_octets: &[u8],
-    dst: Option<&[u8]>,
+    dst: &[u8],
 ) -> Result<[u8; OCTET_SCALAR_LENGTH], Error> {
     let scalars =
         Bls12381Sha256CipherSuiteParameter::hash_to_scalar(msg_octets, dst);
@@ -188,7 +188,7 @@ pub fn map_message_to_scalar_as_hash(
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
 #[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
 pub fn default_hash_to_scalar_dst() -> Vec<u8> {
-    Bls12381Sha256CipherSuiteParameter::default_hash_to_scalar_dst()
+    Bls12381Sha256InterfaceParameter::default_hash_to_scalar_dst()
 }
 
 /// Return the default map message to scalar as hash dst.

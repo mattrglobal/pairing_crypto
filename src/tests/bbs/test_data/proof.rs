@@ -1,9 +1,6 @@
 use crate::{
     bbs::{
-        ciphersuites::bls12_381_g1_shake_256::{
-            Bls12381Shake256CipherSuiteParameter,
-            Bls12381Shake256InterfaceParameter,
-        },
+        ciphersuites::bls12_381_g1_shake_256::Bls12381Shake256InterfaceParameter,
         core::{
             generator::{
                 memory_cached_generator::MemoryCachedGenerators,
@@ -39,8 +36,6 @@ use ff::Field;
 use group::{Curve, Group};
 use rand_core::OsRng;
 use std::collections::{BTreeMap, BTreeSet};
-
-pub const TEST_API_ID: &[u8; 28] = b"TEST_APPLICATION_IDENTIFIER_";
 
 pub(crate) fn test_data_proof_gen_verify_valid_cases() -> [(
     (
@@ -128,13 +123,12 @@ pub(crate) fn test_data_proof_gen_invalid_parameters() -> [(
     let generators = create_generators_helper(messages.len());
     let indices_all_hidden = BTreeSet::<usize>::new();
     let signature =
-        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
             &generators,
             messages.clone(),
-            Some(TEST_API_ID.to_vec()),
         )
         .expect("signing failed");
 
@@ -471,23 +465,21 @@ pub(crate) fn test_data_proof_uniqueness() -> [(
         .cloned()
         .collect::<BTreeSet<usize>>();
     let signature =
-        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
             &generators,
             messages.clone(),
-            Some(TEST_API_ID.to_vec()),
         )
         .expect("signing failed");
     let signature_with_different_key_pair =
-        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair2.secret_key,
             &key_pair2.public_key,
             header,
             &generators,
             messages.clone(),
-            Some(TEST_API_ID.to_vec()),
         )
         .expect("signing failed");
 
@@ -706,13 +698,12 @@ pub(crate) fn test_data_proof_verify_invalid_parameters() -> [(
     let generators = create_generators_helper(messages.len());
     let indices_all_hidden = BTreeSet::<usize>::new();
     let signature =
-        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
             &generators,
             messages.clone(),
-            Some(TEST_API_ID.to_vec()),
         )
         .expect("signing failed");
 
@@ -928,13 +919,12 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
     let mut generators = create_generators_helper(messages.len());
     let indices_all_hidden = BTreeSet::<usize>::new();
     let signature =
-        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
             &generators,
             messages.clone(),
-            Some(TEST_API_ID.to_vec()),
         )
         .expect("signing failed");
 
@@ -955,13 +945,12 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
     // works
     assert_eq!(
         proof
-            .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, Bls12381Shake256InterfaceParameter>(
                 &key_pair.public_key,
                 header,
                 ph,
                 &mut generators,
                 &revealed_messages,
-                Some(TEST_API_ID.to_vec()),
             )
             .expect("proof verification failed"),
         true
@@ -1127,13 +1116,12 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     let indices_all_hidden = BTreeSet::<usize>::new();
 
     let signature =
-        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
             &generators,
             messages.clone(),
-            Some(TEST_API_ID.to_vec()),
         )
         .expect("signing failed");
 
@@ -1155,26 +1143,24 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     // works
     assert_eq!(
         proof_all_hidden_messages
-            .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, Bls12381Shake256InterfaceParameter>(
                 &key_pair.public_key,
                 header,
                 ph,
                 &mut generators,
                 &no_revealed_messages,
-                Some(TEST_API_ID.to_vec()),
             )
             .expect("proof verification failed"),
         true
     );
 
     let no_header_signature =
-        Signature::new::<&[u8], _, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<&[u8], _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             None,
             &generators,
             messages.clone(),
-            Some(TEST_API_ID.to_vec()),
         )
         .expect("signing failed");
 
@@ -1195,13 +1181,12 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     // works
     assert_eq!(
         no_header_proof
-            .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, Bls12381Shake256InterfaceParameter>(
                 &key_pair.public_key,
                 None,
                 ph,
                 &mut generators,
                 &revealed_messages,
-                Some(TEST_API_ID.to_vec()),
             )
             .expect("proof verification failed"),
         true
@@ -1224,13 +1209,12 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     // works
     assert_eq!(
         no_ph_proof
-            .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, Bls12381Shake256InterfaceParameter>(
                 &key_pair.public_key,
                 header,
                 None,
                 &mut generators,
                 &revealed_messages,
-                Some(TEST_API_ID.to_vec()),
             )
             .expect("proof verification failed"),
         true
@@ -1254,13 +1238,12 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     // works
     assert_eq!(
         no_header_no_ph_proof
-            .verify::<&[u8], _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<&[u8], _, Bls12381Shake256InterfaceParameter>(
                 &key_pair.public_key,
                 None,
                 None,
                 &mut generators,
                 &revealed_messages,
-                Some(TEST_API_ID.to_vec()),
             )
             .expect("proof verification failed"),
         true
@@ -1304,13 +1287,12 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
     // works
     assert_eq!(
         proof_all_revealed_messages
-            .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, Bls12381Shake256InterfaceParameter>(
                 &key_pair.public_key,
                 header,
                 ph,
                 &mut generators,
                 &all_revealed_messages,
-                Some(TEST_API_ID.to_vec()),
             )
             .expect("proof verification failed"),
         true
