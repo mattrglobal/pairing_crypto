@@ -162,8 +162,7 @@ impl Proof {
             ..Default::default()
         };
 
-        // Deserialization steps of the `ProofGen` operation defined in https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-proofgen
-        // TODO: Update reference
+        // Deserialization steps of the `CoreProofGen` operation defined in https://identity.foundation/bbs-signature/draft-irtf-cfrg-bbs-signatures.html#name-coreproofgen
         //
         // Deserialization:
         // ...(implicit steps)...
