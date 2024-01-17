@@ -103,4 +103,9 @@ pub(crate) trait BbsInterfaceParameter: InterfaceParameter {
             [&Self::api_id(), DEFAULT_DST_SUFFIX_H2S.as_bytes()].concat();
         Self::Ciphersuite::hash_to_scalar(data_to_hash, &e_dst)
     }
+
+    // Hash to curve function, using the Interface's identifier as a dst
+    fn hash_to_curve(message: &[u8]) -> Result<G1Projective, Error> {
+        Self::Ciphersuite::hash_to_curve(message, &Self::api_id())
+    }
 }

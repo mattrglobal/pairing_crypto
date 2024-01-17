@@ -3,7 +3,7 @@
 use super::{
     generator::Generators,
     key_pair::PublicKey,
-    types::{Challenge, Message, ProofInitResult},
+    types::{Challenge, CommitProofInitResult, Message, ProofInitResult},
 };
 use crate::{
     bbs::{
@@ -125,6 +125,7 @@ pub(crate) fn compute_challenge<T, I>(
     proof_init_res: &ProofInitResult,
     disclosed_messages: &BTreeMap<usize, Message>,
     ph: Option<T>,
+    commit_init_res: Option<CommitProofInitResult>,
 ) -> Result<Challenge, Error>
 where
     T: AsRef<[u8]>,
@@ -138,6 +139,13 @@ where
     data_to_hash.extend(point_to_octets_g1(&proof_init_res.A_bar).as_ref());
     data_to_hash.extend(point_to_octets_g1(&proof_init_res.B_bar).as_ref());
     data_to_hash.extend(point_to_octets_g1(&proof_init_res.T));
+
+    // Add the commit proof init result elements if supplied
+    if let Some(commit_init) = commit_init_res {
+        data_to_hash.extend(point_to_octets_g1(&commit_init.commit));
+        data_to_hash.extend(point_to_octets_g1(&commit_init.commit_base));
+        data_to_hash.extend(point_to_octets_g1(&commit_init.blind_commit));
+    };
 
     data_to_hash.extend(i2osp(
         disclosed_messages.len() as u64,

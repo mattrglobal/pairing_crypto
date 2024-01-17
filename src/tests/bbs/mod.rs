@@ -19,15 +19,16 @@ mod test_data;
 
 mod generators;
 mod key_pair;
-mod proof;
+pub(crate) mod proof;
 mod signature;
 
-const TEST_KEY_GEN_IKM: &[u8; 32] = b"not_A_random_seed_at_Allllllllll";
+pub(crate) const TEST_KEY_GEN_IKM: &[u8; 32] =
+    b"not_A_random_seed_at_Allllllllll";
 
 const TEST_KEY_INFO: &[u8; 52] =
     b"this-IS-some-key-metadata-to-be-used-in-test-key-gen";
 
-const TEST_KEY_INFOS: [&[u8]; 7] = [
+pub(crate) const TEST_KEY_INFOS: [&[u8]; 7] = [
     b"",
     b"abc",
     b"abcdefgh",
@@ -71,7 +72,7 @@ const EXPECTED_SIGNATURES: [&str; 7] = [
 const TEST_PRESENTATION_HEADER_1: &[u8; 26] = b"test_presentation-header-1";
 const TEST_PRESENTATION_HEADER_2: &[u8; 26] = b"test_presentation-header-2";
 
-fn create_generators_helper(
+pub(crate) fn create_generators_helper(
     num_of_messages: usize,
 ) -> MemoryCachedGenerators<Bls12381Shake256InterfaceParameter> {
     MemoryCachedGenerators::<Bls12381Shake256InterfaceParameter>::new(
@@ -97,7 +98,7 @@ fn test_generators_random_message_generators(
     generators
 }
 
-fn get_test_messages() -> Vec<Message> {
+pub(crate) fn get_test_messages() -> Vec<Message> {
     TEST_CLAIMS
         .iter()
         .map(|b| {
@@ -116,7 +117,7 @@ fn get_random_test_messages(num_messages: usize) -> Vec<Message> {
     vec![Message::random(&mut OsRng); num_messages]
 }
 
-fn get_random_test_key_pair() -> KeyPair {
+pub(crate) fn get_random_test_key_pair() -> KeyPair {
     KeyPair::random(&mut OsRng, TEST_KEY_INFO)
         .expect("key pair generation failed")
 }

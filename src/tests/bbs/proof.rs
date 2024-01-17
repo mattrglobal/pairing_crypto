@@ -58,7 +58,7 @@ pub(crate) mod test_helper {
     use super::*;
     use rand::{CryptoRng, RngCore};
 
-    pub(super) fn to_proof_revealed_messages(
+    pub(crate) fn to_proof_revealed_messages(
         messages: &Vec<Message>,
         revealed_indices: &BTreeSet<usize>,
     ) -> (Vec<ProofMessage>, BTreeMap<usize, Message>) {

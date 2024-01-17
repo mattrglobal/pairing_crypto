@@ -52,7 +52,6 @@ macro_rules! slicer {
     };
 }
 
-#[derive(Default)]
 pub(crate) struct RandomScalars {
     pub r1: Scalar,
     pub r2_tilde: Scalar,
@@ -60,8 +59,19 @@ pub(crate) struct RandomScalars {
     pub m_tilde_scalars: Vec<Scalar>,
 }
 
+impl Default for RandomScalars {
+    fn default() -> Self {
+        Self {
+            r1: Default::default(),
+            r2_tilde: Default::default(),
+            z_tilde: Default::default(),
+            m_tilde_scalars: Vec::new() as Vec<Scalar>,
+        }
+    }
+}
+
 impl RandomScalars {
-    fn insert_m_tilde(&mut self, m_tilde: Scalar) {
+    pub fn insert_m_tilde(&mut self, m_tilde: Scalar) {
         self.m_tilde_scalars.push(m_tilde);
     }
 
@@ -144,21 +154,6 @@ impl Proof {
         G: Generators,
         I: BbsInterfaceParameter,
     {
-        // Input parameter checks
-        // Error out if there is no `header` and not any `ProofMessage`
-        if header.is_none() && messages.is_empty() {
-            return Err(Error::BadParams {
-                cause: "nothing to prove".to_owned(),
-            });
-        }
-        // Error out if length of messages and generators are not equal
-        if messages.len() != generators.message_generators_length() {
-            return Err(Error::MessageGeneratorsLengthMismatch {
-                generators: generators.message_generators_length(),
-                messages: messages.len(),
-            });
-        }
-
         // (r1, r2, r3, m~_j1, ..., m~_jU) = calculate_random_scalars(3+U)
         let mut random_scalars = RandomScalars {
             r1: create_random_scalar(&mut rng)?,
@@ -206,8 +201,12 @@ impl Proof {
         )?;
 
         // calculate the challenge
-        let c =
-            compute_challenge::<_, I>(&init_result, &disclosed_messages, ph)?;
+        let c = compute_challenge::<_, I>(
+            &init_result,
+            &disclosed_messages,
+            ph,
+            None,
+        )?;
 
         // finalize the proof
         Self::proof_finalize(
@@ -253,7 +252,8 @@ impl Proof {
         // cv_for_hash = encode_for_hash(cv_array)
         //  if cv_for_hash is INVALID, return INVALID
         //  cv = hash_to_scalar(cv_for_hash, 1)
-        let cv = compute_challenge::<_, I>(&init_res, disclosed_messages, ph)?;
+        let cv =
+            compute_challenge::<_, I>(&init_res, disclosed_messages, ph, None)?;
 
         // Check the selective disclosure proof
         // if c != cv, return INVALID
@@ -301,6 +301,19 @@ impl Proof {
         let total_no_of_messages = message_scalars.len();
 
         // Check input sizes.
+        // Error out if there is no `header` and not any `ProofMessage`
+        if header.is_none() && message_scalars.is_empty() {
+            return Err(Error::BadParams {
+                cause: "nothing to prove".to_owned(),
+            });
+        }
+        // Error out if length of messages and generators are not equal
+        if total_no_of_messages != generators.message_generators_length() {
+            return Err(Error::MessageGeneratorsLengthMismatch {
+                generators: generators.message_generators_length(),
+                messages: total_no_of_messages,
+            });
+        }
         // Number of message generators == number of messages is checked in
         // compute_domain. Checking that all the indexes are in the [0,
         // length(messages)) range is done before get_message_generator
@@ -315,7 +328,7 @@ impl Proof {
 
         // Checking that number of undisclosed messages (/indexes) <= number of
         // messages
-        if undisclosed_indexes.len() > message_scalars.len() {
+        if undisclosed_indexes.len() > total_no_of_messages {
             return Err(Error::BadParams {
                 cause: format!(
                     "Not disclosed messages number is invalid. Maximum \
@@ -330,7 +343,7 @@ impl Proof {
         let domain = compute_domain::<_, _, I>(
             PK,
             header,
-            message_scalars.len(),
+            total_no_of_messages,
             generators,
         )?;
 
