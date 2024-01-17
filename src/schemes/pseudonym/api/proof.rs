@@ -47,18 +47,17 @@ where
 
     let verify_signature = request.verify_signature.unwrap_or(true);
     if verify_signature
-        && !(signature.verify::<_, _, _, I::Ciphersuite>(
+        && !(signature.verify::<_, _, _, I>(
             &pk,
             request.header.as_ref(),
             &generators,
             &digested_messages,
-            Some(I::api_id()),
         )?)
     {
         return Err(Error::SignatureVerification);
     };
 
-    let proof = ProofWithNym::new::<_, _, I::Ciphersuite>(
+    let proof = ProofWithNym::new::<_, _, I>(
         &pk,
         &signature,
         &pseudonym,
@@ -68,7 +67,6 @@ where
         request.presentation_header.as_ref(),
         &generators,
         &proof_messages,
-        Some(I::api_id()),
     )?;
 
     Ok(proof.to_octets())
@@ -97,7 +95,7 @@ where
     let generators =
         MemoryCachedGenerators::<I>::new(total_message_count, None)?;
 
-    proof.verify::<_, _, I::Ciphersuite>(
+    proof.verify::<_, _, I>(
         &pk,
         &pseudonym,
         &request.verifier_id,
@@ -105,6 +103,5 @@ where
         request.presentation_header.as_ref(),
         &generators,
         &messages,
-        Some(I::api_id()),
     )
 }

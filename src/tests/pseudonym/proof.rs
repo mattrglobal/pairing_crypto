@@ -1,9 +1,6 @@
 use crate::{
     bbs::{
-        ciphersuites::bls12_381_g1_shake_256::{
-            Bls12381Shake256CipherSuiteParameter,
-            Bls12381Shake256InterfaceParameter,
-        },
+        ciphersuites::bls12_381_g1_shake_256::Bls12381Shake256InterfaceParameter,
         core::{key_pair::KeyPair, signature::Signature, types::ProofMessage},
     },
     pseudonym::core::{proof::ProofWithNym, pseudonym::Pseudonym},
@@ -20,7 +17,6 @@ use crate::tests::bbs::{
 const TEST_PID: &[u8; 14] = b"TEST_PROVER_ID"; // Test prover id
 const TEST_VID: &[u8; 16] = b"TEST_VERIFIER_ID"; // Test verifier id
 
-const TEST_API_ID: &[u8; 28] = b"TEST_APPLICATION_IDENTIFIER_";
 const TEST_HEADER: &[u8; 16] = b"some_app_context";
 const TEST_PRESENTATION_HEADER: &[u8; 15] = b"some_randomness";
 
@@ -57,23 +53,21 @@ fn gen_verify_different_key_pairs() {
             .expect("key pair generation failed");
 
         let signature =
-            Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
                 &key_pair.secret_key,
                 &key_pair.public_key,
                 header,
                 &generators,
                 &messages_with_pid,
-                Some(TEST_API_ID.to_vec()),
             )
             .expect("signature generation failed");
 
         let verify_res = signature
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
                 &key_pair.public_key,
                 header,
                 &generators,
                 &messages_with_pid,
-                Some(TEST_API_ID.to_vec()),
             )
             .expect("signature verification failed");
 
@@ -86,28 +80,23 @@ fn gen_verify_different_key_pairs() {
             Pseudonym::new::<_, Bls12381Shake256InterfaceParameter>(
                 &TEST_VID.as_ref(),
                 &TEST_PID.as_ref(),
-                Some(TEST_API_ID.to_vec()),
             )
             .expect("failed to calculate pseudonym");
 
         for j in 0..proof_msgs.len() {
-            let proof_with_nym = ProofWithNym::new::<
-                _,
-                _,
-                Bls12381Shake256CipherSuiteParameter,
-            >(
-                &key_pair.public_key,
-                &signature,
-                &pseudonym,
-                TEST_VID.as_ref(),
-                pid_msg,
-                header,
-                ph,
-                &generators,
-                &proof_msgs,
-                Some(TEST_API_ID.to_vec()),
-            )
-            .expect("failed to generate proof with pseudonym");
+            let proof_with_nym =
+                ProofWithNym::new::<_, _, Bls12381Shake256InterfaceParameter>(
+                    &key_pair.public_key,
+                    &signature,
+                    &pseudonym,
+                    TEST_VID.as_ref(),
+                    pid_msg,
+                    header,
+                    ph,
+                    &generators,
+                    &proof_msgs,
+                )
+                .expect("failed to generate proof with pseudonym");
 
             let mut revealed_msgs = BTreeMap::new();
             for k in 0..j {
@@ -115,7 +104,7 @@ fn gen_verify_different_key_pairs() {
             }
 
             let proof_verify_res = proof_with_nym
-                .verify::<_, _, Bls12381Shake256CipherSuiteParameter>(
+                .verify::<_, _, Bls12381Shake256InterfaceParameter>(
                     &key_pair.public_key,
                     &pseudonym,
                     TEST_VID.as_ref(),
@@ -123,9 +112,9 @@ fn gen_verify_different_key_pairs() {
                     ph,
                     &generators,
                     &revealed_msgs,
-                    Some(TEST_API_ID.to_vec()),
                 )
                 .expect("Proof with nym verification failed unexpectedly");
+
             assert!(proof_verify_res);
 
             proof_msgs[j] = ProofMessage::Revealed(messages[j]);

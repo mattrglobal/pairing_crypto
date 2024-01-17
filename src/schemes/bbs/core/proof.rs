@@ -252,12 +252,8 @@ impl Proof {
         // cv_for_hash = encode_for_hash(cv_array)
         //  if cv_for_hash is INVALID, return INVALID
         //  cv = hash_to_scalar(cv_for_hash, 1)
-        let cv = compute_challenge::<_, I>(
-            &init_res,
-            disclosed_messages,
-            ph,
-            None
-        )?;
+        let cv =
+            compute_challenge::<_, I>(&init_res, disclosed_messages, ph, None)?;
 
         // Check the selective disclosure proof
         // if c != cv, return INVALID

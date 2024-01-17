@@ -16,6 +16,7 @@ use crate::{
             types::{CommitProofInitResult, Message, ProofMessage},
             utils::compute_challenge,
         },
+        interface::BbsInterfaceParameter,
     },
     common::util::create_random_scalar,
     curves::bls12_381::{Bls12, G2Prepared},
@@ -37,7 +38,7 @@ impl core::fmt::Display for ProofWithNym {
 impl ProofWithNym {
     // TODO: remove the clippy warning de-activation
     #[allow(clippy::too_many_arguments)]
-    pub fn new<T, G, C>(
+    pub fn new<T, G, I>(
         PK: &PublicKey,
         signature: &Signature,
         pseudonym: &Pseudonym,
@@ -47,14 +48,13 @@ impl ProofWithNym {
         ph: Option<T>,
         generators: &G,
         messages: &[ProofMessage],
-        api_id: Option<Vec<u8>>,
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
         G: Generators,
-        C: BbsCiphersuiteParameters,
+        I: BbsInterfaceParameter,
     {
-        Self::new_with_rng::<_, _, _, C>(
+        Self::new_with_rng::<_, _, _, I>(
             PK,
             signature,
             pseudonym,
@@ -64,14 +64,13 @@ impl ProofWithNym {
             ph,
             generators,
             messages,
-            api_id,
             OsRng,
         )
     }
 
     // TODO: remove the clippy warning de-activation
     #[allow(clippy::too_many_arguments)]
-    pub fn new_with_rng<T, R, G, C>(
+    pub fn new_with_rng<T, R, G, I>(
         PK: &PublicKey,
         signature: &Signature,
         pseudonym: &Pseudonym,
@@ -81,17 +80,14 @@ impl ProofWithNym {
         ph: Option<T>,
         generators: &G,
         messages: &[ProofMessage],
-        api_id: Option<Vec<u8>>,
         mut rng: R,
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
         R: RngCore + CryptoRng,
         G: Generators,
-        C: BbsCiphersuiteParameters,
+        I: BbsInterfaceParameter,
     {
-        let api_id = api_id.unwrap_or([].to_vec());
-
         // (r1, r2, r3, m~_j1, ..., m~_jU) = calculate_random_scalars(3+U)
         let mut random_scalars = RandomScalars {
             r1: create_random_scalar(&mut rng)?,
@@ -134,7 +130,7 @@ impl ProofWithNym {
             }
         }
 
-        let init_result = Proof::proof_init::<T, G, C>(
+        let init_result = Proof::proof_init::<T, G, I>(
             PK,
             signature,
             generators,
@@ -142,11 +138,10 @@ impl ProofWithNym {
             header,
             message_scalars,
             undisclosed_indexes,
-            &api_id,
         )?;
 
         // Pseudonym correctness proof init
-        let OP = C::hash_to_curve(verifier_id.as_ref(), &api_id)?;
+        let OP = I::hash_to_curve(verifier_id.as_ref())?;
 
         let pid_tilde = random_scalars.m_tilde_scalars.last().unwrap();
         let pseudonym_proof_init = CommitProofInitResult {
@@ -156,11 +151,10 @@ impl ProofWithNym {
         };
 
         // challenge calculation
-        let challenge = compute_challenge::<_, C>(
+        let challenge = compute_challenge::<_, I>(
             &init_result,
             &disclosed_messages,
             ph,
-            api_id,
             Some(pseudonym_proof_init),
         )?;
 
@@ -181,7 +175,7 @@ impl ProofWithNym {
 
     // TODO: Remove this clippy warning de-activation
     #[allow(clippy::too_many_arguments)]
-    pub fn verify<T, G, C>(
+    pub fn verify<T, G, I>(
         &self,
         PK: &PublicKey,
         pseudonym: &Pseudonym,
@@ -190,12 +184,11 @@ impl ProofWithNym {
         ph: Option<T>,
         generators: &G,
         disclosed_messages: &BTreeMap<usize, Message>,
-        api_id: Option<Vec<u8>>,
     ) -> Result<bool, Error>
     where
         T: AsRef<[u8]>,
         G: Generators,
-        C: BbsCiphersuiteParameters,
+        I: BbsInterfaceParameter,
     {
         // if KeyValidate(PK) is INVALID, return INVALID
         // `PK` should not be an identity and should belong to subgroup G2
@@ -206,7 +199,7 @@ impl ProofWithNym {
         // the pseudonym should be a point of G1 but not any of the constant
         // "reserved" points (i.e., the identity of G1 or the base
         // generator and the base point of G1).
-        if pseudonym.is_valid::<C>().unwrap_u8() == 0u8 {
+        if pseudonym.is_valid::<I::Ciphersuite>().unwrap_u8() == 0u8 {
             return Err(Error::InvalidPseudonym);
         }
 
@@ -228,19 +221,16 @@ impl ProofWithNym {
             }
         }
 
-        let api_id = api_id.unwrap_or([].to_vec());
-
         // initialize the proof verification procedure
-        let init_res = self.0.proof_verify_init::<T, G, C>(
+        let init_res = self.0.proof_verify_init::<T, G, I>(
             PK,
             header,
             generators,
             disclosed_messages,
-            &api_id,
         )?;
 
         // initialize the pseudonym correctness proof verification procedure
-        let OP = C::hash_to_curve(verifier_id.as_ref(), &api_id)?;
+        let OP = I::hash_to_curve(verifier_id.as_ref())?;
         let pseudonym_point = pseudonym.as_point();
         let proof_challenge = self.0.c;
 
@@ -256,11 +246,10 @@ impl ProofWithNym {
             blind_commit: Uv,
         };
 
-        let challenge = compute_challenge::<_, C>(
+        let challenge = compute_challenge::<_, I>(
             &init_res,
             disclosed_messages,
             ph,
-            api_id,
             Some(pseudonym_proof_verify_init),
         )?;
 
@@ -279,7 +268,7 @@ impl ProofWithNym {
         // Check the signature proof
         // if e(Abar, W) * e(Abar, -P2) != 1, return INVALID
         // else return VALID
-        let P2 = C::p2().to_affine();
+        let P2 = I::Ciphersuite::p2().to_affine();
         Ok(Bls12::multi_miller_loop(&[
             (
                 &self.0.A_bar.to_affine(),

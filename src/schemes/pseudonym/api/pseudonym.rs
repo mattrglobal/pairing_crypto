@@ -14,11 +14,8 @@ where
     T: AsRef<[u8]>,
     I: BbsInterfaceParameter,
 {
-    let pseudonym = Pseudonym::new::<_, I>(
-        &request.verifier_id,
-        &request.prover_id,
-        Some(I::api_id()),
-    )?;
+    let pseudonym =
+        Pseudonym::new::<_, I>(&request.verifier_id, &request.prover_id)?;
 
     Ok(pseudonym.to_octets())
 }

@@ -19,11 +19,7 @@ pub(crate) struct Pseudonym(G1Projective);
 
 // TODO: Use ct to check equalities bellow
 impl Pseudonym {
-    pub fn new<T, I>(
-        verifier_id: &T,
-        prover_id: &T,
-        api_id: Option<Vec<u8>>,
-    ) -> Result<Self, Error>
+    pub fn new<T, I>(verifier_id: &T, prover_id: &T) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
         I: BbsInterfaceParameter,
@@ -40,8 +36,7 @@ impl Pseudonym {
             });
         }
 
-        let api_id = api_id.as_ref().map_or(&[] as &[u8], |v| v.as_ref());
-        let OP = I::Ciphersuite::hash_to_curve(verifier_id, api_id)?;
+        let OP = I::hash_to_curve(verifier_id)?;
 
         // Check that OP is not the identity, the base point of G1 or P1.
         if OP.is_identity().unwrap_u8() == 1u8
