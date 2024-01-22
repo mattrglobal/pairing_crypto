@@ -48,8 +48,7 @@ macro_rules! generate_hash_fixtures {
         let default_dst = $get_default_hash_to_scalar_dst_fn();
         let dst_used = $dst.unwrap_or(default_dst);
 
-        let msg_scalar =
-            $hash_to_scalar_fn(msg, Some(&dst_used)).unwrap().to_owned();
+        let msg_scalar = $hash_to_scalar_fn(msg, &dst_used).unwrap().to_owned();
 
         let mut h2s_fixture = FixtureH2s {
             case_name: "Hash to scalar output".to_owned(),

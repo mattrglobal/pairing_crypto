@@ -22,43 +22,43 @@ use std::collections::BTreeMap;
 use super::dtos::BbsProofGenRevealMessageRequest;
 use crate::{
     bbs::{
-        ciphersuites::BbsCiphersuiteParameters,
         core::types::{Message, ProofMessage},
+        interface::BbsInterfaceParameter,
     },
     error::Error,
 };
 
 /// Digests the set of input messages and returns in the form of an internal
 /// structure
-pub(crate) fn digest_messages<T, C>(
+pub(crate) fn digest_messages<T, I>(
     messages: Option<&[T]>,
 ) -> Result<Vec<Message>, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters,
+    I: BbsInterfaceParameter,
 {
     if let Some(messages) = messages {
         return messages
             .iter()
-            .map(|msg| Message::from_arbitrary_data::<C>(msg.as_ref(), None))
+            .map(|msg| Message::from_arbitrary_data::<I>(msg.as_ref(), None))
             .collect();
     }
     Ok(vec![])
 }
 
 /// Digests a set of supplied proof messages
-pub(super) fn digest_proof_messages<T, C>(
+pub(super) fn digest_proof_messages<T, I>(
     messages: Option<&[BbsProofGenRevealMessageRequest<T>]>,
 ) -> Result<(Vec<Message>, Vec<ProofMessage>), Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters,
+    I: BbsInterfaceParameter,
 {
     let mut digested_messages = vec![];
     let mut proof_messages = vec![];
     if let Some(messages) = messages {
         for m in messages {
-            match Message::from_arbitrary_data::<C>(m.value.as_ref(), None) {
+            match Message::from_arbitrary_data::<I>(m.value.as_ref(), None) {
                 Ok(digested_message) => {
                     digested_messages.push(digested_message);
                     if m.reveal {
@@ -76,13 +76,13 @@ where
     Ok((digested_messages, proof_messages))
 }
 
-pub(crate) fn digest_revealed_proof_messages<T, C>(
+pub(crate) fn digest_revealed_proof_messages<T, I>(
     messages: &[(usize, T)],
     total_message_count: usize,
 ) -> Result<BTreeMap<usize, Message>, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters,
+    I: BbsInterfaceParameter,
 {
     if messages.is_empty() {
         return Ok(BTreeMap::new());
@@ -106,7 +106,7 @@ where
     messages
         .iter()
         .map(|(i, m)| {
-            match Message::from_arbitrary_data::<C>(m.as_ref(), None) {
+            match Message::from_arbitrary_data::<I>(m.as_ref(), None) {
                 Ok(m) => Ok((*i, m)),
                 Err(e) => Err(e),
             }

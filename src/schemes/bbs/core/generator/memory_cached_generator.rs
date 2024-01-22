@@ -1,6 +1,6 @@
 use super::Generators;
 use crate::{
-    bbs::ciphersuites::BbsCiphersuiteParameters,
+    bbs::interface::BbsInterfaceParameter,
     common::hash_param::constant::XOF_NO_OF_BYTES,
     curves::bls12_381::G1Projective,
     error::Error,
@@ -16,15 +16,15 @@ use group::Group;
 #[allow(non_snake_case)]
 #[derive(Debug, Clone)]
 pub(crate) struct MemoryCachedGenerators<
-    C: BbsCiphersuiteParameters + Debug + Clone,
+    I: BbsInterfaceParameter + Debug + Clone,
 > {
     pub(crate) Q: G1Projective,
     pub(crate) H_list: Vec<G1Projective>,
-    _phantom_data: PhantomData<C>,
+    _phantom_data: PhantomData<I>,
 }
 
 #[allow(non_snake_case)]
-impl<C: BbsCiphersuiteParameters + Debug + Clone> MemoryCachedGenerators<C> {
+impl<I: BbsInterfaceParameter + Debug + Clone> MemoryCachedGenerators<I> {
     /// Construct `Generators`.
     /// The implementation follows `CreateGenerators` section as defined in <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-creategenerators>.
     pub fn new(
@@ -32,17 +32,11 @@ impl<C: BbsCiphersuiteParameters + Debug + Clone> MemoryCachedGenerators<C> {
         private_holder_binding: Option<bool>,
     ) -> Result<Self, Error>
     where
-        C: BbsCiphersuiteParameters,
+        I: BbsInterfaceParameter,
     {
         let mut n = 1;
         let mut v = [0u8; XOF_NO_OF_BYTES];
-        let generators = C::create_generators(
-            &C::generator_seed(),
-            count + 1,
-            &mut n,
-            &mut v,
-            true,
-        )?;
+        let generators = I::create_generators(count + 1, &mut n, &mut v, true)?;
         let mut H_list = generators[1..1 + count].to_vec();
         if let Some(bound_bbs) = private_holder_binding {
             if bound_bbs {
@@ -58,8 +52,8 @@ impl<C: BbsCiphersuiteParameters + Debug + Clone> MemoryCachedGenerators<C> {
     }
 }
 
-impl<C: BbsCiphersuiteParameters + Debug + Clone> Generators
-    for MemoryCachedGenerators<C>
+impl<I: BbsInterfaceParameter + Debug + Clone> Generators
+    for MemoryCachedGenerators<I>
 {
     /// Get `Q`, the generator point for the domain of the signature.
     fn Q(&self) -> G1Projective {

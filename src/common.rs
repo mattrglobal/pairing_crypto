@@ -11,3 +11,6 @@ pub(crate) mod util;
 
 // Common serialization utils.
 pub(crate) mod serialization;
+
+/// Common interface parameters
+pub(crate) mod interface;

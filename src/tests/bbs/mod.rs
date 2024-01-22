@@ -1,6 +1,6 @@
 use crate::{
     bbs::{
-        ciphersuites::bls12_381_g1_shake_256::Bls12381Shake256CipherSuiteParameter,
+        ciphersuites::bls12_381_g1_shake_256::Bls12381Shake256InterfaceParameter,
         core::{
             generator::memory_cached_generator::MemoryCachedGenerators,
             key_pair::KeyPair,
@@ -8,8 +8,8 @@ use crate::{
             types::Message,
         },
     },
-    common::hash_param::h2s::HashToScalarParameter,
     curves::bls12_381::G1Projective,
+    schemes::bbs::interface::BbsInterfaceParameter,
 };
 use core::convert::TryFrom;
 use group::Group;
@@ -73,8 +73,8 @@ const TEST_PRESENTATION_HEADER_2: &[u8; 26] = b"test_presentation-header-2";
 
 fn create_generators_helper(
     num_of_messages: usize,
-) -> MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter> {
-    MemoryCachedGenerators::<Bls12381Shake256CipherSuiteParameter>::new(
+) -> MemoryCachedGenerators<Bls12381Shake256InterfaceParameter> {
+    MemoryCachedGenerators::<Bls12381Shake256InterfaceParameter>::new(
         num_of_messages,
         None,
     )
@@ -83,7 +83,7 @@ fn create_generators_helper(
 
 fn test_generators_random_q(
     num_of_messages: usize,
-) -> MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter> {
+) -> MemoryCachedGenerators<Bls12381Shake256InterfaceParameter> {
     let mut generators = create_generators_helper(num_of_messages);
     generators.Q = G1Projective::random(&mut OsRng);
     generators
@@ -91,7 +91,7 @@ fn test_generators_random_q(
 
 fn test_generators_random_message_generators(
     num_of_messages: usize,
-) -> MemoryCachedGenerators<Bls12381Shake256CipherSuiteParameter> {
+) -> MemoryCachedGenerators<Bls12381Shake256InterfaceParameter> {
     let mut generators = create_generators_helper(num_of_messages);
     generators.H_list = vec![G1Projective::random(&mut OsRng); num_of_messages];
     generators
@@ -102,10 +102,10 @@ fn get_test_messages() -> Vec<Message> {
         .iter()
         .map(|b| {
             Message::from_arbitrary_data::<
-                Bls12381Shake256CipherSuiteParameter,
+            Bls12381Shake256InterfaceParameter,
             >(
                 b.as_ref(),
-                Some(&Bls12381Shake256CipherSuiteParameter::default_map_message_to_scalar_as_hash_dst())
+                Some(&Bls12381Shake256InterfaceParameter::default_map_message_to_scalar_as_hash_dst())
             )
         })
         .collect::<Result<Vec<Message>, _>>()

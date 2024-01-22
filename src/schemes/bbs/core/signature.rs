@@ -6,7 +6,10 @@ use super::{
     utils::{compute_B, compute_domain},
 };
 use crate::{
-    bbs::ciphersuites::BbsCiphersuiteParameters,
+    bbs::{
+        ciphersuites::BbsCiphersuiteParameters,
+        interface::BbsInterfaceParameter,
+    },
     common::util::print_byte_array,
     curves::{
         bls12_381::{
@@ -135,7 +138,7 @@ impl Signature {
     /// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.4>
     /// Security Warning: `SK` and `PK` paramters must be related key-pair
     /// generated using `KeyPair` APIs.
-    pub fn new<T, M, G, C>(
+    pub fn new<T, M, G, I>(
         SK: &SecretKey,
         PK: &PublicKey,
         header: Option<T>,
@@ -146,7 +149,7 @@ impl Signature {
         T: AsRef<[u8]>,
         M: AsRef<[Message]>,
         G: Generators,
-        C: BbsCiphersuiteParameters,
+        I: BbsInterfaceParameter,
     {
         let header = header.as_ref();
         let messages = messages.as_ref();
@@ -172,7 +175,7 @@ impl Signature {
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
         let domain =
-            compute_domain::<_, _, C>(PK, header, messages.len(), generators)?;
+            compute_domain::<_, _, I>(PK, header, messages.len(), generators)?;
 
         // e_s_octs = serialize((SK, domain, msg_1, ..., msg_L))
         let mut data_to_hash = vec![];
@@ -187,12 +190,12 @@ impl Signature {
         // if e_s_expand is INVALID, return INVALID
         // e = hash_to_scalar(e_s_expand[0..(expand_len - 1)])
         // s = hash_to_scalar(e_s_expand[expand_len..(expand_len * 2 - 1)])
-        let e = C::hash_to_e(&data_to_hash)?;
+        let e = I::hash_to_e(&data_to_hash)?;
 
         // B = P1 + Q * domain + H_1 * msg_1 + ... + H_L * msg_L
         let message_scalars: Vec<Scalar> =
             messages.iter().map(|m| m.0).collect();
-        let B = compute_B::<_, C>(&domain, &message_scalars, generators)?;
+        let B = compute_B::<_, I>(&domain, &message_scalars, generators)?;
         let exp = (e + SK.as_scalar()).invert();
         let exp = if exp.is_some().unwrap_u8() == 1u8 {
             exp.unwrap()
@@ -209,7 +212,7 @@ impl Signature {
     }
 
     /// Generate a bound bbs signature.
-    pub fn new_bound<T, M, G, C>(
+    pub fn new_bound<T, M, G, I>(
         SK: &SecretKey,
         PK: &PublicKey,
         BlsPk: &BlsPublicKey,
@@ -221,7 +224,7 @@ impl Signature {
         T: AsRef<[u8]>,
         M: AsRef<[Message]>,
         G: Generators,
-        C: BbsCiphersuiteParameters,
+        I: BbsInterfaceParameter,
     {
         let header = header.as_ref();
         let messages = messages.as_ref();
@@ -245,7 +248,7 @@ impl Signature {
         }
 
         // domain=hash_to_scalar((PK||L||generators||BP_1||Ciphersuite_ID||header),1)
-        let domain = compute_domain::<_, _, C>(
+        let domain = compute_domain::<_, _, I>(
             PK,
             header,
             messages.len() + 1,
@@ -261,10 +264,10 @@ impl Signature {
             data_to_hash.extend(m.to_bytes().as_ref());
         }
 
-        let e = C::hash_to_e(&data_to_hash)?;
+        let e = I::hash_to_e(&data_to_hash)?;
 
         // B = P1 + Q*domain + H_1*msg_1 + ... + H_L*msg_L + BlsPk
-        let mut points: Vec<_> = vec![C::p1()?, generators.Q()];
+        let mut points: Vec<_> = vec![I::Ciphersuite::p1()?, generators.Q()];
         points.extend(generators.message_generators_iter());
         points.remove(1 + generators.message_generators_length());
         let mut scalars: Vec<_> = [Scalar::one(), domain]
@@ -295,7 +298,7 @@ impl Signature {
     /// Verify a signature.
     /// This method follows `Verify` API as defined in BBS Signature spec
     /// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.5>
-    pub fn verify<T, M, G, C>(
+    pub fn verify<T, M, G, I>(
         &self,
         PK: &PublicKey,
         header: Option<T>,
@@ -306,7 +309,7 @@ impl Signature {
         T: AsRef<[u8]>,
         M: AsRef<[Message]>,
         G: Generators,
-        C: BbsCiphersuiteParameters,
+        I: BbsInterfaceParameter,
     {
         let messages = messages.as_ref();
 
@@ -335,14 +338,14 @@ impl Signature {
         // domain
         //  = hash_to_scalar((PK||L||generators||Ciphersuite_ID||header), 1)
         let domain =
-            compute_domain::<_, _, C>(PK, header, messages.len(), generators)?;
+            compute_domain::<_, _, I>(PK, header, messages.len(), generators)?;
 
         // B = P1 + Q * domain + H_1 * msg_1 + ... + H_L * msg_L
         let message_scalars: Vec<Scalar> =
             messages.iter().map(|m| m.0).collect();
-        let B = compute_B::<_, C>(&domain, &message_scalars, generators)?;
+        let B = compute_B::<_, I>(&domain, &message_scalars, generators)?;
 
-        let P2 = C::p2();
+        let P2 = I::Ciphersuite::p2();
         // C1 = (A, W + P2 * e)
         let C1 = (
             &self.A.to_affine(),

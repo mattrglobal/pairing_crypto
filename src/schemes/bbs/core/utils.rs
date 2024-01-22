@@ -6,9 +6,18 @@ use super::{
     types::{Challenge, Message, ProofInitResult},
 };
 use crate::{
-    bbs::ciphersuites::BbsCiphersuiteParameters,
+    bbs::{
+        ciphersuites::BbsCiphersuiteParameters,
+        interface::BbsInterfaceParameter,
+    },
     common::{
-        hash_param::constant::NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
+        hash_param::{
+            constant::{
+                DEFAULT_DST_SUFFIX_H2S,
+                NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
+            },
+            h2s::HashToScalarParameter,
+        },
         serialization::{i2osp, i2osp_with_data},
     },
     curves::{
@@ -28,7 +37,7 @@ use std::collections::BTreeMap;
 /// Computes `domain` value.
 /// domain =
 ///    hash_to_scalar((PK || L || generators || Ciphersuite_ID || header), 1)
-pub(crate) fn compute_domain<T, G, C>(
+pub(crate) fn compute_domain<T, G, I>(
     PK: &PublicKey,
     header: Option<T>,
     L: usize,
@@ -37,7 +46,7 @@ pub(crate) fn compute_domain<T, G, C>(
 where
     T: AsRef<[u8]>,
     G: Generators,
-    C: BbsCiphersuiteParameters,
+    I: BbsInterfaceParameter,
 {
     // Error out if length of messages and generators are not equal
     if L != generators.message_generators_length() {
@@ -51,7 +60,7 @@ where
     // header), 1)
 
     // dom_array = (L, Q, H_1, ..., H_L)
-    // dom_octs = serialize(dom_array) || ciphersuite_id
+    // dom_octs = serialize(dom_array) || api_id
     // dom_input = PK || dom_octs || I2OSP(length(header), 8) || header
     // hash_to_scalar(dom_input, 1)
     let mut data_to_hash = vec![];
@@ -63,7 +72,7 @@ where
         data_to_hash.extend(point_to_octets_g1(&generator).as_ref());
     }
 
-    data_to_hash.extend(C::ID.as_octets());
+    data_to_hash.extend(I::api_id());
 
     let _header_bytes = header.as_ref().map_or(&[] as &[u8], |v| v.as_ref());
     data_to_hash.extend(i2osp_with_data(
@@ -71,19 +80,28 @@ where
         NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
     )?);
 
-    C::hash_to_scalar(&data_to_hash, None)
+    let hash_to_scalar_dst = [
+        I::api_id().clone(),
+        DEFAULT_DST_SUFFIX_H2S.as_bytes().to_vec(),
+    ]
+    .concat();
+
+    <I::Ciphersuite as HashToScalarParameter>::hash_to_scalar(
+        &data_to_hash,
+        &hash_to_scalar_dst,
+    )
 }
 
 /// Computes `B` value.
 /// B = P1 + Q * domain + H_1 * msg_1 + ... + H_L * msg_L
-pub(crate) fn compute_B<G, C>(
+pub(crate) fn compute_B<G, I>(
     domain: &Scalar,
     messages: &[Scalar],
     generators: &G,
 ) -> Result<G1Projective, Error>
 where
     G: Generators,
-    C: BbsCiphersuiteParameters,
+    I: BbsInterfaceParameter,
 {
     // Input params check
     // Error out if length of generators and messages are not equal
@@ -94,7 +112,7 @@ where
         });
     }
 
-    let mut points: Vec<_> = vec![C::p1()?, generators.Q()];
+    let mut points: Vec<_> = vec![I::Ciphersuite::p1()?, generators.Q()];
     points.extend(generators.message_generators_iter());
     let scalars = [&[Scalar::one(), *domain], messages].concat();
 
@@ -103,14 +121,14 @@ where
 
 /// Compute Fiat Shamir heuristic challenge.
 #[allow(clippy::too_many_arguments)]
-pub(crate) fn compute_challenge<T, C>(
+pub(crate) fn compute_challenge<T, I>(
     proof_init_res: &ProofInitResult,
     disclosed_messages: &BTreeMap<usize, Message>,
     ph: Option<T>,
 ) -> Result<Challenge, Error>
 where
     T: AsRef<[u8]>,
-    C: BbsCiphersuiteParameters,
+    I: BbsInterfaceParameter,
 {
     // c_array = (A_bar, B_bar, C, R, i1, ..., iR, msg_i1, ..., msg_iR,
     //              domain, ph)
@@ -140,6 +158,12 @@ where
         NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
     )?);
 
+    let challenge_dst =
+        [I::api_id(), DEFAULT_DST_SUFFIX_H2S.as_bytes().to_vec()].concat();
+
     // c = hash_to_scalar(c_for_hash, 1)
-    Ok(Challenge(C::hash_to_scalar(&data_to_hash, None)?))
+    Ok(Challenge(I::Ciphersuite::hash_to_scalar(
+        &data_to_hash,
+        &challenge_dst,
+    )?))
 }

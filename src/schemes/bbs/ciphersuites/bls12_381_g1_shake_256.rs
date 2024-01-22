@@ -2,9 +2,11 @@ use super::{
     bls12_381::BBS_BLS12381G1_SIGNATURE_LENGTH,
     BbsCiphersuiteParameters,
     CipherSuiteId,
+    InterfaceId,
 };
 use crate::{
     bbs::{
+        interface::BbsInterfaceParameter,
         BbsProofGenRequest,
         BbsProofVerifyRequest,
         BbsSignRequest,
@@ -17,6 +19,7 @@ use crate::{
             h2s::HashToScalarParameter,
             ExpandMessageParameter,
         },
+        interface::InterfaceParameter,
     },
     curves::bls12_381::hash_to_curve::ExpandMsgXof,
     Error,
@@ -43,6 +46,18 @@ impl HashToCurveParameter for Bls12381Shake256CipherSuiteParameter {}
 
 impl BbsCiphersuiteParameters for Bls12381Shake256CipherSuiteParameter {}
 
+// BBS Interface
+#[derive(Debug, Clone)]
+pub(crate) struct Bls12381Shake256InterfaceParameter;
+
+impl InterfaceParameter for Bls12381Shake256InterfaceParameter {
+    const ID: InterfaceId = InterfaceId::BbsH2gHm2s;
+}
+
+impl BbsInterfaceParameter for Bls12381Shake256InterfaceParameter {
+    type Ciphersuite = Bls12381Shake256CipherSuiteParameter;
+}
+
 /// Create a BLS12-381-G1-Shake-256 BBS signature.
 /// Security Warning: `secret_key` and `public_key` in `request` must be related
 /// key-pair generated using `KeyPair` APIs.
@@ -52,7 +67,7 @@ pub fn sign<T>(
 where
     T: AsRef<[u8]>,
 {
-    crate::bbs::api::signature::sign::<_, Bls12381Shake256CipherSuiteParameter>(
+    crate::bbs::api::signature::sign::<_, Bls12381Shake256InterfaceParameter>(
         request,
     )
 }
@@ -62,7 +77,7 @@ pub fn verify<T>(request: &BbsVerifyRequest<'_, T>) -> Result<bool, Error>
 where
     T: AsRef<[u8]>,
 {
-    crate::bbs::api::signature::verify::<_, Bls12381Shake256CipherSuiteParameter>(
+    crate::bbs::api::signature::verify::<_, Bls12381Shake256InterfaceParameter>(
         request,
     )
 }
@@ -74,7 +89,7 @@ pub fn proof_gen<T>(
 where
     T: AsRef<[u8]>,
 {
-    crate::bbs::api::proof::proof_gen::<_, Bls12381Shake256CipherSuiteParameter>(
+    crate::bbs::api::proof::proof_gen::<_, Bls12381Shake256InterfaceParameter>(
         request,
     )
 }
@@ -94,7 +109,7 @@ where
     crate::bbs::api::proof::proof_gen_with_rng::<
         _,
         _,
-        Bls12381Shake256CipherSuiteParameter,
+        Bls12381Shake256InterfaceParameter,
     >(request, rng)
 }
 
@@ -105,10 +120,9 @@ pub fn proof_verify<T>(
 where
     T: AsRef<[u8]>,
 {
-    crate::bbs::api::proof::proof_verify::<
-        _,
-        Bls12381Shake256CipherSuiteParameter,
-    >(request)
+    crate::bbs::api::proof::proof_verify::<_, Bls12381Shake256InterfaceParameter>(
+        request,
+    )
 }
 
 /// Create generators.
@@ -119,7 +133,7 @@ pub fn create_generators(
     private_holder_binding: Option<bool>,
 ) -> Result<Vec<Vec<u8>>, Error> {
     crate::bbs::api::generators::create_generators::<
-        Bls12381Shake256CipherSuiteParameter,
+        Bls12381Shake256InterfaceParameter,
     >(count, private_holder_binding)
 }
 
@@ -141,9 +155,9 @@ pub const SCALAR_OCTETS_LENGTH: usize = OCTET_SCALAR_LENGTH;
 #[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
 pub fn hash_to_scalar(
     msg_octets: &[u8],
-    dst: Option<&[u8]>,
+    dst: &[u8],
 ) -> Result<[u8; OCTET_SCALAR_LENGTH], Error> {
-    let scalars =
+    let scalars: Result<blstrs::Scalar, Error> =
         Bls12381Shake256CipherSuiteParameter::hash_to_scalar(msg_octets, dst);
 
     match scalars {
@@ -160,7 +174,7 @@ pub fn map_message_to_scalar_as_hash(
     dst: Option<&[u8]>,
 ) -> Result<[u8; OCTET_SCALAR_LENGTH], Error> {
     let scalar =
-        Bls12381Shake256CipherSuiteParameter::map_message_to_scalar_as_hash(
+        Bls12381Shake256InterfaceParameter::map_message_to_scalar_as_hash(
             message, dst,
         );
 
@@ -174,21 +188,19 @@ pub fn map_message_to_scalar_as_hash(
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
 #[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
 pub fn default_hash_to_scalar_dst() -> Vec<u8> {
-    Bls12381Shake256CipherSuiteParameter::default_hash_to_scalar_dst()
+    Bls12381Shake256InterfaceParameter::default_hash_to_scalar_dst()
 }
 
 /// Return the default map message to scalar as hash dst.
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
 #[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
 pub fn default_map_message_to_scalar_as_hash_dst() -> Vec<u8> {
-    Bls12381Shake256CipherSuiteParameter::default_map_message_to_scalar_as_hash_dst()
+    Bls12381Shake256InterfaceParameter::default_map_message_to_scalar_as_hash_dst()
 }
 
 /// Get ciphersuite id.
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
 #[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
 pub fn ciphersuite_id() -> Vec<u8> {
-    Bls12381Shake256CipherSuiteParameter::ID
-        .as_octets()
-        .to_vec()
+    Bls12381Shake256InterfaceParameter::api_id()
 }

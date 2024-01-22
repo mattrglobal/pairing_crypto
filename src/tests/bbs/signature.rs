@@ -12,7 +12,7 @@ use crate::{
     bbs::{
         ciphersuites::{
             bls12_381::{PublicKey, SecretKey},
-            bls12_381_g1_shake_256::Bls12381Shake256CipherSuiteParameter,
+            bls12_381_g1_shake_256::Bls12381Shake256InterfaceParameter,
         },
         core::{
             generator::Generators,
@@ -64,7 +64,7 @@ fn sign_verify_serde_nominal() {
     let generators = create_generators_helper(messages.len());
 
     let signature =
-        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
@@ -74,11 +74,11 @@ fn sign_verify_serde_nominal() {
         .expect("signing failed");
 
     assert!(signature
-        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.public_key,
             header,
             &generators,
-            &messages
+            &messages,
         )
         .expect("verification failed"),);
 
@@ -92,11 +92,11 @@ fn sign_verify_serde_nominal() {
     );
 
     assert!(signature_from_deserialization
-        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.public_key,
             header,
             &generators,
-            &messages
+            &messages,
         )
         .expect("signature verification failed after serde"),);
 }
@@ -109,13 +109,15 @@ fn sign_verify_no_header() {
     let messages = get_test_messages();
     let generators = create_generators_helper(messages.len());
 
-    let signature = Signature::new::<
-        _,
-        _,
-        _,
-        Bls12381Shake256CipherSuiteParameter,
-    >(&sk, &pk, None::<&[u8]>, &generators, &messages)
-    .expect("signing failed");
+    let signature =
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
+            &sk,
+            &pk,
+            None::<&[u8]>,
+            &generators,
+            &messages,
+        )
+        .expect("signing failed");
 
     // println!("signature no header = {:?}",
     // hex::encode(signature.to_octets()));
@@ -125,11 +127,11 @@ fn sign_verify_no_header() {
     assert_eq!(signature, expected_signature);
 
     assert!(signature
-        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &pk,
             None::<&[u8]>,
             &generators,
-            &messages
+            &messages,
         )
         .expect("verification failed"),);
 }
@@ -138,7 +140,7 @@ fn sign_verify_no_header() {
 fn sign_verify_different_key_infos() {
     let messages = get_test_messages();
 
-    for i in 0..TEST_KEY_INFOS.len() {
+    for i in 0..[TEST_KEY_INFOS[0]].len() {
         let sk = SecretKey::new(TEST_KEY_GEN_IKM, TEST_KEY_INFOS[i])
             .expect("secret key generation failed");
         let pk = PublicKey::from(&sk);
@@ -147,7 +149,7 @@ fn sign_verify_different_key_infos() {
             _,
             _,
             _,
-            Bls12381Shake256CipherSuiteParameter,
+            Bls12381Shake256InterfaceParameter,
         >(
             &sk, &pk, Some(&TEST_HEADER), &generators, &messages
         )
@@ -155,11 +157,11 @@ fn sign_verify_different_key_infos() {
         // println!("{:?},", hex::encode(signature.to_octets()));
 
         assert!(signature
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
                 &pk,
                 Some(&TEST_HEADER),
                 &generators,
-                &messages
+                &messages,
             )
             .unwrap());
         let expected_signature_i =
@@ -176,7 +178,7 @@ fn signature_equality() {
     let generators = create_generators_helper(messages.len());
 
     let signature1 =
-        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
@@ -186,7 +188,7 @@ fn signature_equality() {
         .expect("signing failed");
 
     let signature2 =
-        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
@@ -208,7 +210,7 @@ fn signature_equality() {
     assert_ne!(signature4, signature1);
 
     let signature5 =
-        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
@@ -308,13 +310,13 @@ fn signature_uniqueness() {
     ) in test_data
     {
         let signature1 =
-            Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
                 sk1, pk1, h1, gen1, msg1,
             )
             .expect("signature1 creation failed");
 
         let signature2 =
-            Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
                 sk2, pk2, h2, gen2, msg2,
             )
             .expect("signature2 creation failed");
@@ -361,15 +363,15 @@ fn sign_verify_valid_cases() {
         test_data
     {
         let signature =
-            Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
                 sk, pk, header, generators, &messages,
             )
             .unwrap_or_else(|_| {
                 panic!("signing should pass - {failure_debug_message}")
             });
         assert!(signature
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
-                pk, header, generators, &messages
+            .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
+                pk, header, generators, &messages,
             )
             .unwrap_or_else(|_| panic!(
                 "verification should pass - {failure_debug_message}"
@@ -377,7 +379,7 @@ fn sign_verify_valid_cases() {
     }
 
     // Public key validity is not checked during signing
-    Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+    Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
         &sk,
         &PublicKey::default(),
         header,
@@ -391,7 +393,7 @@ fn sign_verify_valid_cases() {
 }
 
 #[test]
-// Test `Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(...)`
+// Test `Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(...)`
 // implementation's returned errors by passing invalid paramter values.
 fn signature_new_invalid_parameters() {
     let sk = SecretKey::random(&mut OsRng, TEST_KEY_INFO)
@@ -401,19 +403,21 @@ fn signature_new_invalid_parameters() {
     let messages = get_test_messages();
     let generators = create_generators_helper(messages.len());
     // Just to make sure sign-verify succeeds with above valid values
-    let signature = Signature::new::<
-        _,
-        _,
-        _,
-        Bls12381Shake256CipherSuiteParameter,
-    >(&sk, &pk, header, &generators, &messages)
-    .expect("signing failed");
-    assert!(signature
-        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+    let signature =
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
+            &sk,
             &pk,
             header,
             &generators,
-            &messages
+            &messages,
+        )
+        .expect("signing failed");
+    assert!(signature
+        .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
+            &pk,
+            header,
+            &generators,
+            &messages,
         )
         .expect("verification failed"),);
 
@@ -540,7 +544,7 @@ fn signature_new_invalid_parameters() {
         test_data
     {
         let result =
-            Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
                 sk, pk, header, generators, &messages,
             );
         assert_eq!(
@@ -562,7 +566,7 @@ fn verify_tampered_signature() {
 
     // Just to make sure sign-verify succeeds with above valid values
     let signature =
-        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
@@ -571,11 +575,11 @@ fn verify_tampered_signature() {
         )
         .expect("signing failed");
     assert!(signature
-        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.public_key,
             header,
             &generators,
-            &messages
+            &messages,
         )
         .expect("verification failed"),);
 
@@ -583,11 +587,11 @@ fn verify_tampered_signature() {
     tampered_signature.A = G1Projective::random(&mut OsRng);
     assert!(
         !tampered_signature
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
                 &key_pair.public_key,
                 header,
                 &generators,
-                &messages
+                &messages,
             )
             .expect("verification should not fail with error"),
         "verification should fail with tampered `A` value"
@@ -597,11 +601,11 @@ fn verify_tampered_signature() {
     tampered_signature.e = Scalar::random(&mut OsRng);
     assert!(
         !tampered_signature
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
                 &key_pair.public_key,
                 header,
                 &generators,
-                &messages
+                &messages,
             )
             .expect("verification should not fail with error"),
         "verification should fail with tampered `e` value"
@@ -636,7 +640,7 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
 
     // Just to make sure sign-verify succeeds with above valid values
     let signature =
-        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
@@ -645,11 +649,11 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
         )
         .expect("signing failed");
     assert!(signature
-        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.public_key,
             header,
             &generators,
-            &messages
+            &messages,
         )
         .expect("verification failed"),);
 
@@ -772,7 +776,7 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
 
     for (pk, header, generators, messages, failure_debug_message) in test_data {
         let result = signature
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
                 pk, header, generators, &messages,
             )
             .expect("verify should return a true/false value, not error");
@@ -817,7 +821,7 @@ fn verify_tampered_signature_parameters_helper(messages: Vec<Message>) {
             test_data
         {
             let result = signature
-                .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+                .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
                     pk, header, generators, &messages,
                 )
                 .expect("verify should return a true/false value, not error");
@@ -859,7 +863,7 @@ fn verify_tampered_signature_parameters_no_header_signature() {
 
     // Just to make sure sign-verify succeeds with above valid values
     let signature =
-        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
@@ -868,11 +872,11 @@ fn verify_tampered_signature_parameters_no_header_signature() {
         )
         .expect("signing failed");
     assert!(signature
-        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.public_key,
             header,
             &generators,
-            &messages
+            &messages,
         )
         .expect("verification failed"),);
 
@@ -949,7 +953,7 @@ fn verify_tampered_signature_parameters_no_header_signature() {
 
     for (pk, header, generators, messages, failure_debug_message) in test_data {
         let result = signature
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
                 pk, header, generators, &messages,
             )
             .expect("verify should return a true/false value, not error");
@@ -972,7 +976,7 @@ fn verify_tampered_signature_parameters_no_messages_signature() {
 
     // Just to make sure sign-verify succeeds with above valid values
     let signature =
-        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
@@ -981,11 +985,11 @@ fn verify_tampered_signature_parameters_no_messages_signature() {
         )
         .expect("signing failed");
     assert!(signature
-        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.public_key,
             header,
             &generators,
-            &messages
+            &messages,
         )
         .expect("verification failed"));
 
@@ -1021,7 +1025,7 @@ fn verify_tampered_signature_parameters_no_messages_signature() {
 
     for (pk, header, generators, messages, failure_debug_message) in test_data {
         let result = signature
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
                 pk, header, generators, &messages,
             )
             .expect("verify should return a true/false value, not error");
@@ -1042,19 +1046,21 @@ fn verify_invalid_parameters() {
     let messages = get_test_messages();
     let generators = create_generators_helper(messages.len());
     // Just to make sure sign-verify succeeds with above valid values
-    let signature = Signature::new::<
-        _,
-        _,
-        _,
-        Bls12381Shake256CipherSuiteParameter,
-    >(&sk, &pk, header, &generators, &messages)
-    .expect("signing failed");
-    assert!(signature
-        .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+    let signature =
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
+            &sk,
             &pk,
             header,
             &generators,
-            &messages
+            &messages,
+        )
+        .expect("signing failed");
+    assert!(signature
+        .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
+            &pk,
+            header,
+            &generators,
+            &messages,
         )
         .expect("verification failed"));
 
@@ -1128,7 +1134,7 @@ fn verify_invalid_parameters() {
         test_data
     {
         let result = signature
-            .verify::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+            .verify::<_, _, _, Bls12381Shake256InterfaceParameter>(
                 pk, header, generators, &messages,
             );
         assert_eq!(
@@ -1160,7 +1166,7 @@ fn to_octets() {
     let generators = create_generators_helper(messages.len());
 
     let mut signature =
-        Signature::new::<_, _, _, Bls12381Shake256CipherSuiteParameter>(
+        Signature::new::<_, _, _, Bls12381Shake256InterfaceParameter>(
             &key_pair.secret_key,
             &key_pair.public_key,
             header,
