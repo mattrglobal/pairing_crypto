@@ -20,4 +20,4 @@ jobs:
           remote_git_user_name: ${{ secrets.MATTRASSURANCE_GIT_USER_NAME }}
           remote_git_user_email: ${{ secrets.MATTRASSURANCE_GIT_USER_EMAIL }}
           remote_git_user_pat: ${{ secrets.MATTRASSURANCE_GIT_USER_PAT }}
-          remote_git_repo: 'mattrassurance/pairing_crypto.git'
+          remote_git_repo: 'mattrassurance/pairing_crypto'
