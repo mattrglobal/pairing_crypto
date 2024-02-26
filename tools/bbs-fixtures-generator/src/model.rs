@@ -546,14 +546,22 @@ pub struct RandomScalarsDef {
     #[serde(serialize_with = "serialize_scalar")]
     #[serde(deserialize_with = "deserialize_scalar")]
     pub r1: Scalar,
+    /// The r1~random scalar (blinding the r1 value)
+    #[serde(serialize_with = "serialize_scalar")]
+    #[serde(deserialize_with = "deserialize_scalar")]
+    pub r2: Scalar,
+    /// The e~ random scalar (blinding the r1 value)
+    #[serde(serialize_with = "serialize_scalar")]
+    #[serde(deserialize_with = "deserialize_scalar")]
+    pub e_tilde: Scalar,
     /// The r1~ random scalar (blinding the r1 value)
     #[serde(serialize_with = "serialize_scalar")]
     #[serde(deserialize_with = "deserialize_scalar")]
-    pub r2_tilde: Scalar,
+    pub r1_tilde: Scalar,
     /// The r3~ random scalar (blinding the r3 value)
     #[serde(serialize_with = "serialize_scalar")]
     #[serde(deserialize_with = "deserialize_scalar")]
-    pub z_tilde: Scalar,
+    pub r3_tilde: Scalar,
     /// The list of m~_i random scalars (blinding the undisclosed messages)
     #[serde(serialize_with = "serialize_scalars_vec")]
     #[serde(deserialize_with = "deserialize_scalars_vec")]
@@ -575,10 +583,18 @@ pub struct ProofTraceDef {
     #[serde(serialize_with = "hex::serde::serialize")]
     #[serde(deserialize_with = "hex::serde::deserialize")]
     pub B_bar: [u8; OCTET_POINT_G1_LENGTH],
-    /// The point T calculated during proof generation
+    /// The point D calculated during proof generation
     #[serde(serialize_with = "hex::serde::serialize")]
     #[serde(deserialize_with = "hex::serde::deserialize")]
-    pub T: [u8; OCTET_POINT_G1_LENGTH],
+    pub D: [u8; OCTET_POINT_G1_LENGTH],
+    /// The point T1 calculated during proof generation
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub T1: [u8; OCTET_POINT_G1_LENGTH],
+    /// The point T2 calculated during proof generation
+    #[serde(serialize_with = "hex::serde::serialize")]
+    #[serde(deserialize_with = "hex::serde::deserialize")]
+    pub T2: [u8; OCTET_POINT_G1_LENGTH],
     /// The domain scalar value calculated during proof generation
     #[serde(serialize_with = "hex::serde::serialize")]
     #[serde(deserialize_with = "hex::serde::deserialize")]

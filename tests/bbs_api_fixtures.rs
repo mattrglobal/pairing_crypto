@@ -37,12 +37,15 @@ macro_rules! sign_verify_fixtures {
             std::fs::read_dir($signature_fixtures_dir).unwrap();
 
         for fixture_path in fixtures_paths {
+            println!("Fixture path = {:?}", fixture_path);
             let fixture = {
                 let text =
                     std::fs::read_to_string(fixture_path.unwrap().path())
                         .unwrap();
                 serde_json::from_str::<FixtureSignature>(&text).unwrap()
             };
+
+            println!("fixture = {:?}", fixture);
 
             validate_signature_fixture!($verify_fn, &fixture);
         }
