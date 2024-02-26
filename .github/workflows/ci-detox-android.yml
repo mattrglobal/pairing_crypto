@@ -66,14 +66,14 @@ jobs:
   android:
     name: Detox Android E2E Testing
     needs: [java-wrapper]
-    runs-on: ${{ matrix.runners }}
-    strategy:
-      matrix:
-        runners: [[self-hosted, macos, general, ARM64]]
-    concurrency:
-      group: ci-detox-android-${{ matrix.runners }}-${{ github.head_ref || github.run_id}}
-      cancel-in-progress: true
-    timeout-minutes: 60
+    runs-on: macos-latest
+    # strategy:
+    #   matrix:
+    #     runners: [[self-hosted, macos, general, ARM64]]
+    # concurrency:
+    #   group: ci-detox-android-${{ matrix.runners }}-${{ github.head_ref || github.run_id}}
+    #   cancel-in-progress: true
+    # timeout-minutes: 60
 
     env:
       NODE_OPTIONS: "--max-old-space-size=5120"
@@ -109,31 +109,46 @@ jobs:
         working-directory: wrappers/react-native/example
         run: yarn install --frozen-lockfile
 
-      - name: Config self hosted env
-        run: |
-          echo "ANDROID_HOME=/Users/runner/Library/Android/sdk" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=/Users/runner/Library/Android/sdk" >> $GITHUB_ENV
 
-      - name: Download Android Build Tools
-        timeout-minutes: 5
-        run: |
-          echo "y" | $ANDROID_SDK_ROOT/tools/bin/sdkmanager --install "build-tools;31.0.0"
-          cd $ANDROID_SDK_ROOT/build-tools/31.0.0/
-          ln -sf d8 dx
-          cd lib
-          ln -sf d8.jar dx.jar
+
+      - name: Use specific Java version for sdkmanager to work
+        uses: joschi/setup-jdk@v1
+        with:
+          java-version: 'openjdk8'
+          architecture: 'x64'
 
       - name: Download Android Emulator Image
         run: |
           echo "y" | $ANDROID_HOME/tools/bin/sdkmanager --install "system-images;android-29;google_apis;x86"
-          echo "no" | $ANDROID_HOME/tools/bin/avdmanager create avd --force --name Nexus_5X_API_29 --device "Nexus 5X" -k 'system-images;android-29;google_apis;x86'
+          echo "no" | $ANDROID_HOME/tools/bin/avdmanager create avd --force --name emu --device "Nexus 5X" -k 'system-images;android-29;google_apis;x86'
           $ANDROID_HOME/emulator/emulator -list-avds
 
-      - name: Setup Java
-        uses: actions/setup-java@v2
-        with:
-          java-version: "11"
-          distribution: "adopt"
+
+      # - name: Config self hosted env
+      #   run: |
+      #     echo "ANDROID_HOME=/Users/runner/Library/Android/sdk" >> $GITHUB_ENV
+      #     echo "ANDROID_SDK_ROOT=/Users/runner/Library/Android/sdk" >> $GITHUB_ENV
+
+      # - name: Download Android Build Tools
+      #   timeout-minutes: 5
+      #   run: |
+      #     echo "y" | $ANDROID_SDK_ROOT/tools/bin/sdkmanager --install "build-tools;31.0.0"
+      #     cd $ANDROID_SDK_ROOT/build-tools/31.0.0/
+      #     ln -sf d8 dx
+      #     cd lib
+      #     ln -sf d8.jar dx.jar
+
+      # - name: Download Android Emulator Image
+      #   run: |
+      #     echo "y" | $ANDROID_HOME/tools/bin/sdkmanager --install "system-images;android-29;google_apis;x86"
+      #     echo "no" | $ANDROID_HOME/tools/bin/avdmanager create avd --force --name Nexus_5X_API_29 --device "Nexus 5X" -k 'system-images;android-29;google_apis;x86'
+      #     $ANDROID_HOME/emulator/emulator -list-avds
+
+      # - name: Setup Java
+      #   uses: actions/setup-java@v2
+      #   with:
+      #     java-version: "11"
+      #     distribution: "adopt"
 
       - name: Detox Build Android Configuration
         working-directory: wrappers/react-native

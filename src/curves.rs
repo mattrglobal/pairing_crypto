@@ -1,5 +1,5 @@
 // Curve specific structures for BLS12-381
-pub mod bls12_381;
+pub(crate) mod bls12_381;
 
 // Serialization of group points
 pub(crate) mod point_serde;

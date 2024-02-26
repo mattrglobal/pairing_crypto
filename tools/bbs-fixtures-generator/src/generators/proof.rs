@@ -1,26 +1,27 @@
 use blstrs::hash_to_curve::{ExpandMsgXmd, ExpandMsgXof};
 use pairing_crypto::bbs::{
     ciphersuites::{
-        bls12_381::BBS_BLS12381G1_EXPAND_LEN,
+        bls12_381::suite_constants::{
+            BBS_BLS12381G1_EXPAND_LEN,
+            OCTET_POINT_G1_LENGTH,
+            OCTET_SCALAR_LENGTH,
+        },
         bls12_381_g1_sha_256::{
             ciphersuite_id as bls12_381_sha_256_ciphersuite_id,
-            proof_gen_with_rng as bls12_381_sha_256_proof_gen,
             proof_verify as bls12_381_sha_256_proof_verify,
+            proof_with_rng_and_trace as bls12_381_sha_256_proof_gen,
             sign as bls12_381_sha_256_sign,
             verify as bls12_381_sha_256_verify,
-            POINT_G1_OCTETS_LENGTH as BLS12381_SHA256_POINT_G1_OCTETS_LENGTH,
-            SCALAR_OCTETS_LENGTH as BLS12381_SHA256_SCALAR_OCTETS_LENGTH,
         },
         bls12_381_g1_shake_256::{
             ciphersuite_id as bls12_381_shake_256_ciphersuite_id,
-            proof_gen_with_rng as bls12_381_shake_256_proof_gen,
             proof_verify as bls12_381_shake_256_proof_verify,
+            proof_with_rng_and_trace as bls12_381_shake_256_proof_gen,
             sign as bls12_381_shake_256_sign,
             verify as bls12_381_shake_256_verify,
-            POINT_G1_OCTETS_LENGTH as BLS12381_SHAKE256_POINT_G1_OCTETS_LENGTH,
-            SCALAR_OCTETS_LENGTH as BLS12381_SHAKE256_SCALAR_OCTETS_LENGTH,
         },
     },
+    types::ProofTrace,
     BbsProofGenRequest,
     BbsProofGenRevealMessageRequest,
     BbsProofVerifyRequest,
@@ -54,8 +55,7 @@ macro_rules! generate_proof_fixture {
      $fixture_gen_input:ident,
      $output_dir:expr,
      $expander:ty,
-     $point_g1_octets_length:ident,
-     $scalar_octets_length:ident) => {
+    ) => {
         // Key pair
         let key_pair = $keygen_fn(
             &$fixture_gen_input.key_ikm,
@@ -156,7 +156,7 @@ macro_rules! generate_proof_fixture {
             result,
         ) in fixture_data
         {
-            let (proof, disclosed_messages) = proof_gen_helper!(
+            let (proof, disclosed_messages, signature, trace) = proof_gen_helper!(
                 $sign_fn,
                 $verify_fn,
                 $proof_gen_fn,
@@ -169,16 +169,16 @@ macro_rules! generate_proof_fixture {
                 $ciphersuite_id,
                 &disclosed_indices,
                 $expander,
-                $point_g1_octets_length,
-                $scalar_octets_length
             );
             let mut fixture = FixtureProof {
                 case_name,
                 header: header.clone(),
+                signature: signature.to_vec(),
                 presentation_header: presentation_header.clone(),
                 disclosed_messages,
                 proof,
                 result,
+                trace,
                 ..fixture_scratch.clone()
             };
             validate_proof_fixture!($proof_verify_fn, &fixture);
@@ -192,7 +192,7 @@ macro_rules! generate_proof_fixture {
         // multi-message signature, multiple messages revealed proof
         let messages = &$fixture_gen_input.messages;
         let disclosed_indices = BTreeSet::<usize>::from([0, 2, 4, 6]);
-        let (proof, disclosed_messages) = proof_gen_helper!(
+        let (proof, disclosed_messages, signature, trace) = proof_gen_helper!(
             $sign_fn,
             $verify_fn,
             $proof_gen_fn,
@@ -205,18 +205,18 @@ macro_rules! generate_proof_fixture {
             $ciphersuite_id,
             &disclosed_indices,
             $expander,
-            $point_g1_octets_length,
-            $scalar_octets_length
         );
         let fixture_negative = FixtureProof {
             case_name: "multi-message signature, all messages revealed proof"
                 .to_owned(),
+            signature: signature.to_vec(),
             disclosed_messages: disclosed_messages.clone(),
             proof: proof.clone(),
             result: ExpectedResult {
                 valid: true,
                 reason: None,
             },
+            trace,
             ..fixture_scratch.clone()
         };
 
@@ -383,8 +383,6 @@ macro_rules! proof_gen_helper {
     $ciphersuite_id:ident,
     $disclosed_indices:expr,
     $expander:ty,
-    $point_g1_octets_length:ident,
-    $scalar_octets_length:ident
 ) => {{
         if $disclosed_indices.len() > $messages.len() {
             panic!("more disclosed indices than messages");
@@ -446,6 +444,8 @@ macro_rules! proof_gen_helper {
         );
 
         // Generate the proof using the mocked rng
+        let mut trace = ProofTrace::default();
+
         let proof = $proof_gen_fn(
             &BbsProofGenRequest {
                 $public_key,
@@ -456,12 +456,13 @@ macro_rules! proof_gen_helper {
                 verify_signature: None,
             },
             mocked_rng,
+            Some(&mut trace),
         )
         .unwrap();
 
         // Sanity check for the count value in the input of mocked_rng
         if (proof.len()
-            != 2 * $point_g1_octets_length + count * $scalar_octets_length)
+            != 2 * OCTET_POINT_G1_LENGTH + count * OCTET_SCALAR_LENGTH)
         {
             panic!(
                 "Unexpected 'count' value in MockedRng during fixture proof \
@@ -481,7 +482,7 @@ macro_rules! proof_gen_helper {
             .unwrap(),
             true
         );
-        (proof, disclosed_messages)
+        (proof, disclosed_messages, signature, trace)
     }};
 }
 
@@ -535,8 +536,6 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &Path) {
             .join("bls12_381_sha_256")
             .join(PROOF_FIXTURES_SUBDIR),
         ExpandMsgXmd<Sha256>,
-        BLS12381_SHA256_POINT_G1_OCTETS_LENGTH,
-        BLS12381_SHA256_SCALAR_OCTETS_LENGTH
     );
 
     generate_proof_fixture!(
@@ -551,7 +550,5 @@ pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &Path) {
             .join("bls12_381_shake_256")
             .join(PROOF_FIXTURES_SUBDIR),
         ExpandMsgXof<Shake256>,
-        BLS12381_SHAKE256_POINT_G1_OCTETS_LENGTH,
-        BLS12381_SHAKE256_SCALAR_OCTETS_LENGTH
     );
 }

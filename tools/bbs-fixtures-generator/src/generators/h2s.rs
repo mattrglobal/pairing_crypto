@@ -1,5 +1,5 @@
 use pairing_crypto::bbs::ciphersuites::{
-    bls12_381::BBS_BLS12381G1_EXPAND_LEN,
+    bls12_381::suite_constants::BBS_BLS12381G1_EXPAND_LEN,
     bls12_381_g1_sha_256::{
         ciphersuite_id as bls12_381_g1_sha_256_ciphersuite_id,
         default_hash_to_scalar_dst as bls12_381_sha_256_default_hash_to_scalar_dst,

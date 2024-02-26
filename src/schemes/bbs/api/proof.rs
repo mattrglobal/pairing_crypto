@@ -139,11 +139,20 @@ where
     )
 }
 
-// Generate a BBS signature proof of knowledge with a given rng.
+// Generate a BBS signature proof of knowledge with a given rng and a trace.
+#[cfg_attr(
+    docsrs,
+    doc(cfg(feature = "__private_bbs_fixtures_generator_api"))
+)]
 #[cfg(feature = "__private_bbs_fixtures_generator_api")]
-pub(crate) fn proof_gen_with_rng<T, R, C>(
+use crate::schemes::bbs::core::types::ProofTrace;
+
+#[cfg_attr(docsrs, doc(cfg(feature = "__private_bbs_fixtures_generator_api")))]
+#[cfg(feature = "__private_bbs_fixtures_generator_api")]
+pub(crate) fn proof_gen_with_rng_and_trace<T, R, C>(
     request: &BbsProofGenRequest<'_, T>,
     rng: R,
+    trace: Option<&mut ProofTrace>,
 ) -> Result<Vec<u8>, Error>
 where
     T: AsRef<[u8]>,
@@ -154,7 +163,7 @@ where
         _parse_request_helper::<T, C>(request)?;
 
     // Generate the proof
-    let proof = Proof::new_with_rng::<_, _, _, C>(
+    let proof = Proof::new_with_trace::<_, _, _, C>(
         &pk,
         &signature,
         request.header.as_ref(),
@@ -162,6 +171,7 @@ where
         &generators,
         &proof_messages,
         rng,
+        trace,
     )?;
 
     Ok(proof.to_octets())
