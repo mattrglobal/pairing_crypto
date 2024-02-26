@@ -15,25 +15,6 @@
     "valid": true
   },
   "trace": {
-<<<<<<< HEAD
-<<<<<<< HEAD
-    "random_scalars": {
-      "r1": "3f3bb393d74a00b04ad93e4a03d27a38cdd60e1777fd5af26d4e3a6a6a1e2240",
-      "r2_tilde": "27e7fd8f35cb03378bb9d0388a518db1813cc0c7c33a07228987493d24f60332",
-      "z_tilde": "2d9e086edee6b8378e0eba4c185431d07025b8a3d5bda33352a43cb03776d502",
-      "m_tilde_scalars": []
-    },
-    "A_bar": "8e9bc91d68151e4b105ec0d46ca95fe1526672bed27b26541a648ec990b3b11b8905e671fb981f1b9cd1ed64167a7ba1",
-    "B_bar": "8b7697d9bd6f3cac02f75551f2db95bf2707e3790c10d815346a96198327cc7048f220bdc7d6fc5ec41c6d9f89d607ff",
-    "T": "a7859db7e985ab65b9aa182b4e8598e4fcb3685ad161a5d3b6ab7da40968bd5c2889acedae5e4d768d1e88bcd6f25f59",
-=======
-    "A_bar": "a41b599fbb6f42166a0e48711dfb4fdfb6fb3c1e96719321101b38ce477c138de662477bf03b5d6fa228b47f28c76e90",
-    "B_bar": "8ecd26e2eebd7e61cf51a8ca2acf8796fa2e2ce3fdb7dd7205bb5975612f1926948e4d852792870756cf0b6db511031c",
-    "D": "8e348acd7c7b62cd9dc77f1f0b08aa932d888e96508284a0a26207c1a46888c511f69334a07c88ab114396fe4af7f735",
-    "T1": "84189c77e9a66dcc14242c3e8487032e9bf646c2b09c7b303d3272785060f8ef3666cb8cf926dfe591d1e9bc7e18abf1",
-    "T2": "8c7dfedc5aa69fe529ff1f8e4806ab792b32a303da45f864a0c7c267ece4149f54013abdbfc7d05d79093cdcaf9a3ea5",
->>>>>>> c5107a0 (feat(core/bbs): use cdl16 proof generation)
-=======
     "random_scalars": {
       "r1": "60ca409f6b0563f687fc471c63d2819f446f39c23bb540925d9d4254ac58f337",
       "r2": "2ceff4982de0c913090f75f081df5ec594c310bb48c17cfdaab5332a682ef811",
@@ -47,7 +28,6 @@
     "D": "aeea5597befbb651827b5eed5a66f1a959bb46cfd5ca1a817a14475960f69b32c54db7587b5ee3ab665fbd37b506830a",
     "T1": "8ce960f5155d05a1795cc3422e6c975f6436a9b70c17ffbfd776346c93a9682bb6c74abd70d8c32781ae783ec45ea005",
     "T2": "ab9543a6b04303e997621d3d5cbd85924e7e69da498a2a9e9d3a8b01f39259c9c5920bd530de1d3b0afb99eb0c549d5a",
->>>>>>> 23f3f79 (refactor: update proof gen to latest spec version)
     "domain": "25d57fab92a8274c68fde5c3f16d4b275e4a156f211ae34b3ab32fbaf506ed5c",
     "challenge": "067fb8c56b2af454562358b1509632f92f2116c020fe7de1ba242effdb36e980"
   }
