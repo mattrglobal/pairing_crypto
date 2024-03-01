@@ -390,16 +390,16 @@ impl Signature {
             messages.iter().map(|m| m.0).collect();
         let B = compute_B::<_, C>(&domain, &message_scalars, generators)?;
 
-        let P2 = C::p2();
-        // C1 = (A, W + P2 * e)
+        let BP2: blstrs::G2Projective = C::bp2();
+        // C1 = (A, W + BP2 * e)
         let C1 = (
             &self.A.to_affine(),
-            &G2Prepared::from((W + P2 * self.e).to_affine()),
+            &G2Prepared::from((W + BP2 * self.e).to_affine()),
         );
 
-        // C2 = (B, -P2)
-        // -P2, because we use multi_miller_loop
-        let C2 = (&B.to_affine(), &G2Prepared::from(-P2.to_affine()));
+        // C2 = (B, -BP2)
+        // -BP2, because we use multi_miller_loop
+        let C2 = (&B.to_affine(), &G2Prepared::from(-BP2.to_affine()));
 
         // C1 == C2
         // multi_miller_loop(C1, C2) == 1

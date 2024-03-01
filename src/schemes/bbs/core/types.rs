@@ -69,11 +69,13 @@ impl ProofMessage {
 /// Result of proof generation and
 /// verification initialization.
 #[allow(non_snake_case)]
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub(crate) struct ProofInitResult {
     pub A_bar: G1Projective,
     pub B_bar: G1Projective,
-    pub T: G1Projective,
+    pub D: G1Projective,
+    pub T1: G1Projective,
+    pub T2: G1Projective,
     pub domain: Scalar,
 }
 
@@ -83,10 +85,14 @@ pub(crate) struct ProofInitResult {
 pub struct RandomScalars {
     /// The r1 random scalar
     pub r1: Scalar,
-    /// The r2_tilde random scalar
-    pub r2_tilde: Scalar,
-    /// The z_tilde random scalar
-    pub z_tilde: Scalar,
+    /// The r2 random scalar
+    pub r2: Scalar,
+    /// The e_tilde random scalar
+    pub e_tilde: Scalar,
+    /// The r1_tilde random scalar
+    pub r1_tilde: Scalar,
+    /// The r3_tilde random scalar
+    pub r3_tilde: Scalar,
     /// The list of m~_i, where each m~ a random scalar
     pub m_tilde_scalars: Vec<Scalar>,
 }
@@ -128,8 +134,12 @@ pub struct ProofTrace {
     pub A_bar: [u8; OCTET_POINT_G1_LENGTH],
     /// The point B_bar calculated during proof generation
     pub B_bar: [u8; OCTET_POINT_G1_LENGTH],
-    /// The point T calculated during proof generation
-    pub T: [u8; OCTET_POINT_G1_LENGTH],
+    /// The point D calculated during proof generation
+    pub D: [u8; OCTET_POINT_G1_LENGTH],
+    /// The point T1 calculated during proof generation
+    pub T1: [u8; OCTET_POINT_G1_LENGTH],
+    /// The point T2 calculated during proof generation
+    pub T2: [u8; OCTET_POINT_G1_LENGTH],
     /// The domain scalar value calculated during proof generation
     pub domain: [u8; OCTET_SCALAR_LENGTH],
     /// The challenge scalar value calculated during proof generation
@@ -139,12 +149,14 @@ pub struct ProofTrace {
 impl Default for ProofTrace {
     fn default() -> Self {
         Self {
+            random_scalars: RandomScalars::default(),
             A_bar: [0u8; OCTET_POINT_G1_LENGTH],
             B_bar: [0u8; OCTET_POINT_G1_LENGTH],
-            T: [0u8; OCTET_POINT_G1_LENGTH],
+            D: [0u8; OCTET_POINT_G1_LENGTH],
+            T1: [0u8; OCTET_POINT_G1_LENGTH],
+            T2: [0u8; OCTET_POINT_G1_LENGTH],
             domain: [0u8; OCTET_SCALAR_LENGTH],
             challenge: [0u8; OCTET_SCALAR_LENGTH],
-            random_scalars: RandomScalars::default(),
         }
     }
 }
@@ -158,7 +170,9 @@ impl ProofTrace {
     ) {
         self.A_bar = point_to_octets_g1(&init_res.A_bar);
         self.B_bar = point_to_octets_g1(&init_res.B_bar);
-        self.T = point_to_octets_g1(&init_res.T);
+        self.D = point_to_octets_g1(&init_res.D);
+        self.T1 = point_to_octets_g1(&init_res.T1);
+        self.T2 = point_to_octets_g1(&init_res.T2);
         self.domain = init_res.domain.to_bytes_be();
         self.challenge = challenge.0.to_bytes_be();
         self.random_scalars = random_scalars;
