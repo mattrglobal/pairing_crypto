@@ -30,20 +30,17 @@ bls12381Shake256ProofFixtures.forEach((item: ProofFixture) => {
                 presentationHeader: new Uint8Array(
                   Buffer.from(item.value.presentationHeader, "hex")
                 ),
-                messages: Object.entries(item.value.revealedMessages).reduce(
-                  (map, val, _) => {
-                    const key = parseInt(val[0]);
-                    const message = new Uint8Array(Buffer.from(val[1], "hex"));
-                    map = {
-                      ...map,
-                      [key]: message,
-                    };
-                    return map;
-                  },
-                  {}
+                messages: Object.fromEntries(
+                  new Map(
+                    item.value.disclosedIndexes.map(
+                      (idx) => [
+                        idx,
+                        new Uint8Array(Buffer.from(item.value.messages[idx], "hex"))
+                      ]
+                    )
+                  )
                 ),
-              })
-            ).toBeTruthy();
+              })).toBeTruthy();
           });
         } else {
           it(`should fail to verify case: ${item.value.caseName} because ${item.value.result["reason"]}`, async () => {
@@ -57,22 +54,16 @@ bls12381Shake256ProofFixtures.forEach((item: ProofFixture) => {
                   presentationHeader: new Uint8Array(
                     Buffer.from(item.value.presentationHeader, "hex")
                   ),
-                  messages: Object.entries(item.value.revealedMessages).reduce(
-                    (map, val, _) => {
-                      const key = parseInt(val[0]);
-                      const message = new Uint8Array(
-                        Buffer.from(val[1], "hex")
-                      );
-
-                      map = {
-                        ...map,
-                        [key]: message,
-                      };
-
-                      return map;
-                    },
-                    {}
-                  ),
+                  messages: Object.fromEntries(
+                    new Map(
+                      item.value.disclosedIndexes.map(
+                        (idx) => [
+                          idx,
+                          new Uint8Array(Buffer.from(item.value.messages[idx], "hex"))
+                        ]
+                      )
+                    )
+                  )
                 })
               ).verified
             ).toBeFalsy();

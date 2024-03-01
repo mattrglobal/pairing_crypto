@@ -20,7 +20,8 @@ export interface ProofFixtureData {
   readonly header: string;
   readonly presentationHeader: string;
   result: { valid: false; reason: string } | { valid: true };
-  readonly revealedMessages: { [key: number]: string };
+  readonly messages: string[];
+  readonly disclosedIndexes: number[]; 
   readonly signerPublicKey: string;
 }
 
