@@ -1,3 +1,5 @@
+use std::usize;
+
 /// Error enumerates all possible errors occuring in this library.
 /// An error returned by the crypto component.
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -68,6 +70,14 @@ pub enum Error {
         messages: usize,
     },
 
+    /// Not enough random scalars during Proof initialization.
+    UndisclosedIndexesRandomScalarsLengthMismatch {
+        /// Number of random scalars.
+        random_scalars: usize,
+        /// Number of messages.
+        undisclosed_indexes: usize,
+    },
+
     /// The given point(from `G1` or `G2`) is an `Identity` element of
     /// respective subgroup.
     PointIsIdentity,
@@ -133,6 +143,16 @@ impl core::fmt::Debug for Error {
                     f,
                     "length mismatch, #message-generators: {generators}, \
                      #messages: {messages}."
+                )
+            }
+            Error::UndisclosedIndexesRandomScalarsLengthMismatch {
+                random_scalars,
+                undisclosed_indexes,
+            } => {
+                write!(
+                    f,
+                    "length mismatch #random_scalars: {random_scalars}, \
+                     #undisclosed_indexes: {undisclosed_indexes}."
                 )
             }
             Error::PointIsIdentity => {

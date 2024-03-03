@@ -3,7 +3,7 @@
 use super::{
     generator::Generators,
     key_pair::PublicKey,
-    types::{Challenge, Message},
+    types::{Challenge, Message, ProofInitResult},
 };
 use crate::{
     bbs::ciphersuites::BbsCiphersuiteParameters,
@@ -78,7 +78,7 @@ where
 /// B = P1 + Q * domain + H_1 * msg_1 + ... + H_L * msg_L
 pub(crate) fn compute_B<G, C>(
     domain: &Scalar,
-    messages: &[Message],
+    messages: &[Scalar],
     generators: &G,
 ) -> Result<G1Projective, Error>
 where
@@ -96,11 +96,7 @@ where
 
     let mut points: Vec<_> = vec![C::p1()?, generators.Q()];
     points.extend(generators.message_generators_iter());
-    let scalars: Vec<_> = [Scalar::one(), *domain]
-        .iter()
-        .copied()
-        .chain(messages.iter().map(|c| c.0))
-        .collect();
+    let scalars = [&[Scalar::one(), *domain], messages].concat();
 
     Ok(G1Projective::multi_exp(&points, &scalars))
 }
@@ -108,11 +104,8 @@ where
 /// Compute Fiat Shamir heuristic challenge.
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn compute_challenge<T, C>(
-    A_bar: &G1Projective,
-    B_bar: &G1Projective,
-    C: &G1Projective,
+    proof_init_res: &ProofInitResult,
     disclosed_messages: &BTreeMap<usize, Message>,
-    domain: &Scalar,
     ph: Option<T>,
 ) -> Result<Challenge, Error>
 where
@@ -124,9 +117,9 @@ where
     // c_octs = serialize(c_array)
     // if c_octs is INVALID, return INVALID
     let mut data_to_hash = vec![];
-    data_to_hash.extend(point_to_octets_g1(A_bar).as_ref());
-    data_to_hash.extend(point_to_octets_g1(B_bar).as_ref());
-    data_to_hash.extend(point_to_octets_g1(C));
+    data_to_hash.extend(point_to_octets_g1(&proof_init_res.A_bar).as_ref());
+    data_to_hash.extend(point_to_octets_g1(&proof_init_res.B_bar).as_ref());
+    data_to_hash.extend(point_to_octets_g1(&proof_init_res.T));
 
     data_to_hash.extend(i2osp(
         disclosed_messages.len() as u64,
@@ -139,7 +132,7 @@ where
     for &msg in disclosed_messages.values() {
         data_to_hash.extend(msg.to_bytes());
     }
-    data_to_hash.extend(domain.to_bytes_be());
+    data_to_hash.extend(proof_init_res.domain.to_bytes_be());
 
     let _ph_bytes = ph.as_ref().map_or(&[] as &[u8], |v| v.as_ref());
     data_to_hash.extend(i2osp_with_data(

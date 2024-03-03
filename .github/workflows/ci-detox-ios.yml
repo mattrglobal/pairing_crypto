@@ -44,21 +44,23 @@ jobs:
   ios:
     name: Detox iOS E2E Testing
     needs: [libraries]
-    runs-on: ${{ matrix.runners }}
-    strategy:
-      matrix:
-        runners: [[self-hosted, macos, X64, general]]
-    concurrency:
-      group: ci-detox-ios-${{ matrix.runners }}-${{ github.head_ref }}
-      cancel-in-progress: true
-    timeout-minutes: 30
+    runs-on: macos-latest
+    # strategy:
+    #   matrix:
+    #     runners: [[self-hosted, macos, general, detox-ios]]
+    # concurrency:
+    #   group: ci-detox-ios-${{ matrix.runners }}-${{ github.head_ref || github.run_id  }}
+    #   cancel-in-progress: true
+    timeout-minutes: 120
 
     defaults:
       run:
         working-directory: wrappers/react-native
+        shell: zsh -il {0} # load ~/.zshrc
 
     env:
-      DEVELOPER_DIR: /Applications/Xcode_13.2.1.app
+      DEVELOPER_DIR: /Applications/Xcode_14.2.app
+      NODE_OPTIONS: "--max-old-space-size=5120"
       # Do not launch packager during CI build
       RCT_NO_LAUNCH_PACKAGER: 'true'
 

@@ -950,8 +950,7 @@ pub(crate) fn test_data_verify_tampered_proof() -> [(
                 header,
                 ph,
                 &mut generators,
-                &revealed_messages,
-                None
+                &revealed_messages
             )
             .expect("proof verification failed"),
         true
@@ -1149,8 +1148,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 header,
                 ph,
                 &mut generators,
-                &no_revealed_messages,
-                None
+                &no_revealed_messages
             )
             .expect("proof verification failed"),
         true
@@ -1188,8 +1186,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 None,
                 ph,
                 &mut generators,
-                &revealed_messages,
-                None
+                &revealed_messages
             )
             .expect("proof verification failed"),
         true
@@ -1217,8 +1214,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 header,
                 None,
                 &mut generators,
-                &revealed_messages,
-                None
+                &revealed_messages
             )
             .expect("proof verification failed"),
         true
@@ -1247,8 +1243,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 None,
                 None,
                 &mut generators,
-                &revealed_messages,
-                None
+                &revealed_messages
             )
             .expect("proof verification failed"),
         true
@@ -1297,8 +1292,7 @@ pub(crate) fn test_data_verify_tampered_parameters() -> [(
                 header,
                 ph,
                 &mut generators,
-                &all_revealed_messages,
-                None
+                &all_revealed_messages
             )
             .expect("proof verification failed"),
         true

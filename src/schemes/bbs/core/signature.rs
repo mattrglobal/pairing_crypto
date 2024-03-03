@@ -190,7 +190,9 @@ impl Signature {
         let e = C::hash_to_e(&data_to_hash)?;
 
         // B = P1 + Q * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let B = compute_B::<_, C>(&domain, messages, generators)?;
+        let message_scalars: Vec<Scalar> =
+            messages.iter().map(|m| m.0).collect();
+        let B = compute_B::<_, C>(&domain, &message_scalars, generators)?;
         let exp = (e + SK.as_scalar()).invert();
         let exp = if exp.is_some().unwrap_u8() == 1u8 {
             exp.unwrap()
@@ -336,7 +338,9 @@ impl Signature {
             compute_domain::<_, _, C>(PK, header, messages.len(), generators)?;
 
         // B = P1 + Q * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let B = compute_B::<_, C>(&domain, messages, generators)?;
+        let message_scalars: Vec<Scalar> =
+            messages.iter().map(|m| m.0).collect();
+        let B = compute_B::<_, C>(&domain, &message_scalars, generators)?;
 
         let P2 = C::p2();
         // C1 = (A, W + P2 * e)
