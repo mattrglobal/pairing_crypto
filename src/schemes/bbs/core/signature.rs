@@ -217,10 +217,10 @@ impl Signature {
         // e_s_octs = serialize((SK, domain, msg_1, ..., msg_L))
         let mut data_to_hash = vec![];
         data_to_hash.extend(SK.to_bytes().as_ref());
-        data_to_hash.extend(domain.to_bytes_be().as_ref());
         for m in messages {
             data_to_hash.extend(m.to_bytes().as_ref());
         }
+        data_to_hash.extend(domain.to_bytes_be().as_ref());
 
         // if e_s_octs is INVALID, return INVALID
         // e_s_expand = expand_message(e_s_octs, expand_dst, expand_len * 2)
