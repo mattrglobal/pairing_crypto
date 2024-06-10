@@ -117,23 +117,24 @@ where
     // c_octs = serialize(c_array)
     // if c_octs is INVALID, return INVALID
     let mut data_to_hash = vec![];
+
+    data_to_hash.extend(i2osp(
+        disclosed_messages.len() as u64,
+        NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
+    )?);
+
+    for (&i, &msg) in disclosed_messages {
+        data_to_hash
+            .extend(i2osp(i as u64, NON_NEGATIVE_INTEGER_ENCODING_LENGTH)?);
+        data_to_hash.extend(msg.to_bytes());
+    }
+
     data_to_hash.extend(point_to_octets_g1(&proof_init_res.A_bar).as_ref());
     data_to_hash.extend(point_to_octets_g1(&proof_init_res.B_bar).as_ref());
     data_to_hash.extend(point_to_octets_g1(&proof_init_res.D));
     data_to_hash.extend(point_to_octets_g1(&proof_init_res.T1));
     data_to_hash.extend(point_to_octets_g1(&proof_init_res.T2));
 
-    data_to_hash.extend(i2osp(
-        disclosed_messages.len() as u64,
-        NON_NEGATIVE_INTEGER_ENCODING_LENGTH,
-    )?);
-    for &i in disclosed_messages.keys() {
-        data_to_hash
-            .extend(i2osp(i as u64, NON_NEGATIVE_INTEGER_ENCODING_LENGTH)?);
-    }
-    for &msg in disclosed_messages.values() {
-        data_to_hash.extend(msg.to_bytes());
-    }
     data_to_hash.extend(proof_init_res.domain.to_bytes_be());
 
     let _ph_bytes = ph.as_ref().map_or(&[] as &[u8], |v| v.as_ref());
