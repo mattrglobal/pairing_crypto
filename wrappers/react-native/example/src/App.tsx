@@ -1,13 +1,13 @@
 import React from 'react';
-import { ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import {ScrollView, StatusBar, StyleSheet, Text, View} from 'react-native';
 
-import { Colors } from 'react-native/Libraries/NewAppScreen';
+import {Colors} from 'react-native/Libraries/NewAppScreen';
 
-import { Button } from './Button';
-import { TestReportView } from './TestReport';
-import { TestFixture } from './TestFixture';
-import { useTestGroup } from './TestGroup';
-import { TestWrapper } from './TestWrapper';
+import {Button} from './Button';
+import {TestReportView} from './TestReport';
+import {TestFixture} from './TestFixture';
+import {useTestGroup} from './TestGroup';
+import {TestWrapper} from './TestWrapper';
 import {
   BbsBls12381Sha256GenerateKeyPair,
   BbsBls12381Shake256GenerateKeyPair,
@@ -18,7 +18,7 @@ import {
   BbsBls12381Sha256ProofVerify,
   BbsBls12381Shake256ProofVerify,
 } from './pairing-crypto';
-import { fixtures } from '../__fixtures__';
+import {fixtures} from '../__fixtures__';
 
 export default function App() {
   const testGroup = useTestGroup();
@@ -27,14 +27,23 @@ export default function App() {
     <>
       <StatusBar barStyle="dark-content" />
       <TestReportView>
-        <ScrollView testID="mainScrollView" contentInsetAdjustmentBehavior="automatic" style={styles.scrollView}>
+        <ScrollView
+          testID="mainScrollView"
+          contentInsetAdjustmentBehavior="automatic"
+          style={styles.scrollView}>
           <View testID="mainView" style={styles.body}>
             <View style={styles.sectionContainer}>
-              <Button testID="SignatureTestCases" title={'Run All Test Cases'} onPress={testGroup.runAll} />
+              <Button
+                testID="SignatureTestCases"
+                title={'Run All Test Cases'}
+                onPress={testGroup.runAll}
+              />
             </View>
 
             <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>{'KeyPair Generation Test Cases'}</Text>
+              <Text style={styles.sectionTitle}>
+                {'KeyPair Generation Test Cases'}
+              </Text>
               <TestWrapper
                 testID="BbsBls12381Sha256GenerateKeyPair"
                 ref={testGroup.register('BbsBls12381Sha256GenerateKeyPair')}
@@ -50,8 +59,10 @@ export default function App() {
             </View>
 
             <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>{'BbsBls12381Sha256 Signature Test Cases'}</Text>
-              {Object.values(fixtures.bls12381Sha256Signature).map((fixture) => (
+              <Text style={styles.sectionTitle}>
+                {'BbsBls12381Sha256 Signature Test Cases'}
+              </Text>
+              {Object.values(fixtures.bls12381Sha256Signature).map(fixture => (
                 <TestFixture
                   testID={`${fixture.source}-SignatureVerify`}
                   ref={testGroup.register(`${fixture.source}-SignatureVerify`)}
@@ -63,21 +74,29 @@ export default function App() {
             </View>
 
             <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>{'BbsBls12381Shake256 Signature Test Cases'}</Text>
-              {Object.values(fixtures.bls12381Shake256Signature).map((fixture) => (
-                <TestFixture
-                  testID={`${fixture.source}-SignatureVerify`}
-                  ref={testGroup.register(`${fixture.source}-SignatureVerify`)}
-                  key={fixture.source}
-                  fixture={fixture}
-                  verify={() => BbsBls12381Shake256Verify(fixture)}
-                />
-              ))}
+              <Text style={styles.sectionTitle}>
+                {'BbsBls12381Shake256 Signature Test Cases'}
+              </Text>
+              {Object.values(fixtures.bls12381Shake256Signature).map(
+                fixture => (
+                  <TestFixture
+                    testID={`${fixture.source}-SignatureVerify`}
+                    ref={testGroup.register(
+                      `${fixture.source}-SignatureVerify`,
+                    )}
+                    key={fixture.source}
+                    fixture={fixture}
+                    verify={() => BbsBls12381Shake256Verify(fixture)}
+                  />
+                ),
+              )}
             </View>
 
             <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>{'BbsBls12381Sha256 Proof Test Cases'}</Text>
-              {Object.values(fixtures.bls12381Sha256Proof).map((fixture) => (
+              <Text style={styles.sectionTitle}>
+                {'BbsBls12381Sha256 Proof Test Cases'}
+              </Text>
+              {Object.values(fixtures.bls12381Sha256Proof).map(fixture => (
                 <TestFixture
                   testID={`${fixture.source}-ProofVerify`}
                   ref={testGroup.register(`${fixture.source}-ProofVerify`)}
@@ -89,8 +108,10 @@ export default function App() {
             </View>
 
             <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>{'BbsBls12381Shake256 Proof Test Cases'}</Text>
-              {Object.values(fixtures.bls12381Shake256Proof).map((fixture) => (
+              <Text style={styles.sectionTitle}>
+                {'BbsBls12381Shake256 Proof Test Cases'}
+              </Text>
+              {Object.values(fixtures.bls12381Shake256Proof).map(fixture => (
                 <TestFixture
                   testID={`${fixture.source}-ProofVerify`}
                   ref={testGroup.register(`${fixture.source}-ProofVerify`)}
@@ -102,29 +123,37 @@ export default function App() {
             </View>
 
             <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>{'BbsBls12381Sha256 ProofGen Test Cases'}</Text>
-              {Object.values(fixtures.bls12381Sha256ProofValidCases).map((fixture) => (
-                <TestFixture
-                  testID={`${fixture.source}-ProofGen`}
-                  ref={testGroup.register(`${fixture.source}-ProofGen`)}
-                  key={fixture.source}
-                  fixture={fixture}
-                  verify={() => BbsBls12381Sha256ProofGen(fixture)}
-                />
-              ))}
+              <Text style={styles.sectionTitle}>
+                {'BbsBls12381Sha256 ProofGen Test Cases'}
+              </Text>
+              {Object.values(fixtures.bls12381Sha256ProofValidCases).map(
+                fixture => (
+                  <TestFixture
+                    testID={`${fixture.source}-ProofGen`}
+                    ref={testGroup.register(`${fixture.source}-ProofGen`)}
+                    key={fixture.source}
+                    fixture={fixture}
+                    verify={() => BbsBls12381Sha256ProofGen(fixture)}
+                  />
+                ),
+              )}
             </View>
 
             <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>{'BbsBls12381Shake256 ProofGen Test Cases'}</Text>
-              {Object.values(fixtures.bls12381Shake256ProofValidCases).map((fixture) => (
-                <TestFixture
-                  testID={`${fixture.source}-ProofGen`}
-                  ref={testGroup.register(`${fixture.source}-ProofGen`)}
-                  key={fixture.source}
-                  fixture={fixture}
-                  verify={() => BbsBls12381Shake256ProofGen(fixture)}
-                />
-              ))}
+              <Text style={styles.sectionTitle}>
+                {'BbsBls12381Shake256 ProofGen Test Cases'}
+              </Text>
+              {Object.values(fixtures.bls12381Shake256ProofValidCases).map(
+                fixture => (
+                  <TestFixture
+                    testID={`${fixture.source}-ProofGen`}
+                    ref={testGroup.register(`${fixture.source}-ProofGen`)}
+                    key={fixture.source}
+                    fixture={fixture}
+                    verify={() => BbsBls12381Shake256ProofGen(fixture)}
+                  />
+                ),
+              )}
             </View>
           </View>
         </ScrollView>
