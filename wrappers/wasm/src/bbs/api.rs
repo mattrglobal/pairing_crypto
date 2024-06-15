@@ -20,6 +20,7 @@ use pairing_crypto::bbs::{
     ciphersuites::{
         bls12_381::{
             KeyPair as Bls12381BbsKeyPair,
+            PublicKey as Bls12381BbsPublicKey,
             BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
             BBS_BLS12381G1_SECRET_KEY_LENGTH,
             BBS_BLS12381G1_SIGNATURE_LENGTH,
@@ -43,6 +44,7 @@ use pairing_crypto::bbs::{
     BbsSignRequest,
     BbsVerifyRequest,
 };
+use pairing_crypto::Error;
 use wasm_bindgen::prelude::*;
 
 /// Generate a BBS key pair on BLS 12-381 curve.
@@ -82,6 +84,78 @@ pub async fn bbs_bls12_381_generate_key_pair(
         publicKey: key_pair.public_key.to_octets().to_vec(),
     };
     serde_wasm_bindgen::to_value(&keypair)
+}
+
+
+/// Generate a key pair in uncompressed form
+#[wasm_bindgen(js_name = bbs_bls12_381_generate_key_pair_uncompressed)]
+pub async fn bbs_bls12_381_generate_key_pair_uncompressed(
+    request: JsValue,
+) -> Result<JsValue, serde_wasm_bindgen::Error> {
+    // Improves error output in JS based console.log() when built with
+    // debug feature enabled
+    set_panic_hook();
+
+    // Cast the supplied JSON request into a rust struct
+    let request: KeyGenerationRequestDto = request.try_into()?;
+
+    let ikm = request.ikm.unwrap_or(Vec::new());
+    let key_info = request.keyInfo.unwrap_or(Vec::new());
+
+    // // Derive secret key from supplied IKM and key information
+    // metadata.
+    let key_pair = Bls12381BbsKeyPair::new(&ikm, &key_info).ok_or(
+        serde_wasm_bindgen::Error::new(
+            "unexpected error, failed to generate keys.",
+        ),
+    )?;
+
+    // Construct the JS DTO of the key pair to return
+    let keypair = KeyPair {
+        secretKey: key_pair.secret_key.to_bytes().to_vec(),
+        publicKey: key_pair.public_key.to_octets_uncompressed().to_vec(),
+    };
+    serde_wasm_bindgen::to_value(&keypair)
+}
+
+
+
+/// Convert the public key representation from compressed to uncompressed
+#[wasm_bindgen(js_name = bbs_bls12_381_compressed_to_uncompressed_public_key)]
+pub async fn bbs_bls12_381_compressed_to_uncompressed_public_key(
+    request: Vec<u8>
+) -> Result<JsValue, serde_wasm_bindgen::Error> {
+    // debug feature enabled
+    set_panic_hook();
+
+    match Bls12381BbsPublicKey::compressed_to_uncompressed(&request) {
+        Ok(bytes) => serde_wasm_bindgen::to_value(&bytes.to_vec()),
+        Err(e) if e == Error::BadEncoding => Err(serde_wasm_bindgen::Error::new(
+            "unexpected error, input public key is incorrectly encoded."
+        )),
+        Err(_) => Err(serde_wasm_bindgen::Error::new(
+            "unexpected error, failed to map public key from compressed to uncompressed form."
+        )),
+    }
+}
+
+/// Convert the public key representation from uncompressed to compressed
+#[wasm_bindgen(js_name = bbs_bls12_381_uncompressed_to_compressed_public_key)]
+pub async fn bbs_bls12_381_uncompressed_to_compressed_public_key(
+    request: Vec<u8>
+) -> Result<JsValue, serde_wasm_bindgen::Error> {
+    // debug feature enabled
+    set_panic_hook();
+
+    match Bls12381BbsPublicKey::uncompressed_to_compressed(&request) {
+        Ok(bytes) => serde_wasm_bindgen::to_value(&bytes.to_vec()),
+        Err(e) if e == Error::BadEncoding => Err(serde_wasm_bindgen::Error::new(
+            "unexpected error, input public key is incorrectly encoded."
+        )),
+        Err(_) => Err(serde_wasm_bindgen::Error::new(
+            "unexpected error, failed to map public key from uncompressed to compressed form."
+        )),
+    }
 }
 
 macro_rules! bbs_wrapper_api_generator {

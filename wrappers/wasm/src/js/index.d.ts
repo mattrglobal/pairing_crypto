@@ -47,6 +47,9 @@ export namespace bbs {
     function generateKeyPair(
       request?: KeyGenerationRequest
     ): Promise<Required<KeyPair>>;
+    function generateKeyPairUncompressed(
+      request?: KeyGenerationRequest
+    ): Promise<Required<KeyPair>>;
     function sign(request: BbsSignRequest): Promise<Uint8Array>;
     function verify(request: BbsVerifyRequest): Promise<BbsVerifyResult>;
     function deriveProof(request: BbsDeriveProofRequest): Promise<Uint8Array>;
@@ -61,6 +64,9 @@ export namespace bbs {
     const SIGNATURE_LENGTH = 80;
 
     function generateKeyPair(
+      request?: KeyGenerationRequest
+    ): Promise<Required<KeyPair>>;
+    function generateKeyPairUncompressed(
       request?: KeyGenerationRequest
     ): Promise<Required<KeyPair>>;
     function sign(request: BbsSignRequest): Promise<Uint8Array>;
@@ -107,4 +113,12 @@ export namespace utilities {
   function convertRevealMessageArrayToRevealMap(
     messages: { value: Uint8Array; reveal: boolean }[]
   ): { [key: number]: Uint8Array };
+
+  function compressedToUncompressedPublicKey(
+    request?: Uint8Array
+  ): Promise<Uint8Array>;
+
+  function uncompressedToCompressedPublicKey(
+    request?: Uint8Array
+  ): Promise<Uint8Array>;
 }
