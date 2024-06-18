@@ -448,6 +448,7 @@ impl Proof {
     /// * (5 + U)` where `OCTET_POINT_G1_LENGTH`, size of a point in `G1` in
     ///   ompressed form, `OCTET_SCALAR_LENGTH`, size of a `Scalar`, and `U` is
     ///   the number of hidden messages.
+    /// 
     /// For BLS12-381 based implementation, OCTET_POINT_G1_LENGTH is 48 byes,
     /// and OCTET_SCALAR_LENGTH is 32 bytes, then bytes sequence will be
     /// treated as [48, 48, 32, 32, 32, 32*U ] to represent   
