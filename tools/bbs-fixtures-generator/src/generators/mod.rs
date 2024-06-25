@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::Path;
 
 use crate::model::FixtureGenInput;
 
@@ -12,7 +12,7 @@ pub const PROOF_FIXTURES_SUBDIR: &str = "proof";
 
 pub fn generate_fixtures(
     fixture_gen_input: &FixtureGenInput,
-    fixture_output_dir: &PathBuf,
+    fixture_output_dir: &Path,
 ) {
     signature::generate(fixture_gen_input, fixture_output_dir);
 

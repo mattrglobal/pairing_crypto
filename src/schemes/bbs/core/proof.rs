@@ -445,9 +445,7 @@ impl Proof {
     /// This method implements `OctetsToProof` API as defined in BBS specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-octetstoproof>.
     /// Each member of `Proof` is deserialized from big-endian bytes.
     /// Expected input size is
-    /// `OCTET_POINT_G1_LENGTH * 3 + OCTET_SCALAR_LENGTH
-    /// * (5 + U)`
-
+    /// `OCTET_POINT_G1_LENGTH * 3 + OCTET_SCALAR_LENGTH * (5 + U)`
     /// where `OCTET_POINT_G1_LENGTH`, size of a point in `G1` in
     /// compressed form, `OCTET_SCALAR_LENGTH`, size of a `Scalar`, and `U` is
     /// the number of hidden messages. For BLS12-381 based implementation,
