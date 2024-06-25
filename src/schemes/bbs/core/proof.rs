@@ -444,14 +444,14 @@ impl Proof {
     /// Get the proof `Proof` from a sequence of bytes in big endian format.
     /// This method implements `OctetsToProof` API as defined in BBS specification <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#name-octetstoproof>.
     /// Each member of `Proof` is deserialized from big-endian bytes.
-    /// Expected input size is `OCTET_POINT_G1_LENGTH * 3 + OCTET_SCALAR_LENGTH
-    /// * (5 + U)` where `OCTET_POINT_G1_LENGTH`, size of a point in `G1` in
-    ///   ompressed form, `OCTET_SCALAR_LENGTH`, size of a `Scalar`, and `U` is
-    ///   the number of hidden messages.
-    /// For BLS12-381 based implementation, OCTET_POINT_G1_LENGTH is 48 byes,
-    /// and OCTET_SCALAR_LENGTH is 32 bytes, then bytes sequence will be
-    /// treated as [48, 48, 32, 32, 32, 32*U ] to represent   
-    /// proof = (Abar, Bbar, c, r2^, z^, (m^_1, ..., m^_U)).
+    /// Expected input size is
+    /// `OCTET_POINT_G1_LENGTH * 3 + OCTET_SCALAR_LENGTH * (5 + U)`
+    /// where `OCTET_POINT_G1_LENGTH`, size of a point in `G1` in
+    /// compressed form, `OCTET_SCALAR_LENGTH`, size of a `Scalar`, and `U` is
+    /// the number of hidden messages. For BLS12-381 based implementation,
+    /// OCTET_POINT_G1_LENGTH is 48 byes, and OCTET_SCALAR_LENGTH is 32 bytes,
+    /// then bytes sequence will be treated as [48, 48, 32, 32, 32, 32*U ] to
+    /// represent proof = (Abar, Bbar, c, r2^, z^, (m^_1, ..., m^_U)).
     pub fn from_octets<B: AsRef<[u8]>>(bytes: B) -> Result<Self, Error> {
         const PROOF_LEN_FLOOR: usize =
             OCTET_POINT_G1_LENGTH * 2 + OCTET_SCALAR_LENGTH * 3;

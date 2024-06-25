@@ -1,4 +1,4 @@
-pub use blstrs::{Bls12 as pairing_engine, *};
+pub use blstrs::*;
 
 /// Number of bytes to store a scalar.
 pub(crate) const OCTET_SCALAR_LENGTH: usize = 32;
