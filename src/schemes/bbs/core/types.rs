@@ -6,6 +6,7 @@ use crate::{
     },
     error::Error,
 };
+use blstrs::G1Projective;
 use serde::{Deserialize, Serialize};
 use subtle::CtOption;
 
@@ -61,4 +62,14 @@ impl ProofMessage {
             ProofMessage::Hidden(h) => h,
         }
     }
+}
+
+/// Result of proof generation and
+/// verification initialization.
+#[allow(non_snake_case)]
+pub(crate) struct ProofInitResult {
+    pub A_bar: G1Projective,
+    pub B_bar: G1Projective,
+    pub T: G1Projective,
+    pub domain: Scalar,
 }
