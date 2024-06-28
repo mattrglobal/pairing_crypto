@@ -16,35 +16,37 @@
 use super::dtos::*;
 use crate::utils::*;
 use core::convert::{TryFrom, TryInto};
-use pairing_crypto::bbs::{
-    ciphersuites::{
-        bls12_381::{
-            KeyPair as Bls12381BbsKeyPair,
-            PublicKey as Bls12381BbsPublicKey,
-            BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
-            BBS_BLS12381G1_SECRET_KEY_LENGTH,
-            BBS_BLS12381G1_SIGNATURE_LENGTH,
+use pairing_crypto::{
+    bbs::{
+        ciphersuites::{
+            bls12_381::{
+                KeyPair as Bls12381BbsKeyPair,
+                PublicKey as Bls12381BbsPublicKey,
+                BBS_BLS12381G1_PUBLIC_KEY_LENGTH,
+                BBS_BLS12381G1_SECRET_KEY_LENGTH,
+                BBS_BLS12381G1_SIGNATURE_LENGTH,
+            },
+            bls12_381_g1_sha_256::{
+                proof_gen as bls12_381_sha_256_proof_gen,
+                proof_verify as bls12_381_sha_256_proof_verify,
+                sign as bls12_381_sha_256_sign,
+                verify as bls12_381_sha_256_verify,
+            },
+            bls12_381_g1_shake_256::{
+                proof_gen as bls12_381_shake_256_proof_gen,
+                proof_verify as bls12_381_shake_256_proof_verify,
+                sign as bls12_381_shake_256_sign,
+                verify as bls12_381_shake_256_verify,
+            },
         },
-        bls12_381_g1_sha_256::{
-            proof_gen as bls12_381_sha_256_proof_gen,
-            proof_verify as bls12_381_sha_256_proof_verify,
-            sign as bls12_381_sha_256_sign,
-            verify as bls12_381_sha_256_verify,
-        },
-        bls12_381_g1_shake_256::{
-            proof_gen as bls12_381_shake_256_proof_gen,
-            proof_verify as bls12_381_shake_256_proof_verify,
-            sign as bls12_381_shake_256_sign,
-            verify as bls12_381_shake_256_verify,
-        },
+        BbsProofGenRequest,
+        BbsProofGenRevealMessageRequest,
+        BbsProofVerifyRequest,
+        BbsSignRequest,
+        BbsVerifyRequest,
     },
-    BbsProofGenRequest,
-    BbsProofGenRevealMessageRequest,
-    BbsProofVerifyRequest,
-    BbsSignRequest,
-    BbsVerifyRequest,
+    Error,
 };
-use pairing_crypto::Error;
 use wasm_bindgen::prelude::*;
 
 /// Generate a BBS key pair on BLS 12-381 curve.
@@ -86,7 +88,6 @@ pub async fn bbs_bls12_381_generate_key_pair(
     serde_wasm_bindgen::to_value(&keypair)
 }
 
-
 /// Generate a key pair in uncompressed form
 #[wasm_bindgen(js_name = bbs_bls12_381_generate_key_pair_uncompressed)]
 pub async fn bbs_bls12_381_generate_key_pair_uncompressed(
@@ -118,23 +119,24 @@ pub async fn bbs_bls12_381_generate_key_pair_uncompressed(
     serde_wasm_bindgen::to_value(&keypair)
 }
 
-
-
 /// Convert the public key representation from compressed to uncompressed
 #[wasm_bindgen(js_name = bbs_bls12_381_compressed_to_uncompressed_public_key)]
 pub async fn bbs_bls12_381_compressed_to_uncompressed_public_key(
-    request: Vec<u8>
+    request: Vec<u8>,
 ) -> Result<JsValue, serde_wasm_bindgen::Error> {
     // debug feature enabled
     set_panic_hook();
 
     match Bls12381BbsPublicKey::compressed_to_uncompressed(&request) {
         Ok(bytes) => serde_wasm_bindgen::to_value(&bytes.to_vec()),
-        Err(e) if e == Error::BadEncoding => Err(serde_wasm_bindgen::Error::new(
-            "unexpected error, input public key is incorrectly encoded."
-        )),
+        Err(e) if e == Error::BadEncoding => {
+            Err(serde_wasm_bindgen::Error::new(
+                "unexpected error, input public key is incorrectly encoded.",
+            ))
+        }
         Err(_) => Err(serde_wasm_bindgen::Error::new(
-            "unexpected error, failed to map public key from compressed to uncompressed form."
+            "unexpected error, failed to map public key from compressed to \
+             uncompressed form.",
         )),
     }
 }
@@ -142,18 +144,21 @@ pub async fn bbs_bls12_381_compressed_to_uncompressed_public_key(
 /// Convert the public key representation from uncompressed to compressed
 #[wasm_bindgen(js_name = bbs_bls12_381_uncompressed_to_compressed_public_key)]
 pub async fn bbs_bls12_381_uncompressed_to_compressed_public_key(
-    request: Vec<u8>
+    request: Vec<u8>,
 ) -> Result<JsValue, serde_wasm_bindgen::Error> {
     // debug feature enabled
     set_panic_hook();
 
     match Bls12381BbsPublicKey::uncompressed_to_compressed(&request) {
         Ok(bytes) => serde_wasm_bindgen::to_value(&bytes.to_vec()),
-        Err(e) if e == Error::BadEncoding => Err(serde_wasm_bindgen::Error::new(
-            "unexpected error, input public key is incorrectly encoded."
-        )),
+        Err(e) if e == Error::BadEncoding => {
+            Err(serde_wasm_bindgen::Error::new(
+                "unexpected error, input public key is incorrectly encoded.",
+            ))
+        }
         Err(_) => Err(serde_wasm_bindgen::Error::new(
-            "unexpected error, failed to map public key from uncompressed to compressed form."
+            "unexpected error, failed to map public key from uncompressed to \
+             compressed form.",
         )),
     }
 }

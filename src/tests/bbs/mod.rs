@@ -133,7 +133,7 @@ fn get_expected_signature(expected_signature: &str) -> Signature {
 
 #[macro_export]
 macro_rules! from_vec_deserialization_invalid_vec_size {
-    ($type:ty) => {
+    ($type:ty, $expected_error_string:expr) => {
         // For debug message
         let type_string = stringify!($type);
         let type_size = <$type>::SIZE_BYTES;
@@ -145,15 +145,10 @@ macro_rules! from_vec_deserialization_invalid_vec_size {
         ];
         for (v, debug_error_message) in test_data {
             let result = <$type>::from_vec(&v);
-            let expected_error_string = format!(
-                "source vector size {}, expected destination byte array size \
-                 {type_size}",
-                v.len()
-            );
             assert_eq!(
                 result,
                 Err(Error::Conversion {
-                    cause: expected_error_string,
+                    cause: $expected_error_string(v.len()),
                 }),
                 "`{type_string}::from_vec` should fail - {debug_error_message}"
             );
