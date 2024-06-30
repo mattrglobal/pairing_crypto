@@ -11,7 +11,7 @@ on:
 jobs:
   build_test:
     name: Build & Test WASM Wrapper
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./wrappers/wasm
