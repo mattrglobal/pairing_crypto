@@ -33,7 +33,7 @@ jobs:
           override: true
 
       - name: Install llvm
-        run: brew install llvm
+        run: which clang
 
       - name: Run yarn install
         run: yarn install --frozen-lockfile
