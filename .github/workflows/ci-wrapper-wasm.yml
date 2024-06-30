@@ -32,6 +32,9 @@ jobs:
           toolchain: stable
           override: true
 
+      - name: Install llvm
+        run: brew install llvm
+
       - name: Run yarn install
         run: yarn install --frozen-lockfile
 
