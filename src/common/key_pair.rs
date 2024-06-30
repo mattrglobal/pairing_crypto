@@ -100,7 +100,7 @@ macro_rules! bbs_bls_key_pair_impl {
 
             /// Convert a vector of bytes of big-endian representation of the
             /// secret key.
-            pub fn from_vec(bytes: &Vec<u8>) -> Result<Self, Error> {
+            pub fn from_vec(bytes: &[u8]) -> Result<Self, Error> {
                 match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
                     Ok(result) => Self::from_bytes(&result),
                     Err(e) => Err(e),
@@ -179,6 +179,9 @@ macro_rules! bbs_bls_key_pair_impl {
             /// Number of bytes needed to represent the public key in compressed
             /// form.
             pub const SIZE_BYTES: usize = $octet_point_length;
+            /// Number of bytes needed to represent the public key in
+            /// uncompressed form.
+            pub const SIZE_BYTES_UNCOMPRESSED: usize = 2 * Self::SIZE_BYTES;
 
             /// Check if the `PublicKey` is valid.
             pub fn is_valid(&self) -> Choice {
@@ -193,17 +196,43 @@ macro_rules! bbs_bls_key_pair_impl {
                 self.0.to_affine().to_compressed()
             }
 
+            /// Get the G2 representation in affine, uncompressed and big-endian
+            /// form of PublicKey.
+            pub fn to_octets_uncompressed(
+                &self,
+            ) -> [u8; Self::SIZE_BYTES_UNCOMPRESSED] {
+                self.0.to_uncompressed()
+            }
+
             /// Convert a vector of bytes of big-endian representation of the
             /// public key.
-            pub fn from_vec(bytes: &Vec<u8>) -> Result<Self, Error> {
-                match vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes) {
-                    Ok(result) => Self::from_octets(&result),
-                    Err(e) => Err(e),
+            pub fn from_vec(bytes: &[u8]) -> Result<Self, Error> {
+                let data_len = bytes.len();
+                match data_len {
+                    Self::SIZE_BYTES => {
+                        let byte_array =
+                            vec_to_byte_array::<{ Self::SIZE_BYTES }>(bytes)?;
+                        Self::from_octets(&byte_array)
+                    }
+                    Self::SIZE_BYTES_UNCOMPRESSED => {
+                        let byte_array = vec_to_byte_array::<
+                            { Self::SIZE_BYTES_UNCOMPRESSED },
+                        >(bytes)?;
+                        Self::from_octets_uncompressed(&byte_array)
+                    }
+                    _ => Err(Error::Conversion {
+                        cause: format!(
+                            "source vector size {data_len}, expected \
+                             destination byte array size of either {} or {}",
+                            Self::SIZE_BYTES,
+                            Self::SIZE_BYTES_UNCOMPRESSED
+                        ),
+                    }),
                 }
             }
 
-            /// Convert from G2 point in affine, compressed and big-endian form
-            /// to PublicKey.
+            /// Convert from G2 point in affine, compressed and big-endian
+            /// form to PublicKey.
             pub fn from_octets(
                 bytes: &[u8; Self::SIZE_BYTES],
             ) -> Result<Self, Error> {
@@ -214,6 +243,44 @@ macro_rules! bbs_bls_key_pair_impl {
                     Ok(result.unwrap())
                 } else {
                     Err(Error::BadEncoding)
+                }
+            }
+
+            /// Convert from G2 point in affine, uncompressed and big-endian
+            /// form to PublicKey.
+            pub fn from_octets_uncompressed(
+                bytes: &[u8; Self::SIZE_BYTES_UNCOMPRESSED],
+            ) -> Result<Self, Error> {
+                let result = $point_projective_type::from_uncompressed(bytes);
+
+                if result.is_some().unwrap_u8() == 1u8 {
+                    Ok(Self(result.unwrap()))
+                } else {
+                    Err(Error::BadEncoding)
+                }
+            }
+
+            /// Convert a public key from compressed to uncompressed
+            /// representation
+            pub fn compressed_to_uncompressed(
+                bytes: &[u8],
+            ) -> Result<[u8; Self::SIZE_BYTES_UNCOMPRESSED], Error> {
+                match Self::from_vec(bytes) {
+                    Ok(public_key) => {
+                        Ok(Self::to_octets_uncompressed(&public_key))
+                    }
+                    Err(e) => Err(e),
+                }
+            }
+
+            /// Convert a public key from uncompressed to compressed
+            /// representation
+            pub fn uncompressed_to_compressed(
+                bytes: &[u8],
+            ) -> Result<[u8; Self::SIZE_BYTES], Error> {
+                match Self::from_vec(bytes) {
+                    Ok(public_key) => Ok(Self::to_octets(&public_key)),
+                    Err(e) => Err(e),
                 }
             }
         }
