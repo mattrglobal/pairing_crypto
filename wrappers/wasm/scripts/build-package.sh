@@ -8,8 +8,7 @@ SRC_WASM=lib/web/index.js
 
 # Add dev dependencies to current path
 export PATH="$PATH:node_modules/.bin"
-export CC=/opt/homebrew/opt/llvm/bin/clang
-export AR=/opt/homebrew/opt/llvm/bin/llvm-ar
+export CC=/usr/bin/clang
 echo $PATH
 
 if [ -z "$BUILD_MODE" ]
