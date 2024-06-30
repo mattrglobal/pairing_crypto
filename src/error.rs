@@ -1,5 +1,3 @@
-use std::usize;
-
 /// Error enumerates all possible errors occuring in this library.
 /// An error returned by the crypto component.
 #[derive(Clone, PartialEq, Eq, Hash)]

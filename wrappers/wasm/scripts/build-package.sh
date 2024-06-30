@@ -8,8 +8,6 @@ SRC_WASM=lib/web/index.js
 
 # Add dev dependencies to current path
 export PATH="$PATH:node_modules/.bin"
-export CC=/usr/bin/clang
-echo $PATH
 
 if [ -z "$BUILD_MODE" ]
 then

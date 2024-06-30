@@ -14,6 +14,7 @@ macro_rules! print_byte_array {
 
 pub(crate) use print_byte_array;
 
+/// Convert a vec to a byte array
 pub fn vec_to_byte_array<const N: usize>(vec: &[u8]) -> Result<[u8; N], Error> {
     let data_len = vec.len();
     match <[u8; N]>::try_from(vec.to_owned()) {

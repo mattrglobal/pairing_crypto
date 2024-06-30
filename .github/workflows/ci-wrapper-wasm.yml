@@ -32,8 +32,8 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Install llvm
-        run: which clang
+      - name: Export Clang
+        run: export CC=/usr/bin/clang
 
       - name: Run yarn install
         run: yarn install --frozen-lockfile
