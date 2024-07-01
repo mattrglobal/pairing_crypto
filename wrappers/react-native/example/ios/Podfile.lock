@@ -76,12 +76,12 @@ PODS:
   - hermes-engine (0.11.0)
   - libevent (2.1.12)
   - OpenSSL-Universal (1.1.1100)
-  - pairing-crypto-rn (0.1.0):
-    - pairing-crypto-rn/Default (= 0.1.0)
-  - pairing-crypto-rn/Default (0.1.0):
+  - pairing-crypto-rn (0.4.2):
+    - pairing-crypto-rn/Default (= 0.4.2)
+  - pairing-crypto-rn/Default (0.4.2):
     - pairing-crypto-rn/PairingCrypto
     - React-Core
-  - pairing-crypto-rn/PairingCrypto (0.1.0)
+  - pairing-crypto-rn/PairingCrypto (0.4.2)
   - RCT-Folly (2021.06.28.00-v2):
     - boost
     - DoubleConversion
@@ -544,7 +544,7 @@ SPEC CHECKSUMS:
   hermes-engine: 84e3af1ea01dd7351ac5d8689cbbea1f9903ffc3
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
-  pairing-crypto-rn: a5977cfd5ca893f8064813d25afc21851479cc97
+  pairing-crypto-rn: bbeffe63f775e945a805ffc9c7229f1c60739bb8
   RCT-Folly: 4d8508a426467c48885f1151029bc15fa5d7b3b8
   RCTRequired: 3e917ea5377751094f38145fdece525aa90545a0
   RCTTypeSafety: c43c072a4bd60feb49a9570b0517892b4305c45e
@@ -577,4 +577,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 4c16bafdbb43a27a7cade89e710c04a91f5017a3
 
-COCOAPODS: 1.11.3
+COCOAPODS: 1.15.2
