@@ -41,18 +41,23 @@ case $PLATFORM in
       mkdir -p $OUTPUT_LOCATION/ios
 
       # Create the directories at the output location for the release binaries
-      mkdir -p $OUTPUT_LOCATION/ios/x86_64
+      mkdir -p $OUTPUT_LOCATION/ios/x86_64-sim
       mkdir -p $OUTPUT_LOCATION/ios/aarch64
-      mkdir -p $OUTPUT_LOCATION/ios/universal
+      mkdir -p $OUTPUT_LOCATION/ios/aarch64-sim
+      mkdir -p $OUTPUT_LOCATION/ios/universal-sim
 
       # Install cargo-lipo
       # see https://github.com/TimNN/cargo-lipo
       cargo install cargo-lipo
-      rustup target install x86_64-apple-ios aarch64-apple-ios
-      cargo lipo -p $PROJECT_NAME --release
-      cp "$ROOT_DIRECTORY/target/x86_64-apple-ios/release/$INPUT_FILE.a"  "$OUTPUT_LOCATION/ios/x86_64/$OUTPUT_FILE.a"
+      rustup target install x86_64-apple-ios aarch64-apple-ios aarch64-apple-ios-sim
+      # Build for 64 bit arm ios devices
+      cargo build -p $PROJECT_NAME --release --target aarch64-apple-ios
+      # Build for intel and arm desktop simulators
+      cargo lipo -p $PROJECT_NAME --release --targets x86_64-apple-ios,aarch64-apple-ios-sim
+      cp "$ROOT_DIRECTORY/target/x86_64-apple-ios/release/$INPUT_FILE.a"  "$OUTPUT_LOCATION/ios/x86_64-sim/$OUTPUT_FILE.a"
       cp "$ROOT_DIRECTORY/target/aarch64-apple-ios/release/$INPUT_FILE.a" "$OUTPUT_LOCATION/ios/aarch64/$OUTPUT_FILE.a"
-      cp "$ROOT_DIRECTORY/target/universal/release/$INPUT_FILE.a"         "$OUTPUT_LOCATION/ios/universal/$OUTPUT_FILE.a"
+      cp "$ROOT_DIRECTORY/target/aarch64-apple-ios-sim/release/$INPUT_FILE.a" "$OUTPUT_LOCATION/ios/aarch64-sim/$OUTPUT_FILE.a"
+      cp "$ROOT_DIRECTORY/target/universal/release/$INPUT_FILE.a"         "$OUTPUT_LOCATION/ios/universal-sim/$OUTPUT_FILE.a"
     ;;
     MACOS)
       # Create the root directory for the macos release binaries

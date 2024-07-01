@@ -7,22 +7,33 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		63C101042C333032008BD650 /* bbs_bls12381_shake256_proof.m in Sources */ = {isa = PBXBuildFile; fileRef = 63C100F82C333032008BD650 /* bbs_bls12381_shake256_proof.m */; };
+		63C101052C333032008BD650 /* bbs_bls12381_sha256_key_pair.m in Sources */ = {isa = PBXBuildFile; fileRef = 63C100F02C333032008BD650 /* bbs_bls12381_sha256_key_pair.m */; };
+		63C101062C333032008BD650 /* bbs_bls12381_shake256_signature.m in Sources */ = {isa = PBXBuildFile; fileRef = 63C100FA2C333032008BD650 /* bbs_bls12381_shake256_signature.m */; };
+		63C101072C333032008BD650 /* bbs_bls12381_sha256_proof.m in Sources */ = {isa = PBXBuildFile; fileRef = 63C100F22C333032008BD650 /* bbs_bls12381_sha256_proof.m */; };
+		63C101082C333032008BD650 /* bbs_bls12381_shake256_key_pair.m in Sources */ = {isa = PBXBuildFile; fileRef = 63C100F62C333032008BD650 /* bbs_bls12381_shake256_key_pair.m */; };
+		63C101092C333032008BD650 /* bbs_proof.m in Sources */ = {isa = PBXBuildFile; fileRef = 63C100FE2C333032008BD650 /* bbs_proof.m */; };
+		63C1010A2C333032008BD650 /* bbs_signature.m in Sources */ = {isa = PBXBuildFile; fileRef = 63C101002C333032008BD650 /* bbs_signature.m */; };
+		63C1010B2C333032008BD650 /* bbs_key_pair.m in Sources */ = {isa = PBXBuildFile; fileRef = 63C100FC2C333032008BD650 /* bbs_key_pair.m */; };
+		63C1010C2C333032008BD650 /* bbs_bls12381_sha256_signature.m in Sources */ = {isa = PBXBuildFile; fileRef = 63C100F42C333032008BD650 /* bbs_bls12381_sha256_signature.m */; };
+		63C1010D2C333032008BD650 /* PairingCryptoError.h in Headers */ = {isa = PBXBuildFile; fileRef = 63C101032C333032008BD650 /* PairingCryptoError.h */; };
+		63C1010E2C333032008BD650 /* bbs_key_pair.h in Headers */ = {isa = PBXBuildFile; fileRef = 63C100FB2C333032008BD650 /* bbs_key_pair.h */; };
+		63C1010F2C333032008BD650 /* bbs_bls12381_sha256_key_pair.h in Headers */ = {isa = PBXBuildFile; fileRef = 63C100EF2C333032008BD650 /* bbs_bls12381_sha256_key_pair.h */; };
+		63C101102C333032008BD650 /* bbs_bls12381_sha256_proof.h in Headers */ = {isa = PBXBuildFile; fileRef = 63C100F12C333032008BD650 /* bbs_bls12381_sha256_proof.h */; };
+		63C101112C333032008BD650 /* bbs_proof.h in Headers */ = {isa = PBXBuildFile; fileRef = 63C100FD2C333032008BD650 /* bbs_proof.h */; };
+		63C101122C333032008BD650 /* bbs_bls12381_sha256_signature.h in Headers */ = {isa = PBXBuildFile; fileRef = 63C100F32C333032008BD650 /* bbs_bls12381_sha256_signature.h */; };
+		63C101132C333032008BD650 /* bbs_signature.h in Headers */ = {isa = PBXBuildFile; fileRef = 63C100FF2C333032008BD650 /* bbs_signature.h */; };
+		63C101142C333032008BD650 /* pairing_crypto_common.h in Headers */ = {isa = PBXBuildFile; fileRef = 63C101022C333032008BD650 /* pairing_crypto_common.h */; };
+		63C101152C333032008BD650 /* bbs_bls12381_shake256_proof.h in Headers */ = {isa = PBXBuildFile; fileRef = 63C100F72C333032008BD650 /* bbs_bls12381_shake256_proof.h */; };
+		63C101162C333032008BD650 /* pairing_crypto_bbs.h in Headers */ = {isa = PBXBuildFile; fileRef = 63C101012C333032008BD650 /* pairing_crypto_bbs.h */; };
+		63C101172C333032008BD650 /* bbs_bls12381_shake256_key_pair.h in Headers */ = {isa = PBXBuildFile; fileRef = 63C100F52C333032008BD650 /* bbs_bls12381_shake256_key_pair.h */; };
+		63C101182C333032008BD650 /* bbs_bls12381_shake256_signature.h in Headers */ = {isa = PBXBuildFile; fileRef = 63C100F92C333032008BD650 /* bbs_bls12381_shake256_signature.h */; };
+		63C1011C2C3331BF008BD650 /* bbs_bls12381_sha256_key_pair.m in Sources */ = {isa = PBXBuildFile; fileRef = 63C101192C333046008BD650 /* bbs_bls12381_sha256_key_pair.m */; };
+		63C1011D2C3331C6008BD650 /* bbs_bls12381_sha256_proof.m in Sources */ = {isa = PBXBuildFile; fileRef = 63C1011A2C333046008BD650 /* bbs_bls12381_sha256_proof.m */; };
+		63C1011E2C3331C6008BD650 /* bbs_bls12381_sha256_signature.m in Sources */ = {isa = PBXBuildFile; fileRef = 63C1011B2C333046008BD650 /* bbs_bls12381_sha256_signature.m */; };
+		63C101282C335423008BD650 /* libpairing_crypto_c.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63C101272C335423008BD650 /* libpairing_crypto_c.xcframework */; };
 		93CFA5E428AE12FD004EA861 /* libpairing_crypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 93CFA5B928AE0E3F004EA861 /* libpairing_crypto.a */; };
-		93CFA5FB28AF0406004EA861 /* bbs_bls12381_sha256_key_pair.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5F828AF0406004EA861 /* bbs_bls12381_sha256_key_pair.m */; };
-		93CFA5FC28AF0406004EA861 /* bbs_bls12381_sha256_proof.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5F928AF0406004EA861 /* bbs_bls12381_sha256_proof.m */; };
-		93CFA5FD28AF0406004EA861 /* bbs_bls12381_sha256_signature.m in Sources */ = {isa = PBXBuildFile; fileRef = 93CFA5FA28AF0406004EA861 /* bbs_bls12381_sha256_signature.m */; };
 		93EC06A228D306C000DD2D4C /* PairingCryptoError.m in Sources */ = {isa = PBXBuildFile; fileRef = 93EC06A028D306C000DD2D4C /* PairingCryptoError.m */; };
-		93EC06B028D30E3800DD2D4C /* bbs_bls12381_sha256_key_pair.m in Sources */ = {isa = PBXBuildFile; fileRef = 93EC06A728D30E3700DD2D4C /* bbs_bls12381_sha256_key_pair.m */; };
-		93EC06B128D30E3800DD2D4C /* bbs_bls12381_shake256_signature.m in Sources */ = {isa = PBXBuildFile; fileRef = 93EC06A828D30E3700DD2D4C /* bbs_bls12381_shake256_signature.m */; };
-		93EC06B228D30E3800DD2D4C /* bbs_bls12381_shake256_key_pair.m in Sources */ = {isa = PBXBuildFile; fileRef = 93EC06A928D30E3700DD2D4C /* bbs_bls12381_shake256_key_pair.m */; };
-		93EC06B328D30E3800DD2D4C /* bbs_bls12381_sha256_signature.m in Sources */ = {isa = PBXBuildFile; fileRef = 93EC06AA28D30E3700DD2D4C /* bbs_bls12381_sha256_signature.m */; };
-		93EC06B628D30E3800DD2D4C /* bbs_bls12381_shake256_proof.m in Sources */ = {isa = PBXBuildFile; fileRef = 93EC06AD28D30E3800DD2D4C /* bbs_bls12381_shake256_proof.m */; };
-		93EC06B728D30E3800DD2D4C /* bbs_bls12381_sha256_proof.m in Sources */ = {isa = PBXBuildFile; fileRef = 93EC06AE28D30E3800DD2D4C /* bbs_bls12381_sha256_proof.m */; };
-		93EC06B828D30E3800DD2D4C /* bbs_key_pair.m in Sources */ = {isa = PBXBuildFile; fileRef = 93EC06AF28D30E3800DD2D4C /* bbs_key_pair.m */; };
-		93EC06BA28D30E6C00DD2D4C /* pairing_crypto_bbs.h in Headers */ = {isa = PBXBuildFile; fileRef = 93EC06B928D30E6C00DD2D4C /* pairing_crypto_bbs.h */; };
-		93EC06BD28D3127B00DD2D4C /* libpairing_crypto_c.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 93EC06BC28D3127B00DD2D4C /* libpairing_crypto_c.a */; };
-		93EC06C028D312D000DD2D4C /* bbs_proof.m in Sources */ = {isa = PBXBuildFile; fileRef = 93EC06BE28D312D000DD2D4C /* bbs_proof.m */; };
-		93EC06C128D312D000DD2D4C /* bbs_signature.m in Sources */ = {isa = PBXBuildFile; fileRef = 93EC06BF28D312D000DD2D4C /* bbs_signature.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,26 +59,35 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		63C100EF2C333032008BD650 /* bbs_bls12381_sha256_key_pair.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bbs_bls12381_sha256_key_pair.h; sourceTree = "<group>"; };
+		63C100F02C333032008BD650 /* bbs_bls12381_sha256_key_pair.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = bbs_bls12381_sha256_key_pair.m; sourceTree = "<group>"; };
+		63C100F12C333032008BD650 /* bbs_bls12381_sha256_proof.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bbs_bls12381_sha256_proof.h; sourceTree = "<group>"; };
+		63C100F22C333032008BD650 /* bbs_bls12381_sha256_proof.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = bbs_bls12381_sha256_proof.m; sourceTree = "<group>"; };
+		63C100F32C333032008BD650 /* bbs_bls12381_sha256_signature.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bbs_bls12381_sha256_signature.h; sourceTree = "<group>"; };
+		63C100F42C333032008BD650 /* bbs_bls12381_sha256_signature.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = bbs_bls12381_sha256_signature.m; sourceTree = "<group>"; };
+		63C100F52C333032008BD650 /* bbs_bls12381_shake256_key_pair.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bbs_bls12381_shake256_key_pair.h; sourceTree = "<group>"; };
+		63C100F62C333032008BD650 /* bbs_bls12381_shake256_key_pair.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = bbs_bls12381_shake256_key_pair.m; sourceTree = "<group>"; };
+		63C100F72C333032008BD650 /* bbs_bls12381_shake256_proof.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bbs_bls12381_shake256_proof.h; sourceTree = "<group>"; };
+		63C100F82C333032008BD650 /* bbs_bls12381_shake256_proof.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = bbs_bls12381_shake256_proof.m; sourceTree = "<group>"; };
+		63C100F92C333032008BD650 /* bbs_bls12381_shake256_signature.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bbs_bls12381_shake256_signature.h; sourceTree = "<group>"; };
+		63C100FA2C333032008BD650 /* bbs_bls12381_shake256_signature.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = bbs_bls12381_shake256_signature.m; sourceTree = "<group>"; };
+		63C100FB2C333032008BD650 /* bbs_key_pair.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bbs_key_pair.h; sourceTree = "<group>"; };
+		63C100FC2C333032008BD650 /* bbs_key_pair.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = bbs_key_pair.m; sourceTree = "<group>"; };
+		63C100FD2C333032008BD650 /* bbs_proof.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bbs_proof.h; sourceTree = "<group>"; };
+		63C100FE2C333032008BD650 /* bbs_proof.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = bbs_proof.m; sourceTree = "<group>"; };
+		63C100FF2C333032008BD650 /* bbs_signature.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bbs_signature.h; sourceTree = "<group>"; };
+		63C101002C333032008BD650 /* bbs_signature.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = bbs_signature.m; sourceTree = "<group>"; };
+		63C101012C333032008BD650 /* pairing_crypto_bbs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pairing_crypto_bbs.h; sourceTree = "<group>"; };
+		63C101022C333032008BD650 /* pairing_crypto_common.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pairing_crypto_common.h; sourceTree = "<group>"; };
+		63C101032C333032008BD650 /* PairingCryptoError.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PairingCryptoError.h; sourceTree = "<group>"; };
+		63C101192C333046008BD650 /* bbs_bls12381_sha256_key_pair.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = bbs_bls12381_sha256_key_pair.m; sourceTree = "<group>"; };
+		63C1011A2C333046008BD650 /* bbs_bls12381_sha256_proof.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = bbs_bls12381_sha256_proof.m; sourceTree = "<group>"; };
+		63C1011B2C333046008BD650 /* bbs_bls12381_sha256_signature.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = bbs_bls12381_sha256_signature.m; sourceTree = "<group>"; };
+		63C101272C335423008BD650 /* libpairing_crypto_c.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libpairing_crypto_c.xcframework; path = libraries/libpairing_crypto_c.xcframework; sourceTree = "<group>"; };
 		93CFA5B928AE0E3F004EA861 /* libpairing_crypto.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libpairing_crypto.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		93CFA5DA28AE1286004EA861 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/iPhoneOS.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		93CFA5E028AE12FD004EA861 /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		93CFA5F328AEF471004EA861 /* libpairing_crypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpairing_crypto.a; path = libraries/libpairing_crypto.a; sourceTree = "<group>"; };
-		93CFA5F828AF0406004EA861 /* bbs_bls12381_sha256_key_pair.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = bbs_bls12381_sha256_key_pair.m; path = tests/bbs/bbs_bls12381_sha256_key_pair.m; sourceTree = SOURCE_ROOT; };
-		93CFA5F928AF0406004EA861 /* bbs_bls12381_sha256_proof.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = bbs_bls12381_sha256_proof.m; path = tests/bbs/bbs_bls12381_sha256_proof.m; sourceTree = SOURCE_ROOT; };
-		93CFA5FA28AF0406004EA861 /* bbs_bls12381_sha256_signature.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = bbs_bls12381_sha256_signature.m; path = tests/bbs/bbs_bls12381_sha256_signature.m; sourceTree = SOURCE_ROOT; };
 		93EC06A028D306C000DD2D4C /* PairingCryptoError.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PairingCryptoError.m; sourceTree = "<group>"; };
-		93EC06A128D306C000DD2D4C /* include */ = {isa = PBXFileReference; lastKnownFileType = folder; path = include; sourceTree = "<group>"; };
-		93EC06A728D30E3700DD2D4C /* bbs_bls12381_sha256_key_pair.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = bbs_bls12381_sha256_key_pair.m; path = pairing_crypto/bbs/bbs_bls12381_sha256_key_pair.m; sourceTree = "<group>"; };
-		93EC06A828D30E3700DD2D4C /* bbs_bls12381_shake256_signature.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = bbs_bls12381_shake256_signature.m; path = pairing_crypto/bbs/bbs_bls12381_shake256_signature.m; sourceTree = "<group>"; };
-		93EC06A928D30E3700DD2D4C /* bbs_bls12381_shake256_key_pair.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = bbs_bls12381_shake256_key_pair.m; path = pairing_crypto/bbs/bbs_bls12381_shake256_key_pair.m; sourceTree = "<group>"; };
-		93EC06AA28D30E3700DD2D4C /* bbs_bls12381_sha256_signature.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = bbs_bls12381_sha256_signature.m; path = pairing_crypto/bbs/bbs_bls12381_sha256_signature.m; sourceTree = "<group>"; };
-		93EC06AD28D30E3800DD2D4C /* bbs_bls12381_shake256_proof.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = bbs_bls12381_shake256_proof.m; path = pairing_crypto/bbs/bbs_bls12381_shake256_proof.m; sourceTree = "<group>"; };
-		93EC06AE28D30E3800DD2D4C /* bbs_bls12381_sha256_proof.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = bbs_bls12381_sha256_proof.m; path = pairing_crypto/bbs/bbs_bls12381_sha256_proof.m; sourceTree = "<group>"; };
-		93EC06AF28D30E3800DD2D4C /* bbs_key_pair.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = bbs_key_pair.m; path = pairing_crypto/bbs/bbs_key_pair.m; sourceTree = "<group>"; };
-		93EC06B928D30E6C00DD2D4C /* pairing_crypto_bbs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = pairing_crypto_bbs.h; path = pairing_crypto/bbs/pairing_crypto_bbs.h; sourceTree = "<group>"; };
-		93EC06BC28D3127B00DD2D4C /* libpairing_crypto_c.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpairing_crypto_c.a; path = libraries/universal/libpairing_crypto_c.a; sourceTree = "<group>"; };
-		93EC06BE28D312D000DD2D4C /* bbs_proof.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = bbs_proof.m; path = pairing_crypto/bbs/bbs_proof.m; sourceTree = "<group>"; };
-		93EC06BF28D312D000DD2D4C /* bbs_signature.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = bbs_signature.m; path = pairing_crypto/bbs/bbs_signature.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,7 +103,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				93EC06BD28D3127B00DD2D4C /* libpairing_crypto_c.a in Frameworks */,
+				63C101282C335423008BD650 /* libpairing_crypto_c.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -93,16 +113,6 @@
 		93CFA5B028AE0E3F004EA861 = {
 			isa = PBXGroup;
 			children = (
-				93EC06BE28D312D000DD2D4C /* bbs_proof.m */,
-				93EC06BF28D312D000DD2D4C /* bbs_signature.m */,
-				93EC06B928D30E6C00DD2D4C /* pairing_crypto_bbs.h */,
-				93EC06A728D30E3700DD2D4C /* bbs_bls12381_sha256_key_pair.m */,
-				93EC06AE28D30E3800DD2D4C /* bbs_bls12381_sha256_proof.m */,
-				93EC06AA28D30E3700DD2D4C /* bbs_bls12381_sha256_signature.m */,
-				93EC06A928D30E3700DD2D4C /* bbs_bls12381_shake256_key_pair.m */,
-				93EC06AD28D30E3800DD2D4C /* bbs_bls12381_shake256_proof.m */,
-				93EC06A828D30E3700DD2D4C /* bbs_bls12381_shake256_signature.m */,
-				93EC06AF28D30E3800DD2D4C /* bbs_key_pair.m */,
 				93CFA5BB28AE0E3F004EA861 /* pairing_crypto */,
 				93CFA5E128AE12FD004EA861 /* Tests */,
 				93CFA5BA28AE0E3F004EA861 /* Products */,
@@ -122,7 +132,27 @@
 		93CFA5BB28AE0E3F004EA861 /* pairing_crypto */ = {
 			isa = PBXGroup;
 			children = (
-				93EC06A128D306C000DD2D4C /* include */,
+				63C100EF2C333032008BD650 /* bbs_bls12381_sha256_key_pair.h */,
+				63C100F02C333032008BD650 /* bbs_bls12381_sha256_key_pair.m */,
+				63C100F12C333032008BD650 /* bbs_bls12381_sha256_proof.h */,
+				63C100F22C333032008BD650 /* bbs_bls12381_sha256_proof.m */,
+				63C100F32C333032008BD650 /* bbs_bls12381_sha256_signature.h */,
+				63C100F42C333032008BD650 /* bbs_bls12381_sha256_signature.m */,
+				63C100F52C333032008BD650 /* bbs_bls12381_shake256_key_pair.h */,
+				63C100F62C333032008BD650 /* bbs_bls12381_shake256_key_pair.m */,
+				63C100F72C333032008BD650 /* bbs_bls12381_shake256_proof.h */,
+				63C100F82C333032008BD650 /* bbs_bls12381_shake256_proof.m */,
+				63C100F92C333032008BD650 /* bbs_bls12381_shake256_signature.h */,
+				63C100FA2C333032008BD650 /* bbs_bls12381_shake256_signature.m */,
+				63C100FB2C333032008BD650 /* bbs_key_pair.h */,
+				63C100FC2C333032008BD650 /* bbs_key_pair.m */,
+				63C100FD2C333032008BD650 /* bbs_proof.h */,
+				63C100FE2C333032008BD650 /* bbs_proof.m */,
+				63C100FF2C333032008BD650 /* bbs_signature.h */,
+				63C101002C333032008BD650 /* bbs_signature.m */,
+				63C101012C333032008BD650 /* pairing_crypto_bbs.h */,
+				63C101022C333032008BD650 /* pairing_crypto_common.h */,
+				63C101032C333032008BD650 /* PairingCryptoError.h */,
 				93EC06A028D306C000DD2D4C /* PairingCryptoError.m */,
 			);
 			path = pairing_crypto;
@@ -131,8 +161,7 @@
 		93CFA5D928AE1286004EA861 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				93EC06BC28D3127B00DD2D4C /* libpairing_crypto_c.a */,
-				93CFA5F328AEF471004EA861 /* libpairing_crypto.a */,
+				63C101272C335423008BD650 /* libpairing_crypto_c.xcframework */,
 				93CFA5DA28AE1286004EA861 /* XCTest.framework */,
 			);
 			name = Frameworks;
@@ -141,11 +170,12 @@
 		93CFA5E128AE12FD004EA861 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
-				93CFA5F828AF0406004EA861 /* bbs_bls12381_sha256_key_pair.m */,
-				93CFA5F928AF0406004EA861 /* bbs_bls12381_sha256_proof.m */,
-				93CFA5FA28AF0406004EA861 /* bbs_bls12381_sha256_signature.m */,
+				63C101192C333046008BD650 /* bbs_bls12381_sha256_key_pair.m */,
+				63C1011A2C333046008BD650 /* bbs_bls12381_sha256_proof.m */,
+				63C1011B2C333046008BD650 /* bbs_bls12381_sha256_signature.m */,
 			);
-			path = Tests;
+			name = Tests;
+			path = tests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -155,7 +185,18 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				93EC06BA28D30E6C00DD2D4C /* pairing_crypto_bbs.h in Headers */,
+				63C1010D2C333032008BD650 /* PairingCryptoError.h in Headers */,
+				63C1010E2C333032008BD650 /* bbs_key_pair.h in Headers */,
+				63C1010F2C333032008BD650 /* bbs_bls12381_sha256_key_pair.h in Headers */,
+				63C101102C333032008BD650 /* bbs_bls12381_sha256_proof.h in Headers */,
+				63C101112C333032008BD650 /* bbs_proof.h in Headers */,
+				63C101122C333032008BD650 /* bbs_bls12381_sha256_signature.h in Headers */,
+				63C101132C333032008BD650 /* bbs_signature.h in Headers */,
+				63C101142C333032008BD650 /* pairing_crypto_common.h in Headers */,
+				63C101152C333032008BD650 /* bbs_bls12381_shake256_proof.h in Headers */,
+				63C101162C333032008BD650 /* pairing_crypto_bbs.h in Headers */,
+				63C101172C333032008BD650 /* bbs_bls12381_shake256_key_pair.h in Headers */,
+				63C101182C333032008BD650 /* bbs_bls12381_shake256_signature.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -205,7 +246,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastUpgradeCheck = 1340;
+				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					93CFA5B828AE0E3F004EA861 = {
 						CreatedOnToolsVersion = 13.4.1;
@@ -249,16 +290,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				93EC06C028D312D000DD2D4C /* bbs_proof.m in Sources */,
-				93EC06B028D30E3800DD2D4C /* bbs_bls12381_sha256_key_pair.m in Sources */,
-				93EC06C128D312D000DD2D4C /* bbs_signature.m in Sources */,
-				93EC06B128D30E3800DD2D4C /* bbs_bls12381_shake256_signature.m in Sources */,
-				93EC06B228D30E3800DD2D4C /* bbs_bls12381_shake256_key_pair.m in Sources */,
-				93EC06B328D30E3800DD2D4C /* bbs_bls12381_sha256_signature.m in Sources */,
-				93EC06B628D30E3800DD2D4C /* bbs_bls12381_shake256_proof.m in Sources */,
-				93EC06B728D30E3800DD2D4C /* bbs_bls12381_sha256_proof.m in Sources */,
-				93EC06B828D30E3800DD2D4C /* bbs_key_pair.m in Sources */,
 				93EC06A228D306C000DD2D4C /* PairingCryptoError.m in Sources */,
+				63C101042C333032008BD650 /* bbs_bls12381_shake256_proof.m in Sources */,
+				63C101052C333032008BD650 /* bbs_bls12381_sha256_key_pair.m in Sources */,
+				63C101062C333032008BD650 /* bbs_bls12381_shake256_signature.m in Sources */,
+				63C101072C333032008BD650 /* bbs_bls12381_sha256_proof.m in Sources */,
+				63C101082C333032008BD650 /* bbs_bls12381_shake256_key_pair.m in Sources */,
+				63C101092C333032008BD650 /* bbs_proof.m in Sources */,
+				63C1010A2C333032008BD650 /* bbs_signature.m in Sources */,
+				63C1010B2C333032008BD650 /* bbs_key_pair.m in Sources */,
+				63C1010C2C333032008BD650 /* bbs_bls12381_sha256_signature.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -266,9 +307,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				93CFA5FD28AF0406004EA861 /* bbs_bls12381_sha256_signature.m in Sources */,
-				93CFA5FC28AF0406004EA861 /* bbs_bls12381_sha256_proof.m in Sources */,
-				93CFA5FB28AF0406004EA861 /* bbs_bls12381_sha256_key_pair.m in Sources */,
+				63C1011D2C3331C6008BD650 /* bbs_bls12381_sha256_proof.m in Sources */,
+				63C1011E2C3331C6008BD650 /* bbs_bls12381_sha256_signature.m in Sources */,
+				63C1011C2C3331BF008BD650 /* bbs_bls12381_sha256_key_pair.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -289,11 +330,8 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
@@ -320,8 +358,6 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -334,16 +370,11 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				"HEADER_SEARCH_PATHS[arch=*]" = (
-					libraries,
-					pairing_crypto,
-				);
 				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
-				VALID_ARCHS = "arm64 arm64e x86_64";
 			};
 			name = Debug;
 		};
@@ -353,11 +384,8 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
@@ -384,7 +412,6 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
@@ -392,29 +419,23 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				"HEADER_SEARCH_PATHS[arch=*]" = libraries;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
-				VALID_ARCHS = "arm64 arm64e x86_64";
 			};
 			name = Release;
 		};
 		93CFA5C328AE0E3F004EA861 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/libraries",
-					"$(PROJECT_DIR)/libraries/universal",
-				);
-				OTHER_LDFLAGS = "-ObjC";
-				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = ./libraries/x86_64/libpairing_crypto_c.a;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -422,16 +443,12 @@
 		93CFA5C428AE0E3F004EA861 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/libraries",
-					"$(PROJECT_DIR)/libraries/universal",
-				);
-				OTHER_LDFLAGS = "-ObjC";
-				"OTHER_LDFLAGS[arch=*]" = ./libraries/universal/libpairing_crypto_c.a;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

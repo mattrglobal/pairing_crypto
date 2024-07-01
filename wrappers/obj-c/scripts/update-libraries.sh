@@ -22,5 +22,11 @@ source $C_WRAPPER_DIRECTORY/scripts/build-platform-targets.sh IOS $C_WRAPPER_DIR
 
 # Copy to the external libraries folder specified in podspec
 mkdir -p "$CURRENT_SCRIPT_DIRECTORY/../libraries"
-cp "$C_WRAPPER_DIRECTORY/out/ios/universal/$LIBRARY_FILE.a" \
-   "$CURRENT_SCRIPT_DIRECTORY/../libraries/$LIBRARY_FILE.a"
+# mkdir -p "$CURRENT_SCRIPT_DIRECTORY/../libraries/sim"
+# cp "$C_WRAPPER_DIRECTORY/out/ios/aarch64-sim/$LIBRARY_FILE.a" \
+#   "$CURRENT_SCRIPT_DIRECTORY/../libraries/sim/$LIBRARY_FILE.a"
+# cp "$C_WRAPPER_DIRECTORY/out/ios/universal/$LIBRARY_FILE.a" \
+#   "$CURRENT_SCRIPT_DIRECTORY/../libraries/$LIBRARY_FILE.a"
+
+rm -r ../libraries/*
+xcodebuild -create-xcframework -library $C_WRAPPER_DIRECTORY/out/ios/universal-sim/$LIBRARY_FILE.a -library $C_WRAPPER_DIRECTORY/out/ios/aarch64/$LIBRARY_FILE.a -output $CURRENT_SCRIPT_DIRECTORY/../libraries/$LIBRARY_FILE.xcframework 
