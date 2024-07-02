@@ -28,5 +28,5 @@ mkdir -p "$CURRENT_SCRIPT_DIRECTORY/../libraries"
 # cp "$C_WRAPPER_DIRECTORY/out/ios/universal/$LIBRARY_FILE.a" \
 #   "$CURRENT_SCRIPT_DIRECTORY/../libraries/$LIBRARY_FILE.a"
 
-rm -r ../libraries/*
+rm -r $CURRENT_SCRIPT_DIRECTORY/../libraries/*
 xcodebuild -create-xcframework -library $C_WRAPPER_DIRECTORY/out/ios/universal-sim/$LIBRARY_FILE.a -library $C_WRAPPER_DIRECTORY/out/ios/aarch64/$LIBRARY_FILE.a -output $CURRENT_SCRIPT_DIRECTORY/../libraries/$LIBRARY_FILE.xcframework 
