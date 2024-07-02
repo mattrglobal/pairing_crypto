@@ -34,7 +34,7 @@ use blstrs::{
 use rand::RngCore;
 use sha2::Sha256;
 use sha3::Shake256;
-use std::path::PathBuf;
+use std::path::Path;
 
 macro_rules! generate_hash_fixtures {
     ($hash_to_scalar_fn:ident,
@@ -131,7 +131,7 @@ macro_rules! generate_mocked_rnd_scalars_fixtures {
     }};
 }
 
-pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &PathBuf) {
+pub fn generate(fixture_gen_input: &FixtureGenInput, output_dir: &Path) {
     generate_hash_fixtures!(
         bls12_381_shake_256_h2s,
         bls12_381_shake_256_default_hash_to_scalar_dst,
