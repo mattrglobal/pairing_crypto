@@ -70,6 +70,33 @@ const bbs_bls12_381_generate_key_pair = async (request) => {
     };
 };
 
+const bbs_bls12_381_generate_key_pair_uncompressed = async (request) => {
+    await initialize();
+    var result = await throwErrorOnRejectedPromise(
+        wasm.bbs_bls12_381_generate_key_pair_uncompressed(request ?? {})
+    );
+    return {
+        secretKey: new Uint8Array(result.secretKey),
+        publicKey: new Uint8Array(result.publicKey),
+    };
+}
+
+const bbs_bls12_381_compressed_to_uncompressed_public_key = async (request) => {
+    await initialize();
+    var result = await throwErrorOnRejectedPromise(
+        wasm.bbs_bls12_381_compressed_to_uncompressed_public_key(request ?? {})
+    );
+    return new Uint8Array(result);
+}
+
+const bbs_bls12_381_uncompressed_to_compressed_public_key = async (request) => {
+    await initialize();
+    var result = await throwErrorOnRejectedPromise(
+        wasm.bbs_bls12_381_uncompressed_to_compressed_public_key(request ?? {})
+    );
+    return new Uint8Array(result);
+}
+
 const bbs_bls12_381_sha_256_sign = async (request) => {
     await initialize();
     return new Uint8Array(await throwErrorOnRejectedPromise(wasm.bbs_bls12_381_sha_256_sign(request)));
@@ -198,6 +225,7 @@ module.exports.bbs = {
         SIGNATURE_LENGTH: DEFAULT_BLS12381_BBS_SIGNATURE_LENGTH,
 
         generateKeyPair: bbs_bls12_381_generate_key_pair,
+        generateKeyPairUncompressed: bbs_bls12_381_generate_key_pair_uncompressed,
         sign: bbs_bls12_381_sha_256_sign,
         verify: bbs_bls12_381_sha_256_verify,
         deriveProof: bbs_bls12_381_sha_256_proof_gen,
@@ -209,6 +237,7 @@ module.exports.bbs = {
         SIGNATURE_LENGTH: DEFAULT_BLS12381_BBS_SIGNATURE_LENGTH,
 
         generateKeyPair: bbs_bls12_381_generate_key_pair,
+        generateKeyPairUncompressed: bbs_bls12_381_generate_key_pair_uncompressed,
         sign: bbs_bls12_381_shake_256_sign,
         verify: bbs_bls12_381_shake_256_verify,
         deriveProof: bbs_bls12_381_shake_256_proof_gen,
@@ -239,5 +268,7 @@ module.exports.bbs_bound = {
 
 module.exports.utilities = {
     convertToRevealMessageArray,
-    convertRevealMessageArrayToRevealMap
+    convertRevealMessageArrayToRevealMap,
+    compressedToUncompressedPublicKey: bbs_bls12_381_compressed_to_uncompressed_public_key,
+    uncompressedToCompressedPublicKey: bbs_bls12_381_uncompressed_to_compressed_public_key,
 }

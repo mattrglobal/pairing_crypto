@@ -2,7 +2,7 @@
 use super::{
     generator::Generators,
     key_pair::{PublicKey, SecretKey},
-    types::Message,
+    types::{Message, SignatureTrace},
     utils::{compute_B, compute_domain},
 };
 use crate::{
@@ -135,12 +135,52 @@ impl Signature {
     /// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.4>
     /// Security Warning: `SK` and `PK` paramters must be related key-pair
     /// generated using `KeyPair` APIs.
+
     pub fn new<T, M, G, C>(
         SK: &SecretKey,
         PK: &PublicKey,
         header: Option<T>,
         generators: &G,
         messages: M,
+    ) -> Result<Self, Error>
+    where
+        T: AsRef<[u8]>,
+        M: AsRef<[Message]>,
+        G: Generators,
+        C: BbsCiphersuiteParameters,
+    {
+        Self::new_private_with_trace::<T, M, G, C>(
+            SK, PK, header, generators, messages, None,
+        )
+    }
+
+    #[cfg(feature = "__private_bbs_fixtures_generator_api")]
+    pub fn new_with_trace<T, M, G, C>(
+        SK: &SecretKey,
+        PK: &PublicKey,
+        header: Option<T>,
+        generators: &G,
+        messages: M,
+        trace: Option<&mut SignatureTrace>,
+    ) -> Result<Self, Error>
+    where
+        T: AsRef<[u8]>,
+        M: AsRef<[Message]>,
+        G: Generators,
+        C: BbsCiphersuiteParameters,
+    {
+        Self::new_private_with_trace::<T, M, G, C>(
+            SK, PK, header, generators, messages, trace,
+        )
+    }
+
+    fn new_private_with_trace<T, M, G, C>(
+        SK: &SecretKey,
+        PK: &PublicKey,
+        header: Option<T>,
+        generators: &G,
+        messages: M,
+        mut trace: Option<&mut SignatureTrace>,
     ) -> Result<Self, Error>
     where
         T: AsRef<[u8]>,
@@ -177,10 +217,10 @@ impl Signature {
         // e_s_octs = serialize((SK, domain, msg_1, ..., msg_L))
         let mut data_to_hash = vec![];
         data_to_hash.extend(SK.to_bytes().as_ref());
-        data_to_hash.extend(domain.to_bytes_be().as_ref());
         for m in messages {
             data_to_hash.extend(m.to_bytes().as_ref());
         }
+        data_to_hash.extend(domain.to_bytes_be().as_ref());
 
         // if e_s_octs is INVALID, return INVALID
         // e_s_expand = expand_message(e_s_octs, expand_dst, expand_len * 2)
@@ -190,7 +230,9 @@ impl Signature {
         let e = C::hash_to_e(&data_to_hash)?;
 
         // B = P1 + Q * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let B = compute_B::<_, C>(&domain, messages, generators)?;
+        let message_scalars: Vec<Scalar> =
+            messages.iter().map(|m| m.0).collect();
+        let B = compute_B::<_, C>(&domain, &message_scalars, generators)?;
         let exp = (e + SK.as_scalar()).invert();
         let exp = if exp.is_some().unwrap_u8() == 1u8 {
             exp.unwrap()
@@ -201,6 +243,14 @@ impl Signature {
                     .to_owned(),
             });
         };
+
+        // Add to the trace when creating the signature fixtures
+        if cfg!(feature = "__private_bbs_fixtures_generator_api") {
+            if let Some(t) = trace.as_mut() {
+                t.B = point_to_octets_g1(&B);
+                t.domain = domain.to_bytes_be();
+            }
+        }
 
         // A = B * (1 / (SK + e))
         Ok(Self { A: B * exp, e })
@@ -336,18 +386,20 @@ impl Signature {
             compute_domain::<_, _, C>(PK, header, messages.len(), generators)?;
 
         // B = P1 + Q * domain + H_1 * msg_1 + ... + H_L * msg_L
-        let B = compute_B::<_, C>(&domain, messages, generators)?;
+        let message_scalars: Vec<Scalar> =
+            messages.iter().map(|m| m.0).collect();
+        let B = compute_B::<_, C>(&domain, &message_scalars, generators)?;
 
-        let P2 = C::p2();
-        // C1 = (A, W + P2 * e)
+        let BP2: blstrs::G2Projective = C::bp2();
+        // C1 = (A, W + BP2 * e)
         let C1 = (
             &self.A.to_affine(),
-            &G2Prepared::from((W + P2 * self.e).to_affine()),
+            &G2Prepared::from((W + BP2 * self.e).to_affine()),
         );
 
-        // C2 = (B, -P2)
-        // -P2, because we use multi_miller_loop
-        let C2 = (&B.to_affine(), &G2Prepared::from(-P2.to_affine()));
+        // C2 = (B, -BP2)
+        // -BP2, because we use multi_miller_loop
+        let C2 = (&B.to_affine(), &G2Prepared::from(-BP2.to_affine()));
 
         // C1 == C2
         // multi_miller_loop(C1, C2) == 1

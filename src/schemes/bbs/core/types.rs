@@ -1,11 +1,14 @@
+#![allow(non_snake_case)]
 use crate::{
     bbs::ciphersuites::BbsCiphersuiteParameters,
     curves::{
-        bls12_381::{Scalar, OCTET_SCALAR_LENGTH},
+        bls12_381::{Scalar, OCTET_POINT_G1_LENGTH, OCTET_SCALAR_LENGTH},
+        point_serde::point_to_octets_g1,
         scalar_type::scalar_wrapper,
     },
     error::Error,
 };
+use blstrs::G1Projective;
 use serde::{Deserialize, Serialize};
 use subtle::CtOption;
 
@@ -60,5 +63,118 @@ impl ProofMessage {
             ProofMessage::Revealed(r) => r,
             ProofMessage::Hidden(h) => h,
         }
+    }
+}
+
+/// Result of proof generation and
+/// verification initialization.
+#[allow(non_snake_case)]
+#[derive(Debug, Default, Clone)]
+pub(crate) struct ProofInitResult {
+    pub A_bar: G1Projective,
+    pub B_bar: G1Projective,
+    pub D: G1Projective,
+    pub T1: G1Projective,
+    pub T2: G1Projective,
+    pub domain: Scalar,
+}
+
+/// Random Scalars used to blind the undisclosed messages and the hidden
+/// signature value.
+#[derive(Default, Debug, Clone)]
+pub struct RandomScalars {
+    /// The r1 random scalar
+    pub r1: Scalar,
+    /// The r2 random scalar
+    pub r2: Scalar,
+    /// The e_tilde random scalar
+    pub e_tilde: Scalar,
+    /// The r1_tilde random scalar
+    pub r1_tilde: Scalar,
+    /// The r3_tilde random scalar
+    pub r3_tilde: Scalar,
+    /// The list of m~_i, where each m~ a random scalar
+    pub m_tilde_scalars: Vec<Scalar>,
+}
+
+impl RandomScalars {
+    pub(crate) fn insert_m_tilde(&mut self, m_tilde: Scalar) {
+        self.m_tilde_scalars.push(m_tilde);
+    }
+
+    pub(crate) fn m_tilde_scalars_len(&self) -> usize {
+        self.m_tilde_scalars.len()
+    }
+}
+
+/// A struct to hold a trace of the signature generation operation
+#[derive(Debug, Clone)]
+pub struct SignatureTrace {
+    /// The point B calculated during proof generation
+    pub B: [u8; OCTET_POINT_G1_LENGTH],
+    /// The domain scalar value calculated during proof generation
+    pub domain: [u8; OCTET_SCALAR_LENGTH],
+}
+
+impl Default for SignatureTrace {
+    fn default() -> Self {
+        Self {
+            B: [0u8; OCTET_POINT_G1_LENGTH],
+            domain: [0u8; OCTET_SCALAR_LENGTH],
+        }
+    }
+}
+
+/// A struct to hold a trace of the proof generation operation
+#[derive(Debug, Clone)]
+pub struct ProofTrace {
+    /// The random scalars used during proof generation
+    pub random_scalars: RandomScalars,
+    /// The point A_bar calculated during proof generation
+    pub A_bar: [u8; OCTET_POINT_G1_LENGTH],
+    /// The point B_bar calculated during proof generation
+    pub B_bar: [u8; OCTET_POINT_G1_LENGTH],
+    /// The point D calculated during proof generation
+    pub D: [u8; OCTET_POINT_G1_LENGTH],
+    /// The point T1 calculated during proof generation
+    pub T1: [u8; OCTET_POINT_G1_LENGTH],
+    /// The point T2 calculated during proof generation
+    pub T2: [u8; OCTET_POINT_G1_LENGTH],
+    /// The domain scalar value calculated during proof generation
+    pub domain: [u8; OCTET_SCALAR_LENGTH],
+    /// The challenge scalar value calculated during proof generation
+    pub challenge: [u8; OCTET_SCALAR_LENGTH],
+}
+
+impl Default for ProofTrace {
+    fn default() -> Self {
+        Self {
+            random_scalars: RandomScalars::default(),
+            A_bar: [0u8; OCTET_POINT_G1_LENGTH],
+            B_bar: [0u8; OCTET_POINT_G1_LENGTH],
+            D: [0u8; OCTET_POINT_G1_LENGTH],
+            T1: [0u8; OCTET_POINT_G1_LENGTH],
+            T2: [0u8; OCTET_POINT_G1_LENGTH],
+            domain: [0u8; OCTET_SCALAR_LENGTH],
+            challenge: [0u8; OCTET_SCALAR_LENGTH],
+        }
+    }
+}
+
+impl ProofTrace {
+    pub(crate) fn new_with_init_res(
+        &mut self,
+        init_res: &ProofInitResult,
+        challenge: Challenge,
+        random_scalars: RandomScalars,
+    ) {
+        self.A_bar = point_to_octets_g1(&init_res.A_bar);
+        self.B_bar = point_to_octets_g1(&init_res.B_bar);
+        self.D = point_to_octets_g1(&init_res.D);
+        self.T1 = point_to_octets_g1(&init_res.T1);
+        self.T2 = point_to_octets_g1(&init_res.T2);
+        self.domain = init_res.domain.to_bytes_be();
+        self.challenge = challenge.0.to_bytes_be();
+        self.random_scalars = random_scalars;
     }
 }

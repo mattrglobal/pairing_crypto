@@ -64,7 +64,7 @@ pub(crate) trait BbsCiphersuiteParameters:
     }
 
     /// Point on G2 to be used during signature and proof verification.
-    fn p2() -> G2Projective {
+    fn bp2() -> G2Projective {
         G2Projective::generator()
     }
 

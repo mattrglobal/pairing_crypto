@@ -476,8 +476,31 @@ fn key_serde() {
 
 #[test]
 fn from_vec_deserialization_invalid_vec_size() {
-    from_vec_deserialization_invalid_vec_size!(SecretKey);
-    from_vec_deserialization_invalid_vec_size!(PublicKey);
+    let secret_key_expected_error_string = |data_len: usize| -> String {
+        format!(
+            "source vector size {data_len}, expected destination byte array \
+             size {}",
+            SecretKey::SIZE_BYTES,
+        )
+    };
+
+    let public_key_expected_error_string = |data_len: usize| -> String {
+        format!(
+            "source vector size {data_len}, expected destination byte array \
+             size of either {} or {}",
+            PublicKey::SIZE_BYTES,
+            PublicKey::SIZE_BYTES_UNCOMPRESSED
+        )
+    };
+
+    from_vec_deserialization_invalid_vec_size!(
+        SecretKey,
+        secret_key_expected_error_string
+    );
+    from_vec_deserialization_invalid_vec_size!(
+        PublicKey,
+        public_key_expected_error_string
+    );
 }
 
 #[test]
