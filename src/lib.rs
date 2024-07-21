@@ -38,8 +38,8 @@ extern crate alloc;
 /// Error types
 mod error;
 
-// Common types and utilities
-mod common;
+/// Common types and utilities
+pub mod common;
 
 // Supported Curves
 mod curves;

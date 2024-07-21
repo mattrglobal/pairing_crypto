@@ -12,6 +12,7 @@
  */
 
 import { bbs } from "../../../lib";
+import { utilities } from "../../../lib";
 
 describe("bbs", () => {
   describe("bls12381_shake256", () => {
@@ -61,6 +62,49 @@ describe("bbs", () => {
           expect(result.secretKey as Uint8Array).toEqual(value.secretKey);
           expect(result.publicKey).toEqual(value.publicKey);
         });
+
+        it("should be able to map a compressed public key to an uncompressed representation", async () => {
+          const compressed_keypair = await bbs.bls12381_shake256.generateKeyPair({
+            ikm: value.ikm,
+            keyInfo: value.keyInfo,
+          });
+
+          const uncompressed_keypair = await bbs.bls12381_shake256.generateKeyPairUncompressed({
+            ikm: value.ikm,
+            keyInfo: value.keyInfo,
+          });
+
+          const uncompressed_from_compressed_pk = await utilities.compressedToUncompressedPublicKey(
+            compressed_keypair.publicKey
+          );
+
+          const compressed_from_uncompressed_pk = await utilities.uncompressedToCompressedPublicKey(
+            uncompressed_keypair.publicKey
+          );
+
+          expect(compressed_keypair.publicKey).toBeDefined();
+          expect(compressed_keypair.secretKey).toBeDefined();
+
+          expect(uncompressed_keypair.publicKey).toBeDefined();
+          expect(uncompressed_keypair.secretKey).toBeDefined();
+          expect(uncompressed_keypair.publicKey?.length as number).toEqual(
+            bbs.bls12381_shake256.PUBLIC_KEY_LENGTH * 2
+          )
+
+          expect(uncompressed_from_compressed_pk).toBeDefined();
+          expect(uncompressed_from_compressed_pk?.length as number).toEqual(
+            bbs.bls12381_shake256.PUBLIC_KEY_LENGTH * 2
+          )
+
+          expect(uncompressed_keypair.publicKey).toEqual(uncompressed_from_compressed_pk)
+
+          expect(compressed_from_uncompressed_pk).toBeDefined();
+          expect(compressed_from_uncompressed_pk?.length as number).toEqual(
+            bbs.bls12381_shake256.PUBLIC_KEY_LENGTH
+          )
+
+          expect(compressed_keypair.publicKey).toEqual(compressed_from_uncompressed_pk)
+        });
       });
 
       it("should be able to generate a key pair from random", async () => {
@@ -73,6 +117,7 @@ describe("bbs", () => {
         );
         expect(result.publicKey.length).toEqual(bbs.bls12381_shake256.PUBLIC_KEY_LENGTH);
       });
+
     });
   });
 });

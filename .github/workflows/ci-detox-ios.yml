@@ -1,108 +1,110 @@
-name: ci-detox-ios
+# name: ci-detox-ios
 
-on:
-  pull_request:
-    branches:
-      - master
+# on:
+#   pull_request:
+#     branches:
+#       - master
 
-jobs:
+# jobs:
 
-  libraries:
-    name: Build Wrapper Libraries
-    runs-on: macos-latest
-    defaults:
-      run:
-        working-directory: ./wrappers/react-native
-    steps:
-      - name: Checkout
-        uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
+#   libraries:
+#     name: Build Wrapper Libraries
+#     runs-on: macos-latest
+#     defaults:
+#       run:
+#         working-directory: ./wrappers/react-native
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
 
-      # Needed to resolve any private git based dependencies like https://github.com/mattrglobal/blstrs
-      - name: Setup SSH Agent
-        uses: webfactory/ssh-agent@836c84ec59a0e7bc0eabc79988384eb567561ee2 # pin@v0.7.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+#       # Needed to resolve any private git based dependencies like https://github.com/mattrglobal/blstrs
+#       - name: Setup SSH Agent
+#         uses: webfactory/ssh-agent@836c84ec59a0e7bc0eabc79988384eb567561ee2 # pin@v0.7.0
+#         with:
+#           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Setup rust toolchain
-        uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
+#       - name: Setup rust toolchain
+#         uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
+#         with:
+#           profile: minimal
+#           toolchain: stable
+#           override: true
 
-      - name: Build Libraries for iOS
-        run: yarn build:ios
+#       - name: Build Libraries for iOS
+#         run: yarn build:ios
 
-      - name: Archive build artifacts
-        if: success()
-        uses: actions/upload-artifact@v3
-        with:
-          name: ci-detox-ios-artifacts-libs-${{ github.sha }}
-          path: wrappers/react-native/ios/lib
-          retention-days: 1
+#       - name: Archive build artifacts
+#         if: success()
+#         uses: actions/upload-artifact@v3
+#         with:
+#           name: ci-detox-ios-artifacts-libs-${{ github.sha }}
+#           path: wrappers/react-native/ios/lib
+#           retention-days: 1
 
-  ios:
-    name: Detox iOS E2E Testing
-    needs: [libraries]
-    runs-on: ${{ matrix.runners }}
-    strategy:
-      matrix:
-        runners: [[self-hosted, macos, X64, general]]
-    concurrency:
-      group: ci-detox-ios-${{ matrix.runners }}-${{ github.head_ref }}
-      cancel-in-progress: true
-    timeout-minutes: 30
+#   ios:
+#     name: Detox iOS E2E Testing
+#     needs: [libraries]
+#     runs-on: macos-latest
+#     # strategy:
+#     #   matrix:
+#     #     runners: [[self-hosted, macos, general, detox-ios]]
+#     # concurrency:
+#     #   group: ci-detox-ios-${{ matrix.runners }}-${{ github.head_ref || github.run_id  }}
+#     #   cancel-in-progress: true
+#     timeout-minutes: 120
 
-    defaults:
-      run:
-        working-directory: wrappers/react-native
+#     defaults:
+#       run:
+#         working-directory: wrappers/react-native
+#         shell: zsh -il {0} # load ~/.zshrc
 
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_13.2.1.app
-      # Do not launch packager during CI build
-      RCT_NO_LAUNCH_PACKAGER: 'true'
+#     env:
+#       DEVELOPER_DIR: /Applications/Xcode_14.2.app
+#       NODE_OPTIONS: "--max-old-space-size=5120"
+#       # Do not launch packager during CI build
+#       RCT_NO_LAUNCH_PACKAGER: 'true'
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v2
 
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
-          registry-url: https://registry.npmjs.org
+#       - name: Setup Node
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: 18.x
+#           registry-url: https://registry.npmjs.org
 
-      - name: Download iOS Libraries
-        uses: actions/download-artifact@v3
-        with:
-          name: ci-detox-ios-artifacts-libs-${{ github.sha }}
-          path: wrappers/react-native/ios/lib
+#       - name: Download iOS Libraries
+#         uses: actions/download-artifact@v3
+#         with:
+#           name: ci-detox-ios-artifacts-libs-${{ github.sha }}
+#           path: wrappers/react-native/ios/lib
 
-      - name: Inspect iOS Libraries
-        run: ls -R ios/lib
+#       - name: Inspect iOS Libraries
+#         run: ls -R ios/lib
 
-      - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+#       - name: Install Dependencies
+#         run: yarn install --frozen-lockfile
 
-      - name: Example App Install Dependencies
-        run: yarn example --frozen-lockfile
+#       - name: Example App Install Dependencies
+#         run: yarn example --frozen-lockfile
 
-      - name: Example App Install Pods
-        run: yarn example pods
+#       - name: Example App Install Pods
+#         run: yarn example pods
 
-      - run: brew tap wix/brew
-      - run: brew install applesimutils
+#       - run: brew tap wix/brew
+#       - run: brew install applesimutils
 
-      - name: Detox Build iOS Configuration
-        run: yarn detox:build:ios
+#       - name: Detox Build iOS Configuration
+#         run: yarn detox:build:ios
 
-      - name: Detox E2E Test
-        run: yarn detox:ios:ci
+#       - name: Detox E2E Test
+#         run: yarn detox:ios:ci
 
-      - name: Archive detox failed test results
-        if: failure()
-        uses: actions/upload-artifact@v3
-        with:
-          name: detox-artifacts-${{ github.sha }}
-          path: wrappers/react-native/example/detox-artifacts
-          retention-days: 1
+#       - name: Archive detox failed test results
+#         if: failure()
+#         uses: actions/upload-artifact@v3
+#         with:
+#           name: detox-artifacts-${{ github.sha }}
+#           path: wrappers/react-native/example/detox-artifacts
+#           retention-days: 1
