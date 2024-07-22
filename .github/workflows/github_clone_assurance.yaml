@@ -8,7 +8,7 @@ on:
 
 jobs:
   MirrorRepoToMATTRAssurance:
-    runs-on: [self-hosted, generic]
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
