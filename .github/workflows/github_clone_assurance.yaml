@@ -8,9 +8,10 @@ on:
 
 jobs:
   MirrorRepoToMATTRAssurance:
-    runs-on: ["self-hosted", "engineering", "Linux", "X64"]
+    runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
     steps:
       - name: mirror repo
         uses: mattrinternal/sre-reusable-action/actions/github-clone-assurance@master
