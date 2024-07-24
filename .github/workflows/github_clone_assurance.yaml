@@ -14,11 +14,14 @@ jobs:
       id-token: write
     steps:
       - name: mirror repo
-        uses: mattrinternal/sre-reusable-action/actions/github-clone-assurance@master
-        with:
-          github_repository: ${{ env.GITHUB_REPOSITORY }}
-          github_ref_name: ${{ env.GITHUB_REF_NAME }}
-          remote_git_user_name: ${{ secrets.MATTRASSURANCE_GIT_USER_NAME }}
-          remote_git_user_email: ${{ secrets.MATTRASSURANCE_GIT_USER_EMAIL }}
-          remote_git_user_pat: ${{ secrets.MATTRASSURANCE_GIT_USER_PAT }}
-          remote_git_repo: 'mattrassurance/pairing_crypto'
+        shell: bash
+        run: |
+          rm -r .git
+          rm -r .github
+          git init --initial-branch=${{ env.GITHUB_REF_NAME }}
+          git config --local user.name ${{ secrets.MATTRASSURANCE_GIT_USER_NAME }}
+          git config --local user.email ${{ secrets.MATTRASSURANCE_GIT_USER_EMAIL }}
+          git add .
+          git commit -m "Backing up ${{ env.GITHUB_REPOSITORY }} to mattrassurance org"
+          git remote add origin https://${{ secrets.MATTRASSURANCE_GIT_USER_NAME }}:${{ secrets.MATTRASSURANCE_GIT_USER_PAT }}@github.com/mattrassurance/pairing_crypto.git
+          git push origin ${{ env.GITHUB_REF_NAME }} --force
