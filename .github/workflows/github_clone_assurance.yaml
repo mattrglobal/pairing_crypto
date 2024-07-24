@@ -13,6 +13,9 @@ jobs:
       contents: read
       id-token: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
       - name: mirror repo
         shell: bash
         run: |
