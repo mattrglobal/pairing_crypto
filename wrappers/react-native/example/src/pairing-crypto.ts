@@ -16,6 +16,31 @@ import { BbsVerifyResult, bbs } from '@mattrglobal/pairing-crypto-rn';
 
 import { FixtureItem, SignatureFixture, ProofFixture, fixtures } from '../__fixtures__';
 
+
+// Utility functions
+namespace utils {
+
+  type revealedMessages = {[k: number]: Uint8Array};
+
+  export function toRevealedMessages(signedMessages: Uint8Array[], disclosedIndexes: number[]): revealedMessages | undefined {
+    var accumulator: revealedMessages = {};
+
+    function appender(
+      acc: {[k: number]: Uint8Array}, idx: number
+    ): [ {[k: number]: Uint8Array}, number]
+    {
+      if (signedMessages[idx]) {
+        acc[idx] = signedMessages[idx];
+      }
+      return [acc, idx]
+    };
+
+    return(disclosedIndexes
+      ? R.mapAccum(appender, accumulator, disclosedIndexes)[0]
+      : undefined)
+  }
+}
+
 export interface VerifyResult {
   readonly verified: boolean;
   readonly error?: Error;
@@ -51,11 +76,19 @@ export const BbsBls12381Shake256GenerateKeyPair = async (): Promise<VerifyResult
 };
 
 export const BbsBls12381Sha256ProofGen = async (fixture: FixtureItem<ProofFixture>): Promise<VerifyResult> => {
-  const revealedMessages = R.values(fixture.value.revealedMessages);
-  const messages = fixtures.testAsset.value.messages.map((message) => ({
-    value: convert.byteArrayFromHex(message),
-    reveal: revealedMessages.includes(message),
+  const signedMessages: Uint8Array[] = fixture.value.messages.map((message) => 
+    convert.byteArrayFromHex(message)
+  );
+  const disclosedIndexes: number[] = fixture.value.disclosedIndexes;
+  const messages = signedMessages.map((message, idx) => ({
+    value: message,
+    reveal: disclosedIndexes.includes(idx),
   }));
+
+  // const messages = fixtures.testAsset.value.messages.forEach((message) => ({
+  //   value: convert.byteArrayFromHex(message),
+  //   reveal: revealedMessages.includes(message),
+  // }));
 
   const header = convert.byteArrayFromHex(fixtures.testAsset.value.header);
   const presentationHeader = convert.byteArrayFromHex(fixtures.testAsset.value.presentationHeader);
@@ -69,7 +102,7 @@ export const BbsBls12381Sha256ProofGen = async (fixture: FixtureItem<ProofFixtur
   const signature = await bbs.bls12381_sha256.sign({
     secretKey: keyPair.secretKey,
     publicKey: keyPair.publicKey,
-    messages: messages.map((item) => item.value),
+    messages: signedMessages, // messages.map((item) => item.value),
     header,
   });
   console.info('Generated signature', { signature: convert.byteArrayToHex(signature) });
@@ -89,17 +122,27 @@ export const BbsBls12381Sha256ProofGen = async (fixture: FixtureItem<ProofFixtur
     proof,
     header,
     presentationHeader,
-    messages: fixture.value.revealedMessages
-      ? R.mapObjIndexed(convert.byteArrayFromHex, fixture.value.revealedMessages)
-      : undefined,
+    messages: utils.toRevealedMessages(signedMessages, disclosedIndexes),
+      // disclosedIndexes
+      // ? R.mapAccum(appender, accumulator, disclosedIndexes)[0]
+      // : undefined,
   });
 };
 
 export const BbsBls12381Shake256ProofGen = async (fixture: FixtureItem<ProofFixture>): Promise<VerifyResult> => {
-  const revealedMessages = R.values(fixture.value.revealedMessages);
-  const messages = fixtures.testAsset.value.messages.map((message) => ({
-    value: convert.byteArrayFromHex(message),
-    reveal: revealedMessages.includes(message),
+  // const revealedMessages = R.values(fixture.value.revealedMessages);
+  // const messages = fixtures.testAsset.value.messages.map((message) => ({
+  //   value: convert.byteArrayFromHex(message),
+  //   reveal: revealedMessages.includes(message),
+  // }));
+
+  const signedMessages: Uint8Array[] = fixture.value.messages.map((message) => 
+    convert.byteArrayFromHex(message)
+  );
+  const disclosedIndexes: number[] = fixture.value.disclosedIndexes;
+  const messages = signedMessages.map((message, idx) => ({
+    value: message,
+    reveal: disclosedIndexes.includes(idx),
   }));
 
   const header = convert.byteArrayFromHex(fixtures.testAsset.value.header);
@@ -114,7 +157,7 @@ export const BbsBls12381Shake256ProofGen = async (fixture: FixtureItem<ProofFixt
   const signature = await bbs.bls12381_shake256.sign({
     secretKey: keyPair.secretKey,
     publicKey: keyPair.publicKey,
-    messages: messages.map((item) => item.value),
+    messages: signedMessages,
     header,
   });
   console.info('Generated signature', { signature: convert.byteArrayToHex(signature) });
@@ -134,9 +177,7 @@ export const BbsBls12381Shake256ProofGen = async (fixture: FixtureItem<ProofFixt
     proof,
     header,
     presentationHeader,
-    messages: fixture.value.revealedMessages
-      ? R.mapObjIndexed(convert.byteArrayFromHex, fixture.value.revealedMessages)
-      : undefined,
+    messages: utils.toRevealedMessages(signedMessages, disclosedIndexes),
   });
 };
 
@@ -163,9 +204,13 @@ export const BbsBls12381Sha256ProofVerify = async (fixture: FixtureItem<ProofFix
     publicKey: convert.byteArrayFromHex(fixture.value.signerPublicKey),
     header: convert.byteArrayFromHex(fixture.value.header),
     presentationHeader: convert.byteArrayFromHex(fixture.value.presentationHeader),
-    messages: fixture.value.revealedMessages
-      ? R.mapObjIndexed(convert.byteArrayFromHex, fixture.value.revealedMessages)
-      : undefined,
+    messages: utils.toRevealedMessages(
+      R.map(convert.byteArrayFromHex, fixture.value.messages),
+      fixture.value.disclosedIndexes
+    ),
+      //  fixture.value.revealedMessages
+      // ? R.mapObjIndexed(convert.byteArrayFromHex, fixture.value.revealedMessages)
+      // : undefined,
     proof: convert.byteArrayFromHex(fixture.value.proof),
   });
 };
@@ -175,9 +220,13 @@ export const BbsBls12381Shake256ProofVerify = async (fixture: FixtureItem<ProofF
     publicKey: convert.byteArrayFromHex(fixture.value.signerPublicKey),
     header: convert.byteArrayFromHex(fixture.value.header),
     presentationHeader: convert.byteArrayFromHex(fixture.value.presentationHeader),
-    messages: fixture.value.revealedMessages
-      ? R.mapObjIndexed(convert.byteArrayFromHex, fixture.value.revealedMessages)
-      : undefined,
+    messages: utils.toRevealedMessages(
+      R.map(convert.byteArrayFromHex, fixture.value.messages),
+      fixture.value.disclosedIndexes
+    ),
+      // fixture.value.revealedMessages
+      // ? R.mapObjIndexed(convert.byteArrayFromHex, fixture.value.revealedMessages)
+      // : undefined,
     proof: convert.byteArrayFromHex(fixture.value.proof),
   });
 };

@@ -41,7 +41,8 @@ export interface ProofFixture {
   readonly header: string;
   readonly presentationHeader: string;
   readonly result: { valid: false; reason: string } | { valid: true };
-  readonly revealedMessages: { [key: number]: string };
+  readonly messages: string[];
+  readonly disclosedIndexes: number[];
   readonly signerPublicKey: string;
 }
 
