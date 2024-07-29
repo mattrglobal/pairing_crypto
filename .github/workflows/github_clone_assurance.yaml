@@ -19,6 +19,7 @@ jobs:
 
       - name: mirror repo
         run: |
+          ls -la
           rm -r .git
           rm -r .github
           git init --initial-branch=${{ github.ref_name }}
