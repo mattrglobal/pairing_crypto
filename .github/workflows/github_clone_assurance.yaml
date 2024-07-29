@@ -5,7 +5,7 @@ on:
     branches:
       - master
       - main
-      - ki/update-workflow-variables
+      - Ki/update-workflow-variables
 
 jobs:
   MirrorRepoToMATTRAssurance:
