@@ -17,20 +17,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: mirror repo
-        env:
-          GITHUB_REPOSITORY: ${{ env.GITHUB_REPOSITORY }}
-          GITHUB_REF_NAME: ${{ env.GITHUB_REF_NAME }}
-          REMOTE_GIT_USER_NAME: ${{ secrets.MATTRASSURANCE_GIT_USER_NAME }}
-          REMOTE_GIT_USER_EMAIL: ${{ secrets.MATTRASSURANCE_GIT_USER_EMAIL }}
-          REMOTE_GIT_USER_PAT: ${{ secrets.MATTRASSURANCE_GIT_USER_PAT }}
-        shell: bash
         run: |
           rm -r .git
           rm -r .github
-          git init --initial-branch=${GITHUB_REF_NAME}
-          git config --local user.name ${REMOTE_GIT_USER_NAME}
-          git config --local user.email ${REMOTE_GIT_USER_EMAIL}
+          git init --initial-branch=${{ github.ref_name }}
+          git config --local user.name ${{ secrets.MATTRASSURANCE_GIT_USER_NAME }}
+          git config --local user.email ${{ secrets.MATTRASSURANCE_GIT_USER_EMAIL }}
           git add .
-          git commit -m "Backing up ${GITHUB_REPOSITORY} to mattrassurance org"
-          git remote add origin https://${REMOTE_GIT_USER_NAME}:${REMOTE_GIT_USER_PAT}@github.com/mattrassurance/pairing_crypto.git
-          git push origin ${GITHUB_REF_NAME} --force
+          git commit -m "Backing up ${{ github.repository }} to mattrassurance org"
+          git remote add origin https://${{ secrets.MATTRASSURANCE_GIT_USER_NAME }}:${{ secrets.MATTRASSURANCE_GIT_USER_PAT }}@github.com/mattrassurance/pairing_crypto.git
+          git push origin ${{ github.ref_name }} --force
