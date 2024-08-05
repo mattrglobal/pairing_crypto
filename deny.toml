@@ -9,6 +9,7 @@
 # The values provided in this template are the default values that will be used
 # when any section or field is not specified in your own configuration
 
+[graph]
 # If 1 or more target triples (and optionally, target_features) are specified,
 # only the specified targets will be checked when running `cargo deny check`.
 # This means, if a particular package is only ever used as a target specific
