@@ -125,7 +125,7 @@ repositories {
   }
 
   if (!found) {
-    throw new GradleException(
+    throw new RuntimeException(
       "${project.name}: unable to locate React Native android sources. " +
       "Ensure you have you installed React Native as a dependency in your project and try again."
     )
