@@ -12,6 +12,7 @@
  */
 import R from 'ramda';
 import { by, device, expect, element } from 'detox';
+import {it} from '@jest/globals';
 
 import { FixtureItem, fixtures } from '../__fixtures__';
 
