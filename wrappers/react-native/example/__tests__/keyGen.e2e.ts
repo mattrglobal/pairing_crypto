@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 import { by, device, expect, element } from 'detox';
-import {it} from '@jest/globals';
+import { it } from '@jest/globals';
 
 describe('keyGen', () => {
   beforeAll(async () => {
