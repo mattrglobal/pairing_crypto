@@ -15,15 +15,18 @@ export PATH="$PATH:node_modules/.bin"
 # Fetch the current version from the package.json
 new_version=$(node -pe "require('./package.json').version")
 
+echo $new_version
+
 # Fetch package name
 package_name=$(node -pe "require('./package.json').name")
 
 # Check if the new version is not the current
 new_version_exists=$(yarn info $package_name --json | jq --arg version "$new_version" -r '.data.versions | any(index($version))')
 
-# Version to this new unstable version
-if [[ "$new_version_exits" == "true" ]]; then
+if [[ $new_version_exists == "false" ]]; then
+    # Version to this new unstable version
     yarn publish --no-git-tag-version --new-version $new_version
 fi
+
 # Reset changes to the package.json
 git checkout -- package.json
