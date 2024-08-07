@@ -97,7 +97,7 @@ jobs:
     name: Publish package release
     needs: build_test
     runs-on: macos-latest
-    if: "github.ref == 'refs/heads/master' && (contains(github.event.head_commit.message, 'chore(release): publish') || contains(github.event.head_commit.message, 'chore(release): react-native wrapper publish'))"
+    if: "github.ref == 'refs/heads/master' && contains(github.event.head_commit.message, 'chore(release): publish')"
     defaults:
       run:
         working-directory: ./wrappers/react-native

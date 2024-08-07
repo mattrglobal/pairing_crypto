@@ -15,8 +15,12 @@ export PATH="$PATH:node_modules/.bin"
 # Fetch the current version from the package.json
 new_version=$(node -pe "require('./package.json').version")
 
-# Version to this new unstable version
-yarn publish --no-git-tag-version --new-version $new_version
+# Check if the new version is not the current
+new_version_exists=$(yarn info '@mattrglobal/pairing-crypto-rn' --json | jq --arg version "$new_version" -r '.data.versions | any(index($version))')
 
+# Version to this new unstable version
+if [[ "$new_version_exits" != "true" ]]; then
+    yarn publish --no-git-tag-version --new-version $new_version
+fi
 # Reset changes to the package.json
 git checkout -- package.json
