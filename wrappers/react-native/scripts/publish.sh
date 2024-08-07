@@ -15,8 +15,6 @@ export PATH="$PATH:node_modules/.bin"
 # Fetch the current version from the package.json
 new_version=$(node -pe "require('./package.json').version")
 
-echo $new_version
-
 # Fetch package name
 package_name=$(node -pe "require('./package.json').name")
 
