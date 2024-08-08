@@ -131,7 +131,7 @@ jobs:
           sudo rm -rf /usr/local/share/boost
 
       # TODO: Running test serially. Parallel emulator launce (for each test) fails. Try to fix that.
-      - name: Detox test
+      - name: Detox test KeyGen
         uses: reactivecircus/android-emulator-runner@v2
         with:
             api-level: 29
@@ -140,7 +140,18 @@ jobs:
             target: google_apis
             disable-animations: true
             emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-            script: cd wrappers/react-native && yarn detox:android:ci /__tests__/keyGen.e2e.ts && yarn detox:android:ci /__tests__/signature.e2e.ts
+            script: cd wrappers/react-native && yarn detox:android:ci /__tests__/keyGen.e2e.ts
+
+      - name: Detox test Signature
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+            api-level: 29
+            arch: x86_64
+            avd-name: ${{ steps.device.outputs.AVD_NAME }}
+            target: google_apis
+            disable-animations: true
+            emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+            script: cd wrappers/react-native && yarn detox:android:ci /__tests__/signature.e2e.ts
 
       - name: Archive detox failed test results
         if: failure()
