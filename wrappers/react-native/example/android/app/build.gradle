@@ -1,4 +1,6 @@
 apply plugin: "com.android.application"
+apply plugin: "org.jetbrains.kotlin.android"
+apply plugin: "com.facebook.react"
 
 import com.android.build.OutputFile
 import org.apache.tools.ant.taskdefs.condition.Os
@@ -83,7 +85,7 @@ project.ext.react = [
     enableHermes: true,  // clean and rebuild if changing
 ]
 
-apply from: "../../node_modules/react-native/react.gradle"
+// apply from: "../../node_modules/react-native/react.gradle"
 
 /**
  * Set this to true to create two separate APKs instead of one:
@@ -250,8 +252,9 @@ android {
             proguardFile "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro"
         }
     }
+  namespace 'com.example.mattrglobalpairingcryptorn'
 
-    // applicationVariants are e.g. debug, release
+  // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
             // For each separate APK per architecture, set a unique version code as described here:
@@ -270,14 +273,14 @@ android {
 
 dependencies {
     // https://github.com/wix/Detox/blob/master/examples/demo-react-native/android/app/build.gradle
-    implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
+    implementation 'androidx.appcompat:appcompat:1.6.0'
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
 
     androidTestImplementation('com.wix:detox:+')
 
     implementation fileTree(dir: "libs", include: ["*.jar"])
     //noinspection GradleDynamicVersion
-    implementation "com.facebook.react:react-native:+"  // From node_modules
+    implementation("com.facebook.react:react-android")  // From node_modules
 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.fbjni'
@@ -288,14 +291,12 @@ dependencies {
         exclude group:'com.squareup.okhttp3', module:'okhttp'
     }
 
-    debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}") {
+    debugImplementation("com.facebook.flipper:flipper-fresco-plugin:0.182.0") {
         exclude group:'com.facebook.flipper'
     }
 
     if (enableHermes) {
-        def hermesPath = "../../node_modules/hermes-engine/android/";
-        debugImplementation files(hermesPath + "hermes-debug.aar")
-        releaseImplementation files(hermesPath + "hermes-release.aar")
+        implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor
     }

@@ -1,170 +1,162 @@
-# name: ci-detox-android
+name: ci-detox-android
 
-# on:
-#   pull_request:
-#     branches:
-#       - master
+on:
+  pull_request:
+    branches:
+      - master
 
-# jobs:
-#   java-wrapper:
-#     name: Build Java Wrapper
-#     runs-on: ubuntu-latest
-#     defaults:
-#       run:
-#         working-directory: ./wrappers/react-native
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
+jobs:
+  java-wrapper:
+    name: Build Java Wrapper
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./wrappers/react-native
+    steps:
+      - name: Checkout
+        uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
 
-#       # Needed to resolve any private git based dependencies like https://github.com/mattrglobal/blstrs
-#       - name: Setup SSH Agent
-#         uses: webfactory/ssh-agent@836c84ec59a0e7bc0eabc79988384eb567561ee2 # pin@v0.7.0
-#         with:
-#           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      # Needed to resolve any private git based dependencies like https://github.com/mattrglobal/blstrs
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@836c84ec59a0e7bc0eabc79988384eb567561ee2 # pin@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-#       - name: Setup rust toolchain
-#         uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
-#         with:
-#           profile: minimal
-#           toolchain: stable
-#           override: true
+      - name: Setup rust toolchain
+        uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
 
-#       - name: Set up JDK 11
-#         uses: actions/setup-java@v2
-#         with:
-#           java-version: "11"
-#           distribution: "adopt"
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "zulu"
 
-#       - name: Cache Gradle packages
-#         uses: actions/cache@v2
-#         with:
-#           path: |
-#             ~/.gradle/caches
-#             ~/.gradle/wrapper
-#           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-#           restore-keys: |
-#             ${{ runner.os }}-gradle-
+      - name: Cache Gradle packages
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
-#       - name: Build Libraries for Android
-#         run: yarn build:android
+      - name: Build Libraries for Android
+        run: yarn build:android
 
-#       - name: Cleanup Gradle Cache
-#         # Remove some files from the Gradle cache, so they aren't cached by GitHub Actions.
-#         # Restoring these files from a GitHub Actions cache might cause problems for future builds.
-#         run: |
-#           rm -f ~/.gradle/caches/modules-2/modules-2.lock
-#           rm -f ~/.gradle/caches/modules-2/gc.properties
+      - name: Cleanup Gradle Cache
+        # Remove some files from the Gradle cache, so they aren't cached by GitHub Actions.
+        # Restoring these files from a GitHub Actions cache might cause problems for future builds.
+        run: |
+          rm -f ~/.gradle/caches/modules-2/modules-2.lock
+          rm -f ~/.gradle/caches/modules-2/gc.properties
 
-#       - name: Archive build artifacts
-#         if: success()
-#         uses: actions/upload-artifact@v3
-#         with:
-#           name: ci-detox-android-artifacts-libs-${{ github.sha }}
-#           path: wrappers/react-native/android/lib
-#           retention-days: 1
+      - name: Archive build artifacts
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: ci-detox-android-artifacts-libs-${{ github.sha }}
+          path: wrappers/react-native/android/lib
+          retention-days: 1
 
-#   android:
-#     name: Detox Android E2E Testing
-#     needs: [java-wrapper]
-#     runs-on: macos-latest
-#     # strategy:
-#     #   matrix:
-#     #     runners: [[self-hosted, macos, general, ARM64]]
-#     # concurrency:
-#     #   group: ci-detox-android-${{ matrix.runners }}-${{ github.head_ref || github.run_id}}
-#     #   cancel-in-progress: true
-#     # timeout-minutes: 60
+  android:
+    name: Detox Android E2E Testing
+    needs: [java-wrapper]
+    runs-on: ubuntu-latest
 
-#     env:
-#       NODE_OPTIONS: "--max-old-space-size=5120"
+    env:
+      NODE_OPTIONS: "--max-old-space-size=5120"
 
-#     defaults:
-#       run:
-#         working-directory: wrappers/react-native
-#         shell: zsh -il {0} # load ~/.zshrc
+    defaults:
+      run:
+        working-directory: wrappers/react-native
 
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
 
-#       - name: Setup Node
-#         uses: actions/setup-node@v3
-#         with:
-#           node-version: 18.x
-#           registry-url: https://registry.npmjs.org
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+          registry-url: https://registry.npmjs.org
 
-#       - name: Download Android Libraries
-#         uses: actions/download-artifact@v3
-#         with:
-#           name: ci-detox-android-artifacts-libs-${{ github.sha }}
-#           path: wrappers/react-native/android/lib
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
 
-#       - name: Inspect Android Libraries
-#         run: ls -R android/lib
+      - name: Download Android Libraries
+        uses: actions/download-artifact@v3
+        with:
+          name: ci-detox-android-artifacts-libs-${{ github.sha }}
+          path: wrappers/react-native/android/lib
 
-#       - name: Install Dependencies
-#         run: yarn install --frozen-lockfile
+      - name: Inspect Android Libraries
+        run: ls -R android/lib
 
-#       - name: Example App Install Dependencies
-#         working-directory: wrappers/react-native/example
-#         run: yarn install --frozen-lockfile
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
 
+      - name: Example App Install Dependencies
+        working-directory: wrappers/react-native/example
+        run: yarn install --frozen-lockfile
 
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "zulu"
 
-#       - name: Use specific Java version for sdkmanager to work
-#         uses: joschi/setup-jdk@v1
-#         with:
-#           java-version: 'openjdk8'
-#           architecture: 'x64'
+      - name: Detox Build Android Configuration
+        working-directory: wrappers/react-native
+        run: yarn detox:build:android
 
-#       - name: Download Android Emulator Image
-#         run: |
-#           echo "y" | $ANDROID_HOME/tools/bin/sdkmanager --install "system-images;android-29;google_apis;x86"
-#           echo "no" | $ANDROID_HOME/tools/bin/avdmanager create avd --force --name emu --device "Nexus 5X" -k 'system-images;android-29;google_apis;x86'
-#           $ANDROID_HOME/emulator/emulator -list-avds
+      - name: Inspect Linked Libraries
+        run: ls -R android/src/main/jniLibs
 
+      - name: Get device name
+        id: device
+        run: node -e "console.log('AVD_NAME=' + require('./example/.detoxrc.json').devices.emulator.device.avdName)" >> $GITHUB_OUTPUT
 
-#       # - name: Config self hosted env
-#       #   run: |
-#       #     echo "ANDROID_HOME=/Users/runner/Library/Android/sdk" >> $GITHUB_ENV
-#       #     echo "ANDROID_SDK_ROOT=/Users/runner/Library/Android/sdk" >> $GITHUB_ENV
+      - name: Free up space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
 
-#       # - name: Download Android Build Tools
-#       #   timeout-minutes: 5
-#       #   run: |
-#       #     echo "y" | $ANDROID_SDK_ROOT/tools/bin/sdkmanager --install "build-tools;31.0.0"
-#       #     cd $ANDROID_SDK_ROOT/build-tools/31.0.0/
-#       #     ln -sf d8 dx
-#       #     cd lib
-#       #     ln -sf d8.jar dx.jar
+      # TODO: Running test serially. Parallel emulator launce (for each test) fails. Try to fix that.
+      - name: Detox test KeyGen
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+            api-level: 29
+            arch: x86_64
+            avd-name: ${{ steps.device.outputs.AVD_NAME }}
+            target: google_apis
+            disable-animations: true
+            emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+            script: cd wrappers/react-native && yarn detox:android:ci /__tests__/keyGen.e2e.ts
 
-#       # - name: Download Android Emulator Image
-#       #   run: |
-#       #     echo "y" | $ANDROID_HOME/tools/bin/sdkmanager --install "system-images;android-29;google_apis;x86"
-#       #     echo "no" | $ANDROID_HOME/tools/bin/avdmanager create avd --force --name Nexus_5X_API_29 --device "Nexus 5X" -k 'system-images;android-29;google_apis;x86'
-#       #     $ANDROID_HOME/emulator/emulator -list-avds
+      - name: Detox test Signature
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+            api-level: 29
+            arch: x86_64
+            avd-name: ${{ steps.device.outputs.AVD_NAME }}
+            target: google_apis
+            disable-animations: true
+            emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+            script: cd wrappers/react-native && yarn detox:android:ci /__tests__/signature.e2e.ts
 
-#       # - name: Setup Java
-#       #   uses: actions/setup-java@v2
-#       #   with:
-#       #     java-version: "11"
-#       #     distribution: "adopt"
-
-#       - name: Detox Build Android Configuration
-#         working-directory: wrappers/react-native
-#         run: yarn detox:build:android
-
-#       - name: Inspect Linked Libraries
-#         run: ls -R android/src/main/jniLibs
-
-#       - name: Detox E2E Test
-#         working-directory: wrappers/react-native
-#         run: yarn detox:android:ci
-
-#       - name: Archive detox failed test results
-#         if: failure()
-#         uses: actions/upload-artifact@v3
-#         with:
-#           name: detox-artifacts-${{ github.sha }}
-#           path: wrappers/react-native/example/detox-artifacts
-#           retention-days: 1
+      - name: Archive detox failed test results
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: detox-artifacts-${{ github.sha }}
+          path: wrappers/react-native/example/detox-artifacts
+          retention-days: 1
