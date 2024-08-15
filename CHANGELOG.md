@@ -1,3 +1,11 @@
+# [0.5.0](https://github.com/mattrglobal/pairing_crypto/compare/0.4.2...0.5.0)
+
+Aligned to [draft-06](https://datatracker.ietf.org/doc/draft-irtf-cfrg-bbs-signatures/06/) of the BBS Signature Scheme
+
+Fix security vulnerabilities for `@mattrglobal/pairing-crypto-rn`
+
+Updates `"react-native"` from version 0.68.0 to 0.72.8 on `@mattrglobal/pairing-crypto-rn`
+
 # [0.4.2](https://github.com/mattrglobal/pairing_crypto/compare/0.4.1...0.4.2) (2023-09-20)
 
 Node 18.x support

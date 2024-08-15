@@ -1,6 +1,6 @@
 [package]
 name = "pairing_crypto"
-version = "0.4.2"
+version = "0.5.0"
 authors = ["Tobias Looker <tobias.looker@mattr.global>", "Gaurav Tiwari <gaurav.tiwari@mattr.global>", "Vasilis Kalos <vasilis.kalos@mattr.global>"]
 description = "A library for some of the pairing cryptography schemes"
 repository = "https://github.com/mattrglobal/pairing_crypto"
