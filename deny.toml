@@ -175,7 +175,7 @@ unknown-git = "deny"
 # if not specified. If it is specified but empty, no registries are allowed.
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 # List of URLs for allowed Git repositories
-allow-git = [ "ssh://git@github.com/mattrglobal/blstrs" ]
+allow-git = [ "https://git@github.com/mattrglobal/blstrs" ]
 
 [sources.allow-org]
 # 1 or more github.com organizations to allow git sources for
