@@ -19,12 +19,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
 
-      # # Needed to resolve any private git based dependencies like https://github.com/mattrglobal/blstrs
-      # - name: Setup SSH Agent
-      #   uses: webfactory/ssh-agent@836c84ec59a0e7bc0eabc79988384eb567561ee2 # pin@v0.7.0
-      #   with:
-      #     ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
       - name: Setup rust toolchain
         uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
         with:
@@ -61,12 +55,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
-
-      # # Needed to resolve any private git based dependencies like https://github.com/mattrglobal/blstrs
-      # - name: Setup SSH Agent
-      #   uses: webfactory/ssh-agent@836c84ec59a0e7bc0eabc79988384eb567561ee2 # pin@v0.7.0
-      #   with:
-      #     ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Setup rust toolchain
         uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
@@ -115,12 +103,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
-
-      # # Needed to resolve any private git based dependencies like https://github.com/mattrglobal/blstrs
-      # - name: Setup SSH Agent
-      #   uses: webfactory/ssh-agent@836c84ec59a0e7bc0eabc79988384eb567561ee2 # pin@v0.7.0
-      #   with:
-      #     ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Setup rust toolchain
         uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
