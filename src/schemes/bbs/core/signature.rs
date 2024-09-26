@@ -135,7 +135,6 @@ impl Signature {
     /// <https://identity.foundation/bbs-signature/draft-bbs-signatures.html#section-3.3.4>
     /// Security Warning: `SK` and `PK` paramters must be related key-pair
     /// generated using `KeyPair` APIs.
-
     pub fn new<T, M, G, C>(
         SK: &SecretKey,
         PK: &PublicKey,
@@ -437,7 +436,7 @@ impl Signature {
     ///      SCALAR_SIZE, size of a `Scalar`
     /// For BLS12-381 based implementation, G1_COMPRESSED_SIZE is 48 byes, and
     /// SCALAR_SIZE is 32 bytes, then bytes sequence will be treated as
-    /// [48, 32, 32] to represent (A, e, s).    
+    /// [48, 32, 32] to represent (A, e, s).
     pub fn from_octets(data: &[u8; Self::SIZE_BYTES]) -> Result<Self, Error> {
         let mut offset = 0;
         let mut end = Self::G1_COMPRESSED_SIZE;
