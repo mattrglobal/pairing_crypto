@@ -43,7 +43,7 @@
     "detox:build:android": "yarn example detox build -c android",
     "detox:ios": "yarn example detox test -c ios",
     "detox:ios:ci": "yarn detox:ios --cleanup --record-videos failing",
-    "detox:android": "yarn example detox test -c android",
+    "detox:android": "yarn example detox test -c android --workers=1",
     "detox:android:ci": "yarn detox:android --cleanup --record-videos failing --record-logs all --headless",
     "bootstrap": "yarn install && yarn build && yarn example && yarn example pods"
   },
@@ -94,13 +94,5 @@
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/"
     ]
-  },
-  "prettier": {
-    "printWidth": 120,
-    "quoteProps": "consistent",
-    "singleQuote": true,
-    "tabWidth": 2,
-    "trailingComma": "es5",
-    "useTabs": false
   }
 }
