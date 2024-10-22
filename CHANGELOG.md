@@ -1,4 +1,4 @@
-# [0.4.2](https://github.com/mattrglobal/pairing_crypto/compare/0.4.2...0.4.3) (2024-10-21)
+# [0.4.3](https://github.com/mattrglobal/pairing_crypto/compare/0.4.2...0.4.3) (2024-10-21)
 
 React native >=72 support, gradle 8 support
 
