@@ -1,8 +1,21 @@
-import React, { forwardRef, createContext, useContext, useState, useRef, useImperativeHandle } from 'react';
-import { SafeAreaView, TouchableOpacity, Text, View, StyleSheet } from 'react-native';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
+import React, {
+  forwardRef,
+  createContext,
+  useContext,
+  useState,
+  useRef,
+  useImperativeHandle,
+} from 'react';
+import {
+  SafeAreaView,
+  TouchableOpacity,
+  Text,
+  View,
+  StyleSheet,
+} from 'react-native';
+import {Colors} from 'react-native/Libraries/NewAppScreen';
 
-import { inspect } from './utils';
+import {inspect} from './utils';
 
 type TestReport = {
   readonly testID: string;
@@ -23,27 +36,30 @@ export const useTestReport = () => {
 /*
  * A container to display test results for Detox E2E test assertions.
  */
-export const TestReportView: React.FC = ({ children }) => {
+export const TestReportView: React.FC<React.PropsWithChildren> = props => {
+  const {children} = props;
   const instanceRef = useRef<TestReportInstance>();
 
   const [isExpanded, setIsExpanded] = useState(false);
-  const handleToggleExpandedView = () => setIsExpanded((curr) => !curr);
+  const handleToggleExpandedView = () => setIsExpanded(curr => !curr);
 
   const proxy: TestReportInstance = {
-    update: (next) => instanceRef.current?.update(next),
+    update: next => instanceRef.current?.update(next),
   };
 
   return (
     <TestReportContext.Provider value={proxy}>
       <SafeAreaView style={styles.rootWrapper}>
         <TouchableOpacity
-          style={[styles.reportWrapper, isExpanded && styles.reportWrapperExpanded]}
+          style={[
+            styles.reportWrapper,
+            isExpanded && styles.reportWrapperExpanded,
+          ]}
           onPress={handleToggleExpandedView}
-          activeOpacity={0.8}
-        >
+          activeOpacity={0.8}>
           <TestReportInspector
             isExpanded={isExpanded}
-            ref={(instance) => {
+            ref={instance => {
               instanceRef.current = instance || undefined;
             }}
           />
@@ -57,15 +73,24 @@ export const TestReportView: React.FC = ({ children }) => {
 type TestReportInspectorProps = {
   readonly isExpanded: boolean;
 };
-export const TestReportInspector = forwardRef<TestReportInstance, TestReportInspectorProps>((props, ref) => {
-  const { isExpanded } = props;
+export const TestReportInspector = forwardRef<
+  TestReportInstance,
+  TestReportInspectorProps
+>((props, ref) => {
+  const {isExpanded} = props;
 
   const [state, setState] = useState<TestReport>();
-  useImperativeHandle(ref, () => ({ update: setState }));
+  useImperativeHandle(ref, () => ({update: setState}));
 
-  const testResultText = `Passed: ${state?.passed === undefined ? 'N/A' : String(state.passed)}`;
-  const testResultErrorText = `Error: ${state?.error ? inspect(state?.error, 0) : 'N/A'}`;
-  const testResultDataText = `Result: ${state?.result ? inspect(state?.result, 0) : 'N/A'}`;
+  const testResultText = `Passed: ${
+    state?.passed === undefined ? 'N/A' : String(state.passed)
+  }`;
+  const testResultErrorText = `Error: ${
+    state?.error ? inspect(state?.error, 0) : 'N/A'
+  }`;
+  const testResultDataText = `Result: ${
+    state?.result ? inspect(state?.result, 0) : 'N/A'
+  }`;
 
   return (
     <View testID={`${state?.testID}-TestReport`} style={styles.reportContainer}>
@@ -76,24 +101,21 @@ export const TestReportInspector = forwardRef<TestReportInstance, TestReportInsp
         testID={`${state?.testID}-TestResult`}
         accessibilityLabel={testResultText}
         style={styles.textLine}
-        numberOfLines={1}
-      >
+        numberOfLines={1}>
         {testResultText}
       </Text>
       <Text
         testID={`${state?.testID}-TestResultError`}
         accessibilityLabel={testResultErrorText}
         style={styles.textLine}
-        numberOfLines={1}
-      >
+        numberOfLines={1}>
         {testResultErrorText}
       </Text>
       <Text
         testID={`${state?.testID}-TestResultData`}
         accessibilityLabel={testResultDataText}
         style={styles.textLine}
-        numberOfLines={isExpanded ? undefined : 1}
-      >
+        numberOfLines={isExpanded ? undefined : 1}>
         {testResultDataText}
       </Text>
     </View>

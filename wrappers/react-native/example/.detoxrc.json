@@ -25,7 +25,7 @@
     "emulator": {
       "type": "android.emulator",
       "device": {
-        "avdName": "Nexus_5X_API_29"
+        "avdName": "Pixel_XL_API_31"
       }
     }
   },
