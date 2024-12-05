@@ -60,7 +60,7 @@ jobs:
   android:
     name: Detox Android E2E Testing
     needs: [java-wrapper]
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     # strategy:
     #   matrix:
     #     runners: [[self-hosted, macos, general, ARM64]]
