@@ -60,7 +60,7 @@ jobs:
   android:
     name: Detox Android E2E Testing
     needs: [java-wrapper]
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     # strategy:
     #   matrix:
     #     runners: [[self-hosted, macos, general, ARM64]]
@@ -130,11 +130,16 @@ jobs:
       - name: Start Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 31
-          target: default
-          arch: x86_64
-          profile: Nexus_6
-          emulator-options: "-no-window -no-snapshot -noaudio"
+          target: google_apis
+          api-level: 33
+          arch: arm64-v8a
+          ram-size: 4096M
+          channel: stable
+          profile: pixel_xl
+          force-avd-creation: true # https://github.com/ReactiveCircus/android-emulator-runner/issues/385#issuecomment-2339191348
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-boot-timeout: 12000
+          disable-animations: true
 
       - name: Inspect Linked Libraries
         run: ls -R android/src/main/jniLibs
