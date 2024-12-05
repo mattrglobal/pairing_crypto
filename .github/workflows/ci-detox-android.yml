@@ -103,11 +103,11 @@ jobs:
         working-directory: wrappers/react-native/example
         run: yarn install --frozen-lockfile
 
-      - name: Set up Java
+      - name: Set up Java 17 Required Android SDK manager
         uses: actions/setup-java@v3
         with:
-          java-version: "11"
-          distribution: "temurin" # Compatible with Android SDK
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v2
@@ -118,6 +118,14 @@ jobs:
 
       - name: Verify Android tools
         run: sdkmanager --list
+
+        # Use Java 11 still has LTS
+      - name: Set up Java 11 to build and test
+        uses: actions/setup-java@v3
+        with:
+          # Compatible with Android SDK
+          java-version: "11"
+          distribution: "temurin"
 
       - name: Start Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
