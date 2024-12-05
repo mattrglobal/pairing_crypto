@@ -6623,7 +6623,7 @@ scheduler@0.24.0-canary-efb381bbf-20230505:
   dependencies:
     loose-envify "^1.1.0"
 
-semver@7.0.0, semver@7.5.2, semver@^5.5.0, semver@^5.6.0, semver@^6.0.0, semver@^6.1.1, semver@^6.1.2, semver@^6.3.0, semver@^6.3.1, semver@^7.0.0, semver@^7.3.5, semver@^7.3.7, semver@^7.5.2:
+semver@7.0.0, semver@7.5.2, semver@^5.6.0, semver@^6.0.0, semver@^6.1.1, semver@^6.1.2, semver@^6.3.0, semver@^6.3.1, semver@^7.0.0, semver@^7.3.5, semver@^7.3.7, semver@^7.5.2:
   version "7.5.2"
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.5.2.tgz#5b851e66d1be07c1cdaf37dfc856f543325a2beb"
   integrity sha512-SoftuTROv/cRjCze/scjGyiDtcUyxw1rgYQSZY7XTmtR5hX+dm76iDbTH8TkLPHCQmlbQVSSbNZCPM2hb0knnQ==
@@ -7389,7 +7389,7 @@ which-typed-array@^1.1.14, which-typed-array@^1.1.15:
     gopd "^1.0.1"
     has-tostringtag "^1.0.2"
 
-which@^1.2.9, which@^1.3.1:
+which@^1.3.1:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/which/-/which-1.3.1.tgz#a45043d54f5805316da8d62f9f50918d3da70b0a"
   integrity sha512-HxJdYWq1MTIQbJ3nw0cqssHoTNU267KlrDuGZ1WYlxDStUtKUhOaJmh112/TZmHxxUfuJqPXSOm7tDyas0OSIQ==
