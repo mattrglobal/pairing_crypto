@@ -103,11 +103,11 @@ jobs:
         working-directory: wrappers/react-native/example
         run: yarn install --frozen-lockfile
 
-      - name: Use specific Java version for sdkmanager to work
-        uses: joschi/setup-jdk@v1
+      - name: Setup Java
+        uses: actions/setup-java@v2
         with:
-          java-version: "openjdk8"
-          architecture: "x64"
+          java-version: "8"
+          distribution: "adopt"
 
       - name: Download Android Emulator Image
         run: |
@@ -135,12 +135,6 @@ jobs:
       #     echo "no" | $ANDROID_HOME/tools/bin/avdmanager create avd --force --name Nexus_5X_API_29 --device "Nexus 5X" -k 'system-images;android-29;google_apis;x86'
       #     $ANDROID_HOME/emulator/emulator -list-avds
 
-      # - name: Setup Java
-      #   uses: actions/setup-java@v2
-      #   with:
-      #     java-version: "11"
-      #     distribution: "adopt"
-
       - name: Detox Build Android Configuration
         working-directory: wrappers/react-native
         run: yarn detox:build:android
@@ -159,3 +153,4 @@ jobs:
           name: detox-artifacts-${{ github.sha }}
           path: wrappers/react-native/example/detox-artifacts
           retention-days: 1
+
