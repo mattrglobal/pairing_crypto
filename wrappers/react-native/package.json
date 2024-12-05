@@ -42,7 +42,7 @@
     "detox:build:ios": "yarn example detox build -c ios",
     "detox:build:android": "yarn example detox build -c android",
     "detox:ios": "yarn example detox test -c ios",
-    "detox:ios:ci": "yarn detox:ios --cleanup --record-videos failing",
+    "detox:ios:ci": "yarn detox:ios --cleanup --headless --loglevel warn --retries 3",
     "detox:android": "yarn example detox test -c android",
     "detox:android:ci": "yarn detox:android --cleanup --record-videos failing --record-logs all --headless",
     "bootstrap": "yarn install && yarn build && yarn example && yarn example pods"

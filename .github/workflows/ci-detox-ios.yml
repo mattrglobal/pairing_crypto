@@ -1,104 +1,117 @@
-# name: ci-detox-ios
+name: ci-detox-ios
 
-# on:
-#   pull_request:
-#     branches:
-#       - master
+on:
+  pull_request:
+    branches:
+      - master
 
-# jobs:
+jobs:
+  libraries:
+    name: Build Wrapper Libraries
+    runs-on: macos-14
+    defaults:
+      run:
+        working-directory: ./wrappers/react-native
+    steps:
+      - name: Checkout
+        uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
 
-#   libraries:
-#     name: Build Wrapper Libraries
-#     runs-on: macos-latest
-#     defaults:
-#       run:
-#         working-directory: ./wrappers/react-native
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
+      - name: Setup rust toolchain
+        uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
+        with:
+          profile: minimal
+          # TODO: use the latest stable
+          #  needed to pin otherwise getting a linker error as some symbols have been removed
+          #  from the ios aarch64-apple-ios toolchain
+          #  ld: Undefined symbols '___chkstk_darwin' referenced from 'libblst'
+          #  https://github.com/mattrglobal/pairing_crypto/pull/231#discussion_r1875117128
+          toolchain: 1.70.0
+          override: true
 
-#       - name: Setup rust toolchain
-#         uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
-#         with:
-#           profile: minimal
-#           toolchain: stable
-#           override: true
+      - name: Xcode version
+        run: xcodebuild -version
 
-#       - name: Build Libraries for iOS
-#         run: yarn build:ios
+      - name: List Installed Xcode Versions
+        run: ls /Applications | grep Xcode
 
-#       - name: Archive build artifacts
-#         if: success()
-#         uses: actions/upload-artifact@v3
-#         with:
-#           name: ci-detox-ios-artifacts-libs-${{ github.sha }}
-#           path: wrappers/react-native/ios/lib
-#           retention-days: 1
+      - name: Verify Xcode Version
+        run: xcodebuild -version
 
-#   ios:
-#     name: Detox iOS E2E Testing
-#     needs: [libraries]
-#     runs-on: macos-latest
-#     # strategy:
-#     #   matrix:
-#     #     runners: [[self-hosted, macos, general, detox-ios]]
-#     # concurrency:
-#     #   group: ci-detox-ios-${{ matrix.runners }}-${{ github.head_ref || github.run_id  }}
-#     #   cancel-in-progress: true
-#     timeout-minutes: 120
+      - name: Build Libraries for iOS
+        run: yarn build:ios
 
-#     defaults:
-#       run:
-#         working-directory: wrappers/react-native
-#         shell: zsh -il {0} # load ~/.zshrc
+      - name: Archive build artifacts
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: ci-detox-ios-artifacts-libs-${{ github.sha }}
+          path: wrappers/react-native/ios/lib
+          retention-days: 1
 
-#     env:
-#       DEVELOPER_DIR: /Applications/Xcode_14.2.app
-#       NODE_OPTIONS: "--max-old-space-size=5120"
-#       # Do not launch packager during CI build
-#       RCT_NO_LAUNCH_PACKAGER: 'true'
+  ios:
+    name: Detox iOS E2E Testing
+    needs: [libraries]
+    runs-on: macos-14
+    timeout-minutes: 120
 
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v2
+    defaults:
+      run:
+        working-directory: wrappers/react-native
+        shell: zsh -il {0} # load ~/.zshrc
 
-#       - name: Setup Node
-#         uses: actions/setup-node@v3
-#         with:
-#           node-version: 18.x
-#           registry-url: https://registry.npmjs.org
+    env:
+      NODE_OPTIONS: "--max-old-space-size=5120"
+      # Do not launch packager during CI build
+      RCT_NO_LAUNCH_PACKAGER: "true"
 
-#       - name: Download iOS Libraries
-#         uses: actions/download-artifact@v3
-#         with:
-#           name: ci-detox-ios-artifacts-libs-${{ github.sha }}
-#           path: wrappers/react-native/ios/lib
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
 
-#       - name: Inspect iOS Libraries
-#         run: ls -R ios/lib
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          registry-url: https://registry.npmjs.org
 
-#       - name: Install Dependencies
-#         run: yarn install --frozen-lockfile
+      - name: Download iOS Libraries
+        uses: actions/download-artifact@v3
+        with:
+          name: ci-detox-ios-artifacts-libs-${{ github.sha }}
+          path: wrappers/react-native/ios/lib
 
-#       - name: Example App Install Dependencies
-#         run: yarn example --frozen-lockfile
+      - name: Inspect iOS Libraries
+        run: ls -R ios/lib
 
-#       - name: Example App Install Pods
-#         run: yarn example pods
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
 
-#       - run: brew tap wix/brew
-#       - run: brew install applesimutils
+      - name: Example App Install Dependencies
+        run: yarn example --frozen-lockfile
 
-#       - name: Detox Build iOS Configuration
-#         run: yarn detox:build:ios
+      - name: Example App Install Pods
+        run: yarn example pods
 
-#       - name: Detox E2E Test
-#         run: yarn detox:ios:ci
+      - run: brew tap wix/brew
+      - run: brew install applesimutils
 
-#       - name: Archive detox failed test results
-#         if: failure()
-#         uses: actions/upload-artifact@v3
-#         with:
-#           name: detox-artifacts-${{ github.sha }}
-#           path: wrappers/react-native/example/detox-artifacts
-#           retention-days: 1
+      - name: Print Simulators
+        run: applesimutils --list
+
+      - name: Install iPhone 11 Simulator
+        run: |
+          xcrun simctl create "iPhone 11" com.apple.CoreSimulator.SimDeviceType.iPhone-11 com.apple.CoreSimulator.SimRuntime.iOS-17-0
+
+      - name: Detox Build iOS Configuration
+        run: yarn detox:build:ios
+
+      - name: Detox E2E Test
+        run: yarn detox:ios:ci
+
+      - name: Archive detox failed test results
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: detox-artifacts-${{ github.sha }}
+          path: wrappers/react-native/example/detox-artifacts
+          retention-days: 1
