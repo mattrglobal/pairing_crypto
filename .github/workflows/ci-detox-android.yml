@@ -80,6 +80,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # https://github.blog/changelog/2023-02-23-hardware-accelerated-android-virtualization-on-actions-windows-and-linux-larger-hosted-runners/
       # https://github.com/ReactiveCircus/android-emulator-runner/blob/main/README.md#running-hardware-accelerated-emulators-on-linux-runners
       - name: Enable KVM
         run: |
@@ -138,7 +139,7 @@ jobs:
 
       - name: Build Android Detox Example
         working-directory: wrappers/react-native
-        run: detox:build:android
+        run: yarn detox:build:android
 
       - name: Start Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
