@@ -140,13 +140,14 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           emulator-boot-timeout: 12000
           disable-animations: true
+          script: cd wrappers/react-native && yarn detox:android:ci
 
-      - name: Inspect Linked Libraries
-        run: ls -R android/src/main/jniLibs
+      # - name: Inspect Linked Libraries
+      # run: ls -R android/src/main/jniLibs
 
-      - name: Detox E2E Test
-        working-directory: wrappers/react-native
-        run: yarn detox:android:ci
+      # - name: Detox E2E Test
+      # working-directory: wrappers/react-native
+      #run: yarn detox:android:ci
 
       - name: Archive detox failed test results
         if: failure()
