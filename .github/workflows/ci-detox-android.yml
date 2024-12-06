@@ -75,7 +75,6 @@ jobs:
     defaults:
       run:
         working-directory: wrappers/react-native
-        shell: zsh -il {0} # load ~/.zshrc
 
     steps:
       - name: Checkout
