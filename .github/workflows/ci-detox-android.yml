@@ -143,6 +143,8 @@ jobs:
           api-level: 31
           ram-size: 4096M
           channel: stable
+          arch: x86_64
+          emulator-port: 5556
           profile: pixel_xl
           avd-name: Pixel_XL_API_31
           force-avd-creation: true # https://github.com/ReactiveCircus/android-emulator-runner/issues/385#issuecomment-2339191348
@@ -152,14 +154,18 @@ jobs:
           working-directory: wrappers/react-native
           script: yarn detox:android:ci
 
+      - name: Terminate Emulator Gracefully
+        if: always()
+        run: adb -s emulator-5556 emu kill || true
+
       # - name: Detox E2E Test
       # working-directory: wrappers/react-native
       #run: yarn detox:android:ci
 
-      - name: Archive detox failed test results
-        if: failure()
-        uses: actions/upload-artifact@v3
-        with:
-          name: detox-artifacts-${{ github.sha }}
-          path: wrappers/react-native/example/detox-artifacts
-          retention-days: 1
+      #- name: Archive detox failed test results
+      #  if: failure()
+      #  uses: actions/upload-artifact@v3
+      #  with:
+      #    name: detox-artifacts-${{ github.sha }}
+      #    path: wrappers/react-native/example/detox-artifacts
+      #    retention-days: 1
