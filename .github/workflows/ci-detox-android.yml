@@ -60,7 +60,7 @@ jobs:
   android:
     name: Detox Android E2E Testing
     needs: [java-wrapper]
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     # strategy:
     #   matrix:
     #     runners: [[self-hosted, macos, general, ARM64]]
@@ -79,7 +79,14 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
+        uses: actions/checkout@v4
+
+      # https://github.com/ReactiveCircus/android-emulator-runner/blob/main/README.md#running-hardware-accelerated-emulators-on-linux-runners
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -127,12 +134,14 @@ jobs:
       #     java-version: "11"
       #     distribution: "temurin"
 
+      # - name: Inspect Linked Libraries
+      # run: ls -R android/src/main/jniLibs
+
       - name: Start Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           target: google_apis
           api-level: 31
-          arch: arm64-v8a
           ram-size: 4096M
           channel: stable
           profile: pixel_xl
@@ -141,10 +150,8 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           emulator-boot-timeout: 12000
           disable-animations: true
-          script: bash cd wrappers/react-native && yarn detox:android:ci
-
-      # - name: Inspect Linked Libraries
-      # run: ls -R android/src/main/jniLibs
+          working-directory: wrappers/react-native
+          script: yarn detox:android:ci
 
       # - name: Detox E2E Test
       # working-directory: wrappers/react-native
