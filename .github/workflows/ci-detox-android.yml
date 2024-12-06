@@ -109,11 +109,11 @@ jobs:
         working-directory: wrappers/react-native/example
         run: yarn install --frozen-lockfile
 
-      - name: Set up Java 17 Required Android SDK manager
-        uses: actions/setup-java@v3
-        with:
-          java-version: "17"
-          distribution: "corretto"
+      # - name: Set up Java 17 Required Android SDK manager
+      #   uses: actions/setup-java@v3
+      #   with:
+      #     java-version: "17"
+      #     distribution: "temurin"
 
       # - name: Set up Android SDK
       #   uses: android-actions/setup-android@v2
