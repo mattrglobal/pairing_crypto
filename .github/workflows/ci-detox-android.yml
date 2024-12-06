@@ -136,6 +136,7 @@ jobs:
           ram-size: 4096M
           channel: stable
           profile: pixel_xl
+          avd-name: Pixel_XL_API_31
           force-avd-creation: true # https://github.com/ReactiveCircus/android-emulator-runner/issues/385#issuecomment-2339191348
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           emulator-boot-timeout: 12000
