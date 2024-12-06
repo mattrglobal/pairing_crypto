@@ -120,12 +120,12 @@ jobs:
         run: sdkmanager --list
 
         # Use Java 11 still has LTS
-      - name: Set up Java 11 to build and test
-        uses: actions/setup-java@v3
-        with:
-          # Compatible with Android SDK
-          java-version: "11"
-          distribution: "temurin"
+      # - name: Set up Java 11 to build and test
+      #   uses: actions/setup-java@v3
+      #   with:
+      #     # Compatible with Android SDK
+      #     java-version: "11"
+      #     distribution: "temurin"
 
       - name: Start Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
