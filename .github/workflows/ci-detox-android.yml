@@ -136,9 +136,14 @@ jobs:
       # - name: Inspect Linked Libraries
       # run: ls -R android/src/main/jniLibs
 
+      - name: Build Android Detox Example
+        working-directory: wrappers/react-native
+        run: detox:build:android
+
       - name: Start Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
+          working-directory: wrappers/react-native
           target: google_apis
           api-level: 31
           ram-size: 4096M
@@ -151,7 +156,6 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           emulator-boot-timeout: 12000
           disable-animations: true
-          working-directory: wrappers/react-native
           script: yarn detox:android:ci
 
       - name: Terminate Emulator Gracefully
