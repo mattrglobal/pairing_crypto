@@ -47,12 +47,12 @@ case $PLATFORM in
 
       # Install cargo-lipo
       # see https://github.com/TimNN/cargo-lipo
-      echo "Installing cargo-lipo"
+      echo "Installing cargo-lipo..."
       cargo install cargo-lipo
-      echo "Installing toolchains"
+      echo "Installing toolchains..."
       rustup target install x86_64-apple-ios aarch64-apple-ios
-      echo "Setting cargo lipo project"
-      cargo lipo -p $PROJECT_NAME --release
+      echo "Building '$PROJECT_NAME' with cargo lipo..."
+      cargo lipo -p $PROJECT_NAME --release -v
       cp "$ROOT_DIRECTORY/target/x86_64-apple-ios/release/$INPUT_FILE.a"  "$OUTPUT_LOCATION/ios/x86_64/$OUTPUT_FILE.a"
       cp "$ROOT_DIRECTORY/target/aarch64-apple-ios/release/$INPUT_FILE.a" "$OUTPUT_LOCATION/ios/aarch64/$OUTPUT_FILE.a"
       cp "$ROOT_DIRECTORY/target/universal/release/$INPUT_FILE.a"         "$OUTPUT_LOCATION/ios/universal/$OUTPUT_FILE.a"
@@ -67,7 +67,7 @@ case $PLATFORM in
       # Install cargo-lipo
       # see https://github.com/TimNN/cargo-lipo
       # cargo install cargo-lipo
-      rustup target install x86_64-apple-darwin
+      rustup target install x86_64-apple-darwin aarch64-apple-darwin
       # Works on macos host
       cargo build -p $PROJECT_NAME --target x86_64-apple-darwin --release
       # cargo lipo -p $PROJECT_NAME --release
