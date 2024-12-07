@@ -24,6 +24,11 @@ jobs:
           toolchain: stable
           override: true
 
+      - name: Print versions
+        run: |
+          rustc --version
+          xcodebuild -version
+
       - name: Build Libraries for iOS
         env:
           IPHONEOS_DEPLOYMENT_TARGET: 11.0
