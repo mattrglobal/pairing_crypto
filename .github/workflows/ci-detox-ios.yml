@@ -9,7 +9,7 @@ on:
 jobs:
   libraries:
     name: Build Wrapper Libraries
-    runs-on: macos-12
+    runs-on: macos-13
     defaults:
       run:
         working-directory: ./wrappers/react-native
