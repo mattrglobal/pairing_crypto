@@ -51,6 +51,7 @@ case $PLATFORM in
       cargo install cargo-lipo
       echo "Installing toolchains..."
       rustup target install x86_64-apple-ios aarch64-apple-ios
+      rustup target install x86_64-apple-darwin aarch64-apple-darwin
       echo "Building '$PROJECT_NAME' with cargo lipo..."
       cargo lipo -p $PROJECT_NAME --release -v
       cp "$ROOT_DIRECTORY/target/x86_64-apple-ios/release/$INPUT_FILE.a"  "$OUTPUT_LOCATION/ios/x86_64/$OUTPUT_FILE.a"
