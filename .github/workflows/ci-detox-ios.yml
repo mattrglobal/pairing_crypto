@@ -2,9 +2,8 @@ name: ci-detox-ios
 
 on:
   pull_request:
-    # TODO: Re-add once PR is complete
-    # branches:
-    #  - master
+    branches:
+      - master
 
 jobs:
   libraries:
@@ -32,7 +31,6 @@ jobs:
       - name: Build Libraries for iOS
         env:
           IPHONEOS_DEPLOYMENT_TARGET: 11.0
-
         run: yarn build:ios
 
       - name: Archive build artifacts
