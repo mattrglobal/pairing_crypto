@@ -61,13 +61,6 @@ jobs:
     name: Detox Android E2E Testing
     needs: [java-wrapper]
     runs-on: ubuntu-latest
-    # strategy:
-    #   matrix:
-    #     runners: [[self-hosted, macos, general, ARM64]]
-    # concurrency:
-    #   group: ci-detox-android-${{ matrix.runners }}-${{ github.head_ref || github.run_id}}
-    #   cancel-in-progress: true
-    # timeout-minutes: 60
 
     env:
       NODE_OPTIONS: "--max-old-space-size=5120"
@@ -79,14 +72,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      # https://github.blog/changelog/2023-02-23-hardware-accelerated-android-virtualization-on-actions-windows-and-linux-larger-hosted-runners/
-      # https://github.com/ReactiveCircus/android-emulator-runner/blob/main/README.md#running-hardware-accelerated-emulators-on-linux-runners
-      - name: Enable KVM
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -110,32 +95,14 @@ jobs:
         working-directory: wrappers/react-native/example
         run: yarn install --frozen-lockfile
 
-      # - name: Set up Java 17 Required Android SDK manager
-      #   uses: actions/setup-java@v3
-      #   with:
-      #     java-version: "17"
-      #     distribution: "temurin"
-
-      # - name: Set up Android SDK
-      #   uses: android-actions/setup-android@v2
-      #   with:
-      #     api-level: 33
-      #     build-tools: "33.0.0"
-      #     ndk: "22.1.7171670"
-
-      # - name: Verify Android tools
-      #   run: sdkmanager --list
-
-      # Use Java 11 still has LTS
-      # - name: Set up Java 11 to build and test
-      #   uses: actions/setup-java@v3
-      #   with:
-      #     # Compatible with Android SDK
-      #     java-version: "11"
-      #     distribution: "temurin"
-
-      # - name: Inspect Linked Libraries
-      # run: ls -R android/src/main/jniLibs
+      - name: Enable Hardware accelerated Android virtualization
+        # Recommended by ReactiveCircus to speed up running emulators
+        # https://github.com/ReactiveCircus/android-emulator-runner/blob/main/README.md#running-hardware-accelerated-emulators-on-linux-runners
+        # https://github.blog/changelog/2023-02-23-hardware-accelerated-android-virtualization-on-actions-windows-and-linux-larger-hosted-runners/
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
 
       - name: Build Android Detox Example
         working-directory: wrappers/react-native
@@ -158,18 +125,10 @@ jobs:
           disable-animations: true
           script: yarn detox:android:ci
 
-      - name: Terminate Emulator Gracefully
-        if: always()
-        run: adb -s emulator-5556 emu kill || true
-
-      # - name: Detox E2E Test
-      # working-directory: wrappers/react-native
-      #run: yarn detox:android:ci
-
-      #- name: Archive detox failed test results
-      #  if: failure()
-      #  uses: actions/upload-artifact@v3
-      #  with:
-      #    name: detox-artifacts-${{ github.sha }}
-      #    path: wrappers/react-native/example/detox-artifacts
-      #    retention-days: 1
+      - name: Archive detox failed test results
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: detox-artifacts-${{ github.sha }}
+          path: wrappers/react-native/example/detox-artifacts
+          retention-days: 1
