@@ -146,13 +146,12 @@ jobs:
         with:
           working-directory: wrappers/react-native
           target: google_apis
-          api-level: 31
+          api-level: 29
           ram-size: 4096M
           channel: stable
           arch: x86_64
           emulator-port: 5556
-          profile: pixel_xl
-          avd-name: Pixel_XL_API_31
+          avd-name: Nexus_5X_API_29
           force-avd-creation: true # https://github.com/ReactiveCircus/android-emulator-runner/issues/385#issuecomment-2339191348
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           emulator-boot-timeout: 12000
