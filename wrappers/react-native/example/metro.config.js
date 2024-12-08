@@ -32,6 +32,9 @@ module.exports = {
     }, {}),
   },
 
+  // We set the entryfile Android expects index.js but IOS expects index.tsx
+  entryFile: 'index.js',
+
   transformer: {
     getTransformOptions: async () => ({
       transform: {
