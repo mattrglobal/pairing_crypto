@@ -38,8 +38,6 @@ jobs:
         run: xcodebuild -version
 
       - name: Build Libraries for iOS
-        env:
-          IPHONEOS_DEPLOYMENT_TARGET: 17.5
         run: yarn build:ios
 
       - name: Archive build artifacts
@@ -88,6 +86,9 @@ jobs:
         with:
           name: ci-detox-ios-artifacts-libs-${{ github.sha }}
           path: wrappers/react-native/ios/lib
+
+      - name: Set Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
 
       - name: Inspect iOS Libraries
         run: ls -R ios/lib
