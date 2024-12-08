@@ -108,6 +108,10 @@ jobs:
       - name: Print Simulators
         run: applesimutils --list
 
+      - name: Install iPhone 11 Simulator
+        run: |
+          xcrun simctl create "iPhone 11" com.apple.CoreSimulator.SimDeviceType.iPhone-11 com.apple.CoreSimulator.SimRuntime.iOS-17-0
+
       - name: Detox Build iOS Configuration
         run: yarn detox:build:ios
 
