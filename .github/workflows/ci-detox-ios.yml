@@ -90,9 +90,6 @@ jobs:
       - name: Set Xcode Version
         run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
 
-      - name: Print Simulators
-        run: applesimutils --list
-
       - name: Inspect iOS Libraries
         run: ls -R ios/lib
 
@@ -107,6 +104,9 @@ jobs:
 
       - run: brew tap wix/brew
       - run: brew install applesimutils
+
+      - name: Print Simulators
+        run: applesimutils --list
 
       - name: Detox Build iOS Configuration
         run: yarn detox:build:ios
