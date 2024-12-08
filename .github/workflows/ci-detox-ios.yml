@@ -66,7 +66,7 @@ jobs:
         shell: zsh -il {0} # load ~/.zshrc
 
     env:
-      DEVELOPER_DIR: /Applications/Xcode_14.2.app
+      DEVELOPER_DIR: /Applications/Xcode_16.app/Contents/Developer
       NODE_OPTIONS: "--max-old-space-size=5120"
       # Do not launch packager during CI build
       RCT_NO_LAUNCH_PACKAGER: "true"
