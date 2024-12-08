@@ -31,6 +31,12 @@ jobs:
       - name: List Installed Xcode Versions
         run: ls /Applications | grep Xcode
 
+      - name: Set Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
+
+      - name: Verify Xcode Version
+        run: xcodebuild -version
+
       - name: Build Libraries for iOS
         env:
           IPHONEOS_DEPLOYMENT_TARGET: 17.5
