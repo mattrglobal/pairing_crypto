@@ -28,6 +28,9 @@ jobs:
           rustc --version
           xcodebuild -version
 
+      - name: List Installed Xcode Versions
+        run: ls /Applications | grep Xcode
+
       - name: Build Libraries for iOS
         env:
           IPHONEOS_DEPLOYMENT_TARGET: 17.5
