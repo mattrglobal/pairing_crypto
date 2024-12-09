@@ -1,7 +1,19 @@
 {
-  "testRunner": "jest",
-  "runnerConfig": "jest.config.js",
-  "skipLegacyWorkersInjection": true,
+  "testRunner": {
+    "$0": "jest",
+    "args": {
+      "config": "jest.config.js",
+      "_": [
+        "e2e"
+      ]
+    },
+    "forwardEnv": true
+  },
+  "jest": {
+    "setupTimeout": 120000,
+    "reportSpecs": false,
+    "reportWorkerAssign": false
+  },
   "apps": {
     "ios.release": {
       "name": "PairingCryptoRnExample",
