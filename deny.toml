@@ -159,6 +159,9 @@ skip = [
 # dependencies starting at the specified crate, up to a certain depth, which is
 # by default infinite
 skip-tree = [
+    # TODO: Currently there is a duplicate for 0.52.0 & 0.59.0 older version coming from
+    # https://github.com/mattrglobal/blstrs.git for now we will ignore until it's patched upstream
+   {  name = "windows-sys", depth = 10 }
     #{ name = "ansi_term", version = "=0.11.0", depth = 20 },
 ]
 
