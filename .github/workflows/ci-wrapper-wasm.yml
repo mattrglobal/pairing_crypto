@@ -65,9 +65,9 @@ jobs:
 
       # Required for publishing NPM package
       - name: Setup Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.x
+          node-version: 22.x
           registry-url: "https://registry.npmjs.org"
 
       - name: Run yarn install
@@ -113,9 +113,9 @@ jobs:
 
       # Required for publishing NPM package
       - name: Setup Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.x
+          node-version: 22.x
           registry-url: "https://registry.npmjs.org"
 
       - name: Run yarn install
