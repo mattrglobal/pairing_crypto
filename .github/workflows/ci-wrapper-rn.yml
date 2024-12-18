@@ -23,9 +23,9 @@ jobs:
         uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.x
+          node-version: 22.x
           registry-url: https://registry.npmjs.org
 
       - name: Install Dependencies
@@ -57,9 +57,9 @@ jobs:
           override: true
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.x
+          node-version: 22.x
           registry-url: https://registry.npmjs.org
 
       - name: Set up JDK 17
@@ -107,9 +107,9 @@ jobs:
           override: true
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.x
+          node-version: 22.x
           registry-url: https://registry.npmjs.org
 
       - name: Set up JDK 17
