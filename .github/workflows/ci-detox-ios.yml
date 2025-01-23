@@ -42,7 +42,7 @@ jobs:
 
       - name: Archive build artifacts
         if: success()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ci-detox-ios-artifacts-libs-${{ github.sha }}
           path: wrappers/react-native/ios/lib
@@ -75,7 +75,7 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - name: Download iOS Libraries
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ci-detox-ios-artifacts-libs-${{ github.sha }}
           path: wrappers/react-native/ios/lib
@@ -110,7 +110,7 @@ jobs:
 
       - name: Archive detox failed test results
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: detox-artifacts-${{ github.sha }}
           path: wrappers/react-native/example/detox-artifacts
