@@ -29,7 +29,6 @@ target 'PairingCryptoRnExample' do
       installer,
       config[:reactNativePath],
       :mac_catalyst_enabled => false,
-      # :ccache_enabled => true
     )
 
     # Update Build Settings to exclude arm64 for the simulator architecture
