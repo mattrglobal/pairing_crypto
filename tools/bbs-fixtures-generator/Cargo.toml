@@ -9,12 +9,12 @@ publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies.pairing_crypto]
-version = "0.4.3"
+version = "0.4.1"
 path = "../../"
 features = ["__private_bbs_fixtures_generator_api"]
 
 [dependencies]
-clap = { version = "4", features = ["derive"] }
+clap = { version = "3.2.12", features = ["derive"] }
 serde = "1.0.139"
 serde_derive = "1.0.139"
 serde_json = "1.0.82"
@@ -24,4 +24,4 @@ sha2 = { version = "0.9", default-features = false }
 sha3 = "0.9"
 hkdf = "0.11"
 digest = "0.9"
-blstrs = { git = "https://github.com/mattrglobal/blstrs.git", rev = "a0cb960", version = "0.6.1" }
+blstrs = { git = "ssh://git@github.com/mattrglobal/blstrs", rev = "a0cb960", version = "0.6.1" }

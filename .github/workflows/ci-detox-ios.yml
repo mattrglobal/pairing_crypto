@@ -6,9 +6,10 @@ on:
       - master
 
 jobs:
+
   libraries:
     name: Build Wrapper Libraries
-    runs-on: macos-14
+    runs-on: macos-latest
     defaults:
       run:
         working-directory: ./wrappers/react-native
@@ -16,33 +17,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
 
+      # Needed to resolve any private git based dependencies like https://github.com/mattrglobal/blstrs
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@836c84ec59a0e7bc0eabc79988384eb567561ee2 # pin@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
       - name: Setup rust toolchain
         uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
         with:
           profile: minimal
-          # TODO: use the latest stable
-          #  needed to pin otherwise getting a linker error as some symbols have been removed
-          #  from the ios aarch64-apple-ios toolchain
-          #  ld: Undefined symbols '___chkstk_darwin' referenced from 'libblst'
-          #  https://github.com/mattrglobal/pairing_crypto/pull/231#discussion_r1875117128
-          toolchain: 1.70.0
+          toolchain: stable
           override: true
-
-      - name: Xcode version
-        run: xcodebuild -version
-
-      - name: List Installed Xcode Versions
-        run: ls /Applications | grep Xcode
-
-      - name: Verify Xcode Version
-        run: xcodebuild -version
 
       - name: Build Libraries for iOS
         run: yarn build:ios
 
       - name: Archive build artifacts
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: ci-detox-ios-artifacts-libs-${{ github.sha }}
           path: wrappers/react-native/ios/lib
@@ -51,31 +44,36 @@ jobs:
   ios:
     name: Detox iOS E2E Testing
     needs: [libraries]
-    runs-on: macos-14
-    timeout-minutes: 120
+    runs-on: ${{ matrix.runners }}
+    strategy:
+      matrix:
+        runners: [[self-hosted, macos, X64, general]]
+    concurrency:
+      group: ci-detox-ios-${{ matrix.runners }}-${{ github.head_ref }}
+      cancel-in-progress: true
+    timeout-minutes: 30
 
     defaults:
       run:
         working-directory: wrappers/react-native
-        shell: zsh -il {0} # load ~/.zshrc
 
     env:
-      NODE_OPTIONS: "--max-old-space-size=5120"
+      DEVELOPER_DIR: /Applications/Xcode_13.2.1.app
       # Do not launch packager during CI build
-      RCT_NO_LAUNCH_PACKAGER: "true"
+      RCT_NO_LAUNCH_PACKAGER: 'true'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: 22.x
+          node-version: 18.x
           registry-url: https://registry.npmjs.org
 
       - name: Download iOS Libraries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: ci-detox-ios-artifacts-libs-${{ github.sha }}
           path: wrappers/react-native/ios/lib
@@ -95,13 +93,6 @@ jobs:
       - run: brew tap wix/brew
       - run: brew install applesimutils
 
-      - name: Print Simulators
-        run: applesimutils --list
-
-      - name: Install iPhone 11 Simulator
-        run: |
-          xcrun simctl create "iPhone 11" com.apple.CoreSimulator.SimDeviceType.iPhone-11 com.apple.CoreSimulator.SimRuntime.iOS-17-0
-
       - name: Detox Build iOS Configuration
         run: yarn detox:build:ios
 
@@ -110,7 +101,7 @@ jobs:
 
       - name: Archive detox failed test results
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: detox-artifacts-${{ github.sha }}
           path: wrappers/react-native/example/detox-artifacts

@@ -16,6 +16,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
 
+      # Needed to resolve any private git based dependencies like https://github.com/mattrglobal/blstrs
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@836c84ec59a0e7bc0eabc79988384eb567561ee2 # pin@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
       - name: Setup stable rust toolchain
         uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
         with:
@@ -40,9 +46,6 @@ jobs:
           toolchain: nightly # Note some of the rules we use for fmt are only available with the nightly toolchain
 
       - name: Run cargo clippy
-        # temporarily disabled due to CI error "the following explicit lifetimes could be elided"
-        # https://github.com/mattrglobal/pairing_crypto/actions/runs/11338499573/job/31531816611
-        if: false
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
           command: clippy
@@ -63,9 +66,6 @@ jobs:
           toolchain: nightly
 
       - name: Run cargo audit
-        # temporarily disabled due to CI error "error: not found: Couldn't load Cargo.lock" "invalid Cargo.lock format version: `4`"
-        # https://github.com/mattrglobal/pairing_crypto/actions/runs/11338890443/job/31533150473#step:10:15
-        if: false # temporarily disabled due to CI error
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
           command: audit

@@ -34,17 +34,6 @@ def getExtOrIntegerDefault(name) {
 }
 
 android {
-  def agpVersion = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')
-  // Check AGP version for backward compatibility w/react-native versions still on gradle plugin 6
-  def major = agpVersion[0].toInteger()
-  def minor = agpVersion[1].toInteger()
-  if ((major == 7 && minor >= 3) || major >= 8) {
-    namespace "com.mattrglobalpairingcryptorn"
-    buildFeatures {
-      buildConfig true
-    }
-  }
-
   compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
 
   defaultConfig {
@@ -136,7 +125,7 @@ repositories {
   }
 
   if (!found) {
-    throw new RuntimeException(
+    throw new GradleException(
       "${project.name}: unable to locate React Native android sources. " +
       "Ensure you have you installed React Native as a dependency in your project and try again."
     )

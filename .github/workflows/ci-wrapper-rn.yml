@@ -23,9 +23,9 @@ jobs:
         uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: 22.x
+          node-version: 18.x
           registry-url: https://registry.npmjs.org
 
       - name: Install Dependencies
@@ -49,6 +49,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
 
+      # Needed to resolve any private git based dependencies like https://github.com/mattrglobal/blstrs
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@836c84ec59a0e7bc0eabc79988384eb567561ee2 # pin@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
       - name: Setup rust toolchain
         uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
         with:
@@ -57,16 +63,10 @@ jobs:
           override: true
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: 22.x
+          node-version: 18.x
           registry-url: https://registry.npmjs.org
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: "17"
-          distribution: "zulu"
 
       - name: Run yarn install
         run: yarn install --frozen-lockfile
@@ -99,6 +99,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
 
+      # Needed to resolve any private git based dependencies like https://github.com/mattrglobal/blstrs
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@836c84ec59a0e7bc0eabc79988384eb567561ee2 # pin@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
       - name: Setup rust toolchain
         uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
         with:
@@ -107,16 +113,10 @@ jobs:
           override: true
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: 22.x
+          node-version: 18.x
           registry-url: https://registry.npmjs.org
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: "17"
-          distribution: "zulu"
 
       - name: Run yarn install
         run: yarn install --frozen-lockfile
