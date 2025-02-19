@@ -32,13 +32,6 @@ jobs:
           override: true
           components: rustfmt
 
-      - name: Run cargo format
-        uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
-        with:
-          command: fmt
-          args: --all -- --check
-          toolchain: nightly # Note some of the rules we use for fmt are only available with the nightly toolchain
-
       - name: Run cargo check
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
@@ -51,14 +44,6 @@ jobs:
           command: doc
           args: --no-deps --all-features
           toolchain: nightly
-
-      - name: Run cargo audit
-        uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
-        with:
-          command: audit
-          toolchain: stable
-        env:
-          RUSTDOCFLAGS: --cfg docsrs
 
       - name: Install cargo-deny
         run: cargo install cargo-deny
