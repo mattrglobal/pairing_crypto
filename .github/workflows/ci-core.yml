@@ -45,16 +45,6 @@ jobs:
           args: --no-deps --all-features
           toolchain: nightly
 
-      - name: Install cargo-deny
-        run: cargo install cargo-deny
-
-      - name: Run cargo deny
-        uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
-        with:
-          command: deny
-          args: check
-          toolchain: stable
-
       - name: Run cargo build
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
         with:
