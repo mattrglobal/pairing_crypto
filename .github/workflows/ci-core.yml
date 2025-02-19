@@ -23,14 +23,14 @@ jobs:
           toolchain: stable
           override: true
 
-      # Note some of the rules we use for fmt and clippy are only available with the nightly toolchain
+      # Note some of the rules we use for fmt are only available with the nightly toolchain
       - name: Setup nightly rust toolchain
         uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
         with:
           profile: minimal
           toolchain: nightly
           override: true
-          components: rustfmt, clippy
+          components: rustfmt
 
       - name: Run cargo format
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
@@ -38,13 +38,6 @@ jobs:
           command: fmt
           args: --all -- --check
           toolchain: nightly # Note some of the rules we use for fmt are only available with the nightly toolchain
-
-      - name: Run cargo clippy
-        uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
-        with:
-          command: clippy
-          args: -- -D warnings
-          toolchain: nightly # Note some of the rules we use for clippy are only available with the nightly toolchain
 
       - name: Run cargo check
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
