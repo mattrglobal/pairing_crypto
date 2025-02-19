@@ -1,25 +1,13 @@
 {
-  "testRunner": {
-    "$0": "jest",
-    "args": {
-      "config": "jest.config.js",
-      "_": [
-        "e2e"
-      ]
-    },
-    "forwardEnv": true
-  },
-  "jest": {
-    "setupTimeout": 120000,
-    "reportSpecs": false,
-    "reportWorkerAssign": false
-  },
+  "testRunner": "jest",
+  "runnerConfig": "jest.config.js",
+  "skipLegacyWorkersInjection": true,
   "apps": {
     "ios.release": {
       "name": "PairingCryptoRnExample",
       "type": "ios.app",
       "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/PairingCryptoRnExample.app",
-      "build": "xcodebuild -workspace ios/PairingCryptoRnExample.xcworkspace -scheme PairingCryptoRnExample -configuration Release -sdk iphonesimulator -derivedDataPath ios/build EXCLUDED_ARCHS=arm64 DETOX=1"
+      "build": "xcodebuild -workspace ios/PairingCryptoRnExample.xcworkspace -scheme PairingCryptoRnExample -configuration Release -sdk iphonesimulator -derivedDataPath ios/build ENTRY_FILE=index.tsx EXCLUDED_ARCHS=arm64 DETOX=1"
     },
     "android.release": {
       "type": "android.apk",

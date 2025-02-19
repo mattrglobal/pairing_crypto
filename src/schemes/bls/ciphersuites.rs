@@ -1,6 +1,6 @@
 use crate::{
     common::hash_param::h2c::HashToCurveParameter,
-    curves::bls12_381::G1Projective,
+    curves::bls12_381::{G1Projective, G2Projective},
 };
 use group::Group;
 
@@ -19,6 +19,11 @@ pub(crate) trait BlsCiphersuiteParameters: HashToCurveParameter {
     /// verification.
     fn p1() -> G1Projective {
         G1Projective::generator()
+    }
+
+    /// Point on G2 to be used during signature and proof verification.
+    fn p2() -> G2Projective {
+        G2Projective::generator()
     }
 }
 

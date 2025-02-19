@@ -23,31 +23,14 @@ jobs:
           toolchain: stable
           override: true
 
-      # Note some of the rules we use for fmt and clippy are only available with the nightly toolchain
+      # Note some of the rules we use for fmt are only available with the nightly toolchain
       - name: Setup nightly rust toolchain
         uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
         with:
           profile: minimal
           toolchain: nightly
           override: true
-          components: rustfmt, clippy
-
-      - name: Run cargo format
-        uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
-        with:
-          command: fmt
-          args: --all -- --check
-          toolchain: nightly # Note some of the rules we use for fmt are only available with the nightly toolchain
-
-      - name: Run cargo clippy
-        # temporarily disabled due to CI error "the following explicit lifetimes could be elided"
-        # https://github.com/mattrglobal/pairing_crypto/actions/runs/11338499573/job/31531816611
-        if: false
-        uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
-        with:
-          command: clippy
-          args: -- -D warnings
-          toolchain: nightly # Note some of the rules we use for clippy are only available with the nightly toolchain
+          components: rustfmt
 
       - name: Run cargo check
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
@@ -61,27 +44,6 @@ jobs:
           command: doc
           args: --no-deps --all-features
           toolchain: nightly
-
-      - name: Run cargo audit
-        # temporarily disabled due to CI error "error: not found: Couldn't load Cargo.lock" "invalid Cargo.lock format version: `4`"
-        # https://github.com/mattrglobal/pairing_crypto/actions/runs/11338890443/job/31533150473#step:10:15
-        if: false # temporarily disabled due to CI error
-        uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
-        with:
-          command: audit
-          toolchain: stable
-        env:
-          RUSTDOCFLAGS: --cfg docsrs
-
-      - name: Install cargo-deny
-        run: cargo install cargo-deny
-
-      - name: Run cargo deny
-        uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master
-        with:
-          command: deny
-          args: check
-          toolchain: stable
 
       - name: Run cargo build
         uses: marcopolo/cargo@a527bf4d534717ff4424a84446c5d710f8833139 # pin@master

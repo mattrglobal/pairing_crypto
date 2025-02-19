@@ -23,9 +23,9 @@ jobs:
         uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3.5.1
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: 22.x
+          node-version: 18.x
           registry-url: https://registry.npmjs.org
 
       - name: Install Dependencies
@@ -57,16 +57,10 @@ jobs:
           override: true
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: 22.x
+          node-version: 18.x
           registry-url: https://registry.npmjs.org
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: "17"
-          distribution: "zulu"
 
       - name: Run yarn install
         run: yarn install --frozen-lockfile
@@ -107,16 +101,10 @@ jobs:
           override: true
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: 22.x
+          node-version: 18.x
           registry-url: https://registry.npmjs.org
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: "17"
-          distribution: "zulu"
 
       - name: Run yarn install
         run: yarn install --frozen-lockfile

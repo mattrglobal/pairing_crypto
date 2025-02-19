@@ -26,9 +26,6 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Export Clang
-        run: export CC=/usr/bin/clang
-
       - name: Run yarn install
         run: yarn install --frozen-lockfile
 
@@ -65,9 +62,9 @@ jobs:
 
       # Required for publishing NPM package
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v1
         with:
-          node-version: 22.x
+          node-version: 18.x
           registry-url: "https://registry.npmjs.org"
 
       - name: Run yarn install
@@ -113,9 +110,9 @@ jobs:
 
       # Required for publishing NPM package
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v1
         with:
-          node-version: 22.x
+          node-version: 18.x
           registry-url: "https://registry.npmjs.org"
 
       - name: Run yarn install
