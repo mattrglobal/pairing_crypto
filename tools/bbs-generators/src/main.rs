@@ -22,7 +22,7 @@ enum OutputType {
 #[allow(non_snake_case)]
 #[derive(Serialize, Debug, Clone)]
 pub struct FixtureGenerators {
-    pub P1: String,
+    pub BP: String,
     pub Q1: String,
     pub MsgGenerators: Vec<String>,
 }
@@ -62,7 +62,7 @@ fn main() {
     .unwrap();
 
     let fixture = FixtureGenerators {
-        P1: hex::encode(generators[0].clone()),
+        BP: hex::encode(generators[0].clone()),
         Q1: hex::encode(generators[1].clone()),
         MsgGenerators: generators
             .iter()
