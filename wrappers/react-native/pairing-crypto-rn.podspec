@@ -11,7 +11,7 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => "10.0" }
+  s.platforms    = { :ios => "12.0" }
   s.source       = { :git => package["repository"]["url"], :tag => "#{s.version}" }
 
   s.requires_arc = true

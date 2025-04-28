@@ -6,7 +6,7 @@ Pod::Spec.new do |s|
   s.license      = "Apache-2.0"
   s.authors      = "MATTR Team"
 
-  s.platforms    = { :ios => "9.0" }
+  s.platforms    = { :ios => "12.0" }
   s.source       = { :git => "https://github.com/mattrglobal/pairing_crypto.git", :tag => "#{s.version}" }
 
   # TODO: The external libraries must be commited to the repo when we decided to publish this pod.
