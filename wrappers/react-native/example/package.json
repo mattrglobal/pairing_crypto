@@ -53,6 +53,7 @@
     "json5": "1.0.2",
     "shell-quote": "1.7.3",
     "detox/child-process-promise/cross-spawn": "7.0.6",
-    "patch-package/cross-spawn": "7.0.6"
+    "patch-package/cross-spawn": "7.0.6",
+    "glob": "9.3.5"
   }
 }
