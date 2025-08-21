@@ -20,6 +20,11 @@ pub(crate) trait BlsCiphersuiteParameters: HashToCurveParameter {
     fn p1() -> G1Projective {
         G1Projective::generator()
     }
+
+    // Point on G2 to be used during signature and proof verification.
+    // fn p2() -> G2Projective {
+    //     G2Projective::generator()
+    // }
 }
 
 pub(crate) trait BlsSigAugCiphersuiteParameters:
