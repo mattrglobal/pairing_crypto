@@ -82,7 +82,8 @@
     "typescript": "4.5.5"
   },
   "peerDependencies": {
-    "react": "*"
+    "react": "*",
+    "react-native": "*"
   },
   "resolutions": {
     "semver": "7.5.2"
