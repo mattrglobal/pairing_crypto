@@ -86,7 +86,8 @@
     "react-native": "*"
   },
   "resolutions": {
-    "semver": "7.5.2"
+    "semver": "7.5.2",
+    "on-headers": "1.1.0"
   },
   "jest": {
     "preset": "react-native",
