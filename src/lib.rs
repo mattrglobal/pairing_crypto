@@ -30,7 +30,7 @@
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![warn(missing_docs, rustdoc::missing_crate_level_docs, rust_2018_idioms)]
-#![deny(dead_code, redundant_semicolons, unused, unsafe_code, while_true)]
+#![deny(redundant_semicolons, unsafe_code, while_true)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
