@@ -20,12 +20,12 @@ jobs:
         uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
         with:
           profile: minimal
-          # TODO: use the latest stable
+          # TODO(DEBT): Remove usage of deprecated action and switch to the latest stable
           #  needed to pin otherwise getting a linker error as some symbols have been removed
           #  from the ios aarch64-apple-ios toolchain
           #  ld: Undefined symbols '___chkstk_darwin' referenced from 'libblst'
           #  https://github.com/mattrglobal/pairing_crypto/pull/231#discussion_r1875117128
-          toolchain: 1.70.0
+          toolchain: 1.82.0
           override: true
 
       - name: Xcode version
