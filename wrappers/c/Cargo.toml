@@ -4,7 +4,7 @@ edition = "2018"
 license = "Apache-2"
 readme = "README.md"
 name = "pairing_crypto_c"
-version = "0.4.3"
+version = "0.4.4"
 
 [lib]
 crate-type = ["staticlib", "cdylib", "rlib"]

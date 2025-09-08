@@ -1,3 +1,9 @@
+# [0.4.4](https://github.com/mattrglobal/pairing_crypto/compare/0.4.2...0.4.3) (2024-10-21)
+
+**@mattrglobal/pairing-crypto-rn**
+
+- Removed unused import statement in iOS native wrapper
+
 # [0.4.3](https://github.com/mattrglobal/pairing_crypto/compare/0.4.2...0.4.3) (2024-10-21)
 
 React native 72, 73 support, gradle 8 support
