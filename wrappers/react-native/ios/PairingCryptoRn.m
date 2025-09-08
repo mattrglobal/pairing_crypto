@@ -13,10 +13,6 @@
 #import "Operation.h"
 #import "PairingCryptoRn.h"
 
-#ifdef RCT_NEW_ARCH_ENABLED
-#import "RNPairingCryptoRnSpec.h"
-#endif
-
 @implementation PairingCryptoRn
 
 RCT_EXPORT_MODULE()
