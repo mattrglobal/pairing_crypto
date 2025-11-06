@@ -69,7 +69,7 @@
     "buffer": "5.0.3"
   },
   "devDependencies": {
-    "@react-native/eslint-config": "0.72.2",
+    "@react-native/eslint-config": "0.76.9",
     "@types/react": "18.2.14",
     "@types/react-native": "0.73.0",
     "eslint": "7.32.0",
@@ -79,7 +79,7 @@
     "prettier": "2.7.1",
     "react": "18.3.1",
     "react-native": "0.76.9",
-    "typescript": "4.5.5"
+    "typescript": "5.0.4"
   },
   "peerDependencies": {
     "react": "*",
