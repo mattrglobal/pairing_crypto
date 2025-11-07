@@ -13,12 +13,15 @@
   "dependencies": {
     "buffer": "6.0.3",
     "ramda": "0.28.0",
-    "react": "18.2.0",
-    "react-native": "0.74.6"
+    "react": "18.3.1",
+    "react-native": "0.76.9"
   },
   "devDependencies": {
-    "@babel/core": "7.20.12",
+    "@babel/core": "7.26.10",
     "@babel/runtime": "7.26.10",
+    "@react-native-community/cli": "17.0.1",
+    "@react-native-community/cli-platform-android": "17.0.1",
+    "@react-native-community/cli-platform-ios": "17.0.1",
     "@types/jest": "29.2.0",
     "@types/node": "16.11.7",
     "@types/ramda": "0.28.18",
@@ -29,10 +32,10 @@
     "pod-install": "0.1.38",
     "postinstall-postinstall": "2.1.0",
     "typescript": "4.5.5",
-    "@react-native/babel-preset": "0.74.88",
-    "@react-native/eslint-config": "0.74.88",
-    "@react-native/metro-config": "0.74.88",
-    "@react-native/typescript-config": "0.74.88",
+    "@react-native/babel-preset": "0.76.9",
+    "@react-native/eslint-config": "0.76.9",
+    "@react-native/metro-config": "0.76.9",
+    "@react-native/typescript-config": "0.76.9",
     "@types/react": "18.2.79",
     "@types/react-test-renderer": "18.0.0",
     "babel-jest": "29.6.4"
