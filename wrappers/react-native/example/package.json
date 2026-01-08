@@ -58,6 +58,7 @@
     "detox/child-process-promise/cross-spawn": "7.0.6",
     "patch-package/cross-spawn": "7.0.6",
     "patch-package/tmp": "0.2.5",
-    "glob": "9.3.5"
+    "glob": "9.3.5",
+    "@react-native-community/cli/@react-native-community/cli-server-api/body-parser/qs": "6.14.1"
   }
 }
