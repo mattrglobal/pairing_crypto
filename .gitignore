@@ -61,3 +61,6 @@ bbs_api_test
 
 **/xcuserdata/*
 **/resources/META-INF/*
+
+# xcode local environment settings
+.xcode.env.local
