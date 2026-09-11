@@ -2,7 +2,7 @@
 
 # Pairing Cryptography
 
-This library is a simple and easy to use one stop shop for [pairing-based cryptography](https://en.wikipedia.org/wiki/Pairing-based_cryptography) written in [Rust](rust-lang.org).
+This library is a simple and easy to use one stop shop for [pairing-based cryptography](https://en.wikipedia.org/wiki/Pairing-based_cryptography) written in [Rust](http://rust-lang.org).
 
 **Note** This library has not undergone an independent implementation audit.
 
