@@ -1,0 +1,70 @@
+name: cd-libraries-gh
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref (tag) to publish from"
+        required: false
+        default: ""
+  push:
+    branches:
+      - master
+
+jobs:
+  release-github-packages:
+    if: "github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'chore(release)')"
+
+    name: Publish to GitHub Packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+      packages: write
+
+    defaults:
+      run:
+        working-directory: wrappers/wasm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          fetch-depth: 0
+
+      - name: Setup nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Repack from NPMJS and publish to GitHub Packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PACKAGE_NAME=$(node -p "require('./package.json').name.split('/')[1]")
+
+          WORK_DIR=$(mktemp -d)
+          cd $WORK_DIR
+          npm pack @mattrglobal/${PACKAGE_NAME}@${VERSION} --registry https://registry.npmjs.org
+
+          tar xzf mattrglobal-${PACKAGE_NAME}-${VERSION}.tgz
+          cd package
+
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            const rewrite = (deps) => !deps ? deps : Object.fromEntries(
+              Object.entries(deps).map(([k, v]) => [k.replace('@mattrglobal/', '@mattrinternal/'), v])
+            );
+            pkg.dependencies = rewrite(pkg.dependencies);
+            pkg.peerDependencies = rewrite(pkg.peerDependencies);
+            pkg.devDependencies = rewrite(pkg.devDependencies);
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          "
+
+          NODE_AUTH_TOKEN=$GH_TOKEN npm publish --registry https://npm.pkg.github.com || echo "Already published at this version, skipping"
