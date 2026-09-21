@@ -1,0 +1,72 @@
+name: cd-libraries-gh
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref (branch, tag, or SHA) to build and publish from"
+        required: false
+        default: ""
+  push:
+    branches:
+      - master
+
+jobs:
+  release-github-packages:
+    if: "github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'chore(release)')"
+
+    name: Publish to GitHub Packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    permissions:
+      contents: read
+      packages: write
+
+    defaults:
+      run:
+        working-directory: wrappers/wasm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          fetch-depth: 0
+
+      - name: Setup nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Build
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
+
+      - name: Setup nodejs for GitHub Packages
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@mattrinternal"
+
+      - name: Publish to GitHub Packages
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
+        run: |
+          PACKAGE_NAME=$(node -p "require('./package.json').name.split('/')[1]")
+          npm pkg set name="@mattrinternal/${PACKAGE_NAME}"
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            const rewrite = (deps) => !deps ? deps : Object.fromEntries(
+              Object.entries(deps).map(([k, v]) => [k.replace('@mattrglobal/', '@mattrinternal/'), v])
+            );
+            pkg.dependencies = rewrite(pkg.dependencies);
+            pkg.peerDependencies = rewrite(pkg.peerDependencies);
+            pkg.devDependencies = rewrite(pkg.devDependencies);
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          "
+          npm publish || echo "Already published at this version, skipping"
