@@ -54,6 +54,8 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Build
+        env:
+          RUSTFLAGS: "-Awarnings"
         run: |
           yarn install --frozen-lockfile
           yarn build
