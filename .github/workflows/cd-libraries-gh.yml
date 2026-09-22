@@ -17,7 +17,7 @@ jobs:
 
     name: Publish to GitHub Packages
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
 
     permissions:
       contents: read
@@ -34,26 +34,25 @@ jobs:
           ref: ${{ inputs.ref || github.sha }}
           fetch-depth: 0
 
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
       - name: Setup nodejs
         uses: actions/setup-node@v4
         with:
           node-version: "22.x"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Repack from NPMJS and publish to GitHub Packages
+      - name: Build
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
+
+      - name: Publish to GitHub Packages
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION=$(node -p "require('./package.json').version")
           PACKAGE_NAME=$(node -p "require('./package.json').name.split('/')[1]")
-
-          WORK_DIR=$(mktemp -d)
-          cd $WORK_DIR
-          npm pack @mattrglobal/${PACKAGE_NAME}@${VERSION} --registry https://registry.npmjs.org
-
-          tar xzf mattrglobal-${PACKAGE_NAME}-${VERSION}.tgz
-          cd package
 
           node -e "
             const fs = require('fs');
@@ -61,10 +60,12 @@ jobs:
             const rewrite = (deps) => !deps ? deps : Object.fromEntries(
               Object.entries(deps).map(([k, v]) => [k.replace('@mattrglobal/', '@mattrinternal/'), v])
             );
+            pkg.name = '@mattrinternal/' + pkg.name.split('/')[1];
             pkg.dependencies = rewrite(pkg.dependencies);
             pkg.peerDependencies = rewrite(pkg.peerDependencies);
             pkg.devDependencies = rewrite(pkg.devDependencies);
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
           "
 
-          NODE_AUTH_TOKEN=$GH_TOKEN npm publish --registry https://npm.pkg.github.com || echo "Already published at this version, skipping"
+          npm config set //npm.pkg.github.com/:_authToken "${GH_TOKEN}"
+          npm publish --registry https://npm.pkg.github.com || echo "Already published at this version, skipping"
