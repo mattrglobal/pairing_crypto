@@ -64,7 +64,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          npm pkg set name="@mattrinternal/pairing-crypto"
-
           npm config set //npm.pkg.github.com/:_authToken "${GH_TOKEN}"
           npm publish --registry https://npm.pkg.github.com || echo "Already published at this version, skipping"
