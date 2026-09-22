@@ -34,6 +34,13 @@ jobs:
           ref: ${{ inputs.ref || github.sha }}
           fetch-depth: 0
 
+      - name: Setup stable Rust toolchain
+        uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
@@ -52,20 +59,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          PACKAGE_NAME=$(node -p "require('./package.json').name.split('/')[1]")
-
-          node -e "
-            const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            const rewrite = (deps) => !deps ? deps : Object.fromEntries(
-              Object.entries(deps).map(([k, v]) => [k.replace('@mattrglobal/', '@mattrinternal/'), v])
-            );
-            pkg.name = '@mattrinternal/' + pkg.name.split('/')[1];
-            pkg.dependencies = rewrite(pkg.dependencies);
-            pkg.peerDependencies = rewrite(pkg.peerDependencies);
-            pkg.devDependencies = rewrite(pkg.devDependencies);
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
-          "
+          npm pkg set name="@mattrinternal/pairing-crypto"
 
           npm config set //npm.pkg.github.com/:_authToken "${GH_TOKEN}"
           npm publish --registry https://npm.pkg.github.com || echo "Already published at this version, skipping"
