@@ -55,7 +55,7 @@ jobs:
 
       - name: Build
         env:
-          RUSTFLAGS: "-Awarnings"
+          RUSTFLAGS: "--cap-lints warn"
         run: |
           yarn install --frozen-lockfile
           yarn build
