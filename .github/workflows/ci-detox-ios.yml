@@ -41,6 +41,17 @@ jobs:
       - name: Verify Xcode Version
         run: xcodebuild -version
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install Dependencies
+        run: yarn install --immutable
+
       - name: Build Libraries for iOS
         run: yarn build:ios
 
@@ -78,6 +89,9 @@ jobs:
           node-version: 22.x
           registry-url: https://registry.npmjs.org
 
+      - name: Enable corepack
+        run: corepack enable
+
       - name: Download iOS Libraries
         uses: actions/download-artifact@v4
         with:
@@ -88,10 +102,10 @@ jobs:
         run: ls -R ios/lib
 
       - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Example App Install Dependencies
-        run: yarn example --frozen-lockfile
+        run: yarn example install --immutable
 
       - name: Example App Install Pods
         run: yarn example pods
