@@ -19,11 +19,11 @@ new_version=$(node -pe "require('./package.json').version")
 package_name=$(node -pe "require('./package.json').name")
 
 # Check if the new version is not the current
-new_version_exists=$(yarn info $package_name --json | jq --arg version "$new_version" -r '.data.versions | any(index($version))')
+new_version_exists=$(npm view "$package_name" versions --json | jq --arg version "$new_version" -r 'any(index($version))')
 
 if [[ $new_version_exists == "false" ]]; then
     # Version to this new unstable version
-    yarn publish --no-git-tag-version --new-version $new_version
+    npm publish
 fi
 
 # Reset changes to the package.json

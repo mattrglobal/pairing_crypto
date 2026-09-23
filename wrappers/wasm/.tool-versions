@@ -1,0 +1,3 @@
+# install mise and run `mise install`
+nodejs 22
+yarn 4

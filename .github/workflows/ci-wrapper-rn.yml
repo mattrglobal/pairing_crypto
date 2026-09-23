@@ -29,8 +29,11 @@ jobs:
           node-version: 22.x
           registry-url: https://registry.npmjs.org
 
+      - name: Enable corepack
+        run: corepack enable
+
       - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Lint
         run: yarn lint
@@ -53,6 +56,9 @@ jobs:
           # TODO(DEBT): Remove usage of deprecated action and switch to the latest stable
           toolchain: 1.82.0
           override: true
+
+      - name: Enable corepack
+        run: corepack enable
 
       - name: Build Libraries for iOS
         working-directory: ./wrappers/react-native
@@ -79,6 +85,9 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+
+      - name: Enable corepack
+        run: corepack enable
 
       - name: Build Libraries for Android
         working-directory: ./wrappers/react-native
@@ -119,8 +128,11 @@ jobs:
           node-version: 22.x
           registry-url: https://registry.npmjs.org
 
+      - name: Enable corepack
+        run: corepack enable
+
       - name: Run yarn install
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Run yarn build
         run: yarn build
@@ -166,8 +178,11 @@ jobs:
           node-version: 22.x
           registry-url: https://registry.npmjs.org
 
+      - name: Enable corepack
+        run: corepack enable
+
       - name: Run yarn install
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Run yarn build
         run: yarn build
