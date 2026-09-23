@@ -97,6 +97,7 @@ jobs:
         run: yarn example pods
 
       - run: brew tap wix/brew
+      - run: brew trust --formula wix/brew/applesimutils
       - run: brew install applesimutils
 
       - name: Print Simulators
