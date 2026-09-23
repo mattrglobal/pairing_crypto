@@ -43,8 +43,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
       - name: Enable corepack
         run: corepack enable
+
+      - name: Install Dependencies
+        run: yarn install --immutable
 
       - name: Build Libraries for Android
         run: yarn build:android

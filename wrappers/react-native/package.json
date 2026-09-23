@@ -45,7 +45,8 @@
     "detox:ios:ci": "yarn detox:ios --cleanup --record-videos failing",
     "detox:android": "yarn example detox test -c android",
     "detox:android:ci": "yarn detox:android --cleanup --record-videos failing --headless --loglevel warn",
-    "bootstrap": "yarn install && yarn build && yarn example && yarn example pods"
+    "example:prepare": "yarn build && yarn example && yarn example pods",
+    "bootstrap": "yarn install && yarn example:prepare"
   },
   "keywords": [
     "react-native",
