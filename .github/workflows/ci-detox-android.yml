@@ -43,6 +43,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install Dependencies
+        run: yarn install --immutable
+
       - name: Build Libraries for Android
         run: yarn build:android
 
@@ -83,6 +94,9 @@ jobs:
           node-version: 22.x
           registry-url: https://registry.npmjs.org
 
+      - name: Enable corepack
+        run: corepack enable
+
       - name: Download Android Libraries
         uses: actions/download-artifact@v4
         with:
@@ -93,11 +107,11 @@ jobs:
         run: ls -R android/lib
 
       - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Example App Install Dependencies
         working-directory: wrappers/react-native/example
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Enable Hardware accelerated Android virtualization
         # Recommended by ReactiveCircus to speed up running emulators

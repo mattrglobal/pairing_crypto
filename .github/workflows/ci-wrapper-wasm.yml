@@ -29,8 +29,11 @@ jobs:
       - name: Export Clang
         run: export CC=/usr/bin/clang
 
+      - name: Enable corepack
+        run: corepack enable
+
       - name: Run yarn install
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Run yarn setup
         run: yarn setup
@@ -70,8 +73,11 @@ jobs:
           node-version: 22.x
           registry-url: "https://registry.npmjs.org"
 
+      - name: Enable corepack
+        run: corepack enable
+
       - name: Run yarn install
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Run yarn setup
         run: yarn setup
@@ -118,8 +124,11 @@ jobs:
           node-version: 22.x
           registry-url: "https://registry.npmjs.org"
 
+      - name: Enable corepack
+        run: corepack enable
+
       - name: Run yarn install
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Run yarn setup
         run: yarn setup

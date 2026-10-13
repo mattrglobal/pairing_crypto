@@ -28,7 +28,10 @@ pairing = "0.22.0"
 blstrs = { git = "https://github.com/mattrglobal/blstrs.git", rev = "a0cb960", version = "0.6.1" }
 serde = { version = "1.0", features = ["derive"] }
 subtle = "2.4"
-zeroize = { version  ="1.3", features = ["zeroize_derive"] }
+# zeroize 1.9 and zeroize_derive 1.5 require edition 2024 (Rust 1.85), but the
+# iOS builds pin Rust 1.82 to avoid a blst linker error.
+zeroize = { version = ">=1.3, <1.9", features = ["zeroize_derive"] }
+zeroize_derive = ">=1.3, <1.5"
 sha2 = "0.9"
 sha3 = "0.9"
 

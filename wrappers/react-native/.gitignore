@@ -28,6 +28,7 @@ DerivedData
 *.ipa
 *.xcuserstate
 project.xcworkspace
+example/ios/.xcode.env.local
 
 # Android/IJ
 #
@@ -53,6 +54,7 @@ node_modules/
 npm-debug.log
 yarn-debug.log
 yarn-error.log
+.yarn/
 jest_results/
 detox-artifacts/
 

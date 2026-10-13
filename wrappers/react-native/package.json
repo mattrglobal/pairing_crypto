@@ -37,7 +37,7 @@
     "format": "prettier --write '**/*.{js,ts,tsx}'",
     "lint": "eslint . --ext .ts --color --format=table",
     "lint:fix": "yarn lint --fix",
-    "example": "yarn --cwd example",
+    "example": "cd example && yarn",
     "detox:build": "yarn e2e:build:ios && e2e:build:android",
     "detox:build:ios": "yarn example detox build -c ios",
     "detox:build:android": "yarn example detox build -c android",
@@ -45,7 +45,8 @@
     "detox:ios:ci": "yarn detox:ios --cleanup --record-videos failing",
     "detox:android": "yarn example detox test -c android",
     "detox:android:ci": "yarn detox:android --cleanup --record-videos failing --headless --loglevel warn",
-    "bootstrap": "yarn install && yarn build && yarn example && yarn example pods"
+    "example:prepare": "yarn build && yarn example && yarn example pods",
+    "bootstrap": "yarn install && yarn example:prepare"
   },
   "keywords": [
     "react-native",
@@ -72,8 +73,8 @@
     "@react-native/eslint-config": "0.76.9",
     "@types/react": "18.2.14",
     "@types/react-native": "0.73.0",
-    "@typescript-eslint/parser": "5.62.0",
     "@typescript-eslint/eslint-plugin": "5.62.0",
+    "@typescript-eslint/parser": "5.62.0",
     "eslint": "7.32.0",
     "eslint-config-prettier": "6.11.0",
     "eslint-plugin-header": "3.1.1",
@@ -104,5 +105,6 @@
     "tabWidth": 2,
     "trailingComma": "es5",
     "useTabs": false
-  }
+  },
+  "packageManager": "yarn@4.18.0"
 }

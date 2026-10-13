@@ -28,12 +28,16 @@ const keyPair = await bbs.bls12381_sha256.generateKeyPair();
 
 ## Contributing
 
-We use [Yarn](https://yarnpkg.com/) as the package manager for this library
+We use [Yarn](https://yarnpkg.com/) 4 as the package manager for this library, pinned through the `packageManager` field in `package.json`. Enable [Corepack](https://nodejs.org/api/corepack.html) once so the pinned version is used
+
+```
+corepack enable
+```
 
 To install the required dependencies run
 
 ```
-yarn install --frozen-lockfile
+yarn install --immutable
 yarn bootstrap
 ```
 
