@@ -113,6 +113,12 @@ jobs:
         working-directory: wrappers/react-native/example
         run: yarn install --immutable
 
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
       - name: Enable Hardware accelerated Android virtualization
         # Recommended by ReactiveCircus to speed up running emulators
         # https://github.com/ReactiveCircus/android-emulator-runner/blob/main/README.md#running-hardware-accelerated-emulators-on-linux-runners
