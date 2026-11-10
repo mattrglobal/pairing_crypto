@@ -28,6 +28,14 @@ fun ReadableMap.getByteArray(key: String): ByteArray {
   return (this.getArray(key) as ReadableArray).toByteArray();
 }
 
+// An empty array tells the native key generation to draw IKM from the system RNG
+fun ReadableMap.getByteArrayOrEmpty(key: String): ByteArray {
+  if (!this.hasKey(key) || this.isNull(key)) {
+    return ByteArray(0)
+  }
+  return this.getByteArray(key)
+}
+
 fun ReadableMap.getArrayOfByteArrays(key: String): Array<ByteArray>? {
   val array = this.getArray(key) ?: return null;
   val result = Array(array.size(), init = { ByteArray(0) })

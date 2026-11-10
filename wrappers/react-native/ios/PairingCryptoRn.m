@@ -32,7 +32,7 @@ RCT_EXPORT_METHOD(Bls12381Sha256GenerateKeyPair:(NSDictionary *)request
         }
 
         if ([request valueForKey:@"keyInfo"] != nil) {
-            ikm = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"keyInfo"]]];
+            keyInfo = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"keyInfo"]]];
         }
 
         PCLBbsBls12381Sha256KeyPair *keyPair = [[PCLBbsBls12381Sha256KeyPair alloc] initWithIkm:ikm keyInfo:keyInfo
@@ -62,7 +62,7 @@ RCT_EXPORT_METHOD(Bls12381Shake256GenerateKeyPair:(NSDictionary *)request
         }
 
         if ([request valueForKey:@"keyInfo"] != nil) {
-            ikm = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"keyInfo"]]];
+            keyInfo = [Convert dataFromByteArray:[RCTConvert NSArray:request[@"keyInfo"]]];
         }
 
         PCLBbsBls12381Shake256KeyPair *keyPair = [[PCLBbsBls12381Shake256KeyPair alloc] initWithIkm:ikm keyInfo:keyInfo

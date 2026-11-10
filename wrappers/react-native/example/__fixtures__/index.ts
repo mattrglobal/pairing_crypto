@@ -45,6 +45,16 @@ export interface ProofFixture {
   readonly signerPublicKey: string;
 }
 
+export interface KeyPairFixture {
+  readonly caseName: string;
+  readonly keyMaterial: string;
+  readonly keyInfo: string;
+  readonly keyPair: {
+    readonly publicKey: string;
+    readonly secretKey: string;
+  };
+}
+
 export interface SignatureFixture {
   readonly caseName: string;
   readonly signature: string;
@@ -67,6 +77,9 @@ const resolve = <T>(path: string): T => {
 
 const testAsset = resolve<FixtureItem<TestAsset>>('test_asset');
 
+const bls12381Sha256KeyPair = resolve<FixtureItem<KeyPairFixture>>('bls12_381_sha_256/keypair');
+const bls12381Shake256KeyPair = resolve<FixtureItem<KeyPairFixture>>('bls12_381_shake_256/keypair');
+
 const bls12381Sha256Signature = resolve<Fixtures<SignatureFixture>>('bls12_381_sha_256/signature');
 const bls12381Shake256Signature = resolve<Fixtures<SignatureFixture>>('bls12_381_shake_256/signature');
 const bls12381Sha256Proof = resolve<Fixtures<ProofFixture>>('bls12_381_sha_256/proof');
@@ -74,6 +87,9 @@ const bls12381Shake256Proof = resolve<Fixtures<ProofFixture>>('bls12_381_shake_2
 
 export const fixtures = {
   testAsset,
+
+  bls12381Sha256KeyPair,
+  bls12381Shake256KeyPair,
 
   bls12381Sha256Signature,
   bls12381Shake256Signature,
