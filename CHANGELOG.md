@@ -1,3 +1,9 @@
+# [0.4.5](https://github.com/mattrglobal/pairing_crypto/compare/v0.4.4...v0.4.5) (2026-11-11)
+
+**@mattrglobal/pairing-crypto-rn**
+
+- Key generation now uses the caller's `ikm` and `keyInfo` on both platforms. Previously Android ignored them and iOS passed `keyInfo` as `ikm`. When either is omitted, it defaults to an empty array, and an empty `ikm` makes the native library draw key material from the system RNG.
+
 # [0.4.4](https://github.com/mattrglobal/pairing_crypto/compare/0.4.2...0.4.3) (2024-10-21)
 
 **@mattrglobal/pairing-crypto-rn**
