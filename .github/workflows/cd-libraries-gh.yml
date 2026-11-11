@@ -34,6 +34,13 @@ jobs:
           ref: ${{ inputs.ref || github.sha }}
           fetch-depth: 0
 
+      - name: Setup rust toolchain
+        uses: actions-rs/toolchain@b2417cde72dcf67f306c0ae8e0828a81bf0b189f # pin@v1.0.6
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
       - name: Setup nodejs
         uses: actions/setup-node@v4
         with:
@@ -46,6 +53,7 @@ jobs:
       - name: Build
         run: |
           yarn install --immutable
+          yarn setup
           yarn build
 
       - name: Setup nodejs for GitHub Packages
