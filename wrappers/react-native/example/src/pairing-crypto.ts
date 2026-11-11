@@ -15,6 +15,7 @@ import { Buffer } from 'buffer';
 import { BbsVerifyResult, bbs } from '@mattrglobal/pairing-crypto-rn';
 
 import { FixtureItem, SignatureFixture, ProofFixture, fixtures } from '../__fixtures__';
+import keyPairVector from '../__fixtures__/keyPair.json';
 
 export interface VerifyResult {
   readonly verified: boolean;
@@ -28,27 +29,42 @@ const convert = {
   byteArrayFromHex: (data: string): Uint8Array => new Uint8Array(Buffer.from(data, 'hex')),
 };
 
-export const BbsBls12381Sha256GenerateKeyPair = async (): Promise<VerifyResult> => {
-  const keyPair = await bbs.bls12381_sha256.generateKeyPair();
-  if (!keyPair) {
+type GenerateKeyPair = typeof bbs.bls12381_sha256.generateKeyPair;
+
+// Key generation is shared by every ciphersuite, so one vector covers both
+const verifyKeyGeneration = async (generateKeyPair: GenerateKeyPair): Promise<VerifyResult> => {
+  const ikm = convert.byteArrayFromHex(keyPairVector.ikm);
+  const keyInfo = convert.byteArrayFromHex(keyPairVector.keyInfo);
+  const publicKeyOf = async (request?: Parameters<GenerateKeyPair>[0]): Promise<string> =>
+    convert.byteArrayToHex((await generateKeyPair(request)).publicKey);
+
+  const fromIkmAndKeyInfo = await publicKeyOf({ ikm, keyInfo });
+  if (fromIkmAndKeyInfo !== keyPairVector.publicKey) {
     return {
       verified: false,
-      error: new Error('Expected key pair, but undefined'),
+      error: new Error(`Expected ${keyPairVector.publicKey} from IKM and keyInfo, got ${fromIkmAndKeyInfo}`),
     };
   }
-  return { verified: true, keyPair };
+
+  // Omitting keyInfo also exercises the bridge's handling of an absent field
+  const fromIkmOnly = await publicKeyOf({ ikm });
+  if (fromIkmOnly === fromIkmAndKeyInfo) {
+    return { verified: false, error: new Error('Expected keyInfo to change the generated key pair') };
+  }
+
+  const [firstRandom, secondRandom] = [await publicKeyOf(), await publicKeyOf()];
+  if (firstRandom === secondRandom) {
+    return { verified: false, error: new Error(`Expected distinct key pairs without IKM, got ${firstRandom} twice`) };
+  }
+
+  return { verified: true, fromIkmAndKeyInfo, fromIkmOnly, firstRandom, secondRandom };
 };
 
-export const BbsBls12381Shake256GenerateKeyPair = async (): Promise<VerifyResult> => {
-  const keyPair = await bbs.bls12381_shake256.generateKeyPair();
-  if (!keyPair) {
-    return {
-      verified: false,
-      error: new Error('Expected key pair, but undefined'),
-    };
-  }
-  return { verified: true, keyPair };
-};
+export const BbsBls12381Sha256GenerateKeyPair = (): Promise<VerifyResult> =>
+  verifyKeyGeneration(bbs.bls12381_sha256.generateKeyPair);
+
+export const BbsBls12381Shake256GenerateKeyPair = (): Promise<VerifyResult> =>
+  verifyKeyGeneration(bbs.bls12381_shake256.generateKeyPair);
 
 export const BbsBls12381Sha256ProofGen = async (fixture: FixtureItem<ProofFixture>): Promise<VerifyResult> => {
   const revealedMessages = R.values(fixture.value.revealedMessages);

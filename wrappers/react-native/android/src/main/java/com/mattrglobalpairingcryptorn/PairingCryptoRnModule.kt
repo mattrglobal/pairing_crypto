@@ -17,30 +17,38 @@ class PairingCryptoRnModule(reactContext: ReactApplicationContext) : ReactContex
 
   @ReactMethod
   fun Bls12381Sha256GenerateKeyPair(request: ReadableMap, promise: Promise) {
-    val result = WritableNativeMap()
-    val ikm = ByteArray(32)
-    val keyInfo = ByteArray(32)
+    try {
+      val result = WritableNativeMap()
+      val ikm = request.getByteArrayOrEmpty("ikm")
+      val keyInfo = request.getByteArrayOrEmpty("keyInfo")
 
-    var cipherSuite = Bls12381Sha256()
-    var keyPair = cipherSuite.generateKeyPair(ikm, keyInfo)
+      var cipherSuite = Bls12381Sha256()
+      var keyPair = cipherSuite.generateKeyPair(ikm, keyInfo)
 
-    result.putArray("publicKey", keyPair.publicKey.toReadableArray())
-    result.putArray("secretKey", keyPair.secretKey.toReadableArray())
-    promise.resolve(result as ReadableMap)
+      result.putArray("publicKey", keyPair.publicKey.toReadableArray())
+      result.putArray("secretKey", keyPair.secretKey.toReadableArray())
+      promise.resolve(result as ReadableMap)
+    } catch (exception: Exception) {
+      promise.reject(exception)
+    }
   }
 
   @ReactMethod
   fun Bls12381Shake256GenerateKeyPair(request: ReadableMap, promise: Promise) {
-    val result = WritableNativeMap()
-    val ikm = ByteArray(32)
-    val keyInfo = ByteArray(32)
+    try {
+      val result = WritableNativeMap()
+      val ikm = request.getByteArrayOrEmpty("ikm")
+      val keyInfo = request.getByteArrayOrEmpty("keyInfo")
 
-    var cipherSuite = Bls12381Shake256()
-    var keyPair = cipherSuite.generateKeyPair(ikm, keyInfo)
+      var cipherSuite = Bls12381Shake256()
+      var keyPair = cipherSuite.generateKeyPair(ikm, keyInfo)
 
-    result.putArray("publicKey", keyPair.publicKey.toReadableArray())
-    result.putArray("secretKey", keyPair.secretKey.toReadableArray())
-    promise.resolve(result as ReadableMap)
+      result.putArray("publicKey", keyPair.publicKey.toReadableArray())
+      result.putArray("secretKey", keyPair.secretKey.toReadableArray())
+      promise.resolve(result as ReadableMap)
+    } catch (exception: Exception) {
+      promise.reject(exception)
+    }
   }
 
   @ReactMethod
