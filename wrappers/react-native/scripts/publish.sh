@@ -18,12 +18,13 @@ new_version=$(node -pe "require('./package.json').version")
 # Fetch package name
 package_name=$(node -pe "require('./package.json').name")
 
-# Check if the new version is not the current
-new_version_exists=$(npm view "$package_name" versions --json | jq --arg version "$new_version" -r 'any(index($version))')
+# Check if this exact version is already published
+new_version_exists=$(npm view "$package_name" versions --json | jq --arg version "$new_version" -r 'any(.[]; . == $version)')
 
 if [[ $new_version_exists == "false" ]]; then
-    # Version to this new unstable version
     npm publish
+else
+    echo "$package_name@$new_version is already published, skipping"
 fi
 
 # Reset changes to the package.json
