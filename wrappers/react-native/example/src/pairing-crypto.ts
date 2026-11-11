@@ -14,7 +14,8 @@ import R from 'ramda';
 import { Buffer } from 'buffer';
 import { BbsVerifyResult, bbs } from '@mattrglobal/pairing-crypto-rn';
 
-import { FixtureItem, KeyPairFixture, SignatureFixture, ProofFixture, fixtures } from '../__fixtures__';
+import { FixtureItem, SignatureFixture, ProofFixture, fixtures } from '../__fixtures__';
+import keyPairVector from '../__fixtures__/keyPair.json';
 
 export interface VerifyResult {
   readonly verified: boolean;
@@ -30,20 +31,18 @@ const convert = {
 
 type GenerateKeyPair = typeof bbs.bls12381_sha256.generateKeyPair;
 
-const verifyKeyGeneration = async (
-  generateKeyPair: GenerateKeyPair,
-  fixture: FixtureItem<KeyPairFixture>
-): Promise<VerifyResult> => {
-  const ikm = convert.byteArrayFromHex(fixture.value.keyMaterial);
-  const keyInfo = convert.byteArrayFromHex(fixture.value.keyInfo);
+// Key generation is shared by every ciphersuite, so one vector covers both
+const verifyKeyGeneration = async (generateKeyPair: GenerateKeyPair): Promise<VerifyResult> => {
+  const ikm = convert.byteArrayFromHex(keyPairVector.ikm);
+  const keyInfo = convert.byteArrayFromHex(keyPairVector.keyInfo);
   const publicKeyOf = async (request?: Parameters<GenerateKeyPair>[0]): Promise<string> =>
     convert.byteArrayToHex((await generateKeyPair(request)).publicKey);
 
   const fromIkmAndKeyInfo = await publicKeyOf({ ikm, keyInfo });
-  if (fromIkmAndKeyInfo !== fixture.value.keyPair.publicKey) {
+  if (fromIkmAndKeyInfo !== keyPairVector.publicKey) {
     return {
       verified: false,
-      error: new Error(`Expected fixture public key from IKM and keyInfo, got ${fromIkmAndKeyInfo}`),
+      error: new Error(`Expected ${keyPairVector.publicKey} from IKM and keyInfo, got ${fromIkmAndKeyInfo}`),
     };
   }
 
@@ -62,10 +61,10 @@ const verifyKeyGeneration = async (
 };
 
 export const BbsBls12381Sha256GenerateKeyPair = (): Promise<VerifyResult> =>
-  verifyKeyGeneration(bbs.bls12381_sha256.generateKeyPair, fixtures.bls12381Sha256KeyPair);
+  verifyKeyGeneration(bbs.bls12381_sha256.generateKeyPair);
 
 export const BbsBls12381Shake256GenerateKeyPair = (): Promise<VerifyResult> =>
-  verifyKeyGeneration(bbs.bls12381_shake256.generateKeyPair, fixtures.bls12381Shake256KeyPair);
+  verifyKeyGeneration(bbs.bls12381_shake256.generateKeyPair);
 
 export const BbsBls12381Sha256ProofGen = async (fixture: FixtureItem<ProofFixture>): Promise<VerifyResult> => {
   const revealedMessages = R.values(fixture.value.revealedMessages);
