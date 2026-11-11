@@ -107,6 +107,12 @@ jobs:
         working-directory: ./wrappers/react-native
         run: yarn install --immutable
 
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
       - name: Build Libraries for Android
         working-directory: ./wrappers/react-native
         run: yarn build:android
